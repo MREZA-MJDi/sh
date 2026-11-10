@@ -8,7 +8,6 @@ use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class CourseService
 {
@@ -83,9 +82,7 @@ class CourseService
             || $course->exams()->exists()
             || $course->spotPlayerVideos()->exists()
         ) {
-            throw ValidationException::withMessages([
-                'course' => 'این دوره دارای محتوای آموزشی، منابع، آزمون، کلاس، ثبت‌نام یا لایسنس است؛ برای حفظ سوابق آن را بایگانی کنید.',
-            ]);
+            abort(422, 'این دوره دارای کلاس، ثبت‌نام یا محتوای آموزشی است؛ برای حفظ سوابق آن را بایگانی کنید.');
         }
 
         $course->delete();
