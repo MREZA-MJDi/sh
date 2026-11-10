@@ -112,9 +112,9 @@ final class ImportLegacyAcademyData extends Command
 
                 $this->importUsers($data['users'], $counts);
                 $this->importGuardianLinks($data['parents'], $counts);
-                $this->importCourses($data['courses'], $data['course_teachers'], $counts);
+                $this->importCourses($data['courses'], $data['courseTeachers'], $counts);
                 $this->importEnrollments($data['enrollments'], $counts);
-                $classMaps = $this->importClassrooms($data['classrooms'], $data['classroom_teachers'], $counts);
+                $classMaps = $this->importClassrooms($data['classrooms'], $data['classTeachers'], $counts);
                 $this->importRosters($data['rosters'], $classMaps, $counts);
 
                 DB::table('legacy_import_maps')
