@@ -17,6 +17,11 @@ class Consultation extends Model
         return ['desired_at' => 'datetime', 'scheduled_at' => 'datetime'];
     }
 
+    public function replies(): \\Illuminate\\Database\\Eloquent\\Relations\\HasMany
+    {
+        return $this->hasMany(ConsultationReply::class)->with('sender')->oldest();
+    }
+
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requester_id');
