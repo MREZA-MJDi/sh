@@ -1,1 +1,0 @@
-<section class="page" id="s-shop"><div class="card"><div class="ch"><h2>کتاب‌ها و محصولات</h2></div><div class="empty">فروشگاه و سفارش‌های آموزشی هنوز به این کارتابل متصل نشده‌اند. هیچ محصول یا خرید آزمایشی در این بخش نمایش داده نمی‌شود.</div></div></section>
