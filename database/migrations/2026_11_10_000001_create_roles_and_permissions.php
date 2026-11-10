@@ -27,6 +27,7 @@ return new class extends Migration
         Schema::create('permission_role', function (Blueprint $table) {
             $table->foreignId('permission_id')->constrained()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
             $table->primary(['permission_id', 'role_id']);
         });
 
@@ -57,9 +58,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('guardian_student');
+
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn(['phone', 'is_active', 'grade', 'subject', 'profile_note', 'last_login_at']);
         });
+
         Schema::dropIfExists('role_user');
         Schema::dropIfExists('permission_role');
         Schema::dropIfExists('permissions');
