@@ -12,6 +12,53 @@ const TOOLBAR = [
     { command: 'formatBlock', value: 'blockquote', label: 'نقل‌قول', title: 'نقل‌قول' },
 ];
 
+const SAFE_TAGS = new Set(['P','BR','DIV','SPAN','STRONG','B','EM','I','U','S','UL','OL','LI','BLOCKQUOTE','H2','H3','H4','PRE','CODE','A','TABLE','THEAD','TBODY','TR','TH','TD','HR']);
+const SAFE_STYLES = new Set(['color','background-color','font-family','font-size','font-weight','font-style','text-decoration','text-align']);
+
+function sanitizeInitialHtml(value) {
+    const template = document.createElement('template');
+    template.innerHTML = value;
+    const cleanNode = (parent) => {
+        [...parent.childNodes].forEach((node) => {
+            if (!(node instanceof Element)) {
+                if (node.nodeType !== Node.TEXT_NODE) node.remove();
+                return;
+            }
+            if (!SAFE_TAGS.has(node.tagName)) {
+                if (['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','FORM','INPUT','BUTTON'].includes(node.tagName)) {
+                    node.remove();
+                } else {
+                    node.replaceWith(...node.childNodes);
+                }
+                return;
+            }
+            [...node.attributes].forEach((attribute) => {
+                const name = attribute.name.toLowerCase();
+                if (name === 'style') {
+                    const declarations = [...node.style].filter((property) => {
+                        const styleValue = node.style.getPropertyValue(property).trim();
+                        return SAFE_STYLES.has(property) && !/url\\s*\\(|expression\\s*\\(|[<>]|\\\\/i.test(styleValue);
+                    });
+                    const styles = declarations.map((property) => property + ':' + node.style.getPropertyValue(property).trim());
+                    if (styles.length) node.setAttribute('style', styles.join(';'));
+                    else node.removeAttribute('style');
+                } else if (name === 'href' && node.tagName === 'A') {
+                    if (!/^(https?:|mailto:|tel:)/i.test(attribute.value.trim())) node.removeAttribute('href');
+                } else if (!(name === 'colspan' || name === 'rowspan') || !/^\\d{1,2}$/.test(attribute.value)) {
+                    node.removeAttribute(attribute.name);
+                }
+            });
+            if (node.tagName === 'A' && node.hasAttribute('href')) {
+                node.setAttribute('target','_blank');
+                node.setAttribute('rel','nofollow noopener noreferrer');
+            }
+            cleanNode(node);
+        });
+    };
+    cleanNode(template.content);
+    return template.innerHTML;
+}
+
 function wrapSelection(style) {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
@@ -48,7 +95,7 @@ function enhanceRichTextarea(textarea) {
     editor.setAttribute('role', 'textbox');
     editor.setAttribute('aria-multiline', 'true');
     editor.setAttribute('dir', 'rtl');
-    editor.innerHTML = textarea.value || '';
+    editor.innerHTML = sanitizeInitialHtml(textarea.value || '');
     editor.dataset.placeholder = textarea.placeholder || 'متن خود را بنویسید…';
 
     const addButton = (item) => {
