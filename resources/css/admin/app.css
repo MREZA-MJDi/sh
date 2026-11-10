@@ -16,7 +16,7 @@ body.admin-body {
     font:14px/1.8 Vazirmatn,Tahoma,sans-serif; color-scheme:light;
 }
 html:has(body.admin-body[data-theme="dark"]) { color-scheme:dark; }
-body.admin-body[data-theme="dark"] {
+body.admin-body[data-theme="dark"], body.admin-body[data-admin-theme="dark"] {
     --adm-bg:#0b1029; --adm-card:#141b3f; --adm-ink:#edf0fc; --adm-muted:#98a2cf;
     --adm-line:#252e60; --adm-primary:#94a6ff; --adm-primary-soft:#222c66;
     --adm-teal:#3ccdb9; --adm-teal-soft:#10393a; --adm-amber:#f5b942;

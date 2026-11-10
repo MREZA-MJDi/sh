@@ -6,6 +6,7 @@ use App\Services\Quiz24\Contracts\Quiz24Gateway;
 use App\Services\Quiz24\UnavailableQuiz24Gateway;
 use App\Services\SpotPlayer\Contracts\SpotPlayerGateway;
 use App\Services\SpotPlayer\UnavailableSpotPlayerGateway;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
+
         Gate::before(function ($user, string $ability): ?bool {
             return $user->hasPermissionTo($ability) ? true : null;
         });
