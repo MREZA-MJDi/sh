@@ -17,7 +17,9 @@ final class SpotPlayerVideoService
 
     public function stage(array $data, User $actor): SpotPlayerVideo
     {
-        if (! ($data['file'] ?? null) instanceof UploadedFile) {
+        $uploadedFile = $data['file'] ?? null;
+
+        if (! ($uploadedFile instanceof UploadedFile)) {
             return DB::transaction(function () use ($data, $actor): SpotPlayerVideo {
                 $externalId = trim((string) ($data['external_id'] ?? ''));
 
@@ -60,7 +62,6 @@ final class SpotPlayerVideoService
         }
 
         /** @var UploadedFile $uploadedFile */
-        $uploadedFile = $data['file'];
         $storagePath = $uploadedFile->store('private/spotplayer-staging', 'local');
 
         if (! $storagePath) {
