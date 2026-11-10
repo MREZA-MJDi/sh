@@ -214,7 +214,7 @@
                                     مهلت:
                                     {{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}
                                 </span>
-                                                            </div>
+                            </div>
 
                             @if ($submission?->reviewed_at !== null || $submission?->status === 'reviewed')
                                 <div class="student-homework-item__review" role="status">
@@ -246,7 +246,7 @@
                             @endif
 
                             @can('homework.submit')
-                                @if (! $submission || ($submission->reviewed_at === null && $submission->status !== 'graded'))
+                                @if (! $submission || ($submission->reviewed_at === null && ! in_array($submission->status, ['reviewed', 'graded'], true)))
                                     <details class="student-homework-item__details">
                                         <summary class="btn g s">{{ $submission ? 'ویرایش پاسخ' : 'ارسال پاسخ' }}</summary>
                                         <form method="POST" action="{{ route('student.homework.submissions.store', $homework) }}" enctype="multipart/form-data" class="stack">
