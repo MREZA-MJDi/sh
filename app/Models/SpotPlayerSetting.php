@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class SpotPlayerSetting extends Model
 {
-    protected $fillable = ['account_id', 'api_key', 'max_devices', 'watermark_enabled', 'auto_license_enabled'];
+    protected $fillable = [
+        'account_id',
+        'api_key',
+        'max_devices',
+        'watermark_enabled',
+        'auto_license_enabled',
+        'mode',
+    ];
 
     protected function casts(): array
     {

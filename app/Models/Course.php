@@ -8,7 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
-    protected $fillable = ['title', 'slug', 'description', 'subject', 'grade', 'teacher_id', 'type', 'price', 'delivery_type', 'status'];
+    protected $fillable = [
+        'title',
+        'slug',
+        'description',
+        'subject',
+        'grade',
+        'teacher_id',
+        'type',
+        'price',
+        'delivery_type',
+        'status',
+        'spotplayer_course_id',
+    ];
 
     protected function casts(): array
     {
