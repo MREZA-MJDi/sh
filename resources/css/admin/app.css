@@ -279,6 +279,9 @@ body.admin-body .admin-shell.is-mini .panel-nav-link {
     gap:0;
     padding:6px;
 }
+body.admin-body .admin-shell.is-mini .panel-nav-link[hidden] {
+    display:flex !important;
+}
 body.admin-body .admin-shell.is-mini .panel-nav-link > span:not(.panel-nav-icon) {
     display:none;
 }
@@ -350,6 +353,9 @@ body.admin-body .admin-quick-action-icon {
         justify-content:flex-start;
         gap:10px;
         padding:6px 10px;
+    }
+    body.admin-body .admin-shell.is-mini .panel-nav-link[hidden] {
+        display:none !important;
     }
     body.admin-body .admin-shell.is-mini .panel-nav-link > span:not(.panel-nav-icon) {
         display:inline;
