@@ -118,6 +118,13 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+
+        Route::middleware('permission:notes.manage.own')->group(function (): void {
+            Route::get('/notes', [\\App\\Http\\Controllers\\Student\\NoteController::class, 'index'])->name('notes.index');
+            Route::post('/notes', [\\App\\Http\\Controllers\\Student\\NoteController::class, 'store'])->name('notes.store');
+            Route::patch('/notes/{note}', [\\App\\Http\\Controllers\\Student\\NoteController::class, 'update'])->name('notes.update');
+            Route::delete('/notes/{note}', [\\App\\Http\\Controllers\\Student\\NoteController::class, 'destroy'])->name('notes.destroy');
+        });
     });
 
 Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
@@ -132,4 +139,16 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+    });
+
+Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])
+    ->prefix('parent/consultations')
+    ->name('parent.consult.')
+    ->group(function (): void {
+        Route::get('/', [\\App\\Http\\Controllers\\Guardian\\ConsultationController::class, 'index'])->name('index');
+        Route::get('/create', [\\App\\Http\\Controllers\\Guardian\\ConsultationController::class, 'create'])->name('create');
+        Route::post('/', [\\App\\Http\\Controllers\\Guardian\\ConsultationController::class, 'store'])->name('store');
+        Route::get('/{consultation}', [\\App\\Http\\Controllers\\Guardian\\ConsultationController::class, 'show'])->name('show');
+        Route::post('/{consultation}/replies', [\\App\\Http\\Controllers\\Guardian\\ConsultationController::class, 'reply'])->name('reply');
+        Route::delete('/{consultation}', [\\App\\Http\\Controllers\\Guardian\\ConsultationController::class, 'destroy'])->name('destroy');
     });
