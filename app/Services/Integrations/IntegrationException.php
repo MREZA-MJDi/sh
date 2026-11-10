@@ -3,7 +3,6 @@
 namespace App\Services\Integrations;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,8 +27,6 @@ class IntegrationException extends RuntimeException
             ], $this->httpStatus);
         }
 
-        return new RedirectResponse(
-            back()->withErrors(['integration' => $this->getMessage()])->withInput()->getTargetUrl()
-        );
+        return back()->withErrors(['integration' => $this->getMessage()])->withInput();
     }
 }

@@ -17,7 +17,13 @@ class StoreQuiz24ExamRequest extends FormRequest
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'course_id' => ['nullable', 'integer', 'exists:courses,id'],
             'provider' => ['required', Rule::in(['internal', 'quiz24'])],
-            'external_id' => ['nullable', 'string', 'max:190', Rule::unique('exams', 'external_id')->where('provider', 'quiz24')],
+            'external_id' => [
+                'nullable',
+                'string',
+                'max:190',
+                'prohibited_unless:provider,quiz24',
+                Rule::unique('exams', 'external_id')->where('provider', 'quiz24'),
+            ],
             'starts_at' => ['nullable', 'date'],
             'status' => ['required', Rule::in(['draft', 'scheduled', 'published', 'closed'])],
         ];

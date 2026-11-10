@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\StoreQuiz24ExamRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Exam;
+use App\Services\Quiz24\Quiz24Service;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ExamController extends Controller
@@ -21,26 +23,34 @@ class ExamController extends Controller
         return view('admin.exams.index', compact('exams', 'classrooms', 'courses'));
     }
 
-    public function store(StoreQuiz24ExamRequest $request): RedirectResponse
+    public function store(StoreQuiz24ExamRequest $request, Quiz24Service $quiz24): RedirectResponse
     {
         $data = $request->validated();
         $isQuiz24 = $data['provider'] === 'quiz24';
 
-        Exam::create([
-            ...$data,
-            'created_by' => auth()->id(),
-            'integration_status' => $isQuiz24
-                ? (filled($data['external_id'] ?? null) ? 'awaiting_api_verification' : 'waiting_external_mapping')
-                : 'not_required',
-            'integration_note' => $isQuiz24
-                ? 'آزمون محلی ثبت شد؛ ایجاد یا تأیید آزمون در Quiz24 به قرارداد وب‌سرویس نیاز دارد.'
-                : null,
-        ]);
+        $exam = DB::transaction(function () use ($data, $isQuiz24, $quiz24): Exam {
+            $exam = Exam::create([
+                ...$data,
+                'created_by' => auth()->id(),
+                'integration_status' => $isQuiz24
+                    ? (filled($data['external_id'] ?? null) ? 'awaiting_api_verification' : 'waiting_external_mapping')
+                    : 'not_required',
+                'integration_note' => $isQuiz24
+                    ? 'آزمون محلی ثبت شد؛ ایجاد یا تأیید آزمون در Quiz24 به قرارداد وب‌سرویس نیاز دارد.'
+                    : null,
+            ]);
+
+            if ($isQuiz24) {
+                $quiz24->requestExamProvisioning($exam, auth()->user());
+            }
+
+            return $exam;
+        });
 
         return back()->with(
             'success',
             $isQuiz24
-                ? 'آزمون در شیخان ثبت شد؛ همگام‌سازی Quiz24 تا دریافت قرارداد API انجام نمی‌شود.'
+                ? 'آزمون در شیخان ثبت شد و درخواست ایجاد/نگاشت آن در کارتابل قرار گرفت؛ اتصال Quiz24 تا تحویل API انجام نمی‌شود.'
                 : 'آزمون داخلی با موفقیت ثبت شد.'
         );
     }
