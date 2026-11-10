@@ -83,9 +83,7 @@ class CourseService
             || $course->exams()->exists()
             || $course->spotPlayerVideos()->exists()
         ) {
-            throw ValidationException::withMessages([
-                'course' => 'این دوره دارای کلاس، ثبت‌نام یا محتوای آموزشی است؛ برای حفظ سوابق آن را بایگانی کنید.',
-            ]);
+            abort(422, 'این دوره دارای کلاس، ثبت‌نام یا محتوای آموزشی است؛ برای حفظ سوابق آن را بایگانی کنید.');
         }
 
         $course->delete();

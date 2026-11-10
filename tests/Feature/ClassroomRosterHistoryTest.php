@@ -88,11 +88,11 @@ final class ClassroomRosterHistoryTest extends TestCase
         ]);
         $this->assertDatabaseCount('classroom_membership_history', 1);
 
-        $this->assertTrue($classroom->fresh()->students()->whereKey($student->id)->exists());
+        $this->assertFalse($classroom->fresh()->students()->whereKey($student->id)->exists());
         $this->assertDatabaseHas('course_enrollments', [
             'course_id' => $course->id,
             'student_id' => $student->id,
-            'status' => 'active',
+            'status' => 'revoked',
             'source' => 'classroom',
         ]);
     }

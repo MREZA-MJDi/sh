@@ -81,6 +81,8 @@ final class ClassroomService
     }
 
     /**
+     * Keep the live pivot limited to current members. Every removal is written
+     * to an append-only history table, so a student may later rejoin the class.
      * Keep the live pivot limited to current members. Removals are append-only
      * history rows, allowing a student to leave and later rejoin safely.
      */
@@ -118,7 +120,10 @@ final class ClassroomService
         }
 
         if ($addedIds->isNotEmpty()) {
-            $classroom->students()->attach($addedIds->all(), ['assigned_by' => $actor->id]);
+            $classroom->students()->attach(
+                $addedIds->all(),
+                ['assigned_by' => $actor->id]
+            );
         }
     }
 
