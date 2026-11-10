@@ -25,7 +25,7 @@ final class StudentVideoAccessTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_active_course_and_class_members_can_watch_private_staged_video(): void
+    public function test_active_course_and_class_members_can_see_recording_but_raw_file_is_never_streamed(): void
     {
         $student = $this->userWithRole('student');
         $teacher = $this->userWithRole('teacher');
@@ -56,12 +56,13 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->get(route('student.videos.show', $video))
             ->assertOk()
-            ->assertSee(route('student.videos.stream', $video), false)
-            ->assertSee('پخش خصوصی در آکادمی');
-        
+            ->assertSee('پخش محافظت‌شده هنوز آماده نیست')
+            ->assertSee('SpotPlayer');
+
         $this->get(route('student.videos.stream', $video))
-            ->assertOk()
-            ->assertHeader('Content-Type', 'video/mp4');
+            ->assertStatus(409)
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertDontSee('video-data');
     }
 
     public function test_video_is_not_visible_to_students_outside_its_course_or_class(): void
