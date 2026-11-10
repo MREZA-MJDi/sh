@@ -50,8 +50,8 @@
                     <div>
                         <b>{{ $classroom->name }}</b>
                         <span class="mu">
-                            {{ $days->map(fn ($day) => \\App\\Support\\PersianDate::weekdayName($day))->filter(fn ($day) => $day !== '—')->join('، ') ?: 'روز ثبت نشده' }}
-                            · ساعت {{ \\App\\Support\\PersianDate::time(data_get($classroom->schedule, 'time')) }}
+                            {{ $days->map(fn ($day) => \App\Support\\PersianDate::weekdayName($day))->filter(fn ($day) => $day !== '—')->join('، ') ?: 'روز ثبت نشده' }}
+                            · ساعت {{ \App\Support\\PersianDate::time(data_get($classroom->schedule, 'time')) }}
                         </span>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                             <tr>
                                 <td>{{ $homework->title }}</td>
                                 <td>{{ $homework->classroom?->name ?? '—' }}</td>
-                                <td>{{ $homework->due_at ? \\App\\Support\\PersianDate::format($homework->due_at, 'yyyy/MM/dd HH:mm') : 'بدون مهلت' }}</td>
+                                <td>{{ $homework->due_at ? \App\Support\\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
                                 <td>
                                     @if($homework->submitted_by_student_count > 0)
                                         <span class="tag">ارسال شده</span>
@@ -196,7 +196,7 @@
                         @forelse($attendance as $record)
                             <tr>
                                 <td>{{ $record->classroom?->name ?? '—' }}</td>
-                                <td>{{ \\App\\Support\\PersianDate::format($record->session_date, 'yyyy/MM/dd') }}</td>
+                                <td>{{ \App\Support\\PersianDate::format($record->session_date, 'Y/m/d') }}</td>
                                 <td>
                                     @if($record->status === 'present')
                                         <span class="tag">حاضر</span>
@@ -245,7 +245,7 @@
                                         ? 'در انتظار نمره'
                                         : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}
                                 </td>
-                                <td>{{ \\App\\Support\\PersianDate::format($result->synced_at ?? $result->created_at, 'yyyy/MM/dd') }}</td>
+                                <td>{{ \App\Support\\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
                             </tr>
                         @empty
                             <tr>
