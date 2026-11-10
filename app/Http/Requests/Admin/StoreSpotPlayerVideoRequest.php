@@ -39,6 +39,14 @@ class StoreSpotPlayerVideoRequest extends FormRequest
                 return;
             }
 
+            if ($this->filled('classroom_id')
+                && ! Classroom::query()
+                    ->whereKey($this->integer('classroom_id'))
+                    ->where('course_id', $course->id)
+                    ->exists()) {
+                $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
+            }
+
             if (! $workspace->isTeacher($this->user())) {
                 return;
             }
