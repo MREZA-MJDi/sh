@@ -96,13 +96,24 @@ final class StudentExamService
                 ->first();
 
             if ($active) {
-                return $active;
+                $deadline = (int) $lockedExam->duration_minutes > 0
+                    ? $active->started_at->copy()->addMinutes((int) $lockedExam->duration_minutes)
+                    : null;
+
+                if (! $deadline || now()->lte($deadline->copy()->addSeconds(15))) {
+                    return $active;
+                }
+
+                $active->forceFill([
+                    'status' => 'expired',
+                    'submitted_at' => now(),
+                ])->save();
             }
 
             $usedAttempts = ExamAttempt::query()
                 ->where('exam_id', $lockedExam->id)
                 ->where('student_id', $student->id)
-                ->whereIn('status', ['graded', 'pending_review', 'submitted'])
+                ->whereIn('status', ['graded', 'pending_review', 'submitted', 'expired'])
                 ->count();
 
             if ($usedAttempts >= max(1, min(5, (int) $lockedExam->attempts_allowed))) {
@@ -140,7 +151,12 @@ final class StudentExamService
                 : null;
 
             if ($deadline && now()->gt($deadline->copy()->addSeconds(15))) {
-                throw ValidationException::withMessages(['exam' => 'مهلت پاسخ‌گویی به آزمون به پایان رسیده است.']);
+                $locked->forceFill([
+                    'status' => 'expired',
+                    'submitted_at' => now(),
+                ])->save();
+
+                return $locked;
             }
 
             $questionIds = $locked->exam->questions->modelKeys();
@@ -223,7 +239,9 @@ final class StudentExamService
                     $answer->update(['score' => $score, 'is_correct' => null]);
                 }
 
-                $total += (float) ($answer->fresh()->score ?? 0);
+                // update() mutates the already-loaded model; do not re-query it
+                // once for every answer during manual grading.
+                $total += (float) ($answer->score ?? 0);
             }
 
             $locked->forceFill([

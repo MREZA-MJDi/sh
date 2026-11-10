@@ -35,6 +35,9 @@ class Classroom extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(ClassSession::class)->orderBy('starts_at');
+    public function membershipHistory(): HasMany
+    {
+        return $this->hasMany(ClassroomMembershipHistory::class);
     }
 
     public function attendances(): HasMany
