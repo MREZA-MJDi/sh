@@ -1,4 +1,4 @@
-@extends('layouts.student')
+@extends('layouts.portal')
 
 @section('title', 'مرکز یادگیری')
 
@@ -27,7 +27,41 @@
             @can('classes.view.enrolled')
                 <a class="btn" href="#classes">مشاهده‌ی کلاس‌های من</a>
             @endcan
-            @can('homework.view.own')
+        
+    @can('classes.view.enrolled')
+        <section class="card" id="schedule" aria-labelledby="student-schedule-title">
+            <div class="chead">
+                <h2 id="student-schedule-title">برنامه‌ی هفتگی کلاس‌ها</h2>
+                <span class="pill">برنامه‌ی ثبت‌شده</span>
+            </div>
+            @php
+                $weekdayOrder = ['sat' => 0, 'sun' => 1, 'mon' => 2, 'tue' => 3, 'wed' => 4, 'thu' => 5, 'fri' => 6];
+                $scheduledClasses = $classrooms
+                    ->filter(fn ($classroom) => filled(data_get($classroom->schedule, 'time')) || filled(data_get($classroom->schedule, 'days')))
+                    ->sortBy(fn ($classroom) => data_get($classroom->schedule, 'time', '99:99'));
+            @endphp
+            @forelse($scheduledClasses as $classroom)
+                @php
+                    $days = collect(data_get($classroom->schedule, 'days', []))
+                        ->sortBy(fn ($day) => $weekdayOrder[$day] ?? 99);
+                @endphp
+                <div class="trk">
+                    <div class="th t-b"><x-icon name="cal"/></div>
+                    <div>
+                        <b>{{ $classroom->name }}</b>
+                        <span class="mu">
+                            {{ $days->map(fn ($day) => \\App\\Support\\PersianDate::weekdayName($day))->filter(fn ($day) => $day !== '—')->join('، ') ?: 'روز ثبت نشده' }}
+                            · ساعت {{ \\App\\Support\\PersianDate::time(data_get($classroom->schedule, 'time')) }}
+                        </span>
+                    </div>
+                </div>
+            @empty
+                <div class="empty">برنامه‌ی زمانی برای کلاس‌های شما ثبت نشده است.</div>
+            @endforelse
+        </section>
+    @endcan
+
+    @can('homework.view.own')
                 <a class="btn g" href="#homework">پیگیری تکالیف</a>
             @endcan
         </div>
@@ -120,7 +154,7 @@
                             <tr>
                                 <td>{{ $homework->title }}</td>
                                 <td>{{ $homework->classroom?->name ?? '—' }}</td>
-                                <td>{{ $homework->due_at?->translatedFormat('Y/m/d H:i') ?? 'بدون مهلت' }}</td>
+                                <td>{{ $homework->due_at ? \\App\\Support\\PersianDate::format($homework->due_at, 'yyyy/MM/dd HH:mm') : 'بدون مهلت' }}</td>
                                 <td>
                                     @if($homework->submitted_by_student_count > 0)
                                         <span class="tag">ارسال شده</span>
@@ -162,7 +196,7 @@
                         @forelse($attendance as $record)
                             <tr>
                                 <td>{{ $record->classroom?->name ?? '—' }}</td>
-                                <td>{{ $record->session_date?->translatedFormat('Y/m/d') ?? '—' }}</td>
+                                <td>{{ \\App\\Support\\PersianDate::format($record->session_date, 'yyyy/MM/dd') }}</td>
                                 <td>
                                     @if($record->status === 'present')
                                         <span class="tag">حاضر</span>
@@ -211,7 +245,7 @@
                                         ? 'در انتظار نمره'
                                         : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}
                                 </td>
-                                <td>{{ $result->synced_at?->translatedFormat('Y/m/d') ?? $result->created_at?->translatedFormat('Y/m/d') ?? '—' }}</td>
+                                <td>{{ \\App\\Support\\PersianDate::format($result->synced_at ?? $result->created_at, 'yyyy/MM/dd') }}</td>
                             </tr>
                         @empty
                             <tr>
