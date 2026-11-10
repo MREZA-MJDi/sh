@@ -48,15 +48,16 @@ final class SessionController extends Controller
 
             if ($matches->count() === 1) {
                 $candidate = $matches->first();
-                $validPassword = Hash::check($password, $candidate->password);
-
-                if (! $validPassword) {
-                    $validPassword = app(LegacyWordPressPassword::class)->verify($password, (string) $candidate->password);
-                }
+                $legacyPasswords = app(LegacyWordPressPassword::class);
+                $storedPassword = (string) $candidate->password;
+                $isLegacyHash = $legacyPasswords->isLegacyHash($storedPassword);
+                $validPassword = $isLegacyHash
+                    ? $legacyPasswords->verify($password, $storedPassword)
+                    : Hash::check($password, $storedPassword);
 
                 if ($validPassword) {
                     // Rehash legacy password formats on first successful mobile login.
-                    if (app(LegacyWordPressPassword::class)->isLegacyHash((string) $candidate->password)) {
+                    if ($isLegacyHash) {
                         $candidate->forceFill(['password' => $password])->save();
                     }
 
