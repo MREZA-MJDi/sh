@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreLearningResourceRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\LearningResource;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class LearningResourceController extends Controller
@@ -23,21 +22,9 @@ class LearningResourceController extends Controller
         return view('admin.resources.index', compact('resources', 'courses', 'classrooms'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreLearningResourceRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:180'],
-            'description' => ['nullable', 'string', 'max:10000'],
-            'kind' => ['required', Rule::in(['pdf', 'book', 'other'])],
-            'course_id' => ['nullable', 'integer', 'exists:courses,id'],
-            'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
-            'is_free' => ['nullable', 'boolean'],
-            'price' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
-            'visibility' => ['required', Rule::in(['public', 'authenticated', 'enrolled'])],
-            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:30720'],
-            'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
-        ]);
-
+        $data = $request->validated();
         $path = isset($data['file']) ? $data['file']->store('private/resources', 'local') : null;
         $isFree = (bool) ($data['is_free'] ?? false);
 

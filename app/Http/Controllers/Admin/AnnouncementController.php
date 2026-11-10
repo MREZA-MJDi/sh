@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAnnouncementRequest;
+use App\Http\Requests\Admin\UpdateAnnouncementStatusRequest;
 use App\Models\Announcement;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AnnouncementController extends Controller
@@ -18,14 +18,9 @@ class AnnouncementController extends Controller
         return view('admin.announcements.index', compact('announcements'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreAnnouncementRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:180'],
-            'body' => ['required', 'string', 'max:20000'],
-            'audience' => ['required', Rule::in(['all', 'students', 'parents', 'teachers'])],
-            'status' => ['required', Rule::in(['draft', 'published'])],
-        ]);
+        $data = $request->validated();
 
         Announcement::create($data + [
             'created_by' => auth()->id(),
@@ -35,13 +30,13 @@ class AnnouncementController extends Controller
         return back()->with('success', 'اطلاعیه ذخیره شد.');
     }
 
-    public function updateStatus(Request $request, Announcement $announcement): RedirectResponse
+    public function updateStatus(UpdateAnnouncementStatusRequest $request, Announcement $announcement): RedirectResponse
     {
-        $data = $request->validate(['status' => ['required', Rule::in(['draft', 'published', 'archived'])]]);
+        $status = $request->validated('status');
 
         $announcement->update([
-            'status' => $data['status'],
-            'published_at' => $data['status'] === 'published' ? ($announcement->published_at ?? now()) : null,
+            'status' => $status,
+            'published_at' => $status === 'published' ? ($announcement->published_at ?? now()) : null,
         ]);
 
         return back()->with('success', 'وضعیت اطلاعیه تغییر کرد.');

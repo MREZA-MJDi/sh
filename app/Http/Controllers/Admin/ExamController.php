@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreQuiz24ExamRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Exam;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ExamController extends Controller
@@ -22,25 +21,27 @@ class ExamController extends Controller
         return view('admin.exams.index', compact('exams', 'classrooms', 'courses'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreQuiz24ExamRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:180'],
-            'description' => ['nullable', 'string', 'max:10000'],
-            'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
-            'course_id' => ['nullable', 'integer', 'exists:courses,id'],
-            'provider' => ['required', Rule::in(['internal', 'quiz24'])],
-            'external_id' => ['nullable', 'string', 'max:190'],
-            'starts_at' => ['nullable', 'date'],
-            'status' => ['required', Rule::in(['draft', 'scheduled', 'published', 'closed'])],
+        $data = $request->validated();
+        $isQuiz24 = $data['provider'] === 'quiz24';
+
+        Exam::create([
+            ...$data,
+            'created_by' => auth()->id(),
+            'integration_status' => $isQuiz24
+                ? (filled($data['external_id'] ?? null) ? 'awaiting_api_verification' : 'waiting_external_mapping')
+                : 'not_required',
+            'integration_note' => $isQuiz24
+                ? 'آزمون محلی ثبت شد؛ ایجاد یا تأیید آزمون در Quiz24 به قرارداد وب‌سرویس نیاز دارد.'
+                : null,
         ]);
 
-        if ($data['provider'] === 'quiz24' && empty($data['external_id'])) {
-            return back()->withErrors(['external_id' => 'برای آزمون خارجی، شناسه آزمون الزامی است.'])->withInput();
-        }
-
-        Exam::create($data + ['created_by' => auth()->id()]);
-
-        return back()->with('success', 'آزمون ثبت شد.');
+        return back()->with(
+            'success',
+            $isQuiz24
+                ? 'آزمون در شیخان ثبت شد؛ همگام‌سازی Quiz24 تا دریافت قرارداد API انجام نمی‌شود.'
+                : 'آزمون داخلی با موفقیت ثبت شد.'
+        );
     }
 }

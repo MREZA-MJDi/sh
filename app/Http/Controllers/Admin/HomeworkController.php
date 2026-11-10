@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReviewHomeworkSubmissionRequest;
+use App\Http\Requests\Admin\StoreHomeworkRequest;
 use App\Models\Classroom;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class HomeworkController extends Controller
@@ -17,28 +17,22 @@ class HomeworkController extends Controller
     public function index(): View
     {
         $homeworks = Homework::with('classroom')
-            ->withCount(['submissions', 'submissions as pending_submissions_count' => fn ($query) => $query->where('status', 'submitted')])
+            ->withCount([
+                'submissions',
+                'submissions as pending_submissions_count' => fn ($query) => $query->where('status', 'submitted'),
+            ])
             ->latest()->paginate(12);
 
         $classrooms = Classroom::where('status', 'active')->orderBy('name')->get(['id', 'name']);
-
         $submissions = HomeworkSubmission::with(['homework.classroom', 'student'])
             ->latest('submitted_at')->limit(30)->get();
 
         return view('admin.homework.index', compact('homeworks', 'classrooms', 'submissions'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreHomeworkRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
-            'title' => ['required', 'string', 'max:180'],
-            'instructions' => ['nullable', 'string', 'max:20000'],
-            'due_at' => ['nullable', 'date'],
-            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:20480'],
-            'status' => ['required', Rule::in(['draft', 'published'])],
-        ]);
-
+        $data = $request->validated();
         $path = isset($data['attachment'])
             ? $data['attachment']->store('private/homework', 'local')
             : null;
@@ -56,16 +50,10 @@ class HomeworkController extends Controller
         return back()->with('success', 'تکلیف با موفقیت ثبت شد.');
     }
 
-    public function review(Request $request, HomeworkSubmission $submission): RedirectResponse
+    public function review(ReviewHomeworkSubmissionRequest $request, HomeworkSubmission $submission): RedirectResponse
     {
-        $data = $request->validate([
-            'score' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'feedback' => ['required', 'string', 'max:10000'],
-        ]);
-
         $submission->update([
-            'score' => $data['score'] ?? null,
-            'feedback' => $data['feedback'],
+            ...$request->validated(),
             'status' => 'reviewed',
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),

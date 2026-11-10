@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Models\Message;
 use App\Models\MessageReply;
 use Illuminate\Http\RedirectResponse;
@@ -25,14 +26,12 @@ class MessageController extends Controller
         return view('admin.messages.index', compact('messages', 'selected'));
     }
 
-    public function reply(Request $request, Message $message): RedirectResponse
+    public function reply(ReplyMessageRequest $request, Message $message): RedirectResponse
     {
-        $data = $request->validate(['body' => ['required', 'string', 'max:10000']]);
-
         MessageReply::create([
             'message_id' => $message->id,
             'sender_id' => auth()->id(),
-            'body' => $data['body'],
+            'body' => $request->validated('body'),
         ]);
 
         $message->update(['status' => 'answered', 'replied_at' => now()]);

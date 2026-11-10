@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\AdminLoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,12 +21,9 @@ class AdminLoginController extends Controller
         return view('auth.admin-login');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(AdminLoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email:rfc', 'max:190'],
-            'password' => ['required', 'string', 'max:255'],
-        ]);
+        $credentials = $request->safe()->only(['email', 'password']);
 
         if (! Auth::attempt($credentials + ['is_active' => true], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
