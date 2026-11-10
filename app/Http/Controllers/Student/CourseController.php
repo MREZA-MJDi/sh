@@ -41,9 +41,11 @@ final class CourseController extends Controller
                 'teacher:id,name',
                 'sections' => fn ($sections) => $sections
                     ->where('status', 'published')
+                    ->orderBy('sort_order')->orderBy('id')
                     ->with([
                         'lessons' => fn ($lessons) => $lessons
                             ->where('status', 'published')
+                            ->orderBy('sort_order')->orderBy('id')
                             ->with(['progress' => fn ($progress) => $progress->where('student_id', $request->user()->id)]),
                     ]),
             ])
