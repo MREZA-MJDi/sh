@@ -9,7 +9,7 @@ final class RichTextSanitizerTest extends TestCase
 {
     public function test_it_preserves_supported_formatting_and_removes_executable_markup(): void
     {
-        $html = '<p style="color: #123456; font-size: 18px" onclick="alert(1)">'
+        $html = '<p style="color:#123456; font-size: 18px" onclick="alert(1)">'
             .'<strong>متن مهم</strong><a href="javascript:alert(1)">پیوند</a>'
             .'<script>alert(1)</script></p>';
 
