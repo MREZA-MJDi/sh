@@ -56,6 +56,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/exams', [ExamController::class, 'index'])->middleware('permission:exams.manage')->name('exams.index');
     Route::post('/exams', [ExamController::class, 'store'])->middleware('permission:exams.manage')->name('exams.store');
+    Route::patch('/exams/{exam}', [ExamController::class, 'update'])->middleware('permission:exams.manage')->name('exams.update');
+    Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->middleware('permission:exams.manage')->name('exams.results');
 
     Route::get('/resources', [LearningResourceController::class, 'index'])->middleware('permission:resources.manage')->name('resources.index');
     Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage')->name('resources.store');
