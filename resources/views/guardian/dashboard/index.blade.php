@@ -29,6 +29,28 @@
         <x-stat tone="s4" icon="chart" label="نتایج اخیر" :value="$faNumber($results->count())" hint="نتایج قابل مشاهده‌ی فرزند" href="#results"/>
     </section>
 
+    <section class="card student-course-progress" id="course-progress" aria-labelledby="guardian-course-progress-title">
+        <div class="chead">
+            <div><span class="student-section-eyebrow">گزارش تحصیلی فرزند</span><h2 id="guardian-course-progress-title">پیشرفت دوره‌ها و درس‌ها</h2></div>
+        </div>
+        <div class="student-course-progress__list">
+            @forelse ($course_progress as $courseProgress)
+                <article class="student-course-progress__item">
+                    <div class="student-course-progress__head">
+                        <strong>{{ $courseProgress->title }}</strong>
+                        <span>{{ $faNumber($courseProgress->progress_percent) }}٪</span>
+                    </div>
+                    <div class="student-attendance-meter__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $courseProgress->progress_percent }}">
+                        <span style="width: {{ max(0, min(100, (int) $courseProgress->progress_percent)) }}%"></span>
+                    </div>
+                    <small class="mu">{{ $faNumber($courseProgress->completed_lessons) }} از {{ $faNumber($courseProgress->total_lessons) }} درس تکمیل‌شده</small>
+                </article>
+            @empty
+                <div class="empty">برای دوره‌های ثبت‌نام‌شده هنوز درس منتشرشده‌ای ثبت نشده است.</div>
+            @endforelse
+        </div>
+    </section>
+
     <section class="row">
         <section class="card" id="classes">
             <div class="chead"><h2>کلاس‌ها و دوره‌ها</h2><span class="pill">{{ $faNumber($classroom_count) }} کلاس</span></div>
