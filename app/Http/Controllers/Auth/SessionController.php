@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Services\AuthenticationService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
+
+final class SessionController extends Controller
+{
+    public function create(): View
+    {
+        return view('auth.login');
+    }
+
+    public function store(
+        LoginRequest $request,
+        AuthenticationService $authentication
+    ): RedirectResponse {
+        $credentials = $request->safe()->only(['email', 'password']);
+
+        if (! Auth::attempt($credentials + ['is_active' => true], $request->boolean('remember'))) {
+            throw ValidationException::withMessages([
+                'email' => 'ایمیل یا گذرواژه صحیح نیست یا حساب کاربری غیرفعال است.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        $user = $request->user();
+        $dashboardRoute = $authentication->dashboardRouteName($user);
+
+        if ($dashboardRoute === null) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'برای این حساب نقش فعالی تعریف نشده است. با مدیر سامانه تماس بگیرید.',
+            ]);
+        }
+
+        $user->forceFill(['last_login_at' => now()])->save();
+
+        return redirect()->intended(route($dashboardRoute));
+    }
+
+    public function register(): View
+    {
+        return view('auth.register');
+    }
+
+    public function storeRegistration(
+        RegisterRequest $request,
+        AuthenticationService $authentication
+    ): RedirectResponse {
+        $student = $authentication->registerStudent($request->validated());
+
+        Auth::login($student);
+        $request->session()->regenerate();
+
+        return redirect()
+            ->route('student.dashboard')
+            ->with('status', 'حساب دانش‌آموزی شما با موفقیت ساخته شد.');
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('status', 'با موفقیت از حساب خارج شدید.');
+    }
+}

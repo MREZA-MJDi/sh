@@ -35,6 +35,7 @@ class User extends Authenticatable
     {
         if ($value === null || trim($value) === '') {
             $this->attributes['phone'] = null;
+
             return;
         }
 
@@ -52,6 +53,7 @@ class User extends Authenticatable
     {
         if ($value === null || trim($value) === '') {
             $this->attributes['external_student_id'] = null;
+
             return;
         }
 
@@ -62,7 +64,7 @@ class User extends Authenticatable
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        // Keep meaningful provider separators (for example STU-204); remove whitespace only.
+        // Preserve provider identifiers such as STU-204; remove whitespace only.
         $this->attributes['external_student_id'] = preg_replace('/\\s+/u', '', $identifier) ?? $identifier;
     }
 
@@ -73,18 +75,27 @@ class User extends Authenticatable
 
     public function hasRole(string|array $roles): bool
     {
-        return $this->roles()->whereIn('name', (array) $roles)->exists();
+        $names = array_map('strval', (array) $roles);
+
+        if ($this->relationLoaded('roles')) {
+            return $this->getRelation('roles')->contains(
+                fn (Role $role): bool => in_array($role->name, $names, true)
+            );
+        }
+
+        return $this->roles()->whereIn('name', $names)->exists();
     }
 
     public function hasPermissionTo(string $permission): bool
     {
-        if ($this->hasRole('admin')) {
-            return true;
-        }
+        // Cache the role/permission graph on this User instance. Dashboard
+        // navigation calls this repeatedly; one eager load avoids permission N+1s.
+        $this->loadMissing('roles.permissions');
 
-        return $this->roles()
-            ->whereHas('permissions', fn ($query) => $query->where('name', $permission))
-            ->exists();
+        return $this->getRelation('roles')->contains(
+            fn (Role $role): bool => $role->name === 'admin'
+                || $role->permissions->contains('name', $permission)
+        );
     }
 
     public function taughtClasses(): HasMany

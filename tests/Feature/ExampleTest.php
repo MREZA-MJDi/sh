@@ -6,8 +6,8 @@ use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    public function test_the_application_redirects_to_the_admin_area(): void
+    public function test_guest_is_redirected_to_the_shared_login_page(): void
     {
-        $this->get('/')->assertRedirect('/admin');
+        $this->get('/')->assertRedirect('/login');
     }
 }
