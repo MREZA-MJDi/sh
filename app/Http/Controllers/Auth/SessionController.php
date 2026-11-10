@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Services\AuthenticationService;
+use App\Services\LegacyWordPressPassword;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,9 +46,23 @@ final class SessionController extends Controller
                 ->limit(2)
                 ->get();
 
-            if ($matches->count() === 1 && Hash::check($password, $matches->first()->password)) {
-                Auth::login($matches->first(), $remember);
-                $authenticated = true;
+            if ($matches->count() === 1) {
+                $candidate = $matches->first();
+                $validPassword = Hash::check($password, $candidate->password);
+
+                if (! $validPassword) {
+                    $validPassword = app(LegacyWordPressPassword::class)->verify($password, (string) $candidate->password);
+                }
+
+                if ($validPassword) {
+                    // Rehash legacy password formats on first successful mobile login.
+                    if (app(LegacyWordPressPassword::class)->isLegacyHash((string) $candidate->password)) {
+                        $candidate->forceFill(['password' => $password])->save();
+                    }
+
+                    Auth::login($candidate, $remember);
+                    $authenticated = true;
+                }
             }
         }
 
