@@ -4,6 +4,7 @@ namespace App\Services\Courses;
 
 use App\Models\Course;
 use App\Models\IntegrationRun;
+use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -11,15 +12,14 @@ class CourseService
 {
     public function __construct(
         private readonly IntegrationOperationService $operations,
+        private readonly CourseEnrollmentService $enrollments,
     ) {}
 
     public function create(array $data): Course
     {
         return DB::transaction(function () use ($data): Course {
             $deliveryType = $data['delivery_type'];
-            $externalId = $deliveryType === 'spotplayer'
-                ? ($data['spotplayer_course_id'] ?? null)
-                : null;
+            $externalId = $deliveryType === 'spotplayer' ? ($data['spotplayer_course_id'] ?? null) : null;
 
             $course = Course::create([
                 ...$data,
@@ -46,9 +46,7 @@ class CourseService
     {
         return DB::transaction(function () use ($course, $data): Course {
             $deliveryType = $data['delivery_type'];
-            $externalId = $deliveryType === 'spotplayer'
-                ? ($data['spotplayer_course_id'] ?? null)
-                : null;
+            $externalId = $deliveryType === 'spotplayer' ? ($data['spotplayer_course_id'] ?? null) : null;
 
             $course->update([
                 ...$data,
@@ -66,11 +64,16 @@ class CourseService
                 $this->queueCourseMapping($course);
             }
 
-            if ($course->wasChanged(['type', 'status']) && $course->type === 'free' && $course->status === 'published') {
+            if ($course->type === 'paid') {
+                CourseEnrollment::query()
+                    ->where('course_id', $course->id)
+                    ->where('source', 'classroom')
+                    ->where('status', 'active')
+                    ->update(['status' => 'pending_payment', 'granted_at' => null]);
+            } elseif ($course->type === 'free') {
                 $course->load('classrooms.students');
-
                 foreach ($course->classrooms as $classroom) {
-                    app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+                    $this->enrollments->syncClassroomRoster($classroom);
                 }
             }
 
@@ -82,7 +85,7 @@ class CourseService
     {
         if ($course->classrooms()->exists() || $course->enrollments()->exists() ||
             $course->spotPlayerLicenses()->exists()) {
-            abort(422, 'این دوره دارای کلاس، دسترسی دانش‌آموز یا لایسنس است؛ برای حفظ سوابق آن را بایگانی کنید.');
+            abort(422, 'این دوره دارای کلاس، ثبت‌نام یا لایسنس است؛ برای حفظ سوابق آن را بایگانی کنید.');
         }
 
         $course->delete();

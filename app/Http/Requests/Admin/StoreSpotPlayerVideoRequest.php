@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Course;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreSpotPlayerVideoRequest extends FormRequest
 {
@@ -19,5 +21,15 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             'embed_url' => ['nullable', 'url:https', 'max:2000'],
             'status' => ['required', Rule::in(['draft', 'waiting_contract'])],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $courseId = $this->integer('course_id');
+            if ($courseId && ! Course::whereKey($courseId)->where('delivery_type', 'spotplayer')->exists()) {
+                $validator->errors()->add('course_id', 'ویدیو باید به یک دوره با روش ارائه SpotPlayer متصل شود.');
+            }
+        }];
     }
 }

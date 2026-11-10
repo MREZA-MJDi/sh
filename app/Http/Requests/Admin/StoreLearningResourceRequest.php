@@ -21,7 +21,7 @@ class StoreLearningResourceRequest extends FormRequest
             'is_free' => ['sometimes', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
             'visibility' => ['required', Rule::in(['public', 'authenticated', 'enrolled'])],
-            'file' => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:30720'],
+            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:30720'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
         ];
     }
