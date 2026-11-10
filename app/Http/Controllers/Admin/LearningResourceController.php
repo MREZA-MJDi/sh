@@ -26,32 +26,93 @@ class LearningResourceController extends Controller
     {
         $data = $request->validated();
         $path = isset($data['file']) ? $data['file']->store('private/resources', 'local') : null;
-        $isFree = (bool) ($data['is_free'] ?? false);
 
-        LearningResource::create([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'kind' => $data['kind'],
-            'course_id' => $data['course_id'] ?? null,
-            'classroom_id' => $data['classroom_id'] ?? null,
-            'is_free' => $isFree,
-            'price' => $isFree ? 0 : (int) ($data['price'] ?? 0),
-            'visibility' => $data['visibility'],
-            'file_path' => $path,
-            'status' => $data['status'],
-            'uploaded_by' => auth()->id(),
-        ]);
+        if (isset($data['file']) && ! $path) {
+            return back()->withErrors(['file' => 'ذخیره فایل در فضای خصوصی انجام نشد.'])->withInput();
+        }
+
+        try {
+            DB::transaction(function () use ($data, $path): void {
+                $isFree = (bool) ($data['is_free'] ?? false);
+
+                LearningResource::create([
+                    'title' => $data['title'],
+                    'description' => $data['description'] ?? null,
+                    'kind' => $data['kind'],
+                    'course_id' => $data['course_id'] ?? null,
+                    'classroom_id' => $data['classroom_id'] ?? null,
+                    'is_free' => $isFree,
+                    'price' => $isFree ? 0 : (int) $data['price'],
+                    'visibility' => $data['visibility'],
+                    'file_path' => $path,
+                    'status' => $data['status'],
+                    'uploaded_by' => auth()->id(),
+                ]);
+            });
+        } catch (\\Throwable $exception) {
+            if ($path) {
+                Storage::disk('local')->delete($path);
+            }
+
+            throw $exception;
+        }
 
         return back()->with('success', 'منبع آموزشی ثبت شد.');
     }
 
-    public function destroy(LearningResource $resource): RedirectResponse
-    {
-        if ($resource->file_path) {
-            Storage::disk('local')->delete($resource->file_path);
+    public function update(
+        UpdateLearningResourceRequest $request,
+        LearningResource $resource
+    ): RedirectResponse {
+        $data = $request->validated();
+        $newPath = isset($data['file']) ? $data['file']->store('private/resources', 'local') : null;
+
+        if (isset($data['file']) && ! $newPath) {
+            return back()->withErrors(['file' => 'ذخیره فایل جدید در فضای خصوصی انجام نشد.'])->withInput();
         }
 
+        $previousPath = $resource->file_path;
+
+        try {
+            DB::transaction(function () use ($resource, $data, $newPath): void {
+                $isFree = (bool) ($data['is_free'] ?? false);
+
+                $resource->update([
+                    'title' => $data['title'],
+                    'description' => $data['description'] ?? null,
+                    'kind' => $data['kind'],
+                    'course_id' => $data['course_id'] ?? null,
+                    'classroom_id' => $data['classroom_id'] ?? null,
+                    'is_free' => $isFree,
+                    'price' => $isFree ? 0 : (int) $data['price'],
+                    'visibility' => $data['visibility'],
+                    'file_path' => $newPath ?: $resource->file_path,
+                    'status' => $data['status'],
+                ]);
+            });
+        } catch (\\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+
+            throw $exception;
+        }
+
+        if ($newPath && $previousPath) {
+            Storage::disk('local')->delete($previousPath);
+        }
+
+        return back()->with('success', 'منبع آموزشی به‌روزرسانی شد.');
+    }
+
+    public function destroy(LearningResource $resource): RedirectResponse
+    {
+        $path = $resource->file_path;
         $resource->delete();
+
+        if ($path) {
+            Storage::disk('local')->delete($path);
+        }
 
         return back()->with('success', 'منبع آموزشی حذف شد.');
     }
