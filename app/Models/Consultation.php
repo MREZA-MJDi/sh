@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Consultation extends Model
 {
-    protected $fillable = ['requester_id', 'student_id', 'teacher_id', 'handled_by', 'type', 'desired_at', 'scheduled_at', 'status', 'notes'];
+    protected $fillable = [
+        'requester_id', 'student_id', 'teacher_id', 'handled_by',
+        'type', 'topic', 'contact_phone', 'desired_at', 'scheduled_at', 'status', 'notes',
+    ];
 
     protected function casts(): array
     {
