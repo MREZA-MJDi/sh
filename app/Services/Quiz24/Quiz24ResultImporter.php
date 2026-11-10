@@ -44,8 +44,16 @@ class Quiz24ResultImporter
                     ->value('student_id');
 
                 $student = $studentId
-                    ? User::query()->whereKey($studentId)->where('is_active', true)->first()
-                    : User::query()
+                    ? User::query()
+                        ->whereKey($studentId)
+                        ->where('is_active', true)
+                        ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                        ->first()
+                    : null;
+
+                if (! $student && ! $studentId) {
+                    // Never guess when a phone number matches more than one active account.
+                    $matches = User::query()
                         ->where('is_active', true)
                         ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
                         ->where(function ($query) use ($identifier) {
@@ -55,7 +63,11 @@ class Quiz24ResultImporter
                                 ->orWhere('phone', $phoneIdentifier)
                                 ->orWhere('phone', $identifier);
                         })
-                        ->first();
+                        ->limit(2)
+                        ->get();
+
+                    $student = $matches->count() === 1 ? $matches->first() : null;
+                }
 
                 $source = [
                     'provider_result_id' => $result->resultId,
