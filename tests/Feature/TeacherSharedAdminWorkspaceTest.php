@@ -157,6 +157,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->assertTrue($teacher->permissions_customized);
         $this->assertTrue($teacher->hasPermissionTo('dashboard.view'));
         $this->assertTrue($teacher->hasPermissionTo('profile.update'));
+        $this->assertTrue($teacher->hasPermissionTo('announcements.view'));
         $this->actingAs($teacher)->get(route('teacher.dashboard'))->assertOk();
         $this->assertTrue($teacher->hasPermissionTo('classes.manage.assigned'));
         $this->assertTrue($teacher->hasPermissionTo('exams.manage.assigned'));
