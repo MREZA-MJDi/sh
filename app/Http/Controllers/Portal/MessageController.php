@@ -196,7 +196,7 @@ final class MessageController extends Controller
                             ->where('status', 'active')
                             ->where(fn (Builder $expiry) => $expiry
                                 ->whereNull('expires_at')
-                                ->orWhere('expires_at', '>', now())));
+                                ->orWhere('expires_at', '>', now()))));
             })
             ->select('classrooms.id');
 
