@@ -20,7 +20,7 @@ final class LookupController extends Controller
         ]);
 
         $term = trim($validated['q']);
-        $pattern = '%' . addcslashes($term, '%_\\') . '%';
+        if (mb_strlen($term) < 2) {\n            throw ValidationException::withMessages(['q' => 'برای جستجو حداقل دو حرف معتبر وارد کنید.']);\n        }\n\n        $pattern = '%' . addcslashes($term, '%_\\') . '%';
 
         $matches = User::query()
             ->select(['id', 'name', 'phone'])
