@@ -185,7 +185,10 @@ function initCharacterCounters() {
         const counter = document.createElement('div');
         counter.className = 'cnt';
         counter.setAttribute('aria-live', 'polite');
-        textarea.insertAdjacentElement('afterend', counter);
+        const editorShell = textarea.nextElementSibling?.classList.contains('rich-editor')
+            ? textarea.nextElementSibling
+            : textarea;
+        editorShell.insertAdjacentElement('afterend', counter);
         textarea.maxLength = maximum;
 
         const update = () => {
