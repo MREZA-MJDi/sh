@@ -16,6 +16,7 @@ final class ExamQuestionController extends Controller
     public function index(Exam $exam, ExamWorkspaceService $workspace): View
     {
         abort_unless($workspace->owns(auth()->user(), $exam), 404);
+        abort_if($exam->provider !== 'internal', 404);
         $exam->load(['questions' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')]);
 
         return view('admin.exams.questions', compact('exam'));
@@ -25,6 +26,7 @@ final class ExamQuestionController extends Controller
     {
         abort_unless($workspace->owns($request->user(), $exam), 404);
         abort_if($exam->provider !== 'internal', 422, 'سؤال‌های آزمون خارجی باید در سرویس ارائه‌دهنده مدیریت شوند.');
+        abort_if($exam->attempts()->exists(), 422, 'پس از شروع آزمون، افزودن یا تغییر سؤال‌ها مجاز نیست.');
 
         $exam->questions()->create($this->validatedQuestion($request));
 
@@ -36,6 +38,7 @@ final class ExamQuestionController extends Controller
         abort_unless($workspace->owns($request->user(), $exam), 404);
         abort_unless((int) $question->exam_id === (int) $exam->id, 404);
         abort_if($exam->provider !== 'internal', 422);
+        abort_if($exam->attempts()->exists(), 422, 'برای حفظ سوابق، پس از شروع آزمون امکان تغییر سؤال وجود ندارد.');
 
         $question->update($this->validatedQuestion($request));
 
@@ -46,6 +49,7 @@ final class ExamQuestionController extends Controller
     {
         abort_unless($workspace->owns($request->user(), $exam), 404);
         abort_unless((int) $question->exam_id === (int) $exam->id, 404);
+        abort_if($exam->attempts()->exists(), 422, 'برای حفظ سوابق، پس از شروع آزمون امکان حذف سؤال وجود ندارد.');
 
         if ($question->answers()->exists()) {
             throw ValidationException::withMessages([
