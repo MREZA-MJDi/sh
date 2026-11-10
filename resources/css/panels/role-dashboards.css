@@ -1,0 +1,69 @@
+.panel-section-anchor {
+    scroll-margin-top: 105px;
+}
+
+.panel-hero-meta {
+    flex: 0 0 auto;
+    padding: 7px 12px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 10px;
+    color: #fff;
+    background: rgba(255, 255, 255, .09);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.panel-subcard {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid var(--sh-line);
+    border-radius: 13px;
+    background: var(--sh-surface-soft);
+}
+
+.panel-subcard strong {
+    overflow: hidden;
+    color: var(--sh-ink);
+    font-size: 13px;
+    text-overflow: ellipsis;
+}
+
+.panel-subcard span,
+.panel-subcard small {
+    color: var(--sh-muted);
+    font-size: 11px;
+}
+
+.panel-auth-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 22px;
+    color: var(--sh-muted);
+    font-size: 11px;
+}
+
+.panel-auth-footer a {
+    color: var(--sh-primary);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.panel-auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.panel-section-anchor .panel-card-title {
+    scroll-margin-top: 105px;
+}
+
+@media (max-width: 640px) {
+    .panel-hero-meta {
+        align-self: flex-start;
+    }
+}

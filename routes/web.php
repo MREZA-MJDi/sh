@@ -5,7 +5,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
@@ -13,41 +13,20 @@ use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\SessionController;
-use App\Http\Controllers\DashboardRedirectController;
-use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
-use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
-use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
+use App\Http\Controllers\Auth\AdminLoginController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', DashboardRedirectController::class)->name('home');
+Route::redirect('/', '/admin');
 
-Route::middleware('guest')->group(function (): void {
-    Route::get('/login', [SessionController::class, 'create'])->name('login');
-    Route::post('/login', [SessionController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('login.store');
-
-    Route::get('/register', [SessionController::class, 'register'])->name('register');
-    Route::post('/register', [SessionController::class, 'storeRegistration'])
-        ->middleware('throttle:3,1')
-        ->name('register.store');
-
-    // Backward-compatible admin login URL; authentication is now role-aware.
-    Route::get('/admin/login', fn () => redirect()->route('login'))->name('admin.login');
-    Route::post('/admin/login', [SessionController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('admin.login.store');
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', [AdminLoginController::class, 'create'])->name('admin.login');
+    Route::post('/admin/login', [AdminLoginController::class, 'store'])->middleware('throttle:6,1')->name('admin.login.store');
 });
 
-Route::middleware('auth')->group(function (): void {
-    Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
-});
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/logout', [AdminLoginController::class, 'destroy'])->name('logout');
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function (): void {
-    Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
-
-    Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.index');
     Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.store');
@@ -112,24 +91,3 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/quiz24/exams/{exam}/sync-results', [Quiz24Controller::class, 'requestResultsSync'])->middleware('permission:integrations.manage')->name('quiz24.sync-results');
     Route::post('/quiz24/unmatched/{participant}/resolve', [Quiz24Controller::class, 'resolveParticipant'])->middleware('permission:integrations.manage')->name('quiz24.unmatched.resolve');
 });
-
-Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
-    ->prefix('student')
-    ->name('student.')
-    ->group(function (): void {
-        Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
-    });
-
-Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
-    ->prefix('teacher')
-    ->name('teacher.')
-    ->group(function (): void {
-        Route::get('/', [TeacherDashboardController::class, 'index'])->name('dashboard');
-    });
-
-Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
-    ->prefix('parent')
-    ->name('guardian.')
-    ->group(function (): void {
-        Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
-    });
