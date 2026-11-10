@@ -15,28 +15,30 @@ final class ConsultationController extends Controller
 {
     public function index(Request $request): View
     {
+        $children = $this->linkedChildren($request);
+        $selected_child = $children->firstWhere('id', $request->integer('child')) ?? $children->first();
+
         $consultations = Consultation::query()
             ->where('requester_id', $request->user()->id)
+            ->when($selected_child, fn ($query) => $query->where('student_id', $selected_child->id))
             ->with(['student:id,name,grade', 'replies.sender:id,name'])
             ->latest()
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('guardian.consultations.index', compact('consultations'));
+        return view('parent.consult.index', compact('consultations', 'children', 'selected_child'));
     }
 
     public function create(Request $request): View
     {
-        $children = $request->user()->children()
-            ->where('users.is_active', true)
-            ->whereHas('roles', fn ($roles) => $roles->where('name', 'student'))
-            ->orderBy('users.name')
-            ->get(['users.id', 'users.name', 'users.grade']);
+        $children = $this->linkedChildren($request);
 
         abort_if($children->isEmpty(), 403, 'برای ثبت درخواست، ابتدا باید دانش‌آموزی به حساب شما متصل شود.');
 
         $selectedChild = $children->firstWhere('id', $request->integer('child')) ?? $children->first();
+        $selected_child = $selectedChild;
 
-        return view('parent.consult.create', compact('children', 'selectedChild'));
+        return view('parent.consult.create', compact('children', 'selectedChild', 'selected_child'));
     }
 
     public function store(StoreConsultationRequest $request): RedirectResponse
@@ -66,7 +68,10 @@ final class ConsultationController extends Controller
             ->with(['student:id,name,grade', 'replies.sender:id,name'])
             ->firstOrFail();
 
-        return view('guardian.consultations.show', compact('consultation'));
+        $children = $this->linkedChildren($request);
+        $selected_child = $children->firstWhere('id', $consultation->student_id) ?? $children->first();
+
+        return view('parent.consult.show', compact('consultation', 'children', 'selected_child'));
     }
 
     public function reply(
@@ -99,5 +104,14 @@ final class ConsultationController extends Controller
         $consultation->delete();
 
         return redirect()->route('guardian.consultations.index')->with('status', 'درخواست مشاوره حذف شد.');
+    }
+
+    private function linkedChildren(Request $request)
+    {
+        return $request->user()->children()
+            ->where('users.is_active', true)
+            ->whereHas('roles', fn ($roles) => $roles->where('name', 'student'))
+            ->orderBy('users.name')
+            ->get(['users.id', 'users.name', 'users.grade']);
     }
 }
