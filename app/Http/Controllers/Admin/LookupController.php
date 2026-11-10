@@ -20,7 +20,7 @@ final class LookupController extends Controller
         ]);
 
         $term = trim($validated['q']);
-        $pattern = '%' . addcslashes($term, '%_\\\\') . '%';
+        $pattern = '%' . addcslashes($term, '%_\\') . '%';
 
         $matches = User::query()
             ->select(['id', 'name', 'phone'])
