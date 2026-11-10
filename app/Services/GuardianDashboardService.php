@@ -131,7 +131,7 @@ final class GuardianDashboardService
             ->limit(6)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
-        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds);
+        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 8);
 
         $announcements = Announcement::query()
             ->where('status', 'published')
