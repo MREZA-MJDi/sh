@@ -9,6 +9,7 @@ use App\Models\Consultation;
 use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
+use App\Models\HomeworkSubmission;
 use App\Models\LearningResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
