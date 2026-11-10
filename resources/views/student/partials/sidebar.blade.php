@@ -1,5 +1,7 @@
 @php
     $student = auth()->user();
+    $hasLearningItems = $student?->can('classes.view.enrolled') || $student?->can('homework.view.own');
+    $hasPerformanceItems = $student?->can('exams.view.own') || $student?->can('attendance.view.own');
 @endphp
 
 <aside class="side" id="side" aria-label="منوی دانش‌آموز">
@@ -18,25 +20,25 @@
             <x-icon name="home"/> خانه‌ی یادگیری
         </a>
 
-        @can('classes.view.enrolled')
+        @if($hasLearningItems)
             <h6>یادگیری</h6>
-            <a href="#classes" data-nav-link><x-icon name="book"/> کلاس‌های من</a>
-        @endcan
+            @can('classes.view.enrolled')
+                <a href="#classes" data-nav-link><x-icon name="book"/> کلاس‌های من</a>
+            @endcan
+            @can('homework.view.own')
+                <a href="#homework" data-nav-link><x-icon name="task"/> تکالیف</a>
+            @endcan
+        @endif
 
-        @can('homework.view.own')
-            @unless(Gate::check('classes.view.enrolled'))<h6>یادگیری</h6>@endunless
-            <a href="#homework" data-nav-link><x-icon name="task"/> تکالیف</a>
-        @endcan
-
-        @can('exams.view.own')
+        @if($hasPerformanceItems)
             <h6>عملکرد آموزشی</h6>
-            <a href="#results" data-nav-link><x-icon name="exam"/> نتایج آزمون‌ها</a>
-        @endcan
-
-        @can('attendance.view.own')
-            @unless(Gate::check('exams.view.own'))<h6>عملکرد آموزشی</h6>@endunless
-            <a href="#attendance" data-nav-link><x-icon name="cal"/> حضور و غیاب</a>
-        @endcan
+            @can('exams.view.own')
+                <a href="#results" data-nav-link><x-icon name="exam"/> نتایج آزمون‌ها</a>
+            @endcan
+            @can('attendance.view.own')
+                <a href="#attendance" data-nav-link><x-icon name="cal"/> حضور و غیاب</a>
+            @endcan
+        @endif
 
         @can('resources.view.enrolled')
             <h6>منابع</h6>
