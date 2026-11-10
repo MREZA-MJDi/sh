@@ -25,7 +25,8 @@ final class CourseController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $progressByCourse = $progress->forStudent($request->user(), clone $courseIds)->keyBy('id');
+        $pageCourseIds = $courses->getCollection()->pluck('id')->all();
+        $progressByCourse = $progress->forStudent($request->user(), $pageCourseIds)->keyBy('id');
 
         return view('student.courses.index', compact('courses', 'progressByCourse'));
     }
