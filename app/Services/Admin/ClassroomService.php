@@ -92,6 +92,9 @@ final class ClassroomService
             $classroom->homeworks()->exists()
             || $classroom->attendances()->exists()
             || $classroom->students()->exists()
+            || $classroom->exams()->exists()
+            || $classroom->learningResources()->exists()
+            || $classroom->spotPlayerVideos()->exists()
         ) {
             throw ValidationException::withMessages([
                 'classroom' => 'کلاس دارای سوابق آموزشی یا اعضای ثبت‌نام‌شده است؛ آن را بایگانی کنید.',

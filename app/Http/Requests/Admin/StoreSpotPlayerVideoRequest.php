@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Classroom;
 use App\Models\Course;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,6 +38,14 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             if (! $course || $course->delivery_type !== 'spotplayer') {
                 $validator->errors()->add('course_id', 'ویدیو باید به یک دوره با روش ارائه SpotPlayer متصل شود.');
                 return;
+            }
+
+            if ($this->filled('classroom_id')
+                && ! Classroom::query()
+                    ->whereKey($this->integer('classroom_id'))
+                    ->where('course_id', $course->id)
+                    ->exists()) {
+                $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
             }
 
             if (! $workspace->isTeacher($this->user())) {

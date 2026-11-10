@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\Course;
+use App\Models\Classroom;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -40,6 +40,14 @@ class StoreLearningResourceRequest extends FormRequest
             }
             if (! $this->boolean('is_free') && $price < 1) {
                 $validator->errors()->add('price', 'برای محصول پولی، قیمت باید بیشتر از صفر باشد.');
+            }
+
+            if ($this->filled('classroom_id') && $this->filled('course_id')
+                && ! Classroom::query()
+                    ->whereKey($this->integer('classroom_id'))
+                    ->where('course_id', $this->integer('course_id'))
+                    ->exists()) {
+                $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
             }
 
             $workspace = app(ClassroomWorkspaceService::class);

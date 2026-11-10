@@ -8,6 +8,7 @@ use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CourseService
 {
@@ -73,9 +74,18 @@ class CourseService
 
     public function delete(Course $course): void
     {
-        if ($course->classrooms()->exists() || $course->enrollments()->exists() ||
-            $course->spotPlayerLicenses()->exists()) {
-            abort(422, 'این دوره دارای کلاس، ثبت‌نام یا لایسنس است؛ برای حفظ سوابق آن را بایگانی کنید.');
+        if (
+            $course->classrooms()->exists()
+            || $course->enrollments()->exists()
+            || $course->spotPlayerLicenses()->exists()
+            || $course->sections()->exists()
+            || $course->resources()->exists()
+            || $course->exams()->exists()
+            || $course->spotPlayerVideos()->exists()
+        ) {
+            throw ValidationException::withMessages([
+                'course' => 'این دوره دارای محتوای آموزشی، منابع، آزمون، کلاس، ثبت‌نام یا لایسنس است؛ برای حفظ سوابق آن را بایگانی کنید.',
+            ]);
         }
 
         $course->delete();
