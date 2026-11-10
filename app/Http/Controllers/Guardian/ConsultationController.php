@@ -47,7 +47,7 @@ final class ConsultationController extends Controller
             'requester_id' => $request->user()->id,
             'student_id' => $data['student_id'],
             'type' => $data['type'],
-            'subject' => $data['subject'],
+            'topic' => $data['topic'],
             'contact_phone' => $data['contact_phone'] ?? $request->user()->phone,
             'desired_at' => $data['desired_at'] ?? null,
             'notes' => $data['body'],
