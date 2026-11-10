@@ -32,7 +32,7 @@
                 <div class="panel-field"><label>قیمت (تومان، برای دوره پولی)</label><input class="panel-input" name="price" type="number" min="1" max="1000000000" value="{{ old('price') }}"></div>
                 <div class="panel-field">
                     <label>نحوه ارائه</label>
-                    <select class="panel-select" name="delivery_type" onchange="if(this.value !== 'spotplayer') this.form.querySelector('[name=spotplayer_course_id]').value = ''">
+                    <select class="panel-select" name="delivery_type" data-reset-spotplayer-id>
                         <option value="spotplayer">ویدیو با SpotPlayer</option>
                         <option value="skyroom">کلاس زنده با اسکای‌روم</option>
                         <option value="onsite">حضوری</option>
@@ -93,7 +93,7 @@
                                             <div class="panel-field"><label>نوع</label><select class="panel-select" name="type"><option value="free" @selected($course->type==='free')>رایگان</option><option value="paid" @selected($course->type==='paid')>پولی</option></select></div>
                                             <div class="panel-field"><label>قیمت (تومان)</label><input class="panel-input" type="number" min="1" name="price" value="{{ $course->price }}"></div>
                                         </div>
-                                        <div class="panel-field"><label>نحوه ارائه</label><select class="panel-select" name="delivery_type" onchange="if(this.value !== 'spotplayer') this.form.querySelector('[name=spotplayer_course_id]').value = ''">@foreach (['spotplayer'=>'ویدیوی SpotPlayer','skyroom'=>'کلاس زنده اسکای‌روم','onsite'=>'حضوری'] as $key=>$label)<option value="{{ $key }}" @selected($course->delivery_type===$key)>{{ $label }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>نحوه ارائه</label><select class="panel-select" name="delivery_type" data-reset-spotplayer-id>@foreach (['spotplayer'=>'ویدیوی SpotPlayer','skyroom'=>'کلاس زنده اسکای‌روم','onsite'=>'حضوری'] as $key=>$label)<option value="{{ $key }}" @selected($course->delivery_type===$key)>{{ $label }}</option>@endforeach</select></div>
                                         <div class="panel-field"><label>شناسه دوره در SpotPlayer</label><input class="panel-input" name="spotplayer_course_id" value="{{ $course->spotplayer_course_id }}" dir="ltr" maxlength="190"></div>
                                         <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($course->status===$key)>{{ $label }}</option>@endforeach</select></div>
                                         <button class="panel-btn panel-btn-sm" type="submit">ذخیره تغییرات</button>
