@@ -22,5 +22,6 @@
         @empty
             <div class="empty">هنوز تلاشی برای این آزمون ثبت نشده است.</div>
         @endforelse
+        <div class="panel-pagination">{{ $attempts->links() }}</div>
     </section>
 @endsection
