@@ -74,6 +74,7 @@ class RolePermissionSeeder extends Seeder
             'messages.reply' => ['پاسخ به پیام‌ها', 'messages'],
             'announcements.view' => ['مشاهده اطلاعیه‌ها', 'announcements'],
             'announcements.manage' => ['مدیریت اطلاعیه‌ها', 'announcements'],
+            'videos.view.enrolled' => ['مشاهده ویدیوهای دوره و کلاس ثبت‌نام‌شده', 'videos'],
             'videos.view.assigned' => ['مشاهده ویدیوهای کلاس‌های خود', 'videos'],
             'videos.manage.assigned' => ['مدیریت ویدیوهای کلاس‌های خود', 'videos'],
             'integrations.manage' => ['مدیریت اتصال سرویس‌های خارجی', 'integrations'],
@@ -106,7 +107,7 @@ class RolePermissionSeeder extends Seeder
             ],
             'student' => [
                 'dashboard.view', 'classes.view.enrolled', 'homework.view.own', 'homework.submit', 'lessons.view', 'lessons.progress',
-                'attendance.view.own', 'exams.view.own', 'exams.attempt', 'resources.view.enrolled', 'notes.manage.own',
+                'attendance.view.own', 'exams.view.own', 'exams.attempt', 'resources.view.enrolled', 'videos.view.enrolled', 'notes.manage.own',
                 'messages.view.own', 'messages.send.own', 'announcements.view', 'profile.update',
             ],
             'parent' => [
