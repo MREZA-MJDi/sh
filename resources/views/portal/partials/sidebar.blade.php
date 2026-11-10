@@ -44,6 +44,10 @@
                 <h6>منابع آموزشی</h6>
                 <a href="#resources" data-nav-link><x-icon name="file"/> جزوه‌ها و منابع</a>
             @endcan
+            @can('notes.manage.own')
+                <h6>حساب و یادداشت‌ها</h6>
+                <a href="{{ route('student.notes.index') }}"><x-icon name="note"/> یادداشت‌های من</a>
+            @endcan
         @else
             <h6>وضعیت فرزند</h6>
             <a href="#children" data-nav-link><x-icon name="users"/> فرزندان متصل‌شده</a>
@@ -58,6 +62,10 @@
             @endcan
             @can('resources.view.enrolled')
                 <a href="#resources" data-nav-link><x-icon name="file"/> منابع آموزشی</a>
+            @endcan
+            @can('consultations.create')
+                <h6>ارتباط با آکادمی</h6>
+                <a href="{{ route('parent.consult.index') }}"><x-icon name="phone"/> درخواست‌های مشاوره</a>
             @endcan
         @endif
 
