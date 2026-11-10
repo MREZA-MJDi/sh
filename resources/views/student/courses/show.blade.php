@@ -13,7 +13,7 @@
         </div>
     </section>
 
-    @if ($sections->isNotEmpty())
+    @if ($sections->count() > 0)
         <nav class="student-course-sections-nav" aria-label="بخش‌های دوره">
             @foreach ($sections as $courseSection)
                 <a
@@ -63,7 +63,7 @@
             @endforelse
             <div class="student-course-pagination">{{ $lessons->links() }}</div>
         </section>
-    @elseif ($sections->isEmpty())
+    @elseif ($sections->count() === 0)
         <section class="card"><div class="empty">محتوای منتشرشده‌ای برای این دوره وجود ندارد.</div></section>
     @endif
 @endsection
