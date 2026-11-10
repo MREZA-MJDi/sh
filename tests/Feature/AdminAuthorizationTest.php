@@ -33,6 +33,10 @@ class AdminAuthorizationTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
+            ->assertSee('<html lang="fa" dir="rtl">', false)
+            ->assertSee('data-admin-sidebar-mini-toggle', false)
+            ->assertSee('data-admin-nav-group-toggle', false)
+            ->assertSee('میانبرهای سریع')
             ->assertSee('داشبورد مدیریت');
     }
 
