@@ -104,6 +104,44 @@ final class CourseLearningProgressTest extends TestCase
         $this->assertSame(100, (int) $summary->progress_percent);
     }
 
+    public function test_course_detail_paginates_lessons_instead_of_loading_the_entire_section(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        [$course, $classroom] = $this->courseAndClassroom($teacher);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $section = CourseSection::query()->create([
+            'course_id' => $course->id,
+            'title' => 'بخش پرتعداد',
+            'status' => 'published',
+        ]);
+
+        for ($index = 1; $index <= 31; $index++) {
+            Lesson::query()->create([
+                'course_section_id' => $section->id,
+                'title' => sprintf('درس صفحه‌بندی %02d', $index),
+                'sort_order' => $index,
+                'status' => 'published',
+            ]);
+        }
+
+        $this->actingAs($student)
+            ->get(route('student.courses.show', $course))
+            ->assertOk()
+            ->assertSee('درس صفحه‌بندی 01')
+            ->assertDontSee('درس صفحه‌بندی 31');
+
+        $this->get(route('student.courses.show', [
+            'course' => $course,
+            'section' => $section->id,
+            'lessons_page' => 2,
+        ]))
+            ->assertOk()
+            ->assertSee('درس صفحه‌بندی 31');
+    }
+
     public function test_student_cannot_open_course_or_mark_lesson_without_active_enrollment(): void
     {
         $student = $this->userWithRole('student');
