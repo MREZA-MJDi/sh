@@ -112,6 +112,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .panel-card-title h3 { margin: 0; font-size: 14px; font-weight: 800; }
 .panel-card-title p { margin: 3px 0 0; color: var(--sh-muted); font-size: 11px; }
 .panel-stat { position: relative; overflow: hidden; }
+.panel-stat--students { --stat-color: #5065d8; --stat-soft: #edf0ff; }
+.panel-stat--teachers { --stat-color: #0b9a89; --stat-soft: #e2f6f2; }
+.panel-stat--classes { --stat-color: #d18b11; --stat-soft: #fff5dc; }
+.panel-stat--courses { --stat-color: #d84b59; --stat-soft: #fff0f1; }
+.panel-stat--homework { --stat-color: #7b55c7; --stat-soft: #f1ebff; }
 .panel-stat::after { position: absolute; inset: auto -20px -40px auto; width: 110px; height: 110px; border-radius: 50%; background: var(--stat-soft, var(--sh-primary-soft)); content: ""; opacity: .7; }
 .panel-stat-label { color: var(--sh-muted); font-size: 12px; font-weight: 600; }
 .panel-stat-value { position: relative; z-index: 1; display: block; margin-top: 8px; font-size: 27px; line-height: 1.3; font-weight: 900; }
