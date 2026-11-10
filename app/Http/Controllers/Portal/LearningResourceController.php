@@ -23,36 +23,51 @@ final class LearningResourceController extends Controller
             ->where('status', 'published')
             ->whereIn('visibility', ['enrolled', 'authenticated'])
             ->whereNotNull('file_path')
-            ->where(function (Builder $scope) use ($student): void {
-                $scope->whereIn('classroom_id', Classroom::query()
-                    ->where('status', 'active')
-                    ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-                    ->where(function (Builder $access) use ($student): void {
-                        $access->whereNull('classrooms.course_id')
-                            ->orWhereHas('course', fn (Builder $course) => $course
-                                ->where('status', 'published')
-                                ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
-                                    ->where('student_id', $student->id)
-                                    ->where('status', 'active')
-                                    ->where(fn (Builder $expiry) => $expiry
-                                        ->whereNull('expires_at')
-                                        ->orWhere('expires_at', '>', now()))));
-                    })
-                    ->select('classrooms.id'))
-                    ->orWhereIn('course_id', CourseEnrollment::query()
-                        ->where('student_id', $student->id)
-                        ->where('status', 'active')
-                        ->where(fn (Builder $expiry) => $expiry
-                            ->whereNull('expires_at')
-                            ->orWhere('expires_at', '>', now()))
-                        ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
-                        ->select('course_id'));
-            })
             ->firstOrFail();
+
+        // A classroom-scoped resource must require membership in that exact
+        // classroom. Course enrollment is an additional condition, not an
+        // alternative path that can bypass the classroom restriction.
+        if ($resource->classroom_id) {
+            $classroom = Classroom::query()
+                ->whereKey($resource->classroom_id)
+                ->where('status', 'active')
+                ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
+                ->firstOrFail();
+
+            if ($resource->course_id && $classroom->course_id
+                && (int) $resource->course_id !== (int) $classroom->course_id) {
+                abort(404);
+            }
+
+            $courseId = $resource->course_id ?: $classroom->course_id;
+            if ($courseId) {
+                abort_unless($this->hasActiveCourseAccess($student, (int) $courseId), 404);
+            }
+        } elseif ($resource->course_id) {
+            // Course-wide material (without a classroom restriction) is
+            // available only to currently enrolled students of a published course.
+            abort_unless($this->hasActiveCourseAccess($student, (int) $resource->course_id), 404);
+        } else {
+            abort(404);
+        }
 
         abort_unless(Storage::disk('local')->exists($resource->file_path), 404);
 
         return Storage::disk('local')->download($resource->file_path);
+    }
+
+    private function hasActiveCourseAccess(User $student, int $courseId): bool
+    {
+        return CourseEnrollment::query()
+            ->where('student_id', $student->id)
+            ->where('course_id', $courseId)
+            ->where('status', 'active')
+            ->where(fn (Builder $expiry) => $expiry
+                ->whereNull('expires_at')
+                ->orWhere('expires_at', '>', now()))
+            ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
+            ->exists();
     }
 
     private function studentFor(Request $request): User
