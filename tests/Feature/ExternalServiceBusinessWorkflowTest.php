@@ -346,6 +346,51 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         Http::assertNothingSent();
     }
 
+
+    public function test_spotplayer_video_is_staged_privately_and_upload_is_queued(): void
+    {
+        Storage::fake('local');
+
+        $course = Course::create([
+            'title' => 'دوره ویدیویی تست',
+            'slug' => 'spotplayer-video-staging-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => 'SP-STAGING-01',
+            'status' => 'published',
+            'integration_status' => 'awaiting_api_verification',
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.spotplayer.videos.store'), [
+            'title' => 'جلسه اول',
+            'course_id' => $course->id,
+            'status' => 'waiting_contract',
+            'file' => UploadedFile::fake()->create('lesson.mp4', 512, 'video/mp4'),
+        ]);
+
+        $response->assertRedirect();
+
+        $video = SpotPlayerVideo::where('title', 'جلسه اول')->firstOrFail();
+
+        $this->assertSame('waiting_contract', $video->status);
+        $this->assertSame('lesson.mp4', $video->file_original_name);
+        $this->assertNotNull($video->file_sha256);
+        $this->assertSame(64, strlen($video->file_sha256));
+
+        Storage::disk('local')->assertExists($video->file_path);
+
+        $this->assertDatabaseHas('integration_runs', [
+            'provider' => 'spotplayer',
+            'action' => 'upload_video',
+            'status' => 'waiting_contract',
+            'entity_id' => $video->id,
+        ]);
+
+        $this->get(route('admin.spotplayer.videos.download', $video))->assertOk();
+        Http::assertNothingSent();
+    }
+
     private function createUserWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create([
