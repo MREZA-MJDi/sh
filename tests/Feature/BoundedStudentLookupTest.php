@@ -41,6 +41,19 @@ final class BoundedStudentLookupTest extends TestCase
         $this->assertCount(20, $response->json('data'));
     }
 
+    public function test_parent_creation_page_does_not_preload_the_student_directory(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $this->userWithRole('student', ['name' => 'نام نباید در HTML فرم باشد']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.parents.index'))
+            ->assertOk()
+            ->assertSee('data-remote-lookup', false)
+            ->assertSee('حداقل دو حرف')
+            ->assertDontSee('نام نباید در HTML فرم باشد');
+    }
+
     public function test_only_users_with_user_management_permission_can_search_students(): void
     {
         $parent = $this->userWithRole('parent');
