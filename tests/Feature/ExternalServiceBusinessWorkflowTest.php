@@ -349,7 +349,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
     public function test_spotplayer_video_is_staged_privately_and_upload_is_queued(): void
     {
-        Storage::fake('local');
+        \Illuminate\Support\Facades\Storage::fake('local');
 
         $course = Course::create([
             'title' => 'دوره ویدیویی تست',
@@ -366,19 +366,19 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
             'title' => 'جلسه اول',
             'course_id' => $course->id,
             'status' => 'waiting_contract',
-            'file' => UploadedFile::fake()->create('lesson.mp4', 512, 'video/mp4'),
+            'file' => \Illuminate\Http\UploadedFile::fake()->create('lesson.mp4', 512, 'video/mp4'),
         ]);
 
         $response->assertRedirect();
 
-        $video = SpotPlayerVideo::where('title', 'جلسه اول')->firstOrFail();
+        $video = \App\Models\SpotPlayerVideo::where('title', 'جلسه اول')->firstOrFail();
 
         $this->assertSame('waiting_contract', $video->status);
         $this->assertSame('lesson.mp4', $video->file_original_name);
         $this->assertNotNull($video->file_sha256);
         $this->assertSame(64, strlen($video->file_sha256));
 
-        Storage::disk('local')->assertExists($video->file_path);
+        \Illuminate\Support\Facades\Storage::disk('local')->assertExists($video->file_path);
 
         $this->assertDatabaseHas('integration_runs', [
             'provider' => 'spotplayer',
