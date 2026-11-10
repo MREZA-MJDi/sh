@@ -45,6 +45,7 @@ class RolePermissionSeeder extends Seeder
             'homework.manage.all' => ['مدیریت همه تکالیف', 'homework'],
             'homework.manage.assigned' => ['مدیریت تکالیف کلاس‌های خود', 'homework'],
             'homework.submit' => ['ارسال پاسخ تکلیف', 'homework'],
+            'notes.manage.own' => ['مدیریت یادداشت‌های شخصی', 'notes'],
             'homework.grade' => ['تصحیح و نمره‌دهی تکالیف', 'homework'],
             'exams.view.all' => ['مشاهده همه آزمون‌ها', 'exams'],
             'exams.view.own' => ['مشاهده نتایج شخصی آزمون‌ها', 'exams'],
@@ -61,6 +62,7 @@ class RolePermissionSeeder extends Seeder
             'messages.view.all' => ['مشاهده همه پیام‌ها', 'messages'],
             'messages.view.assigned' => ['مشاهده پیام‌های مرتبط با کلاس', 'messages'],
             'messages.view.own' => ['مشاهده پیام‌های شخصی', 'messages'],
+            'messages.send.own' => ['ارسال و مدیریت پیام‌های شخصی', 'messages'],
             'messages.view.children' => ['مشاهده پیام‌های مرتبط با فرزندان', 'messages'],
             'messages.reply' => ['پاسخ به پیام‌ها', 'messages'],
             'announcements.view' => ['مشاهده اطلاعیه‌ها', 'announcements'],
@@ -96,13 +98,14 @@ class RolePermissionSeeder extends Seeder
             ],
             'student' => [
                 'dashboard.view', 'classes.view.enrolled', 'homework.view.own', 'homework.submit',
-                'attendance.view.own', 'exams.view.own', 'resources.view.enrolled',
-                'messages.view.own', 'announcements.view', 'profile.update',
+                'attendance.view.own', 'exams.view.own', 'resources.view.enrolled', 'notes.manage.own',
+                'messages.view.own', 'messages.send.own', 'announcements.view', 'profile.update',
             ],
             'parent' => [
                 'dashboard.view', 'students.view.linked', 'attendance.view.children',
-                'homework.view.children', 'exams.view.children', 'consultations.view.children',
-                'consultations.create', 'messages.view.children', 'announcements.view', 'profile.update',
+                'homework.view.children', 'exams.view.children', 'resources.view.enrolled',
+                'consultations.view.children', 'consultations.create', 'messages.view.children', 'messages.send.own',
+                'announcements.view', 'profile.update',
             ],
         ];
 

@@ -16,7 +16,12 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
+use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\NoteController;
+use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
+use App\Http\Controllers\Portal\MessageController as PortalMessageController;
+use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -118,6 +123,20 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
+
+        Route::middleware('permission:homework.submit')->group(function (): void {
+            Route::post('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'store'])->name('homework.submissions.store');
+            Route::delete('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'destroy'])->name('homework.submissions.destroy');
+            Route::get('/homework-submission-files/{file}/download', [StudentHomeworkSubmissionController::class, 'downloadFile'])->name('homework.submission-files.download');
+            Route::delete('/homework-submission-files/{file}', [StudentHomeworkSubmissionController::class, 'destroyFile'])->name('homework.submission-files.destroy');
+        });
+        Route::middleware('permission:notes.manage.own')->group(function (): void {
+            Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
+            Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
+            Route::patch('/notes/{note}', [NoteController::class, 'update'])->name('notes.update');
+            Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+        });
     });
 
 Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
@@ -132,4 +151,44 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
+    });
+
+Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])
+    ->prefix('parent/consultations')
+    ->name('guardian.consultations.')
+    ->group(function (): void {
+        Route::get('/', [GuardianConsultationController::class, 'index'])->name('index');
+        Route::get('/create', [GuardianConsultationController::class, 'create'])->name('create');
+        Route::post('/', [GuardianConsultationController::class, 'store'])->name('store');
+        Route::get('/{consultation}', [GuardianConsultationController::class, 'show'])->name('show');
+        Route::post('/{consultation}/replies', [GuardianConsultationController::class, 'reply'])->name('reply');
+        Route::delete('/{consultation}', [GuardianConsultationController::class, 'destroy'])->name('destroy');
+    });
+
+
+Route::middleware(['auth', 'role:student'])
+    ->prefix('student/messages')
+    ->name('student.messages.')
+    ->group(function (): void {
+        Route::get('/', [PortalMessageController::class, 'index'])->middleware('permission:messages.view.own')->name('index');
+        Route::get('/create', [PortalMessageController::class, 'create'])->middleware('permission:messages.send.own')->name('create');
+        Route::post('/', [PortalMessageController::class, 'store'])->middleware('permission:messages.send.own')->name('store');
+        Route::get('/{message}', [PortalMessageController::class, 'show'])->middleware('permission:messages.view.own')->name('show');
+        Route::patch('/{message}', [PortalMessageController::class, 'update'])->middleware('permission:messages.send.own')->name('update');
+        Route::post('/{message}/replies', [PortalMessageController::class, 'reply'])->middleware('permission:messages.send.own')->name('reply');
+        Route::delete('/{message}', [PortalMessageController::class, 'destroy'])->middleware('permission:messages.send.own')->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:parent'])
+    ->prefix('parent/messages')
+    ->name('guardian.messages.')
+    ->group(function (): void {
+        Route::get('/', [PortalMessageController::class, 'index'])->middleware('permission:messages.view.children')->name('index');
+        Route::get('/create', [PortalMessageController::class, 'create'])->middleware('permission:messages.send.own')->name('create');
+        Route::post('/', [PortalMessageController::class, 'store'])->middleware('permission:messages.send.own')->name('store');
+        Route::get('/{message}', [PortalMessageController::class, 'show'])->middleware('permission:messages.view.children')->name('show');
+        Route::patch('/{message}', [PortalMessageController::class, 'update'])->middleware('permission:messages.send.own')->name('update');
+        Route::post('/{message}/replies', [PortalMessageController::class, 'reply'])->middleware('permission:messages.send.own')->name('reply');
+        Route::delete('/{message}', [PortalMessageController::class, 'destroy'])->middleware('permission:messages.send.own')->name('destroy');
     });

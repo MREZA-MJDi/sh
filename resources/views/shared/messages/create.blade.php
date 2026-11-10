@@ -1,20 +1,66 @@
-@extends('layouts.app')
+@extends(request()->routeIs('guardian.*') ? 'layouts.parent' : 'layouts.student')
+
 @section('title', 'پیام جدید')
+
 @section('content')
-<x-crumbs :items="['پیام‌ها' => $rt('messages.index'), 'پیام جدید' => null]"/>
-<x-card title="ارسال پیام">
-  <form method="POST" action="{{ $rt('messages.store') }}">@csrf
-    <div class="fm">
-      <div><label for="to">گیرنده</label>
-        <select class="fld" id="to" name="to">
-          <optgroup label="اساتید">@foreach(collect($m['teachers'])->where('id', '<=', 3) as $t)<option value="{{ $t['name'] }}" @selected(old('to') === $t['name'])>{{ $t['name'] }} ({{ $t['role'] }})</option>@endforeach</optgroup>
-          <optgroup label="مدیریت"><option>{{ $m['teachers'][3]['name'] }}</option><option>{{ $m['academy']['secretary'] }}</option></optgroup>
-        </select><x-field-error name="to"/></div>
-      <div><label for="kind">نوع پیام</label><select class="fld" id="kind" name="kind"><option>سؤال</option><option>پیشنهاد</option><option>انتقاد</option><option>سایر</option></select></div>
-      <div class="w"><label for="subject">موضوع</label><input class="fld" id="subject" name="subject" value="{{ old('subject') }}"><x-field-error name="subject"/></div>
-      <div class="w"><label for="body">متن پیام</label><textarea class="fld" id="body" name="body" data-count="1500">{{ old('body') }}</textarea><x-field-error name="body"/></div>
-    </div>
-    <div class="frm"><button class="btn" type="submit">ارسال پیام</button><a class="btn g" href="{{ $rt('messages.index') }}">انصراف</a></div>
-  </form>
-</x-card>
+    @php
+        $messageRoutePrefix = request()->routeIs('guardian.*') ? 'guardian.messages' : 'student.messages';
+    @endphp
+
+    <x-card title="ارسال پیام به مدرس یا مدیر آکادمی">
+        @if($recipients->isEmpty())
+            <div class="empty">در حال حاضر مدرس یا مدیر فعالی برای این دانش‌آموز قابل انتخاب نیست.</div>
+        @else
+            <form method="POST" action="{{ route($messageRoutePrefix.'.store') }}">
+                @csrf
+                <div class="fm">
+                    @if(request()->routeIs('guardian.*'))
+                        <div>
+                            <label for="student_id">درباره‌ی فرزند</label>
+                            <select class="fld" id="student_id" name="student_id" required>
+                                @foreach($children as $child)
+                                    <option value="{{ $child->id }}" @selected((int) old('student_id', $selected_child?->id) === $child->id)>
+                                        {{ $child->name }} · {{ $child->grade ?? 'پایه ثبت نشده' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-field-error name="student_id"/>
+                        </div>
+                    @else
+                        <input type="hidden" name="student_id" value="{{ auth()->id() }}">
+                    @endif
+
+                    <div>
+                        <label for="recipient_id">گیرنده</label>
+                        <select class="fld" id="recipient_id" name="recipient_id" required>
+                            <option value="">انتخاب مدرس یا مدیر</option>
+                            @foreach($recipients as $recipient)
+                                <option value="{{ $recipient->id }}" @selected((int) old('recipient_id') === $recipient->id)>
+                                    {{ $recipient->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <x-field-error name="recipient_id"/>
+                    </div>
+
+                    <div class="w">
+                        <label for="subject">موضوع پیام</label>
+                        <input class="fld" id="subject" name="subject" maxlength="190" value="{{ old('subject') }}" required>
+                        <x-field-error name="subject"/>
+                    </div>
+
+                    <div class="w">
+                        <label for="body">متن پیام</label>
+                        <textarea class="fld" id="body" name="body" data-count="10000" required>{{ old('body') }}</textarea>
+                        <x-field-error name="body"/>
+                    </div>
+                </div>
+
+                <div class="frm">
+                    <button class="btn" type="submit">ارسال پیام</button>
+                    <a class="btn g" href="{{ route($messageRoutePrefix.'.index') }}">بازگشت</a>
+                </div>
+            </form>
+        @endif
+    </x-card>
 @endsection

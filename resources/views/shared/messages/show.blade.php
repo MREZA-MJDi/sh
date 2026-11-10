@@ -1,15 +1,82 @@
-@extends('layouts.app')
-@section('title', $t['subject'])
+@extends(request()->routeIs('guardian.*') ? 'layouts.parent' : 'layouts.student')
+
+@section('title', $message->subject)
+
 @section('content')
-<x-crumbs :items="['پیام‌ها' => $rt('messages.index'), $t['subject'] => null]"/>
-<x-card :title="'گفتگو با '.$t['to']">
-  <div class="msgs">
-    @foreach($t['messages'] as $msg)
-      <div class="m {{ $msg['from'] === 'me' ? 'me' : '' }}"><small>{{ $msg['name'] }} · {{ $msg['time'] }}</small>{{ $msg['text'] }}</div>
-    @endforeach
-  </div>
-  <form method="POST" action="{{ $rt('messages.reply', $t['id']) }}">@csrf
-    <div class="frm" style="align-items:flex-start"><div style="flex:1;min-width:220px"><label class="sr" for="body">پاسخ</label><textarea class="fld" id="body" name="body" style="min-height:70px" placeholder="پاسخ خود را بنویسید…"></textarea><x-field-error name="body"/></div><button class="btn" type="submit">ارسال</button></div>
-  </form>
-</x-card>
+    @php
+        $messageRoutePrefix = request()->routeIs('guardian.*') ? 'guardian.messages' : 'student.messages';
+        $canEditMessage = $message->sender_id === auth()->id()
+            && $message->status === 'open'
+            && $message->replies->isEmpty();
+    @endphp
+
+    <x-card title="{{ $message->subject }}">
+        <x-slot:actions>
+            <a class="btn s g" href="{{ route($messageRoutePrefix.'.index') }}">بازگشت به پیام‌ها</a>
+        </x-slot:actions>
+
+        <div class="msgs">
+            <div class="m {{ $message->sender_id === auth()->id() ? 'me' : '' }}">
+                <small>
+                    {{ $message->sender?->name ?? 'کاربر آکادمی' }}
+                    · {{ \App\Support\PersianDate::format($message->created_at, 'Y/m/d H:i') }}
+                </small>
+                <p>{{ $message->body }}</p>
+            </div>
+
+            @foreach($message->replies as $reply)
+                <div class="m {{ $reply->sender_id === auth()->id() ? 'me' : '' }}">
+                    <small>
+                        {{ $reply->sender?->name ?? 'کاربر آکادمی' }}
+                        · {{ \App\Support\PersianDate::format($reply->created_at, 'Y/m/d H:i') }}
+                    </small>
+                    <p>{{ $reply->body }}</p>
+                </div>
+            @endforeach
+        </div>
+
+        @if($canEditMessage)
+            <div class="sep">ویرایش پیام ارسال‌شده</div>
+            <form method="POST" action="{{ route($messageRoutePrefix.'.update', $message) }}">
+                @csrf
+                @method('PATCH')
+                <div class="fm">
+                    <div class="w">
+                        <label for="subject">موضوع پیام</label>
+                        <input class="fld" id="subject" name="subject" maxlength="190" value="{{ old('subject', $message->subject) }}" required>
+                        <x-field-error name="subject"/>
+                    </div>
+                    <div class="w">
+                        <label for="edit-body">متن پیام</label>
+                        <textarea class="fld" id="edit-body" name="body" data-count="10000" required>{{ old('body', $message->body) }}</textarea>
+                        <x-field-error name="body"/>
+                    </div>
+                </div>
+                <div class="frm">
+                    <button class="btn s" type="submit">ذخیره‌ی تغییرات</button>
+                </div>
+            </form>
+
+            <form method="POST" action="{{ route($messageRoutePrefix.'.destroy', $message) }}" class="frm" onsubmit="return confirm('این پیام حذف شود؟')">
+                @csrf
+                @method('DELETE')
+                <button class="btn s bad" type="submit">حذف پیام</button>
+            </form>
+        @endif
+
+        @if($message->status !== 'closed')
+            <div class="sep">ارسال پاسخ</div>
+            <form method="POST" action="{{ route($messageRoutePrefix.'.reply', $message) }}">
+                @csrf
+                <label class="sr" for="reply-body">متن پاسخ</label>
+                <textarea class="fld" id="reply-body" name="body" data-count="10000" placeholder="پاسخ خود را بنویسید…" required>{{ old('body') }}</textarea>
+                <x-field-error name="body"/>
+                <div class="frm">
+                    <button class="btn" type="submit">ارسال پاسخ</button>
+                </div>
+            </form>
+        @else
+            <div class="info w" style="margin-top:14px">این گفتگو بسته شده است و امکان ارسال پاسخ جدید ندارد.</div>
+        @endif
+    </x-card>
 @endsection

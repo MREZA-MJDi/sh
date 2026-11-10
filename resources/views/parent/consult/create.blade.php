@@ -1,23 +1,65 @@
-@extends('layouts.app')
+@extends('layouts.parent')
+
 @section('title', 'درخواست جلسه‌ی مشاوره')
+
 @section('content')
-<x-crumbs :items="['درخواست مشاوره' => route('parent.consult.index'), 'درخواست جدید' => null]"/>
-<x-card title="ثبت درخواست">
-  <form method="POST" action="{{ route('parent.consult.store') }}">@csrf
-    <span class="lbl">نوع جلسه</span>
-    <div class="choice">
-      @foreach(['ticket' => ['تیکت (پیام‌رسانی)', 'ticket'], 'phone' => ['تماس تلفنی', 'phone'], 'in_person' => ['حضوری', 'pin']] as $v => [$label, $icon])
-        <label><input type="radio" name="type" value="{{ $v }}" @checked(old('type', 'ticket') === $v)><div><x-icon :name="$icon"/>{{ $label }}</div></label>
-      @endforeach
-    </div><x-field-error name="type"/>
-    <div class="fm" style="margin-top:16px">
-      <div><label for="about">درباره‌ی فرزند</label><select class="fld" id="about" name="about">@foreach($m['children'] as $k)<option @selected($k['id'] === $child['id'])>{{ $k['name'] }}</option>@endforeach</select></div>
-      <div><label for="preferred">زمان پیشنهادی</label><input class="fld" id="preferred" name="preferred" type="datetime-local" value="{{ old('preferred') }}"></div>
-      <div><label for="phone">شماره‌ی تماس</label><input class="fld" id="phone" name="phone" value="{{ old('phone', $user['phone']) }}"><x-field-error name="phone"/></div>
-      <div><label for="topic">موضوع</label><input class="fld" id="topic" name="topic" value="{{ old('topic') }}"><x-field-error name="topic"/></div>
-      <div class="w"><label for="details">توضیحات</label><textarea class="fld" id="details" name="details" data-count="1000">{{ old('details') }}</textarea></div>
-    </div>
-    <div class="frm"><button class="btn" type="submit">ثبت درخواست</button><a class="btn g" href="{{ route('parent.consult.index') }}">انصراف</a></div>
-  </form>
-</x-card>
+    <x-crumbs :items="['درخواست‌های مشاوره' => route('guardian.consultations.index'), 'درخواست جدید' => null]"/>
+
+    <x-card title="ثبت درخواست">
+        <form method="POST" action="{{ route('guardian.consultations.store') }}">
+            @csrf
+            <div class="fm">
+                <div>
+                    <label for="student_id">درباره‌ی فرزند</label>
+                    <select class="fld" id="student_id" name="student_id" required>
+                        @foreach($children as $child)
+                            <option value="{{ $child->id }}" @selected((int) old('student_id', $selectedChild->id) === $child->id)>
+                                {{ $child->name }} · {{ $child->grade ?? 'پایه ثبت نشده' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <x-field-error name="student_id"/>
+                </div>
+
+                <div>
+                    <label for="type">نوع جلسه</label>
+                    <select class="fld" id="type" name="type" required>
+                        <option value="ticket" @selected(old('type', 'ticket') === 'ticket')>تیکت و پیام‌رسانی</option>
+                        <option value="phone" @selected(old('type') === 'phone')>تماس تلفنی</option>
+                        <option value="in_person" @selected(old('type') === 'in_person')>حضوری</option>
+                    </select>
+                    <x-field-error name="type"/>
+                </div>
+
+                <div class="w">
+                    <label for="topic">موضوع درخواست</label>
+                    <input class="fld" id="topic" name="topic" value="{{ old('subject') }}" maxlength="180" required>
+                    <x-field-error name="topic"/>
+                </div>
+
+                <div>
+                    <label for="desired_at">زمان پیشنهادی (به وقت تهران)</label>
+                    <input class="fld" id="desired_at" name="desired_at" type="datetime-local" value="{{ old('desired_at') }}">
+                    <x-field-error name="desired_at"/>
+                </div>
+
+                <div>
+                    <label for="contact_phone">شماره‌ی تماس</label>
+                    <input class="fld" id="contact_phone" name="contact_phone" value="{{ old('contact_phone', auth()->user()->phone) }}" inputmode="tel">
+                    <x-field-error name="contact_phone"/>
+                </div>
+
+                <div class="w">
+                    <label for="body">توضیحات</label>
+                    <textarea class="fld" id="body" name="body" data-count="5000" required>{{ old('body') }}</textarea>
+                    <x-field-error name="body"/>
+                </div>
+            </div>
+
+            <div class="frm">
+                <button class="btn" type="submit">ثبت درخواست</button>
+                <a class="btn g" href="{{ route('guardian.consultations.index') }}">انصراف</a>
+            </div>
+        </form>
+    </x-card>
 @endsection

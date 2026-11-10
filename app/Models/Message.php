@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Message extends Model
 {
-    protected $fillable = ['sender_id', 'recipient_id', 'parent_id', 'subject', 'body', 'status', 'replied_at'];
+    protected $fillable = [
+        'sender_id', 'recipient_id', 'student_id', 'parent_id',
+        'subject', 'body', 'status', 'replied_at',
+    ];
 
     protected function casts(): array
     {
@@ -23,6 +26,16 @@ class Message extends Model
     public function recipient(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recipient_id');
+    }
+
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
     public function replies(): HasMany

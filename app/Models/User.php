@@ -64,7 +64,6 @@ class User extends Authenticatable
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        // Preserve provider identifiers such as STU-204; remove whitespace only.
         $this->attributes['external_student_id'] = preg_replace('/\\s+/u', '', $identifier) ?? $identifier;
     }
 
@@ -88,8 +87,6 @@ class User extends Authenticatable
 
     public function hasPermissionTo(string $permission): bool
     {
-        // Cache the role/permission graph on this User instance. Dashboard
-        // navigation calls this repeatedly; one eager load avoids permission N+1s.
         $this->loadMissing('roles.permissions');
 
         return $this->getRelation('roles')->contains(
@@ -121,6 +118,16 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function studentNotes(): HasMany
+    {
+        return $this->hasMany(StudentNote::class, 'student_id');
+    }
+
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class, 'requester_id');
+    }
+
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(Attendance::class, 'student_id');
@@ -135,4 +142,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(CourseEnrollment::class, 'student_id');
     }
+
 }
