@@ -37,6 +37,14 @@ class CourseEnrollmentService
             ->values();
 
         DB::transaction(function () use ($course, $studentIds): void {
+            if ($course->status !== 'published') {
+                CourseEnrollment::query()
+                    ->where('course_id', $course->id)
+                    ->where('source', 'payment')
+                    ->where('status', 'active')
+                    ->update(['status' => 'suspended']);
+            }
+
             $classroomStatus = match (true) {
                 $course->status !== 'published' => 'suspended',
                 $course->type === 'free' => 'active',
