@@ -1,4 +1,4 @@
-@extends('layouts.portal')
+@extends('layouts.parent')
 
 @section('title', 'درخواست‌های مشاوره')
 
@@ -14,7 +14,7 @@
             <a class="trk" href="{{ route('guardian.consultations.show', $consultation) }}">
                 <div class="th t-{{ ['a','b','c','d'][$loop->index % 4] }}"><x-icon name="phone"/></div>
                 <div>
-                    <b>{{ $consultation->subject ?: 'درخواست مشاوره' }}</b>
+                    <b>{{ $consultation->topic ?: 'درخواست مشاوره' }}</b>
                     <span class="mu">
                         {{ $consultation->student?->name ?? 'فرزند حذف‌شده' }}
                         · {{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'Y/m/d H:i') : 'زمان پیشنهادی ثبت نشده' }}
