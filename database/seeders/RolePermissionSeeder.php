@@ -101,8 +101,9 @@ class RolePermissionSeeder extends Seeder
             ],
             'parent' => [
                 'dashboard.view', 'students.view.linked', 'attendance.view.children',
-                'homework.view.children', 'exams.view.children', 'consultations.view.children',
-                'consultations.create', 'messages.view.children', 'announcements.view', 'profile.update',
+                'homework.view.children', 'exams.view.children', 'resources.view.enrolled',
+                'consultations.view.children', 'consultations.create', 'messages.view.children',
+                'announcements.view', 'profile.update',
             ],
         ];
 
