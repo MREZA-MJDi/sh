@@ -4,12 +4,12 @@ namespace App\Services\Quiz24;
 
 use App\Models\Exam;
 use App\Models\IntegrationRun;
+use App\Models\Quiz24UnmatchedParticipant;
 use App\Models\User;
 use App\Services\Integrations\Contracts\IntegrationHealth;
 use App\Services\Integrations\IntegrationOperationService;
 use App\Services\Quiz24\Contracts\Quiz24Gateway;
 use App\Services\Quiz24\Contracts\Quiz24ResultData;
-use Illuminate\Support\Facades\DB;
 
 class Quiz24Service
 {
@@ -50,13 +50,17 @@ class Quiz24Service
         );
     }
 
-    /**
-     * Adapter workers call this with normalized DTOs after official API is wired.
-     *
-     * @param iterable<Quiz24ResultData> $results
-     */
+    /** @param iterable<Quiz24ResultData> $results */
     public function importResults(Exam $exam, iterable $results): array
     {
         return $this->importer->import($exam, $results);
+    }
+
+    public function resolveParticipant(
+        Quiz24UnmatchedParticipant $participant,
+        User $student,
+        User $resolvedBy
+    ): void {
+        $this->importer->resolveManually($participant, $student, $resolvedBy);
     }
 }

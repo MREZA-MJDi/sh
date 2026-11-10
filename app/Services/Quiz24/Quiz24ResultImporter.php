@@ -4,6 +4,7 @@ namespace App\Services\Quiz24;
 
 use App\Models\Exam;
 use App\Models\ExamResult;
+use App\Models\Quiz24StudentMapping;
 use App\Models\Quiz24UnmatchedParticipant;
 use App\Models\User;
 use App\Services\Integrations\IntegrationException;
@@ -39,14 +40,21 @@ class Quiz24ResultImporter
                 }
 
                 $identifier = $this->normalizeIdentifier($result->studentIdentifier);
-                $student = User::query()
-                    ->where('is_active', true)
-                    ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
-                    ->where(function ($query) use ($identifier) {
-                        $query->where('external_student_id', $identifier)
-                            ->orWhere('phone', $identifier);
-                    })
-                    ->first();
+
+                $studentId = Quiz24StudentMapping::query()
+                    ->where('provider', 'quiz24')
+                    ->where('external_identifier', $identifier)
+                    ->value('student_id');
+
+                $student = $studentId
+                    ? User::query()->whereKey($studentId)->where('is_active', true)->first()
+                    : User::query()
+                        ->where('is_active', true)
+                        ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                        ->where(fn ($query) => $query
+                            ->where('external_student_id', $identifier)
+                            ->orWhere('phone', $identifier))
+                        ->first();
 
                 $source = [
                     'provider_result_id' => $result->resultId,
@@ -91,6 +99,50 @@ class Quiz24ResultImporter
         });
 
         return $summary;
+    }
+
+    public function resolveManually(Quiz24UnmatchedParticipant $participant, User $student, User $resolvedBy): void
+    {
+        if (! $student->is_active || ! $student->hasRole('student')) {
+            throw new IntegrationException('فقط دانش‌آموز فعال قابل اتصال به نتیجه آزمون است.');
+        }
+
+        if ($participant->status !== 'unmatched') {
+            throw new IntegrationException('این شرکت‌کننده قبلاً تعیین تکلیف شده است.');
+        }
+
+        DB::transaction(function () use ($participant, $student, $resolvedBy): void {
+            $participant = Quiz24UnmatchedParticipant::query()->lockForUpdate()->findOrFail($participant->id);
+
+            Quiz24StudentMapping::updateOrCreate(
+                [
+                    'provider' => 'quiz24',
+                    'external_identifier' => $participant->external_identifier,
+                ],
+                [
+                    'student_id' => $student->id,
+                    'created_by' => $resolvedBy->id,
+                ]
+            );
+
+            ExamResult::updateOrCreate(
+                ['exam_id' => $participant->exam_id, 'student_id' => $student->id],
+                [
+                    'score' => $participant->score,
+                    'max_score' => $participant->max_score,
+                    'source_data' => [
+                        'resolved_from_unmatched_participant_id' => $participant->id,
+                        'external_student_identifier' => $participant->external_identifier,
+                    ],
+                    'synced_at' => now(),
+                ]
+            );
+
+            $participant->update([
+                'status' => 'matched',
+                'resolved_user_id' => $student->id,
+            ]);
+        });
     }
 
     private function normalizeIdentifier(string $identifier): string
