@@ -14,6 +14,7 @@ class StoreQuiz24ExamRequest extends FormRequest
         $this->merge([
             'duration_hours' => $hours,
             'duration_minutes' => $hours === null ? null : $hours * 60,
+            'attempts_allowed' => max(1, min(5, (int) $this->input('attempts_allowed', 1))),
             'show_to_guardians' => $this->exists('show_to_guardians')
                 ? $this->boolean('show_to_guardians')
                 : true,
