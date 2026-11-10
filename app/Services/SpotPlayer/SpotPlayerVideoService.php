@@ -17,6 +17,48 @@ final class SpotPlayerVideoService
 
     public function stage(array $data, User $actor): SpotPlayerVideo
     {
+        if (! ($data['file'] ?? null) instanceof UploadedFile) {
+            return DB::transaction(function () use ($data, $actor): SpotPlayerVideo {
+                $externalId = trim((string) ($data['external_id'] ?? ''));
+
+                if ($externalId === '') {
+                    throw new RuntimeException('برای ثبت ویدئوی موجود در SpotPlayer، شناسه خارجی الزامی است.');
+                }
+
+                $video = SpotPlayerVideo::create([
+                    'title' => $data['title'],
+                    'course_id' => $data['course_id'],
+                    'classroom_id' => $data['classroom_id'] ?? null,
+                    'external_id' => $externalId,
+                    'embed_url' => null,
+                    'status' => 'waiting_contract',
+                    'created_by' => $actor->id,
+                    'file_path' => null,
+                    'file_original_name' => null,
+                    'file_mime_type' => null,
+                    'file_size_bytes' => null,
+                    'file_sha256' => null,
+                    'staged_at' => null,
+                ]);
+
+                $this->operations->waitForContract(
+                    provider: 'spotplayer',
+                    action: 'register_existing_video',
+                    entity: $video,
+                    safeRequestMeta: [
+                        'video_id' => $video->id,
+                        'local_course_id' => $video->course_id,
+                        'local_classroom_id' => $video->classroom_id,
+                        'external_video_id' => $externalId,
+                        'source' => 'existing_spotplayer_asset',
+                    ],
+                    idempotencyKey: 'spotplayer:register-video:'.$video->id.':'.sha1($externalId),
+                );
+
+                return $video->refresh();
+            });
+        }
+
         /** @var UploadedFile $uploadedFile */
         $uploadedFile = $data['file'];
         $storagePath = $uploadedFile->store('private/spotplayer-staging', 'local');
@@ -37,7 +79,7 @@ final class SpotPlayerVideoService
                     'course_id' => $data['course_id'],
                     'classroom_id' => $data['classroom_id'] ?? null,
                     'external_id' => $data['external_id'] ?? null,
-                    'embed_url' => $data['embed_url'] ?? null,
+                    'embed_url' => null,
                     'status' => 'waiting_contract',
                     'created_by' => $actor->id,
                     'file_path' => $storagePath,
