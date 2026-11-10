@@ -12,7 +12,7 @@
 
     <h1>@yield('title', 'کارتابل اولیاء')</h1>
 
-    @if($children->isNotEmpty())
+    @if(isset($children) && $children->isNotEmpty())
         <label class="kid">
             <span class="sr">انتخاب فرزند</span>
             <select data-child aria-label="انتخاب فرزند">
