@@ -124,4 +124,38 @@ final class StudentVideoAccessTest extends TestCase
 
         return [$course, $classroom];
     }
+
+    public function test_course_enrollment_cannot_unlock_a_video_assigned_to_a_different_classroom_course(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        [$courseA, $classA] = $this->courseAndClassroom($teacher, 'video-course-a');
+        [$courseB, $classB] = $this->courseAndClassroom($teacher, 'video-course-b');
+
+        $classA->students()->attach($student->id);
+        $classB->students()->attach($student->id);
+        $enrollments = app(CourseEnrollmentService::class);
+        $enrollments->syncClassroomRoster($classA);
+        $enrollments->syncClassroomRoster($classB);
+
+        Storage::disk('local')->put('private/spotplayer-staging/wrong-class.mp4', 'private-video');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $courseA->id,
+            'classroom_id' => $classB->id,
+            'created_by' => $teacher->id,
+            'title' => 'ویدیوی کلاس با دوره ناسازگار',
+            'status' => 'waiting_contract',
+            'file_path' => 'private/spotplayer-staging/wrong-class.mp4',
+            'file_original_name' => 'wrong-class.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'private-video'),
+            'staged_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('student.videos.show', $video))
+            ->assertNotFound();
+    }
+
 }
