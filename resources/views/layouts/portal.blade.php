@@ -22,6 +22,7 @@
     @stack('head')
 </head>
 <body class="student-page">
+    @php $portalRole = request()->routeIs('guardian.*') ? 'parent' : 'student'; @endphp
     @include('partials.sprite')
 
     <div class="app">
