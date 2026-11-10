@@ -35,8 +35,7 @@ final class LearningResourceController extends Controller
                 ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
                 ->firstOrFail();
 
-            if ($resource->course_id && $classroom->course_id
-                && (int) $resource->course_id !== (int) $classroom->course_id) {
+            if ($resource->course_id && (int) $resource->course_id !== (int) $classroom->course_id) {
                 abort(404);
             }
 
