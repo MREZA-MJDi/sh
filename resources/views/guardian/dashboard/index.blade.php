@@ -4,7 +4,6 @@
 
 @section('content')
     @php
-        $portalRole = 'parent';
         $faNumber = static fn ($value, int $precision = 0): string =>
             \App\Support\PersianDate::toPersianDigits(number_format((float) $value, $precision, '٫', '٬'));
     @endphp
