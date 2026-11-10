@@ -33,6 +33,7 @@ class StoreQuiz24ExamRequest extends FormRequest
             'starts_at' => ['nullable', 'date'],
             'duration_hours' => ['required', 'integer', 'between:1,4'],
             'duration_minutes' => ['required', 'integer', 'between:60,240'],
+            'attempts_allowed' => ['required', 'integer', 'between:1,5'],
             'show_to_guardians' => ['required', 'boolean'],
             'status' => ['required', Rule::in(['draft', 'scheduled', 'published', 'closed'])],
         ];
