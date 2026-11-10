@@ -16,7 +16,7 @@ body.admin-body {
     font:14px/1.8 Vazirmatn,Tahoma,sans-serif; color-scheme:light;
 }
 html:has(body.admin-body[data-theme="dark"]) { color-scheme:dark; }
-body.admin-body[data-theme="dark"], body.admin-body[data-admin-theme="dark"] {
+body.admin-body[data-theme="dark"], html[data-admin-theme="dark"] body.admin-body {
     --adm-bg:#0b1029; --adm-card:#141b3f; --adm-ink:#edf0fc; --adm-muted:#98a2cf;
     --adm-line:#252e60; --adm-primary:#94a6ff; --adm-primary-soft:#222c66;
     --adm-teal:#3ccdb9; --adm-teal-soft:#10393a; --adm-amber:#f5b942;
@@ -33,7 +33,7 @@ body.admin-body :focus-visible { outline:2px solid var(--adm-amber); outline-off
 .admin-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .admin-shell { min-height:100dvh; }
 body.admin-body .panel-sidebar {
-    position:fixed; inset:0 0 0 auto; z-index:50; display:flex; flex-direction:column; gap:4px;
+    position:fixed; inset:0 0 0 auto; z-index:70; display:flex; flex-direction:column; gap:4px;
     width:248px; height:100dvh; overflow-y:auto; padding:max(18px,env(safe-area-inset-top)) 12px 18px;
     color:var(--adm-sidebar-muted); background:var(--adm-sidebar); transition:transform .22s ease;
 }
@@ -175,6 +175,11 @@ body.admin-body .admin-calendar-time { display:flex; align-items:center; gap:6px
 body.admin-body .admin-calendar-time select { min-height:34px; padding:4px 7px; border:1px solid var(--adm-line); border-radius:8px; background:var(--adm-bg); }
 body.admin-body .panel-overlay { display:none; }
 body.admin-body .panel-content { max-width:1600px; margin:0 auto; }
+body.admin-body .panel-page-head { display:flex; justify-content:space-between; align-items:center; gap:14px; margin:0 0 18px; }
+body.admin-body .panel-page-head h2 { margin:0; font-size:17px; font-weight:800; }
+body.admin-body .panel-page-head p { margin:3px 0 0; color:var(--adm-muted); font-size:12px; }
+body.admin-body .admin-drawer-body form { display:flex; flex-direction:column; min-height:100%; gap:2px; }
+body.admin-body .admin-drawer-body form .admin-drawer-foot { margin-top:auto; }
 @media(max-width:900px) {
     body.admin-body .panel-sidebar { inset-inline-start:0; inset-inline-end:auto; transform:translateX(105%); visibility:hidden; }
     body.admin-body .panel-sidebar.is-open { transform:none; visibility:visible; }

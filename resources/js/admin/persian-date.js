@@ -233,5 +233,9 @@ function attachPersianTimePicker(input) {
     document.addEventListener('click', (event) => { if (!wrapper.contains(event.target)) popover.hidden = true; });
 }
 
-document.querySelectorAll('input[type="date"], input[type="datetime-local"]').forEach(attachPersianDatePicker);
-document.querySelectorAll('input[type="time"]').forEach(attachPersianTimePicker);
+window.initializeAdminPersianPickers = (scope = document) => {
+    scope.querySelectorAll('input[type="date"], input[type="datetime-local"]').forEach(attachPersianDatePicker);
+    scope.querySelectorAll('input[type="time"]').forEach(attachPersianTimePicker);
+};
+
+window.initializeAdminPersianPickers(document);

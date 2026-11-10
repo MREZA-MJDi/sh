@@ -30,6 +30,7 @@ document.addEventListener('click', (event) => {
         drawer.querySelector('[data-drawer-title]').textContent = button.dataset.drawerTitle || 'فرم';
         const drawerBody = drawer.querySelector('[data-drawer-body]');
         drawerBody.replaceChildren(template.content.cloneNode(true));
+        window.initializeAdminPersianPickers?.(drawerBody);
         drawer.classList.add('is-open');
         drawer.setAttribute('aria-hidden', 'false');
         body.classList.add('admin-drawer-open');
