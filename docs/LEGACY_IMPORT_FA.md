@@ -44,7 +44,7 @@ php artisan sh:import-legacy-academy --connection=legacy --legacy-academy-id=54 
 ## داده‌هایی که منتقل می‌شوند
 
 - حساب‌های دارای نقش شناخته‌شده `student`، `parent`، `teacher` یا `admin` در محدوده آموزشگاه انتخاب‌شده.
-- ارتباط ولی و دانش‌آموز از `parent_student`.
+- ارتباط ولی و دانش‌آموز از `parent_student` برای همهٔ دانش‌آموزان شناخته‌شدهٔ همان آموزشگاه.
 - دوره‌ها و مدرس اصلی انتخاب‌شده از `course_teacher`.
 - کلاس‌ها و مدرس قابل‌انتساب از `classroom_teacher`.
 - اعضای فعال کلاس از `classroom_student`.
