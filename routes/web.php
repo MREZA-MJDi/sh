@@ -5,8 +5,11 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\CourseContentController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamController;
+use App\Http\Controllers\Admin\ExamQuestionController;
+use App\Http\Controllers\Admin\ExamAttemptReviewController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
 use App\Http\Controllers\Admin\MessageController;
@@ -18,7 +21,10 @@ use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
+use App\Http\Controllers\Student\VideoController as StudentVideoController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
@@ -66,6 +72,15 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
     Route::post('/courses', [CourseController::class, 'store'])->middleware('permission:courses.manage')->name('courses.store');
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->middleware('permission:courses.manage')->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->middleware('permission:courses.manage')->name('courses.destroy');
+    Route::middleware('permission:courses.manage,courses.content.manage.assigned')->group(function (): void {
+        Route::get('/courses/{course}/content', [CourseContentController::class, 'show'])->name('courses.content');
+        Route::post('/courses/{course}/sections', [CourseContentController::class, 'storeSection'])->name('courses.sections.store');
+        Route::patch('/course-sections/{section}', [CourseContentController::class, 'updateSection'])->name('courses.sections.update');
+        Route::delete('/course-sections/{section}', [CourseContentController::class, 'destroySection'])->name('courses.sections.destroy');
+        Route::post('/course-sections/{section}/lessons', [CourseContentController::class, 'storeLesson'])->name('courses.lessons.store');
+        Route::patch('/lessons/{lesson}', [CourseContentController::class, 'updateLesson'])->name('courses.lessons.update');
+        Route::delete('/lessons/{lesson}', [CourseContentController::class, 'destroyLesson'])->name('courses.lessons.destroy');
+    });
 
     Route::get('/classes', [ClassroomController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.index');
     Route::post('/classes', [ClassroomController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.store');
@@ -84,6 +99,14 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
     Route::post('/exams', [ExamController::class, 'store'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.store');
     Route::patch('/exams/{exam}', [ExamController::class, 'update'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.update');
     Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.results');
+    Route::middleware('permission:exams.manage,exams.manage.assigned')->group(function (): void {
+        Route::get('/exams/{exam}/questions', [ExamQuestionController::class, 'index'])->name('exams.questions');
+        Route::post('/exams/{exam}/questions', [ExamQuestionController::class, 'store'])->name('exams.questions.store');
+        Route::patch('/exams/{exam}/questions/{question}', [ExamQuestionController::class, 'update'])->name('exams.questions.update');
+        Route::delete('/exams/{exam}/questions/{question}', [ExamQuestionController::class, 'destroy'])->name('exams.questions.destroy');
+        Route::get('/exams/{exam}/attempts', [ExamAttemptReviewController::class, 'index'])->name('exams.attempts');
+        Route::patch('/exams/{exam}/attempts/{attempt}/grade', [ExamAttemptReviewController::class, 'grade'])->name('exams.attempts.grade');
+    });
 
     Route::get('/resources', [LearningResourceController::class, 'index'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.index');
     Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.store');
@@ -123,6 +146,27 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+
+        Route::middleware('permission:exams.view.own')->group(function (): void {
+            Route::get('/exams', [StudentExamController::class, 'index'])->name('exams.index');
+            Route::get('/exams/{exam}', [StudentExamController::class, 'show'])->name('exams.show');
+            Route::get('/exams/{exam}/attempts/{attempt}', [StudentExamController::class, 'attempt'])->name('exams.attempt');
+            Route::get('/exams/{exam}/result', [StudentExamController::class, 'result'])->name('exams.result');
+        });
+        Route::post('/exams/{exam}/start', [StudentExamController::class, 'start'])->middleware('permission:exams.attempt')->name('exams.start');
+        Route::post('/exam-attempts/{attempt}/submit', [StudentExamController::class, 'submit'])->middleware('permission:exams.attempt')->name('exam-attempts.submit');
+        Route::middleware('permission:videos.view.enrolled')->group(function (): void {
+            Route::get('/videos', [StudentVideoController::class, 'index'])->name('videos.index');
+            Route::get('/videos/{video}', [StudentVideoController::class, 'show'])->name('videos.show');
+            Route::get('/videos/{video}/stream', [StudentVideoController::class, 'stream'])->name('videos.stream');
+        });
+
+        Route::middleware('permission:lessons.view')->group(function (): void {
+            Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+            Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
+            Route::patch('/courses/{course}/lessons/{lesson}/progress', [StudentCourseController::class, 'updateProgress'])
+                ->middleware('permission:lessons.progress')->name('courses.lessons.progress');
+        });
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
 
         Route::middleware('permission:homework.submit')->group(function (): void {

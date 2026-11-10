@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Services\AuthenticationService;
+use App\Services\LegacyWordPressPassword;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,9 +46,51 @@ final class SessionController extends Controller
                 ->limit(2)
                 ->get();
 
-            if ($matches->count() === 1 && Hash::check($password, $matches->first()->password)) {
-                Auth::login($matches->first(), $remember);
-                $authenticated = true;
+            if ($matches->count() === 1) {
+                $candidate = $matches->first();
+                $legacyPasswords = app(LegacyWordPressPassword::class);
+                $storedPassword = (string) $candidate->password;
+                $isLegacyHash = $legacyPasswords->isLegacyHash($storedPassword);
+                $validPassword = $isLegacyHash
+                    ? $legacyPasswords->verify($password, $storedPassword)
+                    : Hash::check($password, $storedPassword);
+
+                if ($validPassword) {
+                    // Rehash legacy password formats on first successful mobile login.
+                    if ($isLegacyHash) {
+                        $candidate->forceFill(['password' => $password])->save();
+                    }
+
+                    Auth::login($candidate, $remember);
+                    $authenticated = true;
+                }
+            }
+        }
+
+        if (! $authenticated) {
+            $legacyMatches = User::query()
+                ->where('legacy_login', $identifier)
+                ->where('is_active', true)
+                ->limit(2)
+                ->get();
+
+            if ($legacyMatches->count() === 1) {
+                $candidate = $legacyMatches->first();
+                $legacyPasswords = app(LegacyWordPressPassword::class);
+                $storedPassword = (string) $candidate->password;
+                $isLegacyHash = $legacyPasswords->isLegacyHash($storedPassword);
+                $validPassword = $isLegacyHash
+                    ? $legacyPasswords->verify($password, $storedPassword)
+                    : Hash::check($password, $storedPassword);
+
+                if ($validPassword) {
+                    if ($isLegacyHash) {
+                        $candidate->forceFill(['password' => $password])->save();
+                    }
+
+                    Auth::login($candidate, $remember);
+                    $authenticated = true;
+                }
             }
         }
 

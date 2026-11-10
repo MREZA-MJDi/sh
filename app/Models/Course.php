@@ -24,6 +24,11 @@ class Course extends Model
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
+    public function sections(): HasMany
+    {
+        return $this->hasMany(CourseSection::class, 'course_id')->orderBy('sort_order')->orderBy('id');
+    }
+
     public function classrooms(): HasMany
     {
         return $this->hasMany(Classroom::class);

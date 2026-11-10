@@ -16,7 +16,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'phone', 'password', 'is_active', 'grade', 'subject',
-        'profile_note', 'external_student_id', 'permissions_customized',
+        'profile_note', 'external_student_id', 'legacy_login', 'permissions_customized',
     ];
 
     protected $hidden = ['password', 'remember_token'];

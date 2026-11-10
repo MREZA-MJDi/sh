@@ -10,13 +10,13 @@ class Exam extends Model
 {
     protected $fillable = [
         'classroom_id', 'course_id', 'created_by', 'title', 'description',
-        'provider', 'external_id', 'starts_at', 'duration_minutes', 'show_to_guardians', 'status',
+        'provider', 'external_id', 'starts_at', 'duration_minutes', 'attempts_allowed', 'show_to_guardians', 'status',
         'integration_status', 'integration_note',
     ];
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'duration_minutes' => 'integer', 'show_to_guardians' => 'boolean'];
+        return ['starts_at' => 'datetime', 'duration_minutes' => 'integer', 'attempts_allowed' => 'integer', 'show_to_guardians' => 'boolean'];
     }
 
     public function classroom(): BelongsTo
@@ -27,6 +27,16 @@ class Exam extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(Question::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(ExamAttempt::class);
     }
 
     public function results(): HasMany

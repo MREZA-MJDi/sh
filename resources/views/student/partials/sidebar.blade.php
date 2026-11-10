@@ -3,7 +3,7 @@
     $dashboardAnchor = static fn (string $section): string => request()->routeIs('student.dashboard')
         ? '#' . $section
         : route('student.dashboard') . '#' . $section;
-    $hasLearningItems = $student?->can('classes.view.enrolled') || $student?->can('homework.view.own');
+    $hasLearningItems = $student?->can('classes.view.enrolled') || $student?->can('homework.view.own') || $student?->can('lessons.view') || $student?->can('videos.view.enrolled');
     $hasPerformanceItems = $student?->can('exams.view.own') || $student?->can('attendance.view.own');
 @endphp
 
@@ -25,8 +25,14 @@
 
         @if($hasLearningItems)
             <h6>یادگیری</h6>
+            @can('lessons.view')
+                <a href="{{ route('student.courses.index') }}" data-nav-link><x-icon name="book"/> دوره‌های من</a>
+            @endcan
             @can('classes.view.enrolled')
                 <a href="{{ $dashboardAnchor('classes') }}" data-nav-link data-dashboard-nav-target="classes"><x-icon name="book"/> کلاس‌های من</a>
+            @endcan
+            @can('videos.view.enrolled')
+                <a href="{{ route('student.videos.index') }}" data-nav-link><x-icon name="video"/> ویدیوهای کلاس</a>
             @endcan
             @can('homework.view.own')
                 <a href="{{ $dashboardAnchor('homework') }}" data-nav-link data-dashboard-nav-target="homework"><x-icon name="task"/> تکالیف</a>
@@ -36,7 +42,8 @@
         @if($hasPerformanceItems)
             <h6>عملکرد آموزشی</h6>
             @can('exams.view.own')
-                <a href="{{ $dashboardAnchor('results') }}" data-nav-link data-dashboard-nav-target="results"><x-icon name="exam"/> نتایج آزمون‌ها</a>
+                <a href="{{ route('student.exams.index') }}" data-nav-link><x-icon name="exam"/> آزمون‌های من</a>
+                <a href="{{ $dashboardAnchor('results') }}" data-nav-link data-dashboard-nav-target="results"><x-icon name="chart"/> نتایج آزمون‌ها</a>
             @endcan
             @can('attendance.view.own')
                 <a href="{{ $dashboardAnchor('attendance') }}" data-nav-link data-dashboard-nav-target="attendance"><x-icon name="cal"/> حضور و غیاب</a>

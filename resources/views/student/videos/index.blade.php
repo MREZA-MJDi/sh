@@ -1,21 +1,50 @@
-@extends('layouts.app')
-@section('title', 'ویدیوهای ضبط‌شده')
+@extends('layouts.student')
+
+@section('title', 'ویدیوهای کلاس')
+
 @section('content')
-@php
-$cid = (int) request('course', $m['courses'][0]['id']);
-$course = collect($m['courses'])->firstWhere('id', $cid) ?? $m['courses'][0];
-$vids = collect($course['sessions'])->where('recorded', true)->reverse();
-@endphp
-<div class="info">ویدیوها فقط از طریق <b>اسپات پلیر</b> قابل مشاهده‌اند و برای هر کلاس ثبت‌نام‌شده جداگانه نمایش داده می‌شوند.</div>
-<x-card title="انتخاب کلاس">
-  <div class="tabs">
-    @foreach($m['courses'] as $c)<button type="button" @class(['on' => $c['id'] === $course['id']]) onclick="location.href='{{ route('student.videos.index', ['course' => $c['id']]) }}'">{{ $c['title'] }}</button>@endforeach
-  </div>
-</x-card>
-<x-card :title="'ضبط جلسات · '.$course['title']">
-  <x-slot:actions><x-tag>{{ fa($vids->count()) }} ویدیو</x-tag></x-slot:actions>
-  @foreach($vids as $s)
-    <x-trk icon="video" :tone="$course['tone']" :title="$s['title'].' · '.$s['topic']" :sub="$s['date'].' · '.$s['duration']" :href="route('student.videos.show', [$course['id'], $s['n']])"/>
-  @endforeach
-</x-card>
+    <section class="card">
+        <div class="chead">
+            <div>
+                <span class="student-section-eyebrow">جلسات ضبط‌شده</span>
+                <h2>ویدیوهای کلاس‌های من</h2>
+                <p class="mu">فقط ویدیوهای مرتبط با دوره‌های دارای ثبت‌نام فعال نمایش داده می‌شوند.</p>
+            </div>
+            <span class="pill">{{ \App\Support\PersianDate::toPersianDigits($videos->total()) }} ویدیو</span>
+        </div>
+
+        @if (! $health->available)
+            <div class="info" role="status">
+                پخش محافظت‌شده SpotPlayer فعلاً فعال نیست: {{ $health->message }}
+                فایل خام ویدئو از سایت ارائه نمی‌شود.
+            </div>
+        @endif
+
+        <div class="student-video-list">
+            @forelse ($videos as $video)
+                <article class="student-video-item">
+                    <div class="student-video-item__icon"><x-icon name="video"/></div>
+                    <div class="student-video-item__body">
+                        <h3>{{ $video->title }}</h3>
+                        <p class="mu">
+                            {{ $video->course?->title ?? 'دوره آموزشی' }}
+                            @if ($video->classroom)
+                                · {{ $video->classroom->name }}
+                            @endif
+                        </p>
+                        <span class="tag w">
+                            {{ $video->status === 'active' ? 'در انتظار تأیید لایسنس پخش' : 'در انتظار اتصال SpotPlayer' }}
+                        </span>
+                    </div>
+                    <a class="btn g s" href="{{ route('student.videos.show', $video) }}">جزئیات و وضعیت پخش</a>
+                </article>
+            @empty
+                <div class="empty">ویدیوی ضبط‌شده‌ای برای دوره‌ها و کلاس‌های ثبت‌نام‌شده‌ات منتشر نشده است.</div>
+            @endforelse
+        </div>
+
+        @if ($videos->hasPages())
+            <div class="frm">{{ $videos->links() }}</div>
+        @endif
+    </section>
 @endsection

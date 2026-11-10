@@ -441,3 +441,61 @@ h1,h2,h3,h4{line-height:1.4}.mu{font-size:12.5px;color:var(--muted)}.sr{position
     color: #edf6fb;
     background: linear-gradient(145deg, #47657d, #314c63);
 }
+
+
+/* Course learning progress and review feedback */
+.student-course-progress__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.student-course-progress__item {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--panel-b);
+    border-radius: 18px;
+    background: rgba(255,255,255,.18);
+    box-shadow: var(--in);
+}
+.student-course-progress__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+.student-course-progress__head strong { min-width: 0; font-size: 13.5px; overflow-wrap: anywhere; }
+.student-course-progress__head span { flex: none; color: var(--teal-d); font-size: 15px; font-weight: 800; }
+.student-course-item,
+.student-course-lesson { display: grid; gap: 10px; padding: 14px; border-radius: 18px; background: rgba(255,255,255,.2); border: 1px solid var(--panel-b); }
+.student-course-list { display: grid; gap: 12px; }
+.student-course-item__head,
+.student-course-lesson__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.student-course-item__head > div,
+.student-course-lesson__head > div { min-width: 0; }
+.student-course-item h3,
+.student-course-lesson h3 { font-size: 14px; margin-bottom: 2px; overflow-wrap: anywhere; }
+.student-course-section { margin-top: 16px; }
+.student-course-lesson { margin-top: 10px; }
+.student-course-lesson__body > summary { cursor: pointer; display: inline-flex; }
+.student-course-lesson__text {
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.24);
+    line-height: 2;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.student-homework-item__review {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(63,142,156,.25);
+    border-radius: 15px;
+    background: rgba(63,142,156,.09);
+}
+.student-homework-item__review-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.student-homework-item__review p { font-size: 12.5px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 680px) {
+    .student-course-progress__list { grid-template-columns: 1fr; }
+    .student-course-item__head,
+    .student-course-lesson__head { flex-wrap: wrap; }
+}

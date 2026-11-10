@@ -13,7 +13,8 @@ final class LoginRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $identifier = mb_strtolower(trim((string) $this->input('email', '')));
+        $identifier = trim((string) $this->input('email', ''));
+        $normalizedEmail = mb_strtolower($identifier);
         $digits = strtr($identifier, [
             '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
             '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
@@ -21,11 +22,12 @@ final class LoginRequest extends FormRequest
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        $this->merge([
-            'email' => filter_var($identifier, FILTER_VALIDATE_EMAIL)
-                ? $identifier
-                : (preg_replace('/[\\s-]+/u', '', $digits) ?? $digits),
-        ]);
+        $isPhone = preg_match('/^[0-9۰-۹٠-٩\s-]+$/u', $identifier) === 1;
+        $normalizedIdentifier = filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)
+            ? $normalizedEmail
+            : ($isPhone ? (preg_replace('/[\s-]+/u', '', $digits) ?? $digits) : $identifier);
+
+        $this->merge(['email' => $normalizedIdentifier]);
     }
 
     public function rules(): array

@@ -9,6 +9,7 @@ use App\Models\Consultation;
 use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
+use App\Models\HomeworkSubmission;
 use App\Models\LearningResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -65,6 +66,21 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
+        $reviewedHomework = HomeworkSubmission::query()
+            ->where('student_id', $student->id)
+            ->whereNotNull('reviewed_at')
+            ->whereHas('homework', fn (Builder $homework) => $homework
+                ->where('status', 'published')
+                ->whereIn('classroom_id', clone $classroomIds))
+            ->with([
+                'homework:id,title,classroom_id',
+                'homework.classroom:id,name',
+                'reviewer:id,name',
+            ])
+            ->latest('reviewed_at')
+            ->limit(8)
+            ->get();
+
         $attendanceQuery = Attendance::query()
             ->where('student_id', $student->id)
             ->whereIn('classroom_id', clone $classroomIds);
@@ -115,6 +131,8 @@ final class GuardianDashboardService
             ->limit(6)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
+        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds);
+
         $announcements = Announcement::query()
             ->where('status', 'published')
             ->whereIn('audience', ['all', 'parents'])
@@ -133,8 +151,10 @@ final class GuardianDashboardService
             'children' => $children,
             'selected_child' => $selectedChild,
             'classrooms' => $classrooms,
+            'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,
+            'reviewed_homework' => $reviewedHomework,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
                 'submissions',
                 fn (Builder $query) => $query->where('student_id', $student->id)
@@ -193,8 +213,10 @@ final class GuardianDashboardService
             'children' => $children,
             'selected_child' => null,
             'classrooms' => collect(),
+            'course_progress' => collect(),
             'classroom_count' => 0,
             'homeworks' => collect(),
+            'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
             'attendance' => collect(),
             'attendance_count' => 0,

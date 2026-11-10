@@ -117,6 +117,31 @@
         <x-stat tone="s4" icon="chart" label="نتایج اخیر" :value="$faNumber($results->count())" hint="نتایج قابل مشاهده آزمون‌ها" href="#results"/>
     </section>
 
+    @can('lessons.view')
+        <section class="card student-course-progress" id="course-progress" aria-labelledby="student-course-progress-title">
+            <div class="chead">
+                <div><span class="student-section-eyebrow">مسیر یادگیری</span><h2 id="student-course-progress-title">پیشرفت دوره‌های من</h2></div>
+                <a class="btn g s" href="{{ route('student.courses.index') }}">همه دوره‌ها</a>
+            </div>
+            <div class="student-course-progress__list">
+                @forelse ($course_progress as $courseProgress)
+                    <a class="student-course-progress__item" href="{{ route('student.courses.show', $courseProgress->id) }}">
+                        <div class="student-course-progress__head">
+                            <strong>{{ $courseProgress->title }}</strong>
+                            <span>{{ $faNumber($courseProgress->progress_percent) }}٪</span>
+                        </div>
+                        <div class="student-attendance-meter__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $courseProgress->progress_percent }}">
+                            <span style="width: {{ max(0, min(100, (int) $courseProgress->progress_percent)) }}%"></span>
+                        </div>
+                        <small class="mu">{{ $faNumber($courseProgress->completed_lessons) }} از {{ $faNumber($courseProgress->total_lessons) }} درس تکمیل‌شده</small>
+                    </a>
+                @empty
+                    <div class="empty">برای دوره‌های ثبت‌نام‌شده هنوز درس منتشرشده‌ای ثبت نشده است.</div>
+                @endforelse
+            </div>
+        </section>
+    @endcan
+
     <div class="row student-dashboard-primary">
         @can('classes.view.enrolled')
             <section class="card" id="classes" aria-labelledby="student-classes-title">
@@ -171,7 +196,7 @@
                                     <h3>{{ $homework->title }}</h3>
                                     <span class="mu">{{ $homework->classroom?->name ?? 'کلاس آموزشی' }}</span>
                                 </div>
-                                @if ($submission?->status === 'graded')
+                                @if ($submission?->reviewed_at !== null || $submission?->status === 'reviewed')
                                     <span class="tag d">بررسی‌شده</span>
                                 @elseif ($submission)
                                     <span class="tag">ارسال شده</span>
@@ -189,14 +214,25 @@
                                     مهلت:
                                     {{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}
                                 </span>
-                                @if ($submission?->status === 'graded' && $submission->score !== null)
-                                    <strong class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</strong>
-                                @endif
                             </div>
 
-                            @if ($submission?->status === 'graded' && filled($submission->feedback))
-                                <div class="info">{{ $submission->feedback }}</div>
-                            @elseif ($submission)
+                            @if ($submission?->reviewed_at !== null || $submission?->status === 'reviewed')
+                                <div class="student-homework-item__review" role="status">
+                                    <div class="student-homework-item__review-head">
+                                        <strong>نتیجه بررسی مدرس</strong>
+                                        @if ($submission->score !== null)
+                                            <span class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</span>
+                                        @endif
+                                    </div>
+                                    @if (filled($submission->feedback))
+                                        <p>{{ $submission->feedback }}</p>
+                                    @else
+                                        <p>تکلیف بررسی شده است؛ بازخورد متنی ثبت نشده است.</p>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if ($submission)
                                 @foreach ($submission->files as $file)
                                     <div class="trk">
                                         <div class="th t-c"><x-icon name="file"/></div>
@@ -210,7 +246,7 @@
                             @endif
 
                             @can('homework.submit')
-                                @if (! $submission || ($submission->reviewed_at === null && $submission->status !== 'graded'))
+                                @if (! $submission || ($submission->reviewed_at === null && ! in_array($submission->status, ['reviewed', 'graded'], true)))
                                     <details class="student-homework-item__details">
                                         <summary class="btn g s">{{ $submission ? 'ویرایش پاسخ' : 'ارسال پاسخ' }}</summary>
                                         <form method="POST" action="{{ route('student.homework.submissions.store', $homework) }}" enctype="multipart/form-data" class="stack">
@@ -301,7 +337,12 @@
                                 <tr>
                                     <td>{{ $result->exam?->title ?? 'آزمون حذف‌شده' }}</td>
                                     <td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td>
-                                    <td>{{ $result->score === null ? 'در انتظار نمره' : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}</td>
+                                    <td>
+                                {{ $result->score === null ? 'در انتظار نمره' : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}
+                                @if (filled($result->feedback))
+                                    <div class="mu">بازخورد مدرس: {{ $result->feedback }}</div>
+                                @endif
+                            </td>
                                     <td>{{ \App\Support\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
                                 </tr>
                             @empty

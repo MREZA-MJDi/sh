@@ -19,6 +19,10 @@ final class TeacherAccessService
             'label' => 'ساخت و مدیریت آزمون‌ها',
             'permissions' => ['exams.manage.assigned'],
         ],
+        'course_content' => [
+            'label' => 'مدیریت بخش‌ها و درس‌های دوره',
+            'permissions' => ['courses.content.manage.assigned'],
+        ],
         'videos' => [
             'label' => 'بارگذاری فیلم کلاس',
             'permissions' => ['videos.view.assigned', 'videos.manage.assigned'],

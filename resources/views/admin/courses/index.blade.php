@@ -22,7 +22,7 @@
         <div class="panel-card-title"><div><h3>فهرست دوره‌ها</h3><p>وضعیت سرویس خارجی مستقل از وضعیت انتشار دوره نمایش داده می‌شود.</p></div></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>عنوان</th><th>مدرس</th><th>نوع / قیمت</th><th>کلاس‌ها</th><th>ثبت‌نام</th><th>نحوه ارائه</th><th>وضعیت</th>@can('courses.manage')<th>مدیریت</th>@endcan</tr></thead>
+                <thead><tr><th>عنوان</th><th>مدرس</th><th>نوع / قیمت</th><th>کلاس‌ها</th><th>ثبت‌نام</th><th>نحوه ارائه</th><th>وضعیت</th>@canany(['courses.manage','courses.content.manage.assigned'])<th>درس‌ها</th>@endcanany @can('courses.manage')<th>مدیریت</th>@endcan</tr></thead>
                 <tbody>
                 @forelse ($courses as $course)
                     <tr>
@@ -35,6 +35,9 @@
                         <td><x-admin::badge :variant="$course->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$course->status] ?? $course->status }}</x-admin.badge>
                             @if ($course->delivery_type === 'spotplayer')<div class="panel-muted">{{ $course->integration_status === 'ready' ? 'اتصال تأییدشده' : 'در انتظار تأیید سرویس' }}</div>@endif
                         </td>
+                        @canany(['courses.manage','courses.content.manage.assigned'])
+                            <td><a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.content', $course) }}">مدیریت درس‌ها</a></td>
+                        @endcanany
                         @can('courses.manage')
                             <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button></td>
                         @endcan

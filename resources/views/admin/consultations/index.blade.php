@@ -16,14 +16,19 @@
                         <td>{{ $consultation->student->name ?? '—' }}</td>
                         <td>{{ ['phone'=>'تلفنی','in_person'=>'حضوری','ticket'=>'تیکت'][$consultation->type] ?? $consultation->type }}</td>
                         <td>{{ $consultation->desired_at?->format('Y-m-d H:i') ?? '—' }}</td>
-                        <td><span class="panel-badge {{ $consultation->status==='approved' ? 'panel-badge-success' : ($consultation->status==='pending' ? 'panel-badge-warning' : '') }}">{{ ['pending'=>'در انتظار','approved'=>'تأییدشده','completed'=>'انجام‌شده','cancelled'=>'لغوشده'][$consultation->status] ?? $consultation->status }}</span></td>
+                        <td>
+                            @php($consultationStatus = ['approved' => 'scheduled', 'completed' => 'done'][$consultation->status] ?? $consultation->status)
+                            <span class="panel-badge {{ in_array($consultationStatus, ['scheduled', 'done'], true) ? 'panel-badge-success' : ($consultationStatus === 'pending' ? 'panel-badge-warning' : '') }}">
+                                {{ ['pending'=>'در انتظار','scheduled'=>'هماهنگ‌شده','done'=>'انجام‌شده','cancelled'=>'لغوشده'][$consultationStatus] ?? $consultationStatus }}
+                            </span>
+                        </td>
                         <td>
                             <details class="panel-details">
                                 <summary>بررسی / ویرایش</summary>
                                 <div class="panel-details-content">
                                     <form method="POST" action="{{ route('admin.consultations.update', $consultation) }}" class="grid gap-2">
                                         @csrf @method('PATCH')
-                                        <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['pending'=>'در انتظار','approved'=>'تأیید','completed'=>'انجام‌شده','cancelled'=>'لغو'] as $key=>$value)<option value="{{ $key }}" @selected($consultation->status===$key)>{{ $value }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['pending'=>'در انتظار','scheduled'=>'هماهنگ‌شده','done'=>'انجام‌شده','cancelled'=>'لغو'] as $key=>$value)<option value="{{ $key }}" @selected((['approved' => 'scheduled', 'completed' => 'done'][$consultation->status] ?? $consultation->status)===$key)>{{ $value }}</option>@endforeach</select></div>
                                         <div class="panel-field"><label>زمان نهایی جلسه</label><input class="panel-input" type="datetime-local" name="scheduled_at" value="{{ $consultation->scheduled_at?->format('Y-m-d\TH:i') }}"></div>
                                         <div class="panel-field"><label>یادداشت پیگیری</label><textarea class="panel-textarea" name="notes">{{ $consultation->notes }}</textarea></div>
                                         <button class="panel-btn panel-btn-sm" type="submit">ذخیره پیگیری</button>

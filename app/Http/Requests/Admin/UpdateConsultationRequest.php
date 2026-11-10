@@ -12,7 +12,7 @@ class UpdateConsultationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::in(['pending', 'approved', 'completed', 'cancelled'])],
+            'status' => ['required', Rule::in(['pending', 'scheduled', 'done', 'cancelled', 'approved', 'completed'])],
             'scheduled_at' => ['nullable', 'date', 'after_or_equal:now'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ];
