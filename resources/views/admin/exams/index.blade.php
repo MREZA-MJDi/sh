@@ -27,7 +27,7 @@
                         <td>{{ $exam->provider === 'quiz24' ? 'Quiz24' : 'داخلی' }}</td>
                         <td>{{ $exam->starts_at?->format('Y-m-d H:i') ?? '—' }}</td>
                         <td>{{ number_format($exam->results_count) }}</td>
-                        <td><x-admin.badge :variant="$exam->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','scheduled'=>'زمان‌بندی‌شده','published'=>'منتشرشده','closed'=>'بسته‌شده'][$exam->status] ?? $exam->status }}</x-admin.badge></td>
+                        <td><x-admin::badge :variant="$exam->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','scheduled'=>'زمان‌بندی‌شده','published'=>'منتشرشده','closed'=>'بسته‌شده'][$exam->status] ?? $exam->status }}</x-admin.badge></td>
                         <td class="panel-table-actions">
                             <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.results', $exam) }}">نتایج</a>
                             @if (! $teacherView || $exam->provider === 'internal')
@@ -40,7 +40,7 @@
 
                     @if (! $teacherView || $exam->provider === 'internal')
                         @canany(['exams.manage', 'exams.manage.assigned'])
-                            <x-admin.drawer-form :id="'exam-edit-'.$exam->id" title="ویرایش آزمون" :action="route('admin.exams.update', $exam)" submit-label="ذخیره آزمون">
+                            <x-admin::drawer-form :id="'exam-edit-'.$exam->id" title="ویرایش آزمون" :action="route('admin.exams.update', $exam)" submit-label="ذخیره آزمون">
                                 @method('PATCH')
                                 <div class="panel-field"><label>عنوان آزمون</label><input class="panel-input" name="title" value="{{ $exam->title }}" required maxlength="180"></div>
                                 <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس مشخص</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected($exam->classroom_id === $classroom->id)>{{ $classroom->name }}</option>@endforeach</select></div>
@@ -69,7 +69,7 @@
     </section>
 
     @canany(['exams.manage', 'exams.manage.assigned'])
-        <x-admin.drawer-form id="exam-create" title="آزمون جدید" :action="route('admin.exams.store')" submit-label="ثبت آزمون">
+        <x-admin::drawer-form id="exam-create" title="آزمون جدید" :action="route('admin.exams.store')" submit-label="ثبت آزمون">
             <div class="panel-field"><label>عنوان آزمون</label><input class="panel-input" name="title" value="{{ old('title') }}" required maxlength="180"></div>
             <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس مشخص</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
             <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id"><option value="">بدون دوره مشخص</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>

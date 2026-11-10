@@ -12,9 +12,9 @@
     </div>
 
     <section class="panel-grid panel-grid-3">
-        <x-admin.stat label="تکلیف‌های این فهرست" :value="number_format($homeworks->total())" note="ثبت‌شده در سامانه" accent="#7b8cff"/>
-        <x-admin.stat label="پاسخ‌های دریافت‌شده" :value="number_format($homeworks->sum('submissions_count'))" note="مجموع صفحهٔ جاری" accent="#0b8f80"/>
-        <x-admin.stat label="منتظر بررسی" :value="number_format($homeworks->sum('pending_submissions_count'))" note="نیازمند بازخورد مدرس" accent="#f0a21a"/>
+        <x-admin::stat label="تکلیف‌های این فهرست" :value="number_format($homeworks->total())" note="ثبت‌شده در سامانه" accent="#7b8cff"/>
+        <x-admin::stat label="پاسخ‌های دریافت‌شده" :value="number_format($homeworks->sum('submissions_count'))" note="مجموع صفحهٔ جاری" accent="#0b8f80"/>
+        <x-admin::stat label="منتظر بررسی" :value="number_format($homeworks->sum('pending_submissions_count'))" note="نیازمند بازخورد مدرس" accent="#f0a21a"/>
     </section>
 
     <section class="panel-card mb-4">
@@ -29,8 +29,8 @@
                         <td>{{ $homework->classroom->name ?? '—' }}</td>
                         <td>{{ $homework->due_at?->format('Y-m-d H:i') ?? 'بدون مهلت' }}</td>
                         <td>{{ number_format($homework->submissions_count) }}</td>
-                        <td><x-admin.badge variant="warning">{{ number_format($homework->pending_submissions_count) }}</x-admin.badge></td>
-                        <td><x-admin.badge :variant="$homework->status === 'published' ? 'success' : 'warning'">{{ $homework->status === 'published' ? 'منتشرشده' : 'پیش‌نویس' }}</x-admin.badge></td>
+                        <td><x-admin::badge variant="warning">{{ number_format($homework->pending_submissions_count) }}</x-admin.badge></td>
+                        <td><x-admin::badge :variant="$homework->status === 'published' ? 'success' : 'warning'">{{ $homework->status === 'published' ? 'منتشرشده' : 'پیش‌نویس' }}</x-admin.badge></td>
                         <td>@if ($homework->attachment_path)<a href="{{ route('admin.homework.attachment', $homework) }}">دریافت فایل</a>@else—@endif</td>
                     </tr>
                 @empty
@@ -53,13 +53,13 @@
                         <td>{{ $submission->student->name ?? '—' }}</td>
                         <td>{{ $submission->homework->title ?? '—' }}<div class="panel-muted">{{ $submission->homework->classroom->name ?? '' }}</div></td>
                         <td>{{ $submission->submitted_at?->format('Y-m-d H:i') ?? '—' }}</td>
-                        <td><x-admin.badge :variant="$submission->status === 'reviewed' ? 'success' : 'warning'">{{ $submission->status === 'reviewed' ? 'بررسی‌شده' : 'منتظر بررسی' }}</x-admin.badge></td>
+                        <td><x-admin::badge :variant="$submission->status === 'reviewed' ? 'success' : 'warning'">{{ $submission->status === 'reviewed' ? 'بررسی‌شده' : 'منتظر بررسی' }}</x-admin.badge></td>
                         @can('homework.grade')
                             <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="submission-review-{{ $submission->id }}" data-drawer-title="بررسی پاسخ">بررسی</button></td>
                         @endcan
                     </tr>
                     @can('homework.grade')
-                        <x-admin.drawer-form :id="'submission-review-'.$submission->id" title="بررسی پاسخ" :action="route('admin.homework.review', $submission)" submit-label="ذخیره نتیجه">
+                        <x-admin::drawer-form :id="'submission-review-'.$submission->id" title="بررسی پاسخ" :action="route('admin.homework.review', $submission)" submit-label="ذخیره نتیجه">
                             @method('PATCH')
                             <div class="panel-field"><label>پاسخ دانش‌آموز</label><div class="panel-card">{{ $submission->answer ?: 'پاسخ متنی ثبت نشده است.' }}</div></div>
                             @if ($submission->files->isNotEmpty())
@@ -78,7 +78,7 @@
     </section>
 
     @canany(['homework.manage.all', 'homework.manage.assigned'])
-        <x-admin.drawer-form id="homework-create" title="تکلیف جدید" :action="route('admin.homework.store')" submit-label="ثبت تکلیف" enctype="multipart/form-data">
+        <x-admin::drawer-form id="homework-create" title="تکلیف جدید" :action="route('admin.homework.store')" submit-label="ثبت تکلیف" enctype="multipart/form-data">
             <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id" required><option value="">انتخاب کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
             <div class="panel-field"><label>مهلت تحویل</label><input class="panel-input" type="datetime-local" name="due_at"></div>

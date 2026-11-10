@@ -13,9 +13,9 @@
     </div>
 
     <section class="panel-grid panel-grid-3">
-        <x-admin.stat label="دوره‌های این فهرست" :value="number_format($courses->total())" note="بر اساس دسترسی شما" accent="#7b8cff"/>
-        <x-admin.stat label="دسترسی‌های ثبت‌شده" :value="number_format($courses->sum('enrollments_count'))" note="ثبت‌نام‌های دوره‌ها" accent="#0b8f80"/>
-        <x-admin.stat label="دوره‌های پولی" :value="number_format($courses->getCollection()->where('type', 'paid')->count())" note="در صفحهٔ جاری" accent="#f0a21a"/>
+        <x-admin::stat label="دوره‌های این فهرست" :value="number_format($courses->total())" note="بر اساس دسترسی شما" accent="#7b8cff"/>
+        <x-admin::stat label="دسترسی‌های ثبت‌شده" :value="number_format($courses->sum('enrollments_count'))" note="ثبت‌نام‌های دوره‌ها" accent="#0b8f80"/>
+        <x-admin::stat label="دوره‌های پولی" :value="number_format($courses->getCollection()->where('type', 'paid')->count())" note="در صفحهٔ جاری" accent="#f0a21a"/>
     </section>
 
     <section class="panel-card">
@@ -32,7 +32,7 @@
                         <td>{{ number_format($course->classrooms_count) }}</td>
                         <td>{{ number_format($course->enrollments_count) }}</td>
                         <td>{{ ['spotplayer'=>'SpotPlayer','skyroom'=>'اسکای‌روم','onsite'=>'حضوری'][$course->delivery_type] ?? $course->delivery_type }}</td>
-                        <td><x-admin.badge :variant="$course->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$course->status] ?? $course->status }}</x-admin.badge>
+                        <td><x-admin::badge :variant="$course->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$course->status] ?? $course->status }}</x-admin.badge>
                             @if ($course->delivery_type === 'spotplayer')<div class="panel-muted">{{ $course->integration_status === 'ready' ? 'اتصال تأییدشده' : 'در انتظار تأیید سرویس' }}</div>@endif
                         </td>
                         @can('courses.manage')
@@ -40,7 +40,7 @@
                         @endcan
                     </tr>
                     @can('courses.manage')
-                        <x-admin.drawer-form :id="'course-edit-'.$course->id" title="ویرایش دوره" :action="route('admin.courses.update', $course)" submit-label="ذخیره دوره">
+                        <x-admin::drawer-form :id="'course-edit-'.$course->id" title="ویرایش دوره" :action="route('admin.courses.update', $course)" submit-label="ذخیره دوره">
                             @method('PATCH')
                             <div class="panel-field"><label>عنوان دوره</label><input class="panel-input" name="title" value="{{ $course->title }}" required maxlength="180"></div>
                             <div class="panel-field"><label>توضیحات</label><textarea class="panel-textarea" name="description" maxlength="10000">{{ $course->description }}</textarea></div>
@@ -64,7 +64,7 @@
     </section>
 
     @can('courses.manage')
-        <x-admin.drawer-form id="course-create" title="دوره جدید" :action="route('admin.courses.store')" submit-label="ایجاد دوره">
+        <x-admin::drawer-form id="course-create" title="دوره جدید" :action="route('admin.courses.store')" submit-label="ایجاد دوره">
             <div class="panel-field"><label>عنوان دوره</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>توضیحات</label><textarea class="panel-textarea" name="description"></textarea></div>
             <div class="panel-field"><label>درس</label><input class="panel-input" name="subject" maxlength="100"></div>

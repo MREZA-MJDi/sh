@@ -30,7 +30,7 @@
                             <span class="panel-muted">{{ $classroom->schedule['time'] ?? '' }} · {{ $classroom->schedule['duration_minutes'] ?? 90 }} دقیقه</span>
                         </td>
                         <td>{{ number_format($classroom->students_count) }}</td>
-                        <td><x-admin.badge :variant="$classroom->status === 'active' ? 'success' : 'warning'">{{ ['active'=>'فعال','paused'=>'متوقف','archived'=>'بایگانی'][$classroom->status] ?? $classroom->status }}</x-admin.badge></td>
+                        <td><x-admin::badge :variant="$classroom->status === 'active' ? 'success' : 'warning'">{{ ['active'=>'فعال','paused'=>'متوقف','archived'=>'بایگانی'][$classroom->status] ?? $classroom->status }}</x-admin.badge></td>
                         <td>
                             @if ($classroom->meeting_url)
                                 <a href="{{ $classroom->meeting_url }}" target="_blank" rel="noopener noreferrer" dir="ltr">ورود به اسکای‌روم ↗</a>
@@ -43,7 +43,7 @@
                         @endcanany
                     </tr>
                     @canany(['classes.manage', 'classes.manage.assigned'])
-                        <x-admin.drawer-form :id="'class-edit-'.$classroom->id" title="ویرایش کلاس" :action="route('admin.classes.update', $classroom)" submit-label="ذخیره تغییرات">
+                        <x-admin::drawer-form :id="'class-edit-'.$classroom->id" title="ویرایش کلاس" :action="route('admin.classes.update', $classroom)" submit-label="ذخیره تغییرات">
                             @method('PATCH')
                             <div class="panel-field"><label>نام کلاس</label><input class="panel-input" name="name" value="{{ $classroom->name }}" required maxlength="180"></div>
                             <div class="panel-field"><label>دوره مرتبط</label><select class="panel-select" name="course_id" @if($teacherView) required @endif><option value="">بدون دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}" @selected($classroom->course_id === $course->id)>{{ $course->title }}</option>@endforeach</select></div>
@@ -68,7 +68,7 @@
     </section>
 
     @canany(['classes.manage', 'classes.manage.assigned'])
-        <x-admin.drawer-form id="class-create" title="کلاس جدید" :action="route('admin.classes.store')" submit-label="ثبت کلاس">
+        <x-admin::drawer-form id="class-create" title="کلاس جدید" :action="route('admin.classes.store')" submit-label="ثبت کلاس">
             <div class="panel-field"><label>نام کلاس</label><input class="panel-input" name="name" value="{{ old('name') }}" required maxlength="180"></div>
             <div class="panel-field"><label>دوره مرتبط</label><select class="panel-select" name="course_id" @if($teacherView) required @endif><option value="">بدون دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
             @unless($teacherView)

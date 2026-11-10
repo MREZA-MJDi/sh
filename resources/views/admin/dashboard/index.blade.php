@@ -18,19 +18,19 @@
 
     <section class="panel-grid panel-grid-4 mb-4">
         @canany(['users.manage', 'students.view.assigned'])
-            <x-admin.stat label="دانش‌آموزان فعال" :value="number_format($stats['students'])" note="در کلاس‌های قابل دسترس" accent="#5065d8" icon="♙"/>
+            <x-admin::stat label="دانش‌آموزان فعال" :value="number_format($stats['students'])" note="در کلاس‌های قابل دسترس" accent="#5065d8" icon="♙"/>
         @endcanany
         @can('users.manage')
-            <x-admin.stat label="مدرسان فعال" :value="number_format($stats['teachers'])" note="حساب‌های فعال" accent="#0b9a89" icon="♟"/>
+            <x-admin::stat label="مدرسان فعال" :value="number_format($stats['teachers'])" note="حساب‌های فعال" accent="#0b9a89" icon="♟"/>
         @endcan
         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
-            <x-admin.stat label="کلاس‌های فعال" :value="number_format($stats['classes'])" note="کلاس‌های قابل دسترس" accent="#d18b11" icon="▣"/>
+            <x-admin::stat label="کلاس‌های فعال" :value="number_format($stats['classes'])" note="کلاس‌های قابل دسترس" accent="#d18b11" icon="▣"/>
         @endcanany
         @canany(['courses.manage', 'courses.view.assigned'])
-            <x-admin.stat label="دوره‌های منتشرشده" :value="number_format($stats['courses'])" note="دوره‌های قابل ارائه" accent="#d84b59" icon="▤"/>
+            <x-admin::stat label="دوره‌های منتشرشده" :value="number_format($stats['courses'])" note="دوره‌های قابل ارائه" accent="#d84b59" icon="▤"/>
         @endcanany
         @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned', 'homework.grade'])
-            <x-admin.stat label="تکالیف منتظر بررسی" :value="number_format($stats['pending_homework'])" note="ارسال‌های تحویل‌شده" accent="#7b55c7" icon="✎"/>
+            <x-admin::stat label="تکالیف منتظر بررسی" :value="number_format($stats['pending_homework'])" note="ارسال‌های تحویل‌شده" accent="#7b55c7" icon="✎"/>
         @endcanany
     </section>
 

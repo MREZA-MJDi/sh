@@ -22,7 +22,7 @@
                             <td>{{ $video->course->title ?? '—' }}</td>
                             <td>{{ $video->classroom->name ?? '—' }}</td>
                             <td>{{ $video->file_original_name ?: '—' }}<div class="panel-muted">{{ $video->file_size_bytes ? number_format($video->file_size_bytes / 1048576, 1).' MB' : '' }}</div></td>
-                            <td><x-admin.badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
+                            <td><x-admin::badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
                             <td>@if($video->file_path)<a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>@else—@endif</td>
                         </tr>
                     @empty
@@ -34,7 +34,7 @@
             <div class="panel-pagination">{{ $videos->links() }}</div>
         </section>
 
-        <x-admin.drawer-form id="video-create" title="بارگذاری فیلم کلاس" :action="route('admin.spotplayer.videos.store')" submit-label="ثبت ویدیو" enctype="multipart/form-data">
+        <x-admin::drawer-form id="video-create" title="بارگذاری فیلم کلاس" :action="route('admin.spotplayer.videos.store')" submit-label="ثبت ویدیو" enctype="multipart/form-data">
             <div class="panel-field"><label>عنوان ویدیو</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
             <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس مشخص</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
@@ -89,7 +89,7 @@
                             <td>{{ $video->course->title ?? $video->classroom->name ?? '—' }}</td>
                             <td>{{ $video->file_original_name ?: '—' }}</td>
                             <td dir="ltr">{{ $video->external_id ?: '—' }}</td>
-                            <td><x-admin.badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
+                            <td><x-admin::badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
                             <td>@if($video->file_path)<a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>@else—@endif</td>
                         </tr>
                     @empty

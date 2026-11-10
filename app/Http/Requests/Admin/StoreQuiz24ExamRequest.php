@@ -8,11 +8,15 @@ class StoreQuiz24ExamRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        $hours = filter_var($this->input('duration_hours'), FILTER_VALIDATE_INT);
+        $hours = filter_var($this->input('duration_hours', 2), FILTER_VALIDATE_INT);
+        $hours = $hours === false ? null : $hours;
 
         $this->merge([
-            'duration_minutes' => $hours === false ? null : $hours * 60,
-            'show_to_guardians' => $this->boolean('show_to_guardians'),
+            'duration_hours' => $hours,
+            'duration_minutes' => $hours === null ? null : $hours * 60,
+            'show_to_guardians' => $this->exists('show_to_guardians')
+                ? $this->boolean('show_to_guardians')
+                : true,
         ]);
     }
 

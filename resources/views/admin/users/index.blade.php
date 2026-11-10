@@ -42,7 +42,7 @@
                             <td>
                                 <div class="flex flex-wrap gap-1">
                                     @forelse ($user->assignedCourses as $course)
-                                        <x-admin.badge>{{ $course->title }}</x-admin.badge>
+                                        <x-admin::badge>{{ $course->title }}</x-admin.badge>
                                     @empty
                                         <span class="panel-muted">دوره‌ای تخصیص داده نشده</span>
                                     @endforelse
@@ -53,7 +53,7 @@
                                 <div class="flex flex-wrap gap-1">
                                     @foreach ($teacherAccessGroups as $key => $group)
                                         @if ($selectedGroups[$key] ?? false)
-                                            <x-admin.badge>{{ $group['label'] }}</x-admin.badge>
+                                            <x-admin::badge>{{ $group['label'] }}</x-admin.badge>
                                         @endif
                                     @endforeach
                                     @if (! collect($selectedGroups)->contains(true))
@@ -61,7 +61,7 @@
                                     @endif
                                 </div>
                             </td>
-                            <td><x-admin.badge :variant="$user->is_active ? 'success' : 'warning'">{{ $user->is_active ? 'فعال' : 'در انتظار تأیید' }}</x-admin.badge></td>
+                            <td><x-admin::badge :variant="$user->is_active ? 'success' : 'warning'">{{ $user->is_active ? 'فعال' : 'در انتظار تأیید' }}</x-admin.badge></td>
                             @can('users.manage')
                                 <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="teacher-edit-{{ $user->id }}" data-drawer-title="ویرایش دسترسی مدرس">ویرایش</button></td>
                             @endcan
@@ -77,7 +77,7 @@
                                     {{ $user->children()->count() }} فرزند متصل
                                 @endif
                             </td>
-                            <td><x-admin.badge :variant="$user->is_active ? 'success' : 'danger'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
+                            <td><x-admin::badge :variant="$user->is_active ? 'success' : 'danger'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
                             @can('users.manage')
                                 <td>
                                     <form method="POST" action="{{ route('admin.users.status', $user) }}" class="panel-inline-form">
@@ -95,7 +95,7 @@
                     @if ($role === 'teacher')
                         @can('users.manage')
                             @php($selectedGroups = $teacherSelectedGroups[$user->id] ?? [])
-                            <x-admin.drawer-form :id="'teacher-edit-'.$user->id" title="ویرایش دسترسی مدرس" :action="route('admin.teachers.update', $user)" method="POST" submit-label="ذخیره دسترسی‌ها">
+                            <x-admin::drawer-form :id="'teacher-edit-'.$user->id" title="ویرایش دسترسی مدرس" :action="route('admin.teachers.update', $user)" method="POST" submit-label="ذخیره دسترسی‌ها">
                                 @method('PATCH')
                                 <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ $user->name }}" required maxlength="160"></div>
                                 <div class="panel-field"><label>موبایل (نام کاربری)</label><input class="panel-input" name="phone" value="{{ $user->phone }}" required maxlength="30" dir="ltr" inputmode="tel"></div>
@@ -144,7 +144,7 @@
 
     @can('users.manage')
         @if ($role === 'teacher')
-            <x-admin.drawer-form id="user-create" title="ساخت مدرس" :action="route($storeRoute)" submit-label="ساخت مدرس">
+            <x-admin::drawer-form id="user-create" title="ساخت مدرس" :action="route($storeRoute)" submit-label="ساخت مدرس">
                 <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ old('name') }}" required maxlength="160"></div>
                 <div class="panel-field"><label>موبایل (نام کاربری)</label><input class="panel-input" name="phone" value="{{ old('phone') }}" required maxlength="30" dir="ltr" inputmode="tel" placeholder="09xxxxxxxxx"></div>
                 <div class="panel-field"><label>ایمیل (اختیاری)</label><input class="panel-input" type="email" name="email" value="{{ old('email') }}" maxlength="190" dir="ltr"></div>
@@ -176,7 +176,7 @@
                 <div class="panel-alert">ارسال پیامک ورود در این نسخه وصل نیست؛ گذرواژه اولیه را به مدرس تحویل دهید.</div>
             </x-admin.drawer-form>
         @else
-            <x-admin.drawer-form id="user-create" title="ثبت کاربر" :action="route($storeRoute)" submit-label="ثبت {{ $labels[$role] }}">
+            <x-admin::drawer-form id="user-create" title="ثبت کاربر" :action="route($storeRoute)" submit-label="ثبت {{ $labels[$role] }}">
                 <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ old('name') }}" required maxlength="160"></div>
                 <div class="panel-field"><label>ایمیل ورود</label><input class="panel-input" type="email" name="email" value="{{ old('email') }}" required maxlength="190" dir="ltr"></div>
                 <div class="panel-field"><label>شماره تماس</label><input class="panel-input" name="phone" value="{{ old('phone') }}" maxlength="30" dir="ltr"></div>

@@ -13,9 +13,9 @@
     </div>
 
     <section class="panel-grid panel-grid-3">
-        <x-admin.stat label="منابع این فهرست" :value="number_format($resources->total())" note="منابع قابل دسترسی" accent="#7b8cff"/>
-        <x-admin.stat label="فایل‌های بارگذاری‌شده" :value="number_format($resources->getCollection()->whereNotNull('file_path')->count())" note="در صفحهٔ جاری" accent="#0b8f80"/>
-        <x-admin.stat label="منابع منتشرشده" :value="number_format($resources->getCollection()->where('status', 'published')->count())" note="در صفحهٔ جاری" accent="#f0a21a"/>
+        <x-admin::stat label="منابع این فهرست" :value="number_format($resources->total())" note="منابع قابل دسترسی" accent="#7b8cff"/>
+        <x-admin::stat label="فایل‌های بارگذاری‌شده" :value="number_format($resources->getCollection()->whereNotNull('file_path')->count())" note="در صفحهٔ جاری" accent="#0b8f80"/>
+        <x-admin::stat label="منابع منتشرشده" :value="number_format($resources->getCollection()->where('status', 'published')->count())" note="در صفحهٔ جاری" accent="#f0a21a"/>
     </section>
 
     <section class="panel-card">
@@ -31,7 +31,7 @@
                         <td>{{ $resource->course->title ?? $resource->classroom->name ?? '—' }}</td>
                         <td>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</td>
                         <td>{{ ['public'=>'عمومی','authenticated'=>'کاربران واردشده','enrolled'=>'اعضای دوره/کلاس'][$resource->visibility] ?? $resource->visibility }}</td>
-                        <td><x-admin.badge :variant="$resource->status === 'published' ? 'success' : 'warning'">{{ ['published'=>'منتشرشده','draft'=>'پیش‌نویس','archived'=>'بایگانی'][$resource->status] ?? $resource->status }}</x-admin.badge></td>
+                        <td><x-admin::badge :variant="$resource->status === 'published' ? 'success' : 'warning'">{{ ['published'=>'منتشرشده','draft'=>'پیش‌نویس','archived'=>'بایگانی'][$resource->status] ?? $resource->status }}</x-admin.badge></td>
                         <td>@if($resource->file_path)<a href="{{ route('admin.resources.download', $resource) }}">دریافت خصوصی</a>@else<span class="panel-muted">فایل ندارد</span>@endif</td>
                         @canany(['resources.manage', 'resources.manage.assigned'])
                             <td class="panel-table-actions">
@@ -44,7 +44,7 @@
                         @endcanany
                     </tr>
                     @canany(['resources.manage', 'resources.manage.assigned'])
-                        <x-admin.drawer-form :id="'resource-edit-'.$resource->id" title="ویرایش منبع" :action="route('admin.resources.update', $resource)" method="POST" submit-label="ذخیره تغییرات" enctype="multipart/form-data">
+                        <x-admin::drawer-form :id="'resource-edit-'.$resource->id" title="ویرایش منبع" :action="route('admin.resources.update', $resource)" method="POST" submit-label="ذخیره تغییرات" enctype="multipart/form-data">
                             @method('PATCH')
                             <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $resource->title }}" required maxlength="180"></div>
                             <div class="panel-field"><label>نوع منبع</label><select class="panel-select" name="kind">@foreach (['pdf'=>'جزوه PDF','book'=>'کتاب','other'=>'سایر'] as $key=>$label)<option value="{{ $key }}" @selected($resource->kind === $key)>{{ $label }}</option>@endforeach</select></div>
@@ -68,7 +68,7 @@
     </section>
 
     @canany(['resources.manage', 'resources.manage.assigned'])
-        <x-admin.drawer-form id="resource-create" title="افزودن منبع" :action="route('admin.resources.store')" submit-label="ذخیره منبع" enctype="multipart/form-data">
+        <x-admin::drawer-form id="resource-create" title="افزودن منبع" :action="route('admin.resources.store')" submit-label="ذخیره منبع" enctype="multipart/form-data">
             <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ old('title') }}" required maxlength="180"></div>
             <div class="panel-field"><label>نوع منبع</label><select class="panel-select" name="kind"><option value="pdf">جزوه PDF</option><option value="book">کتاب</option><option value="other">سایر</option></select></div>
             <div class="panel-field"><label>دوره مرتبط</label><select class="panel-select" name="course_id"><option value="">بدون دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>

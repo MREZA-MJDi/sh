@@ -23,7 +23,7 @@
                         <td>{{ ['all'=>'همه','students'=>'دانش‌آموزان','parents'=>'اولیا','teachers'=>'مدرسان'][$announcement->audience] ?? $announcement->audience }}</td>
                         <td>{{ $announcement->creator->name ?? '—' }}</td>
                         <td>{{ $announcement->published_at?->format('Y-m-d H:i') ?? '—' }}</td>
-                        <td><x-admin.badge :variant="$announcement->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$announcement->status] ?? $announcement->status }}</x-admin.badge></td>
+                        <td><x-admin::badge :variant="$announcement->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$announcement->status] ?? $announcement->status }}</x-admin.badge></td>
                         @can('announcements.manage')
                             <td class="panel-table-actions">
                                 <form method="POST" action="{{ route('admin.announcements.status', $announcement) }}" class="panel-inline-form">
@@ -45,7 +45,7 @@
     </section>
 
     @can('announcements.manage')
-        <x-admin.drawer-form id="announcement-create" title="اطلاعیه جدید" :action="route('admin.announcements.store')" submit-label="ثبت اطلاعیه">
+        <x-admin::drawer-form id="announcement-create" title="اطلاعیه جدید" :action="route('admin.announcements.store')" submit-label="ثبت اطلاعیه">
             <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>مخاطبان</label><select class="panel-select" name="audience"><option value="all">همه کاربران</option><option value="students">دانش‌آموزان</option><option value="parents">اولیا</option><option value="teachers">مدرسان</option></select></div>
             <div class="panel-field"><label>وضعیت اولیه</label><select class="panel-select" name="status"><option value="draft">ذخیره پیش‌نویس</option><option value="published">انتشار فوری</option></select></div>
