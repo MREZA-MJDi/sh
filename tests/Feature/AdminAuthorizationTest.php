@@ -20,9 +20,9 @@ class AdminAuthorizationTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_guest_is_redirected_to_admin_login(): void
+    public function test_guest_is_redirected_to_the_shared_login_page(): void
     {
-        $this->get('/admin')->assertRedirect(route('admin.login'));
+        $this->get('/admin')->assertRedirect(route('login'));
     }
 
     public function test_admin_can_open_dashboard(): void
