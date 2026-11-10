@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\User;
-use Illuminate\\Http\\JsonResponse;
-use Illuminate\\Http\\Request;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 final class LookupController extends Controller
 {
@@ -20,15 +20,16 @@ final class LookupController extends Controller
         ]);
 
         $term = trim($validated['q']);
+        $pattern = '%' . addcslashes($term, '%_\\\\') . '%';
 
         $matches = User::query()
             ->select(['id', 'name', 'phone'])
             ->where('is_active', true)
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'student'))
-            ->where(function ($query) use ($term): void {
-                $query->where('name', 'like', '%' . addcslashes($term, '%_\\\\') . '%')
-                    ->orWhere('phone', 'like', '%' . addcslashes($term, '%_\\\\') . '%')
-                    ->orWhere('email', 'like', '%' . addcslashes($term, '%_\\\\') . '%');
+            ->where(function ($query) use ($pattern): void {
+                $query->where('name', 'like', $pattern)
+                    ->orWhere('phone', 'like', $pattern)
+                    ->orWhere('email', 'like', $pattern);
             })
             ->orderBy('name')
             ->limit(self::RESULT_LIMIT + 1)
