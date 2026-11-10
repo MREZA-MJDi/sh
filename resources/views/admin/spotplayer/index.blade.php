@@ -42,7 +42,7 @@
             <div class="panel-field"><label>فایل ویدیو (فقط اگر هنوز در Spot بارگذاری نشده)</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv"><span class="panel-muted">حداکثر ۱ گیگابایت؛ فایل فقط در فضای خصوصی شیخان نگهداری می‌شود.</span></div>
             <div class="panel-alert">اگر ویدیو از قبل در حساب SpotPlayer شیخان قرار دارد، فقط شناسه خارجی را وارد کنید و فایل را دوباره بارگذاری نکنید.</div>
             <input type="hidden" name="status" value="waiting_contract">
-            <div class="panel-alert">تا زمانی که قرارداد API سرویس تحویل نشود، فایل فقط در فضای خصوصی شیخان ذخیره می‌شود و اتصال خارجی انجام‌شده تلقی نمی‌شود.</div>
+            <div class="panel-alert">تا زمان تحویل قرارداد رسمی، شناسه فقط در شیخان ثبت می‌شود و پلیر رسمی هنوز فعال نشده است.</div>
         </x-admin.drawer-form>
     @else
         <section class="panel-card mb-4">
@@ -74,6 +74,22 @@
                     <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
                 </div>
                 <div class="panel-form-actions"><button class="panel-btn" type="submit">ثبت درخواست لایسنس</button></div>
+            </form>
+        </section>
+
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>ثبت ویدئوی دوره</h3><p>اگر ویدئو از قبل در پنل SpotPlayer شیخان بارگذاری شده، فقط شناسه خارجی آن را ثبت کنید.</p></div></div>
+            <form method="POST" action="{{ route('admin.spotplayer.videos.store') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="panel-form-grid panel-form-grid-2">
+                    <div class="panel-field"><label>عنوان ویدئو</label><input class="panel-input" name="title" required maxlength="180"></div>
+                    <div class="panel-field"><label>دوره SpotPlayer</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
+                    <div class="panel-field"><label>کلاس (اختیاری)</label><select class="panel-select" name="classroom_id"><option value="">محتوای کل دوره</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
+                    <div class="panel-field"><label>شناسه ویدئو در SpotPlayer</label><input class="panel-input" name="external_id" dir="ltr" maxlength="190" placeholder="شناسه موجود در پنل Spot"></div>
+                    <div class="panel-field"><label>فایل (فقط برای انتقال آینده، در صورت نیاز)</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv"><span class="panel-muted">حداکثر ۱ گیگابایت؛ ذخیره فقط در فضای خصوصی شیخان</span></div>
+                </div>
+                <input type="hidden" name="status" value="waiting_contract">
+                <div class="panel-form-actions"><button class="panel-btn" type="submit">ثبت ویدئو</button></div>
             </form>
         </section>
 
