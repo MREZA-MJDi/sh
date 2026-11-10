@@ -19,7 +19,7 @@ final class StoreConsultationRequest extends FormRequest
         return [
             'student_id' => ['required', 'integer', 'exists:users,id'],
             'type' => ['required', Rule::in(['ticket', 'phone', 'in_person'])],
-            'subject' => ['required', 'string', 'max:180'],
+            'topic' => ['required', 'string', 'max:190'],
             'contact_phone' => ['nullable', 'string', 'max:30'],
             'desired_at' => ['nullable', 'date', 'after:now'],
             'body' => ['required', 'string', 'max:5000'],
