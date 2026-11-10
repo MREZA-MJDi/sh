@@ -14,7 +14,7 @@
         if ($firstPendingHomework) {
             $nextAction = [
                 'eyebrow' => 'قدم بعدی یادگیری',
-                'title' => 'یک تکلیف در انتظار بررسی توست',
+                'title' => 'یک تکلیف در انتظار ارسال داری',
                 'description' => 'تکلیف «' . $firstPendingHomework->title . '» را باز کن و پاسخ خودت را قبل از پایان مهلت ثبت کن.',
                 'label' => 'رفتن به تکالیف',
                 'href' => '#homework',
