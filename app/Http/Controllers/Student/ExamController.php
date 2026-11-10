@@ -51,6 +51,11 @@ final class ExamController extends Controller
     {
         $attempt = $exams->submit($request->user(), $attempt, $request->validated('answers', []));
 
+        if ($attempt->status === 'expired') {
+            return redirect()->route('student.exams.result', $attempt->exam_id)
+                ->with('error', 'مهلت آزمون به پایان رسید؛ این تلاش منقضی شد و در تعداد دفعات مجاز محاسبه گردید.');
+        }
+
         return redirect()->route('student.exams.result', $attempt->exam_id)
             ->with('success', $attempt->status === 'pending_review'
                 ? 'پاسخ‌ها ثبت شد و برای تصحیح تشریحی به مدرس ارسال شد.'

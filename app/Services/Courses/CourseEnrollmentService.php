@@ -21,64 +21,79 @@ class CourseEnrollmentService
     }
 
     /**
-     * A course enrollment is unique per student/course, not per classroom.
-     * Reconcile the union of all classroom rosters and preserve verified payments.
+     * Reconcile course access from the active classroom roster in a bounded
+     * number of queries. Verified payment records are never rewritten here.
      */
     public function syncCourseRoster(Course $course): void
     {
-        $course->load('classrooms.students');
-
-        $studentIds = $course->classrooms
-            ->flatMap(fn (Classroom $classroom) => $classroom->students->modelKeys())
-            ->unique()
+        $studentIds = DB::table('classroom_student')
+            ->join('classrooms', 'classrooms.id', '=', 'classroom_student.classroom_id')
+            ->where('classrooms.course_id', $course->id)
+            ->where('classrooms.status', 'active')
+            ->whereNull('classroom_student.left_at')
+            ->distinct()
+            ->pluck('classroom_student.student_id')
+            ->map(static fn ($id): int => (int) $id)
             ->values();
 
         DB::transaction(function () use ($course, $studentIds): void {
-            // Keep payment evidence, but suspend its access while a course is unpublished.
-            CourseEnrollment::query()
-                ->where('course_id', $course->id)
-                ->where('source', 'payment')
-                ->update([
-                    'status' => $course->status === 'published' ? 'active' : 'suspended',
-                ]);
+            $classroomStatus = match (true) {
+                $course->status !== 'published' => 'suspended',
+                $course->type === 'free' => 'active',
+                default => 'pending_payment',
+            };
 
-            foreach ($studentIds as $studentId) {
-                $enrollment = CourseEnrollment::firstOrNew([
-                    'course_id' => $course->id,
-                    'student_id' => $studentId,
-                ]);
-
-                if ($enrollment->exists && $enrollment->source === 'payment') {
-                    continue;
-                }
-
-                $status = match (true) {
-                    $course->status !== 'published' => 'suspended',
-                    $course->type === 'free' => 'active',
-                    default => 'pending_payment',
-                };
-
-                $enrollment->fill([
-                    'source' => 'classroom',
-                    'status' => $status,
-                    'granted_by' => auth()->id(),
-                    'source_reference' => 'course:'.$course->id.':classroom-roster',
-                    'granted_at' => $status === 'active' ? ($enrollment->granted_at ?? now()) : null,
-                ])->save();
+            if ($studentIds->isNotEmpty()) {
+                CourseEnrollment::query()
+                    ->where('course_id', $course->id)
+                    ->where('source', 'classroom')
+                    ->whereIn('student_id', $studentIds->all())
+                    ->update(['status' => $classroomStatus]);
             }
 
-            CourseEnrollment::query()
+            $outOfRoster = CourseEnrollment::query()
                 ->where('course_id', $course->id)
-                ->where('source', 'classroom')
-                ->when(
-                    $studentIds->isNotEmpty(),
-                    fn ($query) => $query->whereNotIn('student_id', $studentIds->all())
-                )
-                ->update([
-                    'status' => 'revoked',
-                    'granted_at' => null,
-                ]);
-        });
+                ->where('source', 'classroom');
+
+            if ($studentIds->isNotEmpty()) {
+                $outOfRoster->whereNotIn('student_id', $studentIds->all());
+            }
+
+            // Keep the original grant timestamp as audit history when access is revoked.
+            $outOfRoster->update(['status' => 'revoked']);
+
+            if ($studentIds->isEmpty()) {
+                return;
+            }
+
+            $existingIds = CourseEnrollment::query()
+                ->where('course_id', $course->id)
+                ->whereIn('student_id', $studentIds->all())
+                ->pluck('student_id')
+                ->map(static fn ($id): int => (int) $id)
+                ->all();
+
+            $newStudentIds = $studentIds->diff($existingIds)->values();
+            if ($newStudentIds->isEmpty()) {
+                return;
+            }
+
+            $now = now();
+            $rows = $newStudentIds->map(static fn (int $studentId): array => [
+                'course_id' => $course->id,
+                'student_id' => $studentId,
+                'source' => 'classroom',
+                'status' => $classroomStatus,
+                'granted_by' => auth()->id(),
+                'source_reference' => 'course:'.$course->id.':classroom-roster',
+                'granted_at' => $classroomStatus === 'active' ? $now : null,
+                'expires_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
+
+            DB::table('course_enrollments')->insertOrIgnore($rows);
+        }, 3);
     }
 
     /**
@@ -97,15 +112,29 @@ class CourseEnrollmentService
             throw ValidationException::withMessages(['course' => 'دسترسی پرداختی فقط برای دوره پولی منتشرشده ایجاد می‌شود.']);
         }
 
-        return CourseEnrollment::updateOrCreate(
-            ['course_id' => $course->id, 'student_id' => $student->id],
-            [
+        return DB::transaction(function () use ($student, $course, $paymentReference): CourseEnrollment {
+            $enrollment = CourseEnrollment::query()
+                ->where('course_id', $course->id)
+                ->where('student_id', $student->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $enrollment) {
+                $enrollment = new CourseEnrollment([
+                    'course_id' => $course->id,
+                    'student_id' => $student->id,
+                ]);
+            }
+
+            $enrollment->fill([
                 'source' => 'payment',
                 'status' => 'active',
                 'source_reference' => $paymentReference,
                 'granted_at' => now(),
-            ]
-        );
+            ])->save();
+
+            return $enrollment;
+        }, 3);
     }
 
     public function hasActiveAccess(User $student, Course $course): bool

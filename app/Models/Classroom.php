@@ -29,7 +29,7 @@ class Classroom extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'classroom_student', 'classroom_id', 'student_id')
-            ->withPivot('assigned_by')->withTimestamps();
+            ->withPivot('assigned_by', 'left_at')->wherePivotNull('left_at')->withTimestamps();
     }
 
     public function attendances(): HasMany

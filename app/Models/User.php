@@ -136,7 +136,9 @@ class User extends Authenticatable
     public function enrolledClasses(): BelongsToMany
     {
         return $this->belongsToMany(Classroom::class, 'classroom_student', 'student_id', 'classroom_id')
-            ->withPivot('assigned_by')->withTimestamps();
+            ->withPivot('assigned_by', 'left_at')
+            ->wherePivotNull('left_at')
+            ->withTimestamps();
     }
 
     public function children(): BelongsToMany

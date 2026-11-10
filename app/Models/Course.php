@@ -48,4 +48,14 @@ class Course extends Model
     {
         return $this->hasMany(SpotPlayerLicense::class);
     }
+
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
+    }
+
+    public function spotPlayerVideos(): HasMany
+    {
+        return $this->hasMany(SpotPlayerVideo::class);
+    }
 }

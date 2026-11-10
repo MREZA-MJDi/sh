@@ -91,7 +91,7 @@ final class ClassroomService
         if (
             $classroom->homeworks()->exists()
             || $classroom->attendances()->exists()
-            || $classroom->students()->exists()
+            || DB::table('classroom_student')->where('classroom_id', $classroom->id)->exists()
         ) {
             throw ValidationException::withMessages([
                 'classroom' => 'کلاس دارای سوابق آموزشی یا اعضای ثبت‌نام‌شده است؛ آن را بایگانی کنید.',
