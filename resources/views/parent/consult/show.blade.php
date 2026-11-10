@@ -77,7 +77,7 @@
         </div>
 
         <x-card title="وضعیت درخواست">
-            <x-steps :items="['ثبت درخواست', 'هماهنگی زمان جلسه', 'برگزاری جلسه']" :current="match($consultation->status) { 'pending' => 0, 'scheduled' => 1, 'done' => 2, default => 0 }"/>
+            <x-steps :items="['ثبت درخواست', 'هماهنگی زمان جلسه', 'برگزاری جلسه']" :current="match($consultationStatus) { 'pending' => 0, 'scheduled' => 1, 'done' => 2, default => 0 }"/>
         </x-card>
     </div>
 @endsection
