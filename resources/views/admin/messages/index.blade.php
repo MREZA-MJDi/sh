@@ -27,14 +27,14 @@
                     <div><h3>{{ $selected->subject }}</h3><p>فرستنده: {{ $selected->sender->name ?? 'کاربر حذف‌شده' }}</p></div>
                     <span class="panel-badge">{{ $selected->created_at->format('Y-m-d H:i') }}</span>
                 </div>
-                <div class="rounded-xl bg-[var(--sh-surface-soft)] p-4 text-sm leading-8">{{ $selected->body }}</div>
+                <x-rich-content :value="$selected->body" class="rounded-xl bg-[var(--sh-surface-soft)] p-4 text-sm leading-8"/>
 
                 <div class="mt-4">
                     <h4 class="mb-2 text-xs font-extrabold">پاسخ‌ها</h4>
                     @forelse ($selected->replies as $reply)
                         <div class="mb-2 rounded-xl border border-[var(--sh-line)] p-3">
                             <div class="mb-1 text-xs font-bold">{{ $reply->sender->name ?? 'مدیر' }} <span class="panel-muted">· {{ $reply->created_at->format('Y-m-d H:i') }}</span></div>
-                            <div class="text-sm leading-7">{{ $reply->body }}</div>
+                            <x-rich-content :value="$reply->body" class="text-sm leading-7"/>
                         </div>
                     @empty
                         <p class="panel-muted">هنوز پاسخی ثبت نشده است.</p>
