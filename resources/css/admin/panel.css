@@ -100,7 +100,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .panel-page-head h2 { margin: 0; font-size: 17px; font-weight: 800; }
 .panel-page-head p { margin: 3px 0 0; color: var(--sh-muted); font-size: 12px; }
 .panel-grid { display: grid; gap: 15px; }
-.panel-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.panel-grid-4 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .panel-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .panel-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .panel-card {
