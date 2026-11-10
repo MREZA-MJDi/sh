@@ -47,6 +47,17 @@ final class DashboardService
         $weeklyAttendanceQuery = Attendance::query()
             ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds));
 
+        $weekStart = today()->copy()->subDays(6);
+        $attendanceByDay = $canSeeAttendance
+            ? $weeklyAttendanceQuery
+                ->selectRaw(
+                    'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
+                    ['present', 'late']
+                )
+                ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->groupBy('session_date')->get()->keyBy('attendance_day')
+            : collect();
+
         // Reuse the grouped seven-day result for today's KPI instead of issuing
         // two additional COUNT queries for the same attendance records.
         $todayAttendance = $attendanceByDay->get(today()->toDateString());
@@ -90,16 +101,7 @@ final class DashboardService
             ? Announcement::where('status', 'published')->latest('published_at')->limit(4)->get()
             : collect();
 
-        $weekStart = today()->copy()->subDays(6);
-        $attendanceByDay = $canSeeAttendance
-            ? $weeklyAttendanceQuery
-                ->selectRaw(
-                    'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
-                    ['present', 'late']
-                )
-                ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
-                ->groupBy('session_date')->get()->keyBy('attendance_day')
-            : collect();
+
 
         $weeklyAttendance = $canSeeAttendance
             ? collect(range(6, 0))->map(function (int $daysAgo): array {
