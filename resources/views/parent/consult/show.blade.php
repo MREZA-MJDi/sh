@@ -28,8 +28,8 @@
                 <dl class="dl">
                     <dt>فرزند</dt><dd>{{ $consultation->student?->name ?? '—' }}</dd>
                     <dt>نوع جلسه</dt><dd>{{ $typeLabels[$consultation->type] ?? '—' }}</dd>
-                    <dt>زمان پیشنهادی</dt><dd>{{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'yyyy/MM/dd HH:mm') : 'ثبت نشده' }}</dd>
-                    <dt>زمان قطعی</dt><dd>{{ $consultation->scheduled_at ? \App\Support\PersianDate::format($consultation->scheduled_at, 'yyyy/MM/dd HH:mm') : 'هنوز هماهنگ نشده' }}</dd>
+                    <dt>زمان پیشنهادی</dt><dd>{{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'Y/m/d H:i') : 'ثبت نشده' }}</dd>
+                    <dt>زمان قطعی</dt><dd>{{ $consultation->scheduled_at ? \App\Support\PersianDate::format($consultation->scheduled_at, 'Y/m/d H:i') : 'هنوز هماهنگ نشده' }}</dd>
                     <dt>شماره تماس</dt><dd dir="ltr">{{ $consultation->contact_phone ?: '—' }}</dd>
                 </dl>
                 @if($consultation->notes)
@@ -49,7 +49,7 @@
                 <div class="msgs">
                     @forelse($consultation->replies as $reply)
                         <div class="m {{ $reply->sender_id === auth()->id() ? 'me' : '' }}">
-                            <small>{{ $reply->sender?->name ?? 'کاربر آکادمی' }} · {{ \App\Support\PersianDate::format($reply->created_at, 'yyyy/MM/dd HH:mm') }}</small>
+                            <small>{{ $reply->sender?->name ?? 'کاربر آکادمی' }} · {{ \App\Support\PersianDate::format($reply->created_at, 'Y/m/d H:i') }}</small>
                             {{ $reply->body }}
                         </div>
                     @empty
