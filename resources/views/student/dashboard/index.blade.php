@@ -337,7 +337,12 @@
                                 <tr>
                                     <td>{{ $result->exam?->title ?? 'آزمون حذف‌شده' }}</td>
                                     <td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td>
-                                    <td>{{ $result->score === null ? 'در انتظار نمره' : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}</td>
+                                    <td>
+                                {{ $result->score === null ? 'در انتظار نمره' : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}
+                                @if (filled($result->feedback))
+                                    <div class="mu">بازخورد مدرس: {{ $result->feedback }}</div>
+                                @endif
+                            </td>
                                     <td>{{ \App\Support\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
                                 </tr>
                             @empty
