@@ -154,6 +154,9 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $teacher = User::query()->where('phone', '09120000077')->firstOrFail();
 
         $this->assertTrue($teacher->permissions_customized);
+        $this->assertTrue($teacher->hasPermissionTo('dashboard.view'));
+        $this->assertTrue($teacher->hasPermissionTo('profile.update'));
+        $this->actingAs($teacher)->get(route('teacher.dashboard'))->assertOk();
         $this->assertTrue($teacher->hasPermissionTo('classes.manage.assigned'));
         $this->assertTrue($teacher->hasPermissionTo('exams.manage.assigned'));
         $this->assertTrue($teacher->hasPermissionTo('homework.manage.assigned'));
