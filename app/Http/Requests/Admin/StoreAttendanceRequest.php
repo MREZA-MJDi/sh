@@ -2,14 +2,17 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\Classroom;
+use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreAttendanceRequest extends FormRequest
 {
-    public function authorize(): bool { return $this->user()?->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned']) ?? false; }
+    public function authorize(): bool
+    {
+        return $this->user()?->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned']) ?? false;
+    }
 
     public function rules(): array
     {
@@ -25,12 +28,13 @@ class StoreAttendanceRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            $classroom = Classroom::with('students')->find($this->integer('classroom_id'));
-            if (! $classroom) return;
+            $workspace = app(ClassroomWorkspaceService::class);
+            $classroom = $workspace->queryFor($this->user())
+                ->with('students')
+                ->find($this->integer('classroom_id'));
 
-            if ($this->user()?->hasRole('teacher') && ! $this->user()?->hasRole('admin')
-                && $classroom->teacher_id !== $this->user()->id) {
-                $validator->errors()->add('classroom_id', 'این کلاس در فهرست کلاس‌های شما نیست.');
+            if (! $classroom) {
+                $validator->errors()->add('classroom_id', 'این کلاس در فهرست کلاس‌های مجاز شما نیست.');
                 return;
             }
 

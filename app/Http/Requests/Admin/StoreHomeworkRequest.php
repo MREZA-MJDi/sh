@@ -2,14 +2,17 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
-use App\Models\Classroom;
 
 class StoreHomeworkRequest extends FormRequest
 {
-    public function authorize(): bool { return $this->user()?->hasAnyPermission(['homework.manage.all', 'homework.manage.assigned']) ?? false; }
+    public function authorize(): bool
+    {
+        return $this->user()?->hasAnyPermission(['homework.manage.all', 'homework.manage.assigned']) ?? false;
+    }
 
     public function rules(): array
     {
@@ -26,12 +29,10 @@ class StoreHomeworkRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            $classroom = Classroom::find($this->integer('classroom_id'));
-            if (! $classroom) return;
+            $workspace = app(ClassroomWorkspaceService::class);
 
-            if ($this->user()?->hasRole('teacher') && ! $this->user()?->hasRole('admin')
-                && $classroom->teacher_id !== $this->user()->id) {
-                $validator->errors()->add('classroom_id', 'این کلاس در فهرست کلاس‌های شما نیست.');
+            if (! $workspace->queryFor($this->user())->whereKey($this->integer('classroom_id'))->exists()) {
+                $validator->errors()->add('classroom_id', 'این کلاس در فهرست کلاس‌های مجاز شما نیست.');
             }
         }];
     }

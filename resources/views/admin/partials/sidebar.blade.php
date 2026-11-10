@@ -1,4 +1,4 @@
-<aside class="panel-sidebar admin-sidebar" data-panel-sidebar aria-label="منوی مدیریت">
+<aside class="panel-sidebar admin-sidebar" data-panel-sidebar aria-label="منوی اصلی">
     <a class="panel-brand" href="{{ route('admin.dashboard') }}">
         <span class="panel-brand-mark">ش</span>
         <span class="panel-brand-copy"><strong>آکادمی شیخان</strong><small>پنل مدیریت و آموزش</small></span>
@@ -6,30 +6,28 @@
     <nav class="panel-nav" aria-label="منوی اصلی">
         <div class="panel-nav-heading">عمومی</div>
         @can('dashboard.view')
-            <a href="{{ route('admin.dashboard') }}" class="panel-nav-link {{ request()->routeIs('admin.dashboard') || request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}">
-                <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-home"/></svg></span><span>داشبورد</span>
-            </a>
+            <a href="{{ route('admin.dashboard') }}" class="panel-nav-link {{ request()->routeIs('admin.dashboard') || request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-home"/></svg></span><span>داشبورد</span></a>
         @endcan
 
-        @canany(['classes.manage', 'classes.view.assigned'])
+        @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
             <div class="panel-nav-heading">آموزش</div>
-            <a href="{{ route('admin.classes.index') }}" class="panel-nav-link {{ request()->routeIs('admin.classes.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-classes"/></svg></span><span>کلاس‌ها</span></a>
+            <a href="{{ route('admin.classes.index') }}" class="panel-nav-link {{ request()->routeIs('admin.classes.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-classes"/></svg></span><span>کلاس‌ها و اسکای‌روم</span></a>
         @endcanany
         @canany(['courses.manage', 'courses.view.assigned'])
             <a href="{{ route('admin.courses.index') }}" class="panel-nav-link {{ request()->routeIs('admin.courses.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-courses"/></svg></span><span>دوره‌ها</span></a>
         @endcanany
-        @can('integrations.manage')
-            <a href="{{ route('admin.spotplayer.index') }}" class="panel-nav-link {{ request()->routeIs('admin.spotplayer.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-lock"/></svg></span><span>اسپات پلیر</span></a>
-        @endcan
+        @canany(['integrations.manage', 'videos.manage.assigned'])
+            <a href="{{ route('admin.spotplayer.index') }}" class="panel-nav-link {{ request()->routeIs('admin.spotplayer.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-lock"/></svg></span><span>ویدیوهای کلاس</span></a>
+        @endcanany
         @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
             <a href="{{ route('admin.attendance.index') }}" class="panel-nav-link {{ request()->routeIs('admin.attendance.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-check"/></svg></span><span>حضور و غیاب</span></a>
         @endcanany
         @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'])
             <a href="{{ route('admin.homework.index') }}" class="panel-nav-link {{ request()->routeIs('admin.homework.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-edit"/></svg></span><span>تکالیف</span></a>
         @endcanany
-        @can('exams.manage')
+        @canany(['exams.manage', 'exams.manage.assigned'])
             <a href="{{ route('admin.exams.index') }}" class="panel-nav-link {{ request()->routeIs('admin.exams.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-exams"/></svg></span><span>آزمون‌ها</span></a>
-        @endcan
+        @endcanany
 
         @canany(['users.manage', 'students.view.assigned'])
             <div class="panel-nav-heading">کاربران</div>
@@ -40,16 +38,17 @@
             <a href="{{ route('admin.parents.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parents.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-parents"/></svg></span><span>اولیا</span></a>
         @endcan
 
-        @can('resources.manage')
+        @canany(['resources.manage', 'resources.manage.assigned'])
             <div class="panel-nav-heading">منابع و فروش</div>
             <a href="{{ route('admin.resources.index') }}" class="panel-nav-link {{ request()->routeIs('admin.resources.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bag"/></svg></span><span>منابع و فروشگاه</span></a>
-        @endcan
+        @endcanany
 
-        @canany(['consultations.manage', 'consultations.view.assigned'])
+        @can('consultations.manage')
             <div class="panel-nav-heading">ارتباطات</div>
             <a href="{{ route('admin.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('admin.consultations.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>مشاوره و جلسات</span></a>
-        @endcanany
+        @endcan
         @canany(['messages.view.all', 'messages.view.assigned'])
+            <div class="panel-nav-heading">ارتباطات</div>
             <a href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>پیام‌ها</span></a>
         @endcanany
         @canany(['announcements.manage', 'announcements.view'])
@@ -57,7 +56,7 @@
         @endcanany
 
         @can('integrations.manage')
-            <div class="panel-nav-heading">سرویس‌ها</div>
+            <div class="panel-nav-heading">سرویس‌های خارجی</div>
             <a href="{{ route('admin.quiz24.index') }}" class="panel-nav-link {{ request()->routeIs('admin.quiz24.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>کوییز ۲۴</span></a>
         @endcan
     </nav>

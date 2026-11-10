@@ -14,7 +14,7 @@ class RolePermissionSeeder extends Seeder
     {
         $roles = [
             'admin' => ['label' => 'مدیر سامانه', 'description' => 'دسترسی کامل مدیریتی به سامانه'],
-            'teacher' => ['label' => 'معلم', 'description' => 'مدیریت کلاس‌ها و دانش‌آموزان تخصیص‌یافته'],
+            'teacher' => ['label' => 'معلم', 'description' => 'مدیریت کلاس‌ها و دوره‌های تخصیص‌یافته'],
             'student' => ['label' => 'دانش‌آموز', 'description' => 'دسترسی به اطلاعات و خدمات آموزشی شخصی'],
             'parent' => ['label' => 'ولی دانش‌آموز', 'description' => 'پیگیری وضعیت آموزشی فرزندان متصل‌شده'],
         ];
@@ -29,6 +29,7 @@ class RolePermissionSeeder extends Seeder
             'classes.view.assigned' => ['مشاهده کلاس‌های تخصیص‌یافته', 'classes'],
             'classes.view.enrolled' => ['مشاهده کلاس‌های ثبت‌نام‌شده', 'classes'],
             'classes.manage' => ['مدیریت همه کلاس‌ها', 'classes'],
+            'classes.manage.assigned' => ['مدیریت کلاس‌های تخصیص‌یافته', 'classes'],
             'courses.view.all' => ['مشاهده همه دوره‌ها', 'courses'],
             'courses.view.assigned' => ['مشاهده دوره‌های تخصیص‌یافته', 'courses'],
             'courses.manage' => ['مدیریت دوره‌ها', 'courses'],
@@ -51,9 +52,11 @@ class RolePermissionSeeder extends Seeder
             'exams.view.own' => ['مشاهده نتایج شخصی آزمون‌ها', 'exams'],
             'exams.view.children' => ['مشاهده نتایج آزمون فرزندان', 'exams'],
             'exams.manage' => ['مدیریت آزمون‌ها', 'exams'],
+            'exams.manage.assigned' => ['مدیریت آزمون‌های کلاس‌های خود', 'exams'],
             'resources.view.all' => ['مشاهده همه منابع', 'resources'],
             'resources.view.enrolled' => ['مشاهده منابع مجاز', 'resources'],
             'resources.manage' => ['مدیریت منابع و محصولات', 'resources'],
+            'resources.manage.assigned' => ['بارگذاری منابع برای دوره‌های خود', 'resources'],
             'consultations.view.all' => ['مشاهده همه درخواست‌های مشاوره', 'consultations'],
             'consultations.view.assigned' => ['مشاهده جلسات مرتبط', 'consultations'],
             'consultations.view.children' => ['مشاهده جلسات فرزندان', 'consultations'],
@@ -91,7 +94,8 @@ class RolePermissionSeeder extends Seeder
             'admin' => array_keys($catalogue),
             'teacher' => [
                 'dashboard.view', 'students.view.assigned', 'classes.view.assigned',
-                'courses.view.assigned', 'attendance.view.assigned', 'attendance.manage.assigned',
+                'courses.view.assigned', 'classes.manage.assigned', 'exams.manage.assigned',
+                'resources.manage.assigned', 'attendance.view.assigned', 'attendance.manage.assigned',
                 'homework.view.assigned', 'homework.manage.assigned', 'homework.grade',
                 'consultations.view.assigned', 'messages.view.assigned', 'messages.reply',
                 'announcements.view', 'videos.view.assigned', 'videos.manage.assigned', 'profile.update',

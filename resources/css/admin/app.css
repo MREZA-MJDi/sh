@@ -141,6 +141,10 @@ body.admin-body .panel-pagination a, body.admin-body .panel-pagination span { di
 body.admin-body .panel-details { border:1px solid var(--adm-line); border-radius:10px; }
 body.admin-body .panel-details summary { padding:7px 10px; color:var(--adm-primary); cursor:pointer; font-size:11px; font-weight:700; }
 body.admin-body .panel-details-content { padding:12px; border-top:1px solid var(--adm-line); }
+body.admin-body .admin-check-list { display:grid; gap:7px; margin-top:4px; }
+body.admin-body .admin-check-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border:1px solid var(--adm-line); border-radius:11px; color:var(--adm-ink); background:var(--adm-bg); cursor:pointer; font-size:12px; }
+body.admin-body .admin-check-item:has(input:checked) { border-color:var(--adm-primary); background:var(--adm-primary-soft); }
+body.admin-body .admin-check-item input { width:16px; height:16px; flex:none; accent-color:var(--adm-primary); }
 body.admin-body .panel-inline-form { display:flex; align-items:center; gap:7px; }
 body.admin-body .panel-inline-form .panel-select, body.admin-body .panel-inline-form .panel-input { width:auto; min-width:90px; }
 body.admin-body .panel-progress, body.admin-body .prog { height:7px; overflow:hidden; border-radius:7px; background:var(--adm-line); }

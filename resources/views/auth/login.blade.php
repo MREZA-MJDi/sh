@@ -38,9 +38,9 @@
         <form method="POST" action="{{ route('login.store') }}" class="grid gap-4">
             @csrf
             <div class="panel-field">
-                <label for="email">ایمیل</label>
-                <input class="panel-input" id="email" name="email" type="email" value="{{ old('email') }}"
-                       autocomplete="username" inputmode="email" required autofocus>
+                <label for="email">ایمیل یا موبایل</label>
+                <input class="panel-input" id="email" name="email" type="text" value="{{ old('email') }}"
+                       placeholder="ایمیل یا 09xxxxxxxxx" autocomplete="username" inputmode="text" required autofocus>
                 @error('email') <div class="panel-field-error">{{ $message }}</div> @enderror
             </div>
             <div class="panel-field">
