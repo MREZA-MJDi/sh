@@ -27,6 +27,7 @@ final class GuardianDashboardService
     {
         $children = $guardian->children()
             ->where('users.is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
             ->orderBy('users.name')
             ->get(['users.id', 'users.name', 'users.grade']);
 
