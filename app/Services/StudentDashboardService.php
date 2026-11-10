@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
 use App\Models\LearningResource;
@@ -16,14 +17,11 @@ final class StudentDashboardService
     public function build(User $student): array
     {
         $classroomIds = $this->enrolledClassroomIds($student);
+        $courseIds = $this->activeCourseIds($student);
 
         $classrooms = Classroom::query()
             ->whereIn('classrooms.id', clone $classroomIds)
-            ->with([
-                'course:id,title,subject,grade',
-                'teacher:id,name',
-            ])
-            ->withCount('students')
+            ->with(['course:id,title,subject,grade', 'teacher:id,name'])
             ->orderBy('classrooms.name')
             ->limit(6)
             ->get();
@@ -62,22 +60,15 @@ final class StudentDashboardService
             ->limit(6)
             ->get();
 
-        // Never expose a result attached to another classroom. Course-wide
-        // results remain visible only while the student has active course access.
         $results = ExamResult::query()
             ->where('student_id', $student->id)
-            ->whereHas('exam', function (Builder $exam) use ($student, $classroomIds): void {
-                $exam->where(function (Builder $scope) use ($student, $classroomIds): void {
+            ->whereHas('exam', function (Builder $exam) use ($student, $classroomIds, $courseIds): void {
+                $exam->where(function (Builder $scope) use ($student, $classroomIds, $courseIds): void {
                     $scope->whereIn('exams.classroom_id', clone $classroomIds)
-                        ->orWhere(function (Builder $courseLevel) use ($student): void {
+                        ->orWhere(function (Builder $courseLevel) use ($courseIds): void {
                             $courseLevel
                                 ->whereNull('exams.classroom_id')
-                                ->whereHas('course.enrollments', fn (Builder $enrollments) => $enrollments
-                                    ->where('student_id', $student->id)
-                                    ->where('status', 'active')
-                                    ->where(fn (Builder $expiry) => $expiry
-                                        ->whereNull('expires_at')
-                                        ->orWhere('expires_at', '>', now())));
+                                ->whereIn('exams.course_id', clone $courseIds);
                         });
                 });
             })
@@ -86,13 +77,18 @@ final class StudentDashboardService
             ->limit(6)
             ->get();
 
-        $resources = LearningResource::query()
-            ->whereIn('classroom_id', clone $classroomIds)
+        $resourceQuery = LearningResource::query()
             ->whereIn('visibility', ['enrolled', 'authenticated'])
             ->where('status', 'published')
+            ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
+                $scope->whereIn('classroom_id', clone $classroomIds)
+                    ->orWhereIn('course_id', clone $courseIds);
+            });
+
+        $resources = (clone $resourceQuery)
             ->latest()
             ->limit(5)
-            ->get(['id', 'classroom_id', 'title', 'kind', 'is_free', 'price', 'created_at']);
+            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'created_at']);
 
         $announcements = Announcement::query()
             ->where('status', 'published')
@@ -116,14 +112,9 @@ final class StudentDashboardService
                 : null,
             'results' => $results,
             'resources' => $resources,
-            'resource_count' => (clone $classroomIds)->exists()
-                ? LearningResource::query()
-                    ->whereIn('classroom_id', clone $classroomIds)
-                    ->whereIn('visibility', ['enrolled', 'authenticated'])
-                    ->where('status', 'published')
-                    ->count()
-                : 0,
+            'resource_count' => (clone $resourceQuery)->count(),
             'announcements' => $announcements,
+            'notes' => $student->studentNotes()->latest()->limit(8)->get(),
         ];
     }
 
@@ -133,8 +124,6 @@ final class StudentDashboardService
             ->where('classrooms.status', 'active')
             ->whereHas('students', fn (Builder $query) => $query->whereKey($student->id))
             ->where(function (Builder $access) use ($student): void {
-                // Standalone classes remain available through explicit roster membership.
-                // Course-linked classes also require a current course enrollment.
                 $access->whereNull('classrooms.course_id')
                     ->orWhereHas('course', fn (Builder $course) => $course
                         ->where('status', 'published')
@@ -146,5 +135,17 @@ final class StudentDashboardService
                                 ->orWhere('expires_at', '>', now()))));
             })
             ->select('classrooms.id');
+    }
+
+    private function activeCourseIds(User $student): Builder
+    {
+        return CourseEnrollment::query()
+            ->where('student_id', $student->id)
+            ->where('status', 'active')
+            ->where(fn (Builder $expiry) => $expiry
+                ->whereNull('expires_at')
+                ->orWhere('expires_at', '>', now()))
+            ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
+            ->select('course_id');
     }
 }
