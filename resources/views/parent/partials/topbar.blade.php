@@ -1,4 +1,5 @@
 <header class="top">
+    @php($announcements = $announcements ?? collect())
     <button
         type="button"
         class="ib menu-btn"
