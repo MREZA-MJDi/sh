@@ -41,6 +41,25 @@
                         <td>{{ ['public'=>'عمومی','authenticated'=>'کاربران واردشده','enrolled'=>'اعضای کلاس'][$resource->visibility] ?? $resource->visibility }}</td>
                         <td><span class="panel-badge {{ $resource->status==='published' ? 'panel-badge-success' : 'panel-badge-warning' }}">{{ ['published'=>'منتشرشده','draft'=>'پیش‌نویس','archived'=>'بایگانی'][$resource->status] ?? $resource->status }}</span></td>
                         <td class="panel-table-actions">
+                            <details class="panel-details">
+                                <summary>ویرایش</summary>
+                                <div class="panel-details-content">
+                                    <form method="POST" action="{{ route('admin.resources.update', $resource) }}" enctype="multipart/form-data" class="grid gap-2">
+                                        @csrf @method('PATCH')
+                                        <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $resource->title }}" required maxlength="180"></div>
+                                        <div class="panel-field"><label>نوع</label><select class="panel-select" name="kind">@foreach (['pdf'=>'جزوه PDF','book'=>'کتاب','other'=>'سایر'] as $key=>$label)<option value="{{ $key }}" @selected($resource->kind===$key)>{{ $label }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>دوره مرتبط</label><select class="panel-select" name="course_id"><option value="">بدون دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}" @selected($resource->course_id===$course->id)>{{ $course->title }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>کلاس مرتبط</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected($resource->classroom_id===$classroom->id)>{{ $classroom->name }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>قیمت (تومان)</label><input class="panel-input" type="number" name="price" min="0" value="{{ $resource->price }}"></div>
+                                        <div class="panel-field"><label>دسترسی</label><select class="panel-select" name="visibility">@foreach (['enrolled'=>'دانش‌آموزان عضو','authenticated'=>'کاربران واردشده','public'=>'عمومی'] as $key=>$label)<option value="{{ $key }}" @selected($resource->visibility===$key)>{{ $label }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['published'=>'منتشرشده','draft'=>'پیش‌نویس','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($resource->status===$key)>{{ $label }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>توضیحات</label><textarea class="panel-textarea" name="description" maxlength="10000">{{ $resource->description }}</textarea></div>
+                                        <label class="panel-checkbox"><input type="checkbox" name="is_free" value="1" @checked($resource->is_free)> منبع رایگان است</label>
+                                        <div class="panel-field"><label>جایگزینی فایل (اختیاری)</label><input class="panel-input" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"><p class="panel-muted">در صورت انتخاب فایل جدید، فایل قبلی پس از ذخیره موفق جایگزین می‌شود.</p></div>
+                                        <button class="panel-btn panel-btn-sm" type="submit">ذخیره تغییرات</button>
+                                    </form>
+                                </div>
+                            </details>
                             @if ($resource->file_path)<a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.resources.download', $resource) }}">دریافت فایل</a>@endif
                             <form method="POST" action="{{ route('admin.resources.destroy', $resource) }}" data-confirm="این منبع حذف شود؟">
                                 @csrf @method('DELETE')
