@@ -36,10 +36,10 @@ document.querySelectorAll('[data-nav-group-toggle]').forEach((button) => {
     const items = group?.querySelector('.panel-nav-group-items');
     const hasActiveLink = Boolean(items?.querySelector('.panel-nav-link.is-active'));
 
-    if (hasActiveLink) {
-        group?.classList.remove('is-collapsed');
-        button.setAttribute('aria-expanded', 'true');
-    }
+    const shouldExpand = hasActiveLink || button.getAttribute('aria-expanded') !== 'false';
+
+    group?.classList.toggle('is-collapsed', !shouldExpand);
+    button.setAttribute('aria-expanded', String(shouldExpand));
 
     button.addEventListener('click', () => {
         const collapsed = group?.classList.toggle('is-collapsed') ?? false;
