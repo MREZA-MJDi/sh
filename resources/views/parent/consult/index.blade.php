@@ -17,7 +17,7 @@
                     <b>{{ $consultation->subject ?: 'درخواست مشاوره' }}</b>
                     <span class="mu">
                         {{ $consultation->student?->name ?? 'فرزند حذف‌شده' }}
-                        · {{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'yyyy/MM/dd HH:mm') : 'زمان پیشنهادی ثبت نشده' }}
+                        · {{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'Y/m/d H:i') : 'زمان پیشنهادی ثبت نشده' }}
                     </span>
                 </div>
                 @if($consultation->status === 'pending')
