@@ -338,8 +338,47 @@ function initDemoPlayers() {
     });
 }
 
+
+function initDashboardNavigation() {
+    const links = $('[data-dashboard-nav-target]');
+    if (!links.length || typeof window.IntersectionObserver === 'undefined') {
+        return;
+    }
+
+    const sections = [...new Set(links.map((link) => link.dataset.dashboardNavTarget))]
+        .map((id) => document.getElementById(id))
+        .filter(Boolean);
+
+    if (!sections.length) {
+        return;
+    }
+
+    const setActive = (id) => {
+        links.forEach((link) => {
+            const active = link.dataset.dashboardNavTarget === id;
+            link.classList.toggle('on', active);
+            if (active) link.setAttribute('aria-current', 'location');
+            else link.removeAttribute('aria-current');
+        });
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visible) setActive(visible.target.id);
+    }, {
+        rootMargin: '-18% 0px -68% 0px',
+        threshold: [0, 0.12, 0.3, 0.55],
+    });
+
+    sections.forEach((section) => observer.observe(section));
+}
+
 function initStudentDashboard() {
     initMobileMenu();
+    initDashboardNavigation();
     initThemeToggle();
     initTabs();
     initFileDropzones();

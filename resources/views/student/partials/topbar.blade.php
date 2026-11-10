@@ -1,3 +1,9 @@
+@php
+    $dashboardAnchor = static fn (string $section): string => request()->routeIs('student.dashboard')
+        ? '#' . $section
+        : route('student.dashboard') . '#' . $section;
+@endphp
+
 <header class="top">
     <button
         type="button"
@@ -13,7 +19,7 @@
     <h1>@yield('title', 'مرکز یادگیری')</h1>
 
     @can('announcements.view')
-        <a class="ib" href="#announcements" aria-label="رفتن به اطلاعیه‌ها">
+        <a class="ib" href="{{ $dashboardAnchor('announcements') }}" aria-label="رفتن به اطلاعیه‌ها">
             <x-icon name="bell"/>
             @if(isset($announcements) && $announcements->isNotEmpty())
                 <i>{{ $announcements->count() > 9 ? '۹+' : $announcements->count() }}</i>
@@ -31,7 +37,7 @@
         <x-icon name="moon"/>
     </button>
 
-    <a class="ib pr" href="#overview" aria-label="اطلاعات حساب کاربری">
+    <a class="ib pr" href="{{ $dashboardAnchor('overview') }}" aria-label="رفتن به کارتابل دانش‌آموز">
         <x-icon name="user"/>
     </a>
 </header>

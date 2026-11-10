@@ -35,6 +35,8 @@
         </main>
     </div>
 
+    @include('student.partials.tabbar')
+
     @stack('scripts')
 </body>
 </html>
