@@ -27,7 +27,7 @@ final class ImportLegacyAcademyData extends Command
     private const ROLES = ['student' => 'student', 'parent' => 'parent', 'teacher' => 'teacher', 'admin' => 'admin'];
 
     private array $targetRoles = [];
-    private array $sourceRoles = [];
+    private array $currentRoles = [];
     private array $paidTotals = [];
 
     public function handle(LegacyWordPressPassword $passwords): int
@@ -94,8 +94,8 @@ final class ImportLegacyAcademyData extends Command
             return self::SUCCESS;
         }
 
-        $this->sourceRoles = $data['roles'];
-        $this->paidTotals = $data['paid_totals'];
+        $this->currentRoles = $data['roles'];
+        $this->paidTotals = $data['paidTotals'];
 
         try {
             $counts = DB::transaction(function () use ($data): array {
@@ -307,8 +307,6 @@ final class ImportLegacyAcademyData extends Command
         }
     }
 
-    private array $currentRoles = [];
-
     private function importGuardianLinks(Collection $links, array &$counts): void
     {
         foreach ($links as $link) {
@@ -403,8 +401,6 @@ final class ImportLegacyAcademyData extends Command
             ? 'active'
             : 'pending_payment';
     }
-
-    private array $paidTotals = [];
 
     private function importClassrooms(Collection $classrooms, Collection $teacherRows, array &$counts): array
     {
