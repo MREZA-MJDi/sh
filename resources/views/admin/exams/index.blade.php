@@ -34,6 +34,10 @@
                                 <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.questions', $exam) }}">سؤال‌ها</a>
                                 <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.attempts', $exam) }}">برگه‌ها</a>
                             @endif
+                            @if ($exam->provider === 'internal')
+                                <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.questions', $exam) }}">سؤال‌ها</a>
+                                <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.attempts', $exam) }}">برگه‌ها</a>
+                            @endif
                             @if (! $teacherView || $exam->provider === 'internal')
                                 @canany(['exams.manage', 'exams.manage.assigned'])
                                     <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="exam-edit-{{ $exam->id }}" data-drawer-title="ویرایش آزمون">ویرایش</button>
