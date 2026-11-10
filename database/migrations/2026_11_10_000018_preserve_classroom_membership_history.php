@@ -14,8 +14,8 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('assigned_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('removed_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('joined_at');
-            $table->timestamp('left_at');
+            $table->timestamp('joined_at')->useCurrent();
+            $table->timestamp('left_at')->nullable();
             $table->timestamps();
 
             $table->index(['classroom_id', 'student_id', 'left_at'], 'classroom_membership_history_lookup_idx');
