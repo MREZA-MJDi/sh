@@ -1,59 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# سامانه آکادمی شیخان
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+پروژه بر پایه Laravel 12 و Blade ساخته شده است. رابط مدیریتی از Layout و کامپوننت‌های مشترک استفاده می‌کند و دسترسی‌ها بر اساس نقش و مجوز کنترل می‌شوند.
 
-## About Laravel
+## نقش‌ها
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- admin: مدیریت سراسری سامانه.
+- teacher: دسترسی آموزشی محدود به کلاس‌ها و دانش‌آموزان تخصیص‌یافته.
+- student: دسترسی به اطلاعات و خدمات آموزشی شخصی.
+- parent: دسترسی فقط به اطلاعات فرزندان متصل‌شده.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+مجوزها در جدول‌های roles، permissions، permission_role و role_user نگهداری می‌شوند. مجوزها در Middleware و Gate بررسی می‌شوند؛ مخفی‌کردن لینک در Blade به‌تنهایی کنترل امنیتی محسوب نمی‌شود.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## راه‌اندازی
 
-## Learning Laravel
+1. نصب وابستگی‌ها و آماده‌سازی فایل محیطی:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+    composer install
+    copy .env.example .env
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+2. ساخت کلید برنامه:
 
-## Laravel Sponsors
+    php artisan key:generate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. در فایل .env مقادیر SHIKHAN_ADMIN_NAME، SHIKHAN_ADMIN_EMAIL و SHIKHAN_ADMIN_PASSWORD را تعیین کنید. گذرواژه مدیر باید حداقل ۱۲ کاراکتر باشد. هیچ گذرواژه پیش‌فرضی در مخزن قرار ندارد.
 
-### Premium Partners
+4. ایجاد جداول و نقش‌ها:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    php artisan migrate --seed
 
-## Contributing
+5. ساخت دارایی‌های فرانت‌اند:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    npm install
+    npm run build
 
-## Code of Conduct
+6. ورود از مسیر /admin/login انجام می‌شود.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## ساختار فرانت‌اند
 
-## Security Vulnerabilities
+- resources/views/layouts: Layout مشترک پنل.
+- resources/views/admin: صفحات مدیریتی Blade.
+- resources/views/admin/partials: منو و بخش‌های مشترک.
+- resources/css/admin: استایل پنل.
+- resources/js/admin: رفتارهای عمومی پنل.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## معماری سرویس‌های خارجی
 
-## License
+منطق تجاری داخلی از API سرویس‌دهنده مستقل است. قراردادها در Gatewayهای زیر تعریف شده‌اند:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- \`App\\Services\\SpotPlayer\\Contracts\\SpotPlayerGateway\`
+- \`App\\Services\\Quiz24\\Contracts\\Quiz24Gateway\`
+
+Adapter پیش‌فرض هر دو سرویس عمداً غیرفعال است تا مسیر یا payload ساختگی به سرویس خارجی ارسال نشود. عملیات مدیریتی در \`integration_runs\` با وضعیت \`waiting_contract\` ثبت می‌شود. راهنمای کامل تحویل به کارفرما در فایل زیر است:
+
+- \`docs/integrations/API_HANDOFF_FA.md\`
+
+### منطق دوره و لایسنس
+
+- دوره در دیتابیس شیخان ساخته می‌شود.
+- برای اتصال SpotPlayer، External Course ID ثبت می‌شود؛ معتبر بودن آن تا تأیید API مشخص نمی‌شود.
+- عضویت در کلاس دوره رایگان منتشرشده، Enrollment فعال می‌سازد.
+- دوره پولی تا دریافت Callback پرداخت معتبر در وضعیت pending_payment است.
+- لایسنس تنها برای دانش‌آموز فعال، دارای دسترسی فعال و دوره SpotPlayer منتشرشده درخواست می‌شود.
+- لایسنس تا پاسخ معتبر سرویس در وضعیت waiting_contract می‌ماند؛ مدیر نمی‌تواند آن را دستی active/revoked کند.
+
+### منطق Quiz24
+
+- آزمون محلی در شیخان قابل ثبت است و External Exam ID جدا نگهداری می‌شود.
+- نتیجه فقط با شناسه پایدار دانش‌آموز یا Mapping دستی به پروفایل وصل می‌شود؛ اسم به‌تنهایی کافی نیست.
+- نتیجه‌های ناشناس در صف مغایرت باقی می‌مانند.
+- Import نتیجه بر اساس ترکیب آزمون/دانش‌آموز idempotent است.
+
+## امنیت و فایل‌ها
+
+- فایل‌های تکلیف و منابع در Storage خصوصی نگهداری می‌شوند و دانلود از Route محافظت‌شده انجام می‌شود.
+- کلیدهای SpotPlayer و Quiz24 با cast رمزنگاری‌شده Eloquent ذخیره می‌شوند.
+- داده حساس نتیجه Quiz24 رمزنگاری می‌شود.
+- هیچ Secret یا گذرواژه واقعی نباید Commit شود.
+
+## آزمون
+
+    php artisan test
+
+اتصال خارجی فقط پس از تحویل مستندات رسمی، دسترسی Sandbox و اجرای آزمون‌های پذیرش سند API_HANDOFF_FA.md عملیاتی خواهد شد.
+
+
+### نگهداری فایل ویدیویی SpotPlayer
+
+فایل‌های ویدیویی قبل از تحویل وب‌سرویس در دیسک خصوصی `local` نگهداری می‌شوند؛ نام اصلی، اندازه، MIME type و SHA-256 ثبت می‌شود و درخواست آپلود در وضعیت `waiting_contract` می‌ماند. دانلود فقط از Route احراز هویت‌شده ادمین ممکن است. حداکثر اندازه فعلی ۱ گیگابایت است و برای فایل‌های بزرگ‌تر باید قرارداد آپلود chunked/resumable از سرویس‌دهنده دریافت شود.

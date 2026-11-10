@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class EnsureUserHasPermission
+{
+    public function handle(Request $request, Closure $next, string $permission): Response
+    {
+        abort_unless(
+            $request->user()?->hasPermissionTo($permission),
+            403,
+            'شما مجوز انجام این عملیات را ندارید.'
+        );
+
+        return $next($request);
+    }
+}
