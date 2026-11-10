@@ -21,6 +21,7 @@ use App\Http\Controllers\Student\DashboardController as StudentDashboardControll
 use App\Http\Controllers\Student\NoteController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
+use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
