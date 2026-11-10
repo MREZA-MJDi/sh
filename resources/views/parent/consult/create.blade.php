@@ -33,7 +33,7 @@
 
                 <div class="w">
                     <label for="topic">موضوع درخواست</label>
-                    <input class="fld" id="topic" name="topic" value="{{ old('subject') }}" maxlength="180" required>
+                    <input class="fld" id="topic" name="topic" value="{{ old('topic') }}" maxlength="180" required>
                     <x-field-error name="topic"/>
                 </div>
 
