@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreQuiz24ExamRequest;
+use App\Http\Requests\Admin\UpdateExamRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Exam;
@@ -21,6 +22,48 @@ class ExamController extends Controller
         $courses = Course::orderBy('title')->get(['id', 'title']);
 
         return view('admin.exams.index', compact('exams', 'classrooms', 'courses'));
+    }
+
+    public function update(
+        UpdateExamRequest $request,
+        Exam $exam,
+        Quiz24Service $quiz24
+    ): RedirectResponse {
+        $data = $request->validated();
+        $isQuiz24 = $data['provider'] === 'quiz24';
+
+        DB::transaction(function () use ($exam, $data, $isQuiz24, $quiz24): void {
+            $exam->update([
+                ...$data,
+                'integration_status' => $isQuiz24
+                    ? (filled($data['external_id'] ?? null) ? 'awaiting_api_verification' : 'waiting_external_mapping')
+                    : 'not_required',
+                'integration_note' => $isQuiz24
+                    ? 'اطلاعات آزمون محلی ذخیره شد؛ اعتبار شناسه و همگام‌سازی تا تأیید API انجام نمی‌شود.'
+                    : null,
+            ]);
+
+            if ($isQuiz24) {
+                $quiz24->requestExamProvisioning($exam->refresh(), auth()->user());
+            }
+        });
+
+        return back()->with(
+            'success',
+            $isQuiz24
+                ? 'آزمون به‌روزرسانی شد؛ درخواست نگاشت Quiz24 در کارتابل ثبت شد.'
+                : 'آزمون داخلی به‌روزرسانی شد.'
+        );
+    }
+
+    public function results(Exam $exam): View
+    {
+        $results = $exam->results()
+            ->with('student')
+            ->latest('synced_at')
+            ->paginate(30);
+
+        return view('admin.exams.results', compact('exam', 'results'));
     }
 
     public function store(StoreQuiz24ExamRequest $request, Quiz24Service $quiz24): RedirectResponse
