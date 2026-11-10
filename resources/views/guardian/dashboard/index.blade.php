@@ -60,6 +60,34 @@
         </section>
     </section>
 
+    <section class="card" id="homework-reviews" aria-labelledby="guardian-homework-reviews-title">
+        <div class="chead">
+            <h2 id="guardian-homework-reviews-title">نتایج بررسی تکالیف</h2>
+            <span class="pill">{{ $faNumber($reviewed_homework->count()) }} نتیجه</span>
+        </div>
+        @forelse ($reviewed_homework as $submission)
+            <article class="student-homework-item">
+                <div class="student-homework-item__head">
+                    <div>
+                        <h3>{{ $submission->homework?->title ?? 'تکلیف' }}</h3>
+                        <span class="mu">{{ $submission->homework?->classroom?->name ?? 'کلاس آموزشی' }}</span>
+                    </div>
+                    @if ($submission->score !== null)
+                        <strong class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</strong>
+                    @endif
+                </div>
+                <p class="mu">بررسی توسط: {{ $submission->reviewer?->name ?? 'مدرس یا مدیر آموزشگاه' }} · {{ \\App\\Support\\PersianDate::format($submission->reviewed_at, 'Y/m/d H:i') }}</p>
+                @if (filled($submission->feedback))
+                    <p class="student-homework-item__answer">{{ $submission->feedback }}</p>
+                @else
+                    <p class="mu">بازخورد متنی برای این تکلیف ثبت نشده است.</p>
+                @endif
+            </article>
+        @empty
+            <div class="empty">هنوز نتیجه بررسی‌شده‌ای برای تکالیف این دانش‌آموز ثبت نشده است.</div>
+        @endforelse
+    </section>
+
     <section class="row">
         <section class="card" id="results">
             <div class="chead"><h2>نتایج آزمون‌ها</h2><span class="pill">{{ $faNumber($results->count()) }} نتیجه</span></div>
