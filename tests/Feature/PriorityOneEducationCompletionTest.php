@@ -76,12 +76,13 @@ class PriorityOneEducationCompletionTest extends TestCase
             'password' => \Illuminate\Support\Facades\Hash::make('Legacy-Test-Password-1'),
         ]);
 
-        $this->post(route('login.store'), [
+        $response = $this->post(route('login.store'), [
             'email' => 'wp-120',
             'password' => 'Legacy-Test-Password-1',
-        ])
-            ->assertRedirect(route('student.dashboard'))
-            ->assertAuthenticatedAs($student);
+        ]);
+
+        $response->assertRedirect(route('student.dashboard'));
+        $this->assertAuthenticatedAs($student);
     }
 
     public function test_student_and_parent_can_see_course_and_lesson_progress(): void
