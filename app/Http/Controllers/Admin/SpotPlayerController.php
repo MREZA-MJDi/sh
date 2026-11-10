@@ -14,31 +14,59 @@ use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerSetting;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
-use App\Services\Integrations\IntegrationOperationService;
+use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\SpotPlayer\SpotPlayerService;
+use App\Services\SpotPlayer\SpotPlayerVideoService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use RuntimeException;
-use Throwable;
 
 class SpotPlayerController extends Controller
 {
-    public function index(SpotPlayerService $spotPlayer): View
-    {
-        $settings = SpotPlayerSetting::first();
-        $health = $spotPlayer->health();
-        $videos = SpotPlayerVideo::with(['course', 'classroom'])->latest()->paginate(10, ['*'], 'videos');
-        $licenses = SpotPlayerLicense::with(['student', 'course'])->latest()->paginate(10, ['*'], 'licenses');
-        $courses = Course::where('delivery_type', 'spotplayer')->orderBy('title')->get(['id', 'title', 'spotplayer_course_id', 'integration_status']);
-        $classrooms = Classroom::orderBy('name')->get(['id', 'name']);
-        $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
-            ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $operations = IntegrationRun::where('provider', 'spotplayer')->latest()->limit(15)->get();
+    public function index(
+        SpotPlayerService $spotPlayer,
+        ClassroomWorkspaceService $workspace
+    ): View {
+        $user = auth()->user();
+        $teacherView = $workspace->isTeacher($user);
+        $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
+        $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
+
+        $settings = $teacherView ? null : SpotPlayerSetting::query()->first();
+        $health = $teacherView ? null : $spotPlayer->health();
+
+        $videos = SpotPlayerVideo::query()
+            ->with(['course', 'classroom'])
+            ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
+                $scope->whereIn('course_id', $courseIds)
+                    ->orWhereIn('classroom_id', $classroomIds);
+            }))
+            ->latest()->paginate(10, ['*'], 'videos');
+
+        $courses = $workspace->coursesQueryFor($user)
+            ->where('delivery_type', 'spotplayer')
+            ->orderBy('title')
+            ->get(['id', 'title', 'spotplayer_course_id', 'integration_status']);
+
+        $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
+
+        $students = $teacherView
+            ? collect()
+            : User::query()->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        $licenses = $teacherView
+            ? SpotPlayerLicense::query()->whereRaw('1 = 0')->paginate(10, ['*'], 'licenses')
+            : SpotPlayerLicense::with(['student', 'course'])->latest()->paginate(10, ['*'], 'licenses');
+
+        $operations = $teacherView
+            ? collect()
+            : IntegrationRun::where('provider', 'spotplayer')->latest()->limit(15)->get();
 
         return view('admin.spotplayer.index', compact(
-            'settings', 'health', 'videos', 'licenses', 'courses', 'classrooms', 'students', 'operations'
+            'settings', 'health', 'videos', 'licenses', 'courses', 'classrooms',
+            'students', 'operations', 'teacherView'
         ));
     }
 
@@ -68,70 +96,27 @@ class SpotPlayerController extends Controller
         return back()->with('success', 'درخواست همگام‌سازی ثبت شد. وضعیت: '.$operation->status.'؛ هیچ درخواست خارجی ارسال نشده است.');
     }
 
-    public function storeVideo(StoreSpotPlayerVideoRequest $request, IntegrationOperationService $operations): RedirectResponse
-    {
-        $data = $request->validated();
-        $uploadedFile = $data['file'];
-        $storagePath = $uploadedFile->store('private/spotplayer-staging', 'local');
+    public function storeVideo(
+        StoreSpotPlayerVideoRequest $request,
+        SpotPlayerVideoService $videos
+    ): RedirectResponse {
+        $video = $videos->stage($request->validated(), $request->user());
 
-        if (! $storagePath) {
-            return back()->withErrors(['file' => 'ذخیره فایل ویدیویی در فضای خصوصی انجام نشد.'])->withInput();
-        }
-
-        try {
-            $absolutePath = Storage::disk('local')->path($storagePath);
-            $sha256 = hash_file('sha256', $absolutePath);
-
-            if (! is_string($sha256)) {
-                throw new RuntimeException('محاسبه checksum فایل ویدیو انجام نشد.');
-            }
-
-            DB::transaction(function () use ($data, $uploadedFile, $storagePath, $sha256, $operations): void {
-                $video = SpotPlayerVideo::create([
-                    'title' => $data['title'],
-                    'course_id' => $data['course_id'],
-                    'classroom_id' => $data['classroom_id'] ?? null,
-                    'external_id' => $data['external_id'] ?? null,
-                    'embed_url' => $data['embed_url'] ?? null,
-                    'status' => 'waiting_contract',
-                    'created_by' => auth()->id(),
-                    'file_path' => $storagePath,
-                    'file_original_name' => mb_substr($uploadedFile->getClientOriginalName(), 0, 255),
-                    'file_mime_type' => $uploadedFile->getMimeType() ?: 'application/octet-stream',
-                    'file_size_bytes' => $uploadedFile->getSize(),
-                    'file_sha256' => $sha256,
-                    'staged_at' => now(),
-                ]);
-
-                $operations->waitForContract(
-                    provider: 'spotplayer',
-                    action: 'upload_video',
-                    entity: $video,
-                    safeRequestMeta: [
-                        'video_id' => $video->id,
-                        'local_course_id' => $video->course_id,
-                        'local_classroom_id' => $video->classroom_id,
-                        'storage_disk' => 'local',
-                        'storage_path' => $storagePath,
-                        'original_name' => $video->file_original_name,
-                        'mime_type' => $video->file_mime_type,
-                        'file_size_bytes' => $video->file_size_bytes,
-                        'sha256' => $video->file_sha256,
-                        'external_video_id_supplied' => filled($video->external_id),
-                    ],
-                    idempotencyKey: 'spotplayer:upload-video:'.$video->id.':'.$sha256,
-                );
-            });
-        } catch (Throwable $exception) {
-            Storage::disk('local')->delete($storagePath);
-            throw $exception;
-        }
-
-        return back()->with('success', 'فایل ویدیو در فضای خصوصی شیخان ذخیره و درخواست آپلود ثبت شد؛ انتقال به SpotPlayer پس از تحویل API انجام می‌شود.');
+        return back()->with(
+            'success',
+            'ویدیو در فضای خصوصی ذخیره و درخواست آپلود ثبت شد؛ انتقال به SpotPlayer پس از تحویل API انجام می‌شود. شناسه فایل: '.$video->id
+        );
     }
 
-    public function downloadStagedVideo(SpotPlayerVideo $video)
+    public function downloadStagedVideo(SpotPlayerVideo $video, ClassroomWorkspaceService $workspace)
     {
+        if ($workspace->isTeacher(auth()->user())) {
+            $classroomAllowed = $video->classroom_id
+                && $workspace->queryFor(auth()->user())->whereKey($video->classroom_id)->exists();
+            $courseAllowed = $workspace->coursesQueryFor(auth()->user())->whereKey($video->course_id)->exists();
+            abort_unless($classroomAllowed || $courseAllowed, 403);
+        }
+
         abort_unless(filled($video->file_path) && Storage::disk('local')->exists($video->file_path), 404);
 
         return Storage::disk('local')->download(

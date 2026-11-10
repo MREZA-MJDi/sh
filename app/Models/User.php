@@ -16,7 +16,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'phone', 'password', 'is_active', 'grade', 'subject',
-        'profile_note', 'external_student_id',
+        'profile_note', 'external_student_id', 'permissions_customized',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -27,6 +27,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'permissions_customized' => 'boolean',
             'last_login_at' => 'datetime',
         ];
     }
@@ -85,14 +86,46 @@ class User extends Authenticatable
         return $this->roles()->whereIn('name', $names)->exists();
     }
 
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermissionTo((string) $permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasPermissionTo(string $permission): bool
     {
         $this->loadMissing('roles.permissions');
 
+        if ($this->getRelation('roles')->contains(fn (Role $role): bool => $role->name === 'admin')) {
+            return true;
+        }
+
+        if ($this->permissions_customized) {
+            $this->loadMissing('permissions');
+
+            return $this->getRelation('permissions')->contains('name', $permission);
+        }
+
         return $this->getRelation('roles')->contains(
-            fn (Role $role): bool => $role->name === 'admin'
-                || $role->permissions->contains('name', $permission)
+            fn (Role $role): bool => $role->permissions->contains('name', $permission)
         );
+    }
+
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'user_permissions')
+            ->withPivot('granted_by')
+            ->withTimestamps();
+    }
+
+    public function assignedCourses(): HasMany
+    {
+        return $this->hasMany(Course::class, 'teacher_id');
     }
 
     public function taughtClasses(): HasMany

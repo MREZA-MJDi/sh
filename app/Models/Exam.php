@@ -10,13 +10,13 @@ class Exam extends Model
 {
     protected $fillable = [
         'classroom_id', 'course_id', 'created_by', 'title', 'description',
-        'provider', 'external_id', 'starts_at', 'status',
+        'provider', 'external_id', 'starts_at', 'duration_minutes', 'show_to_guardians', 'status',
         'integration_status', 'integration_note',
     ];
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime'];
+        return ['starts_at' => 'datetime', 'duration_minutes' => 'integer', 'show_to_guardians' => 'boolean'];
     }
 
     public function classroom(): BelongsTo

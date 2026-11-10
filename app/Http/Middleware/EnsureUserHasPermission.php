@@ -8,13 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserHasPermission
 {
-    public function handle(Request $request, Closure $next, string $permission): Response
+    public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
-        abort_unless(
-            $request->user()?->hasPermissionTo($permission),
-            403,
-            'شما مجوز انجام این عملیات را ندارید.'
+        $user = $request->user();
+        $allowed = $user && collect($permissions)->contains(
+            fn (string $permission): bool => $user->hasPermissionTo($permission)
         );
+
+        abort_unless($allowed, 403, 'شما مجوز انجام این عملیات را ندارید.');
 
         return $next($request);
     }

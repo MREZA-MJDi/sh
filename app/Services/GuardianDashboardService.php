@@ -86,7 +86,8 @@ final class GuardianDashboardService
         $results = ExamResult::query()
             ->where('student_id', $student->id)
             ->whereHas('exam', function (Builder $exam) use ($classroomIds, $courseIds): void {
-                $exam->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
+                $exam->where('show_to_guardians', true)
+                ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
                     $scope->whereIn('exams.classroom_id', clone $classroomIds)
                         ->orWhere(function (Builder $courseLevel) use ($courseIds): void {
                             $courseLevel

@@ -1,4 +1,4 @@
-@extends('layouts.panel')
+@extends('admin.layouts.app')
 
 @php
     $labels = ['student' => 'دانش‌آموز', 'teacher' => 'مدرس', 'parent' => 'ولی'];
@@ -6,136 +6,190 @@
 @endphp
 
 @section('page-title', $labels[$role].'‌ها')
-@section('page-description', 'مدیریت حساب‌ها و ارتباط کاربران با کلاس‌ها و یکدیگر')
+@section('page-description', 'مدیریت حساب‌ها و ارتباط آن‌ها با کلاس‌ها و دوره‌های آکادمی')
 
 @section('content')
-    <section class="panel-card mb-4">
-        <div class="panel-card-title">
-            <div><h3>ایجاد {{ $labels[$role] }} جدید</h3><p>حساب کاربری با نقش مشخص ایجاد می‌شود؛ گذرواژه حداقل ۱۲ کاراکتر است.</p></div>
-            <span class="panel-badge">{{ number_format($users->total()) }} حساب</span>
-        </div>
-
-        <form method="POST" action="{{ route($storeRoute) }}">
-            @csrf
-            <div class="panel-form-grid panel-form-grid-3">
-                <div class="panel-field">
-                    <label for="name">نام و نام خانوادگی</label>
-                    <input class="panel-input" id="name" name="name" value="{{ old('name') }}" required maxlength="160">
-                </div>
-                <div class="panel-field">
-                    <label for="email">ایمیل ورود</label>
-                    <input class="panel-input" id="email" name="email" type="email" value="{{ old('email') }}" required maxlength="190">
-                </div>
-                <div class="panel-field">
-                    <label for="phone">شماره تماس</label>
-                    <input class="panel-input" id="phone" name="phone" value="{{ old('phone') }}" maxlength="30" dir="ltr">
-                </div>
-                <div class="panel-field">
-                    <label for="password">گذرواژه اولیه</label>
-                    <input class="panel-input" id="password" name="password" type="password" minlength="12" required autocomplete="new-password">
-                </div>
-                <div class="panel-field">
-                    <label for="password_confirmation">تکرار گذرواژه</label>
-                    <input class="panel-input" id="password_confirmation" name="password_confirmation" type="password" minlength="12" required autocomplete="new-password">
-                </div>
-
-                @if ($role === 'student')
-                    <div class="panel-field">
-                        <label for="grade">پایه تحصیلی</label>
-                        <select class="panel-select" id="grade" name="grade" required>
-                            <option value="">انتخاب پایه</option>
-                            @foreach (['دهم', 'یازدهم', 'دوازدهم', 'فارغ‌التحصیل'] as $grade)
-                                <option value="{{ $grade }}" @selected(old('grade') === $grade)>{{ $grade }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="panel-field">
-                        <label for="external_student_id">شناسه پایدار دانش‌آموز در Quiz24 (در صورت وجود)</label>
-                        <input class="panel-input" id="external_student_id" name="external_student_id" value="{{ old('external_student_id') }}" maxlength="120" dir="ltr" autocomplete="off">
-                        <p class="panel-muted mt-1">پس از تحویل قرارداد Quiz24 برای تطبیق نتایج و ورود یکپارچه استفاده می‌شود.</p>
-                    </div>
-                @elseif ($role === 'teacher')
-                    <div class="panel-field">
-                        <label for="subject">درس تخصصی</label>
-                        <input class="panel-input" id="subject" name="subject" value="{{ old('subject') }}" maxlength="100" required>
-                    </div>
-                @endif
-            </div>
-
-            @if ($role === 'student')
-                <div class="panel-field mt-3">
-                    <label for="classroom_ids">عضویت در کلاس‌ها</label>
-                    <select class="panel-select" id="classroom_ids" name="classroom_ids[]" multiple size="4">
-                        @foreach ($classrooms as $classroom)
-                            <option value="{{ $classroom->id }}" @selected(in_array($classroom->id, old('classroom_ids', [])))>{{ $classroom->name }}</option>
-                        @endforeach
-                    </select>
-                    <p class="panel-muted mt-1">برای انتخاب چند کلاس، کلید Ctrl یا Command را نگه دارید.</p>
-                </div>
-            @elseif ($role === 'parent')
-                <div class="panel-field mt-3">
-                    <label for="child_ids">اتصال به دانش‌آموزان</label>
-                    <select class="panel-select" id="child_ids" name="child_ids[]" multiple size="4">
-                        @foreach ($students as $student)
-                            <option value="{{ $student->id }}" @selected(in_array($student->id, old('child_ids', [])))>{{ $student->name }}</option>
-                        @endforeach
-                    </select>
-                    <p class="panel-muted mt-1">فقط دانش‌آموزانی که انتخاب شوند در پنل ولی قابل مشاهده خواهند بود.</p>
-                </div>
-            @endif
-
-            <div class="panel-form-actions">
-                <button class="panel-btn" type="submit">ثبت {{ $labels[$role] }}</button>
-            </div>
-        </form>
-    </section>
+    <div class="panel-page-head">
+        <div><h2>{{ $labels[$role] }}‌ها</h2><p>{{ number_format($users->total()) }} حساب ثبت‌شده</p></div>
+        @can('users.manage')
+            <button class="panel-btn" type="button" data-admin-drawer-open="user-create" data-drawer-title="{{ $role === 'teacher' ? 'ساخت مدرس' : 'ثبت '.$labels[$role] }}">
+                ＋ {{ $role === 'teacher' ? 'ساخت مدرس' : 'ثبت '.$labels[$role] }}
+            </button>
+        @endcan
+    </div>
 
     <section class="panel-card">
         <div class="panel-card-title">
-            <div><h3>فهرست {{ $labels[$role] }}‌ها</h3><p>برای حفظ سوابق آموزشی، حذف حساب از این صفحه انجام نمی‌شود.</p></div>
+            <div><h3>فهرست {{ $labels[$role] }}‌ها</h3><p>جستجو بر اساس نام، شماره تماس یا ایمیل</p></div>
             <form method="GET" action="{{ url()->current() }}" class="panel-inline-form">
-                <input class="panel-input" name="q" value="{{ request('q') }}" placeholder="نام، ایمیل یا موبایل">
+                <input class="panel-input" name="q" value="{{ request('q') }}" placeholder="نام یا موبایل">
                 <button class="panel-btn panel-btn-secondary panel-btn-sm" type="submit">جستجو</button>
             </form>
         </div>
-
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>کاربر</th><th>راه ارتباطی</th><th>اطلاعات آموزشی</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+                @if ($role === 'teacher')
+                    <thead><tr><th>مدرس</th><th>درس</th><th>دوره‌های تخصیص‌یافته</th><th>دسترسی‌ها</th><th>وضعیت</th>@can('users.manage')<th>عملیات</th>@endcan</tr></thead>
+                @else
+                    <thead><tr><th>کاربر</th><th>راه ارتباطی</th><th>اطلاعات</th><th>وضعیت</th>@can('users.manage')<th>عملیات</th>@endcan</tr></thead>
+                @endif
                 <tbody>
                 @forelse ($users as $user)
                     <tr>
-                        <td><strong>{{ $user->name }}</strong><div class="panel-muted">شناسه: {{ $user->id }}</div></td>
-                        <td><div>{{ $user->email }}</div><div class="panel-muted" dir="ltr">{{ $user->phone ?: '—' }}</div></td>
-                        <td>
-                            {{ $role === 'student' ? ($user->grade ?: '—') : ($role === 'teacher' ? ($user->subject ?: '—') : $user->children()->count().' فرزند متصل') }}
-                            @if ($role === 'student' && $user->external_student_id)
-                                <div class="panel-muted" dir="ltr">Quiz24: {{ $user->external_student_id }}</div>
-                            @endif
-                        </td>
-                        <td>
-                            @if ($user->is_active)
-                                <span class="panel-badge panel-badge-success">فعال</span>
-                            @else
-                                <span class="panel-badge panel-badge-danger">غیرفعال</span>
-                            @endif
-                        </td>
-                        <td>
-                            <form method="POST" action="{{ route('admin.users.status', $user) }}" class="panel-inline-form">
-                                @csrf @method('PATCH')
-                                <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
-                                <button class="panel-btn panel-btn-sm {{ $user->is_active ? 'panel-btn-danger' : 'panel-btn-success' }}" type="submit">
-                                    {{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}
-                                </button>
-                            </form>
-                        </td>
+                        @if ($role === 'teacher')
+                            <td><strong>{{ $user->name }}</strong><div class="panel-muted" dir="ltr">{{ $user->phone ?: '—' }}</div></td>
+                            <td>{{ $user->subject ?: '—' }}</td>
+                            <td>
+                                <div class="flex flex-wrap gap-1">
+                                    @forelse ($user->assignedCourses as $course)
+                                        <x-admin::badge>{{ $course->title }}</x-admin.badge>
+                                    @empty
+                                        <span class="panel-muted">دوره‌ای تخصیص داده نشده</span>
+                                    @endforelse
+                                </div>
+                            </td>
+                            <td>
+                                @php($selectedGroups = $teacherSelectedGroups[$user->id] ?? [])
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach ($teacherAccessGroups as $key => $group)
+                                        @if ($selectedGroups[$key] ?? false)
+                                            <x-admin::badge>{{ $group['label'] }}</x-admin.badge>
+                                        @endif
+                                    @endforeach
+                                    @if (! collect($selectedGroups)->contains(true))
+                                        <span class="panel-muted">فقط دسترسی پایه</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td><x-admin::badge :variant="$user->is_active ? 'success' : 'warning'">{{ $user->is_active ? 'فعال' : 'در انتظار تأیید' }}</x-admin.badge></td>
+                            @can('users.manage')
+                                <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="teacher-edit-{{ $user->id }}" data-drawer-title="ویرایش دسترسی مدرس">ویرایش</button></td>
+                            @endcan
+                        @else
+                            <td><strong>{{ $user->name }}</strong><div class="panel-muted">شناسه: {{ $user->id }}</div></td>
+                            <td><div>{{ $user->email ?: '—' }}</div><div class="panel-muted" dir="ltr">{{ $user->phone ?: '—' }}</div></td>
+                            <td>
+                                @if ($role === 'student')
+                                    {{ $user->grade ?: '—' }}
+                                    @if ($user->external_student_id)<div class="panel-muted" dir="ltr">Quiz24: {{ $user->external_student_id }}</div>@endif
+                                    <div class="panel-muted">{{ $user->enrolledClasses()->count() }} کلاس</div>
+                                @else
+                                    {{ $user->children()->count() }} فرزند متصل
+                                @endif
+                            </td>
+                            <td><x-admin::badge :variant="$user->is_active ? 'success' : 'danger'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
+                            @can('users.manage')
+                                <td>
+                                    <form method="POST" action="{{ route('admin.users.status', $user) }}" class="panel-inline-form">
+                                        @csrf @method('PATCH')
+                                        <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
+                                        <button class="panel-btn panel-btn-sm {{ $user->is_active ? 'panel-btn-danger' : 'panel-btn-success' }}" type="submit">
+                                            {{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}
+                                        </button>
+                                    </form>
+                                </td>
+                            @endcan
+                        @endif
                     </tr>
+
+                    @if ($role === 'teacher')
+                        @can('users.manage')
+                            @php($selectedGroups = $teacherSelectedGroups[$user->id] ?? [])
+                            <x-admin::drawer-form :id="'teacher-edit-'.$user->id" title="ویرایش دسترسی مدرس" :action="route('admin.teachers.update', $user)" method="POST" submit-label="ذخیره دسترسی‌ها">
+                                @method('PATCH')
+                                <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ $user->name }}" required maxlength="160"></div>
+                                <div class="panel-field"><label>موبایل (نام کاربری)</label><input class="panel-input" name="phone" value="{{ $user->phone }}" required maxlength="30" dir="ltr" inputmode="tel"></div>
+                                <div class="panel-field"><label>ایمیل (اختیاری)</label><input class="panel-input" type="email" name="email" value="{{ $user->email }}" maxlength="190" dir="ltr"></div>
+                                <div class="panel-field"><label>درس</label><input class="panel-input" name="subject" value="{{ $user->subject }}" maxlength="100" required></div>
+                                <div class="panel-field"><label>وضعیت مدرس</label><select class="panel-select" name="status"><option value="active" @selected($user->is_active)>فعال</option><option value="pending" @selected(! $user->is_active)>در انتظار تأیید</option></select></div>
+
+                                <div class="panel-field"><label>دوره‌های تخصیص‌یافته</label>
+                                    <div class="admin-check-list">
+                                        @forelse ($courses as $course)
+                                            <label class="admin-check-item">
+                                                <input type="checkbox" name="course_ids[]" value="{{ $course->id }}" @checked($course->teacher_id === $user->id)>
+                                                <span>{{ $course->title }}</span>
+                                            </label>
+                                        @empty
+                                            <span class="panel-muted">دوره‌ای ثبت نشده است.</span>
+                                        @endforelse
+                                    </div>
+                                </div>
+
+                                <div class="panel-field">
+                                    <label>دسترسی‌های پنل مدرس</label>
+                                    <p class="panel-muted">همین صفحه‌ها و همین پنل برای مدرس استفاده می‌شود؛ فقط منوها و عملیات انتخاب‌شده در دسترس او قرار می‌گیرد.</p>
+                                    <div class="admin-check-list">
+                                        @foreach ($teacherAccessGroups as $key => $group)
+                                            <label class="admin-check-item">
+                                                <input type="checkbox" name="teacher_access[]" value="{{ $key }}" @checked($selectedGroups[$key] ?? false)>
+                                                <span>{{ $group['label'] }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="panel-field"><label>گذرواژه جدید (اختیاری)</label><input class="panel-input" type="password" name="password" minlength="12" autocomplete="new-password"><span class="panel-muted">برای حفظ گذرواژه فعلی خالی بگذارید.</span></div>
+                                <div class="panel-field"><label>تکرار گذرواژه جدید</label><input class="panel-input" type="password" name="password_confirmation" minlength="12" autocomplete="new-password"></div>
+                            </x-admin.drawer-form>
+                        @endcan
+                    @endif
                 @empty
-                    <tr><td colspan="5" class="panel-empty">کاربری برای نمایش وجود ندارد.</td></tr>
+                    <tr><td colspan="7" class="panel-empty">موردی برای نمایش وجود ندارد.</td></tr>
                 @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="panel-pagination"><span>نمایش {{ $users->count() }} از {{ $users->total() }} حساب</span>{{ $users->links() }}</div>
+        <div class="panel-pagination"><span>{{ $users->count() }} از {{ $users->total() }} حساب</span>{{ $users->links() }}</div>
     </section>
+
+    @can('users.manage')
+        @if ($role === 'teacher')
+            <x-admin::drawer-form id="user-create" title="ساخت مدرس" :action="route($storeRoute)" submit-label="ساخت مدرس">
+                <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ old('name') }}" required maxlength="160"></div>
+                <div class="panel-field"><label>موبایل (نام کاربری)</label><input class="panel-input" name="phone" value="{{ old('phone') }}" required maxlength="30" dir="ltr" inputmode="tel" placeholder="09xxxxxxxxx"></div>
+                <div class="panel-field"><label>ایمیل (اختیاری)</label><input class="panel-input" type="email" name="email" value="{{ old('email') }}" maxlength="190" dir="ltr"></div>
+                <div class="panel-field"><label>درس</label><input class="panel-input" name="subject" value="{{ old('subject') }}" maxlength="100" required placeholder="مثلاً ریاضی"></div>
+                <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="active">فعال</option><option value="pending">در انتظار تأیید</option></select></div>
+                <div class="panel-field"><label>گذرواژه اولیه</label><input class="panel-input" type="password" name="password" minlength="12" required autocomplete="new-password"></div>
+                <div class="panel-field"><label>تکرار گذرواژه</label><input class="panel-input" type="password" name="password_confirmation" minlength="12" required autocomplete="new-password"></div>
+
+                <div class="panel-field">
+                    <label>دوره‌ها</label>
+                    <div class="admin-check-list">
+                        @forelse ($courses as $course)
+                            <label class="admin-check-item"><input type="checkbox" name="course_ids[]" value="{{ $course->id }}"><span>{{ $course->title }}</span></label>
+                        @empty
+                            <span class="panel-muted">هنوز دوره‌ای ساخته نشده است.</span>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="panel-field">
+                    <label>دسترسی‌ها</label>
+                    <p class="panel-muted">دسترسی‌های انتخابی، منوها و عملیات همین پنل را برای این مدرس تعیین می‌کنند.</p>
+                    <div class="admin-check-list">
+                        @foreach ($teacherAccessGroups as $key => $group)
+                            <label class="admin-check-item"><input type="checkbox" name="teacher_access[]" value="{{ $key }}" checked><span>{{ $group['label'] }}</span></label>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="panel-alert">ارسال پیامک ورود در این نسخه وصل نیست؛ گذرواژه اولیه را به مدرس تحویل دهید.</div>
+            </x-admin.drawer-form>
+        @else
+            <x-admin::drawer-form id="user-create" title="ثبت کاربر" :action="route($storeRoute)" submit-label="ثبت {{ $labels[$role] }}">
+                <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ old('name') }}" required maxlength="160"></div>
+                <div class="panel-field"><label>ایمیل ورود</label><input class="panel-input" type="email" name="email" value="{{ old('email') }}" required maxlength="190" dir="ltr"></div>
+                <div class="panel-field"><label>شماره تماس</label><input class="panel-input" name="phone" value="{{ old('phone') }}" maxlength="30" dir="ltr"></div>
+                <div class="panel-field"><label>گذرواژه اولیه</label><input class="panel-input" type="password" name="password" minlength="12" required autocomplete="new-password"></div>
+                <div class="panel-field"><label>تکرار گذرواژه</label><input class="panel-input" type="password" name="password_confirmation" minlength="12" required autocomplete="new-password"></div>
+                @if ($role === 'student')
+                    <div class="panel-field"><label>پایه تحصیلی</label><select class="panel-select" name="grade" required><option value="">انتخاب پایه</option>@foreach (['دهم','یازدهم','دوازدهم','فارغ‌التحصیل'] as $grade)<option value="{{ $grade }}">{{ $grade }}</option>@endforeach</select></div>
+                    <div class="panel-field"><label>شناسه دانش‌آموز در Quiz24 (اختیاری)</label><input class="panel-input" name="external_student_id" maxlength="120" dir="ltr"></div>
+                    <div class="panel-field"><label>عضویت در کلاس‌ها</label><select class="panel-select" name="classroom_ids[]" multiple size="6">@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
+                @elseif ($role === 'parent')
+                    <div class="panel-field"><label>اتصال به دانش‌آموزان</label><select class="panel-select" name="child_ids[]" multiple size="6">@foreach ($students as $student)<option value="{{ $student->id }}">{{ $student->name }}</option>@endforeach</select></div>
+                @endif
+            </x-admin.drawer-form>
+        @endif
+    @endcan
 @endsection

@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import './admin/panel.css';
 @import './panels/role-dashboards.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

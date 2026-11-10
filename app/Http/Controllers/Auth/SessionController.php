@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\User;
 use App\Services\AuthenticationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -28,11 +30,30 @@ final class SessionController extends Controller
         LoginRequest $request,
         AuthenticationService $authentication
     ): RedirectResponse {
-        $credentials = $request->safe()->only(['email', 'password']);
+        $identifier = $request->validated('email');
+        $password = $request->validated('password');
+        $remember = $request->boolean('remember');
 
-        if (! Auth::attempt($credentials + ['is_active' => true], $request->boolean('remember'))) {
+        $authenticated = filter_var($identifier, FILTER_VALIDATE_EMAIL)
+            ? Auth::attempt(['email' => $identifier, 'password' => $password, 'is_active' => true], $remember)
+            : false;
+
+        if (! $authenticated) {
+            $matches = User::query()
+                ->where('phone', $identifier)
+                ->where('is_active', true)
+                ->limit(2)
+                ->get();
+
+            if ($matches->count() === 1 && Hash::check($password, $matches->first()->password)) {
+                Auth::login($matches->first(), $remember);
+                $authenticated = true;
+            }
+        }
+
+        if (! $authenticated) {
             throw ValidationException::withMessages([
-                'email' => 'ایمیل یا گذرواژه صحیح نیست یا حساب کاربری غیرفعال است.',
+                'email' => 'ایمیل یا موبایل و گذرواژه صحیح نیست یا حساب کاربری غیرفعال است.',
             ]);
         }
 
