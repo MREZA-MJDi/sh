@@ -51,6 +51,37 @@ class LocalDemoAccountsTest extends TestCase
         $this->assertTrue($parent->children()->whereKey($student->getKey())->exists());
     }
 
+    public function test_seeded_accounts_can_log_in_and_are_redirected_to_their_own_panels(): void
+    {
+        config([
+            'demo.enabled' => true,
+            'demo.password' => 'LocalOnlyDemoPassword!2026',
+        ]);
+
+        $this->seed(DatabaseSeeder::class);
+
+        $accounts = [
+            'admin@sh.local' => 'admin.dashboard',
+            'teacher@sh.local' => 'teacher.dashboard',
+            'student@sh.local' => 'student.dashboard',
+            'parent@sh.local' => 'guardian.dashboard',
+        ];
+
+        foreach ($accounts as $email => $dashboardRoute) {
+            $user = User::query()->where('email', $email)->firstOrFail();
+
+            $this->post(route('login.store'), [
+                'email' => $email,
+                'password' => 'LocalOnlyDemoPassword!2026',
+            ])->assertRedirect(route($dashboardRoute));
+
+            $this->assertAuthenticatedAs($user);
+
+            $this->post(route('logout'))->assertRedirect(route('login'));
+            $this->assertGuest();
+        }
+    }
+
     public function test_demo_accounts_are_not_seeded_in_production_even_when_the_flag_is_enabled(): void
     {
         $this->app['env'] = 'production';
