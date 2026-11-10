@@ -44,7 +44,7 @@
                 @can('messages.reply')
                 <form method="POST" action="{{ route('admin.messages.reply', $selected) }}" class="mt-4">
                     @csrf
-                    <div class="panel-field"><label>پاسخ به پیام</label><textarea class="panel-textarea" name="body" required maxlength="10000" placeholder="متن پاسخ را بنویسید..."></textarea></div>
+                    <div class="panel-field"><label>پاسخ به پیام</label><textarea class="panel-textarea" name="body" data-rich-text required maxlength="20000" placeholder="متن پاسخ را بنویسید..."></textarea></div>
                     <div class="panel-form-actions"><button class="panel-btn" type="submit">ثبت پاسخ</button></div>
                 </form>
                 @endcan
