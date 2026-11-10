@@ -361,7 +361,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->actingAs($teacher)
             ->get(route('admin.homework.index', ['submissions' => 2]))
             ->assertOk()
-            ->assertSee('دانش‌آموز قدیمی ۱۶');
+            ->assertSee('دانش‌آموز قدیمی 16');
     }
 
 }
