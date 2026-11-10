@@ -58,7 +58,6 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
     Route::get('/teachers', [UserController::class, 'index'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.index');
     Route::post('/teachers', [UserController::class, 'store'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.store');
     Route::patch('/teachers/{teacher}', [UserController::class, 'updateTeacher'])->middleware('permission:users.manage')->name('teachers.update');
-    Route::patch('/teachers/{teacher}', [UserController::class, 'updateTeacher'])->middleware('permission:users.manage')->name('teachers.update');
     Route::get('/parents', [UserController::class, 'index'])->defaults('role', 'parent')->middleware('permission:users.manage')->name('parents.index');
     Route::post('/parents', [UserController::class, 'store'])->defaults('role', 'parent')->middleware('permission:users.manage')->name('parents.store');
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->middleware('permission:users.manage')->name('users.status');
