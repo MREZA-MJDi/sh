@@ -48,8 +48,8 @@ class HomeworkController extends Controller
                 )
             )
             ->latest('submitted_at')
-            ->limit(30)
-            ->get();
+            ->paginate(15, ['*'], 'submissions')
+            ->withQueryString();
 
         return view('admin.homework.index', compact('homeworks', 'classrooms', 'submissions'));
     }
