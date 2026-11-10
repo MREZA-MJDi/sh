@@ -29,8 +29,14 @@ class StoreLearningResourceRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            if ($this->boolean('is_free') && (int) $this->input('price', 0) !== 0) {
+            $price = (int) $this->input('price', 0);
+
+            if ($this->boolean('is_free') && $price !== 0) {
                 $validator->errors()->add('price', 'برای منبع رایگان، قیمت باید صفر باشد.');
+            }
+
+            if (! $this->boolean('is_free') && $price < 1) {
+                $validator->errors()->add('price', 'برای محصول پولی، قیمت باید بیشتر از صفر باشد.');
             }
         }];
     }
