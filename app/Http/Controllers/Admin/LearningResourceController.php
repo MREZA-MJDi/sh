@@ -51,7 +51,7 @@ class LearningResourceController extends Controller
                     'uploaded_by' => auth()->id(),
                 ]);
             });
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             if ($path) {
                 Storage::disk('local')->delete($path);
             }
@@ -92,7 +92,7 @@ class LearningResourceController extends Controller
                     'status' => $data['status'],
                 ]);
             });
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             if ($newPath) {
                 Storage::disk('local')->delete($newPath);
             }
