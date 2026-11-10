@@ -158,7 +158,7 @@
                 <div class="chead">
                     <div>
                         <span class="student-section-eyebrow">کارهای در انتظار</span>
-                        <h2 id="student-homework-title">تکالیف و مهلت‌ها</h2>
+                        <h2 id="student-homework-title">تکالیف من و مهلت‌ها</h2>
                     </div>
                     <span class="pill">{{ $faNumber($pending_homework_count) }} تکلیف باز</span>
                 </div>
