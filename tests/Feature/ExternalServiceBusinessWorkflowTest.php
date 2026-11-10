@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\CourseEnrollment;
 use App\Models\Exam;
 use App\Models\ExamResult;
 use App\Models\Quiz24StudentMapping;
@@ -121,6 +122,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
     {
         $teacher = $this->createUserWithRole('teacher');
         $student = $this->createUserWithRole('student');
+        $cancelledStudent = $this->createUserWithRole('student');
 
         $course = Course::create([
             'title' => 'دوره پولی فیزیک',
@@ -140,6 +142,15 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
             'status' => 'active',
         ]);
         $classroom->students()->attach($student->id, ['assigned_by' => $this->admin->id]);
+
+        CourseEnrollment::query()->create([
+            'course_id' => $course->id,
+            'student_id' => $cancelledStudent->id,
+            'source' => 'payment',
+            'status' => 'revoked',
+            'source_reference' => 'PAYMENT-CANCELLED-002',
+            'granted_at' => now(),
+        ]);
 
         $enrollmentService = app(CourseEnrollmentService::class);
         $enrollmentService->syncClassroomRoster($classroom);
@@ -178,6 +189,13 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         $enrollmentService->syncCourseRoster($course->refresh());
 
         $this->assertTrue($enrollmentService->hasActiveAccess($student, $course->refresh()));
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $cancelledStudent->id,
+            'source' => 'payment',
+            'status' => 'revoked',
+            'source_reference' => 'PAYMENT-CANCELLED-002',
+        ]);
     }
 
     public function test_quiz24_exam_is_created_locally_and_external_provisioning_is_queued(): void
@@ -455,6 +473,48 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
             'status' => 'unmatched',
         ]);
     }
+
+
+    public function test_existing_spotplayer_video_can_be_registered_without_reuploading_the_raw_file(): void
+    {
+        $course = Course::create([
+            'title' => 'دوره دارای ویدئوی آماده در Spot',
+            'slug' => 'existing-spotplayer-asset-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => 'SP-EXISTING-COURSE',
+            'status' => 'published',
+            'integration_status' => 'awaiting_api_verification',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.spotplayer.videos.store'), [
+                'title' => 'جلسه‌ای که قبلاً در Spot آپلود شده',
+                'course_id' => $course->id,
+                'external_id' => 'SP-VIDEO-EXISTING-77',
+                'status' => 'waiting_contract',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $video = \App\Models\SpotPlayerVideo::query()
+            ->where('external_id', 'SP-VIDEO-EXISTING-77')
+            ->firstOrFail();
+
+        $this->assertSame($course->id, $video->course_id);
+        $this->assertNull($video->file_path);
+        $this->assertNull($video->file_sha256);
+        $this->assertDatabaseHas('integration_runs', [
+            'provider' => 'spotplayer',
+            'action' => 'register_existing_video',
+            'status' => 'waiting_contract',
+            'entity_id' => $video->id,
+        ]);
+
+        Http::assertNothingSent();
+    }
+
 
     private function createUserWithRole(string $role, array $attributes = []): User
     {

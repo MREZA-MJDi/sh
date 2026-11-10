@@ -13,11 +13,27 @@
         </div>
     </section>
 
-    @forelse ($course->sections as $section)
+    @if ($sections->count() > 0)
+        <nav class="student-course-sections-nav" aria-label="بخش‌های دوره">
+            @foreach ($sections as $courseSection)
+                <a
+                    class="btn {{ $selectedSection?->id === $courseSection->id ? '' : 'g' }} s"
+                    href="{{ route('student.courses.show', ['course' => $course, 'section' => $courseSection->id, 'sections_page' => $sections->currentPage()]) }}"
+                    @if ($selectedSection?->id === $courseSection->id) aria-current="page" @endif
+                >{{ $courseSection->title }}</a>
+            @endforeach
+        </nav>
+        <div class="student-course-pagination">{{ $sections->links() }}</div>
+    @endif
+
+    @if ($selectedSection)
         <section class="card student-course-section">
-            <div class="chead"><div><span class="student-section-eyebrow">بخش دوره</span><h2>{{ $section->title }}</h2></div><span class="pill">{{ $section->lessons->count() }} درس</span></div>
-            @if (filled($section->description))<p class="mu">{{ $section->description }}</p>@endif
-            @forelse ($section->lessons as $lesson)
+            <div class="chead">
+                <div><span class="student-section-eyebrow">بخش دوره</span><h2>{{ $selectedSection->title }}</h2></div>
+                <span class="pill">{{ number_format($lessons->total()) }} درس</span>
+            </div>
+            @if (filled($selectedSection->description))<p class="mu">{{ $selectedSection->description }}</p>@endif
+            @forelse ($lessons as $lesson)
                 @php($lessonProgress = $lesson->progress->first())
                 <article class="student-course-lesson">
                     <div class="student-course-lesson__head">
@@ -45,8 +61,9 @@
             @empty
                 <div class="empty">هنوز درسی در این بخش منتشر نشده است.</div>
             @endforelse
+            <div class="student-course-pagination">{{ $lessons->links() }}</div>
         </section>
-    @empty
+    @elseif ($sections->count() === 0)
         <section class="card"><div class="empty">محتوای منتشرشده‌ای برای این دوره وجود ندارد.</div></section>
-    @endforelse
+    @endif
 @endsection

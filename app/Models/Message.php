@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Message extends Model
 {
+    use \App\Models\Concerns\SanitizesRichText;
+
     protected $fillable = [
         'sender_id', 'recipient_id', 'student_id', 'parent_id',
         'subject', 'body', 'status', 'replied_at',

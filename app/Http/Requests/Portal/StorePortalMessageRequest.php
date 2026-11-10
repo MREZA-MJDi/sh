@@ -17,7 +17,7 @@ final class StorePortalMessageRequest extends FormRequest
             'student_id' => ['required', 'integer', 'exists:users,id'],
             'recipient_id' => ['required', 'integer', 'exists:users,id', 'different:student_id'],
             'subject' => ['required', 'string', 'max:190'],
-            'body' => ['required', 'string', 'max:10000'],
+            'body' => ['required', 'string', 'max:30000'],
         ];
     }
 }

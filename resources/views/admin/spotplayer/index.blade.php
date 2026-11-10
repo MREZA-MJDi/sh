@@ -7,11 +7,11 @@
     @if ($teacherView)
         <div class="panel-page-head">
             <div><h2>ویدیوهای کلاس</h2><p>ویدیو فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شود.</p></div>
-            <button class="panel-btn" type="button" data-admin-drawer-open="video-create" data-drawer-title="بارگذاری فیلم کلاس">＋ بارگذاری ویدیو</button>
+            <button class="panel-btn" type="button" data-admin-drawer-open="video-create" data-drawer-title="ثبت ویدئوی کلاس">＋ ثبت ویدیو</button>
         </div>
 
         <section class="panel-card">
-            <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده</h3><p>فایل در فضای خصوصی ذخیره می‌شود و پس از تحویل API به سرویس انتقال داده می‌شود.</p></div></div>
+            <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده</h3><p>ویدئوی موجود در SpotPlayer را با شناسه خارجی ثبت کنید؛ اگر فایل هنوز در Spot نیست، می‌توانید آن را به‌صورت خصوصی برای انتقال آینده آماده کنید.</p></div></div>
             <div class="panel-table-wrap">
                 <table class="panel-table" data-searchable-table>
                     <thead><tr><th>عنوان</th><th>دوره</th><th>کلاس</th><th>فایل</th><th>وضعیت</th><th>دریافت</th></tr></thead>
@@ -21,7 +21,7 @@
                             <td><strong>{{ $video->title }}</strong><div class="panel-muted">#{{ $video->id }}</div></td>
                             <td>{{ $video->course->title ?? '—' }}</td>
                             <td>{{ $video->classroom->name ?? '—' }}</td>
-                            <td>{{ $video->file_original_name ?: '—' }}<div class="panel-muted">{{ $video->file_size_bytes ? number_format($video->file_size_bytes / 1048576, 1).' MB' : '' }}</div></td>
+                            <td>{{ $video->file_original_name ?: ($video->external_id ? 'ویدئوی موجود در SpotPlayer' : '—') }}<div class="panel-muted">{{ $video->file_size_bytes ? number_format($video->file_size_bytes / 1048576, 1).' MB' : '' }}</div></td>
                             <td><x-admin::badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
                             <td>@if($video->file_path)<a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>@else—@endif</td>
                         </tr>
@@ -34,15 +34,15 @@
             <div class="panel-pagination">{{ $videos->links() }}</div>
         </section>
 
-        <x-admin::drawer-form id="video-create" title="بارگذاری فیلم کلاس" :action="route('admin.spotplayer.videos.store')" submit-label="ثبت ویدیو" enctype="multipart/form-data">
+        <x-admin::drawer-form id="video-create" title="ثبت ویدئوی کلاس" :action="route('admin.spotplayer.videos.store')" submit-label="ثبت ویدیو" enctype="multipart/form-data">
             <div class="panel-field"><label>عنوان ویدیو</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
             <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس مشخص</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
-            <div class="panel-field"><label>فایل ویدیو</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv" required><span class="panel-muted">حداکثر ۱ گیگابایت؛ ذخیره در فضای خصوصی</span></div>
-            <div class="panel-field"><label>شناسه ویدیو در SpotPlayer (اختیاری)</label><input class="panel-input" name="external_id" dir="ltr" maxlength="190"></div>
-            <div class="panel-field"><label>لینک نمایش (در صورت ارائه)</label><input class="panel-input" type="url" name="embed_url" dir="ltr" placeholder="https://..."></div>
+            <div class="panel-field"><label>شناسه ویدیو در SpotPlayer</label><input class="panel-input" name="external_id" dir="ltr" maxlength="190" placeholder="شناسه‌ای که از پنل Spot دریافت کرده‌اید"></div>
+            <div class="panel-field"><label>فایل ویدیو (فقط اگر هنوز در Spot بارگذاری نشده)</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv"><span class="panel-muted">حداکثر ۱ گیگابایت؛ فایل فقط در فضای خصوصی شیخان نگهداری می‌شود.</span></div>
+            <div class="panel-alert">اگر ویدیو از قبل در حساب SpotPlayer شیخان قرار دارد، فقط شناسه خارجی را وارد کنید و فایل را دوباره بارگذاری نکنید.</div>
             <input type="hidden" name="status" value="waiting_contract">
-            <div class="panel-alert">تا زمانی که قرارداد API سرویس تحویل نشود، فایل فقط در فضای خصوصی شیخان ذخیره می‌شود و اتصال خارجی انجام‌شده تلقی نمی‌شود.</div>
+            <div class="panel-alert">تا زمان تحویل قرارداد رسمی، شناسه فقط در شیخان ثبت می‌شود و پلیر رسمی هنوز فعال نشده است.</div>
         </x-admin.drawer-form>
     @else
         <section class="panel-card mb-4">
@@ -77,6 +77,22 @@
             </form>
         </section>
 
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>ثبت ویدئوی دوره</h3><p>اگر ویدئو از قبل در پنل SpotPlayer شیخان بارگذاری شده، فقط شناسه خارجی آن را ثبت کنید.</p></div></div>
+            <form method="POST" action="{{ route('admin.spotplayer.videos.store') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="panel-form-grid panel-form-grid-2">
+                    <div class="panel-field"><label>عنوان ویدئو</label><input class="panel-input" name="title" required maxlength="180"></div>
+                    <div class="panel-field"><label>دوره SpotPlayer</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
+                    <div class="panel-field"><label>کلاس (اختیاری)</label><select class="panel-select" name="classroom_id"><option value="">محتوای کل دوره</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
+                    <div class="panel-field"><label>شناسه ویدئو در SpotPlayer</label><input class="panel-input" name="external_id" dir="ltr" maxlength="190" placeholder="شناسه موجود در پنل Spot"></div>
+                    <div class="panel-field"><label>فایل (فقط برای انتقال آینده، در صورت نیاز)</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv"><span class="panel-muted">حداکثر ۱ گیگابایت؛ ذخیره فقط در فضای خصوصی شیخان</span></div>
+                </div>
+                <input type="hidden" name="status" value="waiting_contract">
+                <div class="panel-form-actions"><button class="panel-btn" type="submit">ثبت ویدئو</button></div>
+            </form>
+        </section>
+
         <section class="panel-card">
             <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده</h3><p>فایل‌های خصوصی و درخواست‌های انتقال</p></div></div>
             <div class="panel-table-wrap">
@@ -87,7 +103,7 @@
                         <tr>
                             <td>{{ $video->title }}</td>
                             <td>{{ $video->course->title ?? $video->classroom->name ?? '—' }}</td>
-                            <td>{{ $video->file_original_name ?: '—' }}</td>
+                            <td>{{ $video->file_original_name ?: ($video->external_id ? 'ویدئوی موجود در SpotPlayer' : '—') }}</td>
                             <td dir="ltr">{{ $video->external_id ?: '—' }}</td>
                             <td><x-admin::badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
                             <td>@if($video->file_path)<a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>@else—@endif</td>

@@ -15,7 +15,7 @@ final class UpdateStudentNoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => ['required', 'string', 'max:2000'],
+            'body' => ['required', 'string', 'max:12000'],
             'tone' => ['nullable', Rule::in(['', 'b', 'p'])],
         ];
     }

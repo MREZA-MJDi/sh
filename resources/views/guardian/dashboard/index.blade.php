@@ -100,7 +100,7 @@
                 </div>
                 <p class="mu">بررسی توسط: {{ $submission->reviewer?->name ?? 'مدرس یا مدیر آموزشگاه' }} · {{ \App\Support\PersianDate::format($submission->reviewed_at, 'Y/m/d H:i') }}</p>
                 @if (filled($submission->feedback))
-                    <p class="student-homework-item__answer">{{ $submission->feedback }}</p>
+                    <x-rich-content :value="$submission->feedback" class="student-homework-item__answer"/>
                 @else
                     <p class="mu">بازخورد متنی برای این تکلیف ثبت نشده است.</p>
                 @endif

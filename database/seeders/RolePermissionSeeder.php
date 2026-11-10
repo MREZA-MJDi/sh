@@ -128,7 +128,7 @@ class RolePermissionSeeder extends Seeder
         $password = env('SHIKHAN_ADMIN_PASSWORD');
 
         if (is_string($email) && $email !== '' && is_string($password) && strlen($password) >= 12) {
-            $admin = User::firstOrCreate(
+            $admin = User::query()->updateOrCreate(
                 ['email' => $email],
                 [
                     'name' => env('SHIKHAN_ADMIN_NAME', 'مدیر سامانه'),

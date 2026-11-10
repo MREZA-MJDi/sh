@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HomeworkSubmission extends Model
 {
+    use \App\Models\Concerns\SanitizesRichText;
+
     protected $fillable = ['homework_id', 'student_id', 'answer', 'attachment_path', 'score', 'feedback', 'status', 'submitted_at', 'reviewed_by', 'reviewed_at'];
 
     protected function casts(): array

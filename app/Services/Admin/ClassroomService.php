@@ -83,6 +83,8 @@ final class ClassroomService
     /**
      * Keep the live pivot limited to current members. Every removal is written
      * to an append-only history table, so a student may later rejoin the class.
+     * Keep the live pivot limited to current members. Removals are append-only
+     * history rows, allowing a student to leave and later rejoin safely.
      */
     private function syncRoster(Classroom $classroom, array $requestedStudentIds, User $actor): void
     {

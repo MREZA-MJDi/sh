@@ -1,3 +1,4 @@
+import '../rich-text.js';
 // کارتابل دانش‌آموز — تعامل‌های مستقل سمت مرورگر
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -184,7 +185,10 @@ function initCharacterCounters() {
         const counter = document.createElement('div');
         counter.className = 'cnt';
         counter.setAttribute('aria-live', 'polite');
-        textarea.insertAdjacentElement('afterend', counter);
+        const editorShell = textarea.nextElementSibling?.classList.contains('rich-editor')
+            ? textarea.nextElementSibling
+            : textarea;
+        editorShell.insertAdjacentElement('afterend', counter);
         textarea.maxLength = maximum;
 
         const update = () => {
@@ -211,133 +215,20 @@ function initToasts() {
     });
 }
 
-function initDemoPlayers() {
-    $$('[data-player]').forEach((player) => {
-        const button = $('[data-play]', player);
-        const progress = $('.bar i', player);
-        const seekbar = $('.bar', player);
-        const timeLabel = $('[data-time]', player);
-        const watermark = $('[data-wm]', player);
-        const configuredTotal = Number.parseInt(player.dataset.total, 10);
-        const total = Number.isFinite(configuredTotal) && configuredTotal > 0
-            ? configuredTotal
-            : 3120;
+function initChildSwitcher() {
+    const selector = $('[data-child]');
+    if (!selector) return;
 
-        if (!button || !progress || !seekbar || !timeLabel) {
-            return;
+    selector.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        if (selector.value) {
+            url.searchParams.set('child', selector.value);
+        } else {
+            url.searchParams.delete('child');
         }
-
-        let elapsed = 0;
-        let playbackTimer = null;
-        let watermarkTimer = null;
-        let speed = 1;
-
-        const formatTime = (seconds) => {
-            const safeSeconds = Math.max(0, Math.floor(seconds));
-            const minutes = Math.floor(safeSeconds / 60);
-            const remainder = safeSeconds % 60;
-
-            return [minutes, remainder]
-                .map((value) => value.toLocaleString('fa', { minimumIntegerDigits: 2 }))
-                .join(':');
-        };
-
-        const draw = () => {
-            const percentage = Math.min(100, Math.max(0, (elapsed / total) * 100));
-            progress.style.width = percentage + '%';
-            timeLabel.textContent = formatTime(elapsed) + ' / ' + formatTime(total);
-            seekbar.setAttribute('aria-valuenow', String(Math.floor(elapsed)));
-        };
-
-        const stop = () => {
-            if (playbackTimer !== null) {
-                window.clearInterval(playbackTimer);
-                playbackTimer = null;
-            }
-
-            button.textContent = '▶';
-            button.setAttribute('aria-pressed', 'false');
-        };
-
-        const togglePlayback = () => {
-            if (playbackTimer !== null) {
-                stop();
-                return;
-            }
-
-            if (elapsed >= total) {
-                elapsed = 0;
-                draw();
-            }
-
-            button.textContent = '❚❚';
-            button.setAttribute('aria-pressed', 'true');
-
-            playbackTimer = window.setInterval(() => {
-                elapsed = Math.min(total, elapsed + speed);
-                draw();
-
-                if (elapsed >= total) {
-                    stop();
-                }
-            }, 1000);
-        };
-
-        button.addEventListener('click', togglePlayback);
-
-        seekbar.setAttribute('role', 'slider');
-        seekbar.setAttribute('tabindex', '0');
-        seekbar.setAttribute('aria-label', 'موقعیت پخش');
-        seekbar.setAttribute('aria-valuemin', '0');
-        seekbar.setAttribute('aria-valuemax', String(total));
-
-        const seekTo = (clientX) => {
-            const bounds = seekbar.getBoundingClientRect();
-            if (bounds.width <= 0) {
-                return;
-            }
-
-            const ratio = Math.max(0, Math.min(1, (bounds.right - clientX) / bounds.width));
-            elapsed = ratio * total;
-            draw();
-        };
-
-        seekbar.addEventListener('click', (event) => seekTo(event.clientX));
-        seekbar.addEventListener('keydown', (event) => {
-            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-                return;
-            }
-
-            event.preventDefault();
-            elapsed = Math.max(0, Math.min(total, elapsed + (event.key === 'ArrowLeft' ? 5 : -5)));
-            draw();
-        });
-
-        $('[data-speed]', player)?.addEventListener('change', (event) => {
-            const nextSpeed = Number.parseFloat(event.target.value);
-            if (Number.isFinite(nextSpeed) && nextSpeed > 0) {
-                speed = nextSpeed;
-            }
-        });
-
-        if (watermark && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
-            watermarkTimer = window.setInterval(() => {
-                watermark.style.top = (8 + Math.random() * 78) + '%';
-                watermark.style.insetInlineStart = (4 + Math.random() * 60) + '%';
-            }, 4000);
-        }
-
-        window.addEventListener('pagehide', () => {
-            stop();
-            if (watermarkTimer !== null) {
-                window.clearInterval(watermarkTimer);
-            }
-        }, { once: true });
-
-        draw();
+        window.location.assign(url.toString());
     });
 }
-
 
 function initDashboardNavigation() {
     const links = $('[data-dashboard-nav-target]');
@@ -378,13 +269,13 @@ function initDashboardNavigation() {
 
 function initStudentDashboard() {
     initMobileMenu();
+    initChildSwitcher();
     initDashboardNavigation();
     initThemeToggle();
     initTabs();
     initFileDropzones();
     initCharacterCounters();
     initToasts();
-    initDemoPlayers();
 }
 
 if (document.readyState === 'loading') {

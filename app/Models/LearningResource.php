@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LearningResource extends Model
 {
+    use \App\Models\Concerns\SanitizesRichText;
+
     protected $fillable = ['classroom_id', 'course_id', 'uploaded_by', 'title', 'description', 'kind', 'price', 'is_free', 'visibility', 'file_path', 'status'];
 
     protected function casts(): array

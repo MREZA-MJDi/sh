@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Classroom;
 use App\Models\Course;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -21,9 +22,8 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
-            'external_id' => ['nullable', 'string', 'max:190'],
-            'embed_url' => ['nullable', 'url:https', 'max:2000'],
-            'file' => ['required', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:1048576'],
+            'external_id' => ['nullable', 'required_without:file', 'string', 'max:190'],
+            'file' => ['nullable', 'required_without:external_id', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:1048576'],
             'status' => ['required', Rule::in(['draft', 'waiting_contract'])],
         ];
     }
@@ -37,6 +37,14 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             if (! $course || $course->delivery_type !== 'spotplayer') {
                 $validator->errors()->add('course_id', 'ویدیو باید به یک دوره با روش ارائه SpotPlayer متصل شود.');
                 return;
+            }
+
+            if ($this->filled('classroom_id')
+                && ! Classroom::query()
+                    ->whereKey($this->integer('classroom_id'))
+                    ->where('course_id', $course->id)
+                    ->exists()) {
+                $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
             }
 
             if (! $workspace->isTeacher($this->user())) {
@@ -57,7 +65,8 @@ class StoreSpotPlayerVideoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.required' => 'انتخاب فایل ویدیویی الزامی است.',
+            'external_id.required_without' => 'اگر فایل را بارگذاری نمی‌کنید، شناسه ویدئوی موجود در SpotPlayer الزامی است.',
+            'file.required_without' => 'فایل ویدیو یا شناسه ویدئوی موجود در SpotPlayer را وارد کنید.',
             'file.mimes' => 'فرمت فایل باید MP4، MOV، M4V، WebM یا MKV باشد.',
             'file.max' => 'حجم فایل ویدیو نباید از یک گیگابایت بیشتر باشد.',
         ];

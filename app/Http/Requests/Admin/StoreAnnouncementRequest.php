@@ -13,7 +13,7 @@ class StoreAnnouncementRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:180'],
-            'body' => ['required', 'string', 'max:20000'],
+            'body' => ['required', 'string', 'max:40000'],
             'audience' => ['required', Rule::in(['all', 'students', 'parents', 'teachers'])],
             'status' => ['required', Rule::in(['draft', 'published'])],
         ];

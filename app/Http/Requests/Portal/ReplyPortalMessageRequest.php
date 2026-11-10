@@ -14,7 +14,7 @@ final class ReplyPortalMessageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => ['required', 'string', 'max:10000'],
+            'body' => ['required', 'string', 'max:30000'],
         ];
     }
 }

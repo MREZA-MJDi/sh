@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ExamQuestionController;
 use App\Http\Controllers\Admin\ExamAttemptReviewController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
+use App\Http\Controllers\Admin\LookupController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
@@ -59,6 +60,7 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
+    Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage', 'throttle:60,1'])->name('lookups.students');
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage,students.view.assigned')->name('students.index');
     Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.store');
     Route::get('/teachers', [UserController::class, 'index'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.index');

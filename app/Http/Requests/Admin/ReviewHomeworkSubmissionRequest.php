@@ -12,7 +12,7 @@ class ReviewHomeworkSubmissionRequest extends FormRequest
     {
         return [
             'score' => ['nullable', 'numeric', 'min:0', 'max:20'],
-            'feedback' => ['required', 'string', 'max:10000'],
+            'feedback' => ['required', 'string', 'max:30000'],
         ];
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ClassroomMembershipHistory extends Model
 {
+    protected $table = 'classroom_membership_history';
     protected $fillable = [
         'classroom_id', 'student_id', 'assigned_by', 'removed_by', 'joined_at', 'left_at',
     ];

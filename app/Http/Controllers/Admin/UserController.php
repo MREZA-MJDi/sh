@@ -52,15 +52,23 @@ class UserController extends Controller
             })
             ->latest()->paginate(15)->withQueryString();
 
-        $students = collect();
         $classrooms = collect();
+        $selectedChildren = collect();
 
         // Only prepare the selector data required by the active user form.
         // This avoids loading the full student roster on teacher pages or the
         // classroom list on parent/teacher pages.
         if ($role === 'parent') {
-            $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
-                ->orderBy('name')->get(['id', 'name']);
+            $previousChildIds = array_slice((array) session()->get('_old_input.child_ids', []), 0, 30);
+
+            if ($previousChildIds !== []) {
+                $selectedChildren = User::query()
+                    ->whereIn('id', $previousChildIds)
+                    ->where('is_active', true)
+                    ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                    ->orderBy('name')
+                    ->get(['id', 'name']);
+            }
         }
 
         if ($role === 'student') {
@@ -79,7 +87,7 @@ class UserController extends Controller
             : collect();
 
         return view('admin.users.index', compact(
-            'users', 'role', 'students', 'classrooms', 'courses',
+            'users', 'role', 'classrooms', 'courses', 'selectedChildren',
             'teacherAccessGroups', 'teacherSelectedGroups'
         ));
     }
