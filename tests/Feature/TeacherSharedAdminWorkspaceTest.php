@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\Exam;
+use App\Models\Homework;
+use App\Models\HomeworkSubmission;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -112,4 +115,189 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
 
         $this->assertDatabaseMissing('classrooms', ['name' => 'کلاس غیرمجاز']);
     }
+
+    public function test_admin_assigns_teacher_navigation_permissions_and_courses_in_the_create_drawer(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره قابل تخصیص',
+            'slug' => 'teacher-permission-assignment-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'skyroom',
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.teachers.index'))
+            ->assertOk()
+            ->assertSee('ساخت مدرس')
+            ->assertSee('دسترسی‌ها')
+            ->assertSee('مدیریت کلاس و کلاس آنلاین اسکای‌روم')
+            ->assertSee('ساخت و مدیریت آزمون‌ها');
+
+        $this->actingAs($admin)
+            ->post(route('admin.teachers.store'), [
+                'name' => 'مدرس دسترسی‌دار',
+                'phone' => '09120000077',
+                'subject' => 'ریاضی',
+                'status' => 'active',
+                'password' => 'StrongTeacherPassword!2026',
+                'password_confirmation' => 'StrongTeacherPassword!2026',
+                'course_ids' => [$course->id],
+                'teacher_access' => ['classes', 'exams', 'materials_homework'],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $teacher = User::query()->where('phone', '09120000077')->firstOrFail();
+
+        $this->assertTrue($teacher->permissions_customized);
+        $this->assertTrue($teacher->hasPermissionTo('classes.manage.assigned'));
+        $this->assertTrue($teacher->hasPermissionTo('exams.manage.assigned'));
+        $this->assertTrue($teacher->hasPermissionTo('homework.manage.assigned'));
+        $this->assertFalse($teacher->hasPermissionTo('attendance.manage.assigned'));
+        $this->assertFalse($teacher->hasPermissionTo('integrations.manage'));
+        $this->assertSame($teacher->id, $course->refresh()->teacher_id);
+    }
+
+    public function test_teacher_can_create_internal_exam_only_for_an_assigned_class_or_course(): void
+    {
+        $teacher = $this->teacherWithPermissions(['exams.manage.assigned']);
+        $course = $this->courseFor($teacher, 'teacher-exam-course');
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس آزمون مدرس',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('admin.exams.index'))
+            ->assertOk()
+            ->assertSee('آزمون‌ها')
+            ->assertSee('آزمون جدید');
+
+        $this->actingAs($teacher)
+            ->post(route('admin.exams.store'), [
+                'title' => 'آزمون داخلی مدرس',
+                'classroom_id' => $classroom->id,
+                'course_id' => $course->id,
+                'provider' => 'internal',
+                'starts_at' => now()->addDay()->format('Y-m-d H:i:s'),
+                'duration_hours' => 2,
+                'show_to_guardians' => 1,
+                'status' => 'published',
+                'description' => 'آزمون دوره خود مدرس',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $exam = Exam::query()->where('title', 'آزمون داخلی مدرس')->firstOrFail();
+        $this->assertSame(120, $exam->duration_minutes);
+        $this->assertTrue($exam->show_to_guardians);
+        $this->assertSame($teacher->id, $exam->classroom->teacher_id);
+
+        $otherTeacher = User::factory()->create();
+        $otherCourse = $this->courseFor($otherTeacher, 'teacher-exam-other-course');
+        $otherClassroom = Classroom::query()->create([
+            'course_id' => $otherCourse->id,
+            'teacher_id' => $otherTeacher->id,
+            'name' => 'کلاس مدرس دیگر',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($teacher)
+            ->from(route('admin.exams.index'))
+            ->post(route('admin.exams.store'), [
+                'title' => 'آزمون غیرمجاز',
+                'classroom_id' => $otherClassroom->id,
+                'course_id' => $otherCourse->id,
+                'provider' => 'internal',
+                'duration_hours' => 1,
+                'show_to_guardians' => 0,
+                'status' => 'draft',
+            ])
+            ->assertSessionHasErrors('classroom_id');
+
+        $this->assertDatabaseMissing('exams', ['title' => 'آزمون غیرمجاز']);
+    }
+
+    public function test_teacher_can_create_and_grade_homework_only_inside_assigned_classes(): void
+    {
+        $teacher = $this->teacherWithPermissions(['homework.manage.assigned', 'homework.grade']);
+        $course = $this->courseFor($teacher, 'teacher-homework-course');
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس تکلیف مدرس',
+            'status' => 'active',
+        ]);
+
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $classroom->students()->attach($student->id);
+
+        $this->actingAs($teacher)
+            ->post(route('admin.homework.store'), [
+                'classroom_id' => $classroom->id,
+                'title' => 'تکلیف قابل بررسی',
+                'instructions' => 'حل تمرین‌های فصل اول',
+                'due_at' => now()->addDays(2)->toDateTimeString(),
+                'status' => 'published',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $homework = Homework::query()->where('title', 'تکلیف قابل بررسی')->firstOrFail();
+        $submission = HomeworkSubmission::query()->create([
+            'homework_id' => $homework->id,
+            'student_id' => $student->id,
+            'answer' => 'پاسخ دانش‌آموز',
+            'status' => 'submitted',
+            'submitted_at' => now(),
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('admin.homework.review', $submission), [
+                'score' => 18,
+                'feedback' => 'پاسخ درست است؛ چند مرحله را کامل‌تر بنویس.',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('homework_submissions', [
+            'id' => $submission->id,
+            'status' => 'reviewed',
+            'score' => 18,
+            'reviewed_by' => $teacher->id,
+        ]);
+
+        $otherTeacher = User::factory()->create();
+        $otherCourse = $this->courseFor($otherTeacher, 'teacher-homework-other-course');
+        $otherClassroom = Classroom::query()->create([
+            'course_id' => $otherCourse->id,
+            'teacher_id' => $otherTeacher->id,
+            'name' => 'کلاس تکلیف مدرس دیگر',
+            'status' => 'active',
+        ]);
+        $otherHomework = Homework::query()->create([
+            'classroom_id' => $otherClassroom->id,
+            'title' => 'تکلیف محرمانه کلاس دیگر',
+            'status' => 'published',
+        ]);
+        $otherSubmission = HomeworkSubmission::query()->create([
+            'homework_id' => $otherHomework->id,
+            'student_id' => $student->id,
+            'answer' => 'پاسخ محرمانه',
+            'status' => 'submitted',
+            'submitted_at' => now(),
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('admin.homework.review', $otherSubmission), [
+                'score' => 19,
+                'feedback' => 'تلاش خوب',
+            ])
+            ->assertForbidden();
+    }
+
 }

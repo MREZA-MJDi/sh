@@ -6,6 +6,16 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 class UpdateExamRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $hours = filter_var($this->input('duration_hours'), FILTER_VALIDATE_INT);
+
+        $this->merge([
+            'duration_minutes' => $hours === false ? null : $hours * 60,
+            'show_to_guardians' => $this->boolean('show_to_guardians'),
+        ]);
+    }
+
     public function authorize(): bool { return $this->user()?->hasAnyPermission(['exams.manage', 'exams.manage.assigned']) ?? false; }
     public function rules(): array
     {
@@ -18,6 +28,9 @@ class UpdateExamRequest extends FormRequest
             'provider' => ['required', Rule::in(['internal', 'quiz24'])],
             'external_id' => ['nullable', 'string', 'max:190', 'prohibited_unless:provider,quiz24', Rule::unique('exams', 'external_id')->where('provider', 'quiz24')->ignore($exam?->id)],
             'starts_at' => ['nullable', 'date'],
+            'duration_hours' => ['required', 'integer', 'between:1,4'],
+            'duration_minutes' => ['required', 'integer', 'between:60,240'],
+            'show_to_guardians' => ['required', 'boolean'],
             'status' => ['required', Rule::in(['draft', 'scheduled', 'published', 'closed'])],
         ];
     }
