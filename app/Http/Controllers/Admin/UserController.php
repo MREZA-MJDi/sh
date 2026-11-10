@@ -22,9 +22,16 @@ class UserController extends Controller
     {
         abort_unless(in_array($role, self::MANAGED_ROLES, true), 404);
 
+        $teacherView = $request->user()->hasRole('teacher') && ! $request->user()->hasRole('admin');
+        abort_if($teacherView && $role !== 'student', 403);
+
         $users = User::query()
             ->with('roles')
             ->whereHas('roles', fn ($roles) => $roles->where('name', $role))
+            ->when($teacherView, fn ($query) => $query->whereHas(
+                'enrolledClasses',
+                fn ($classes) => $classes->where('teacher_id', $request->user()->id)
+            ))
             ->when($request->filled('q'), function ($query) use ($request) {
                 $term = trim($request->string('q')->toString());
                 $query->where(fn ($search) => $search
@@ -36,7 +43,9 @@ class UserController extends Controller
 
         $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
             ->orderBy('name')->get(['id', 'name']);
-        $classrooms = Classroom::where('status', 'active')->orderBy('name')->get(['id', 'name']);
+        $classrooms = Classroom::where('status', 'active')
+            ->when($teacherView, fn ($query) => $query->where('teacher_id', $request->user()->id))
+            ->orderBy('name')->get(['id', 'name']);
 
         return view('admin.users.index', compact('users', 'role', 'students', 'classrooms'));
     }

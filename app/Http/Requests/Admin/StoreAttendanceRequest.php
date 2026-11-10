@@ -9,7 +9,7 @@ use Illuminate\Validation\Validator;
 
 class StoreAttendanceRequest extends FormRequest
 {
-    public function authorize(): bool { return $this->user()?->hasPermissionTo('attendance.manage.all') ?? false; }
+    public function authorize(): bool { return $this->user()?->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned']) ?? false; }
 
     public function rules(): array
     {
@@ -27,6 +27,12 @@ class StoreAttendanceRequest extends FormRequest
         return [function (Validator $validator): void {
             $classroom = Classroom::with('students')->find($this->integer('classroom_id'));
             if (! $classroom) return;
+
+            if ($this->user()?->hasRole('teacher') && ! $this->user()?->hasRole('admin')
+                && $classroom->teacher_id !== $this->user()->id) {
+                $validator->errors()->add('classroom_id', 'این کلاس در فهرست کلاس‌های شما نیست.');
+                return;
+            }
 
             $allowed = $classroom->students->modelKeys();
             foreach (array_keys((array) $this->input('attendance', [])) as $studentId) {

@@ -15,8 +15,10 @@ class CourseController extends Controller
 {
     public function index(): View
     {
+        $teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin');
         $courses = Course::with('teacher')
             ->withCount(['classrooms', 'enrollments'])
+            ->when($teacherView, fn ($query) => $query->where('teacher_id', auth()->id()))
             ->latest()->paginate(12);
 
         $teachers = User::whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
@@ -28,7 +30,6 @@ class CourseController extends Controller
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
     {
         $course = $courses->create($request->validated());
-
         $message = $course->delivery_type === 'spotplayer'
             ? 'دوره در شیخان ایجاد شد؛ اتصال به SpotPlayer در انتظار قرارداد وب‌سرویس است.'
             : 'دوره با موفقیت ایجاد شد.';
@@ -38,8 +39,9 @@ class CourseController extends Controller
 
     public function update(UpdateCourseRequest $request, Course $course, CourseService $courses): RedirectResponse
     {
-        $course = $courses->update($course, $request->validated());
+        abort_unless(auth()->user()->hasRole('admin') || $course->teacher_id === auth()->id(), 403);
 
+        $course = $courses->update($course, $request->validated());
         $message = $course->delivery_type === 'spotplayer'
             ? 'اطلاعات دوره ذخیره شد؛ شناسه خارجی تا زمان تأیید API معتبر تلقی نمی‌شود.'
             : 'دوره به‌روزرسانی شد.';
