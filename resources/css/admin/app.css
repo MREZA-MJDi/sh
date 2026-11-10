@@ -367,3 +367,53 @@ body.admin-body .admin-quick-action-icon {
         display:none;
     }
 }
+
+
+/* Remote lookup: bounded result lists with explicit user-triggered search. */
+body.admin-body .panel-remote-lookup { display:grid; gap:8px; }
+body.admin-body .panel-lookup-results {
+    display:grid;
+    gap:4px;
+    max-height:220px;
+    overflow:auto;
+    overscroll-behavior:contain;
+}
+body.admin-body .panel-lookup-option {
+    display:flex;
+    width:100%;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:9px 11px;
+    border:1px solid var(--adm-line);
+    border-radius:9px;
+    color:var(--adm-ink);
+    background:var(--adm-card);
+    text-align:right;
+    cursor:pointer;
+}
+body.admin-body .panel-lookup-option:hover,
+body.admin-body .panel-lookup-option:focus-visible {
+    border-color:var(--adm-primary);
+    background:var(--adm-primary-soft);
+}
+body.admin-body .panel-lookup-option small { color:var(--adm-muted); direction:ltr; }
+body.admin-body .panel-lookup-selected { display:flex; flex-wrap:wrap; gap:6px; }
+body.admin-body .panel-lookup-chip {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:5px 9px;
+    border:1px solid var(--adm-line);
+    border-radius:999px;
+    background:var(--adm-primary-soft);
+    font-size:12px;
+}
+body.admin-body .panel-lookup-chip button {
+    border:0;
+    color:var(--adm-danger);
+    background:transparent;
+    font-size:17px;
+    line-height:1;
+    cursor:pointer;
+}
