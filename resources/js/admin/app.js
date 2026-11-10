@@ -50,6 +50,22 @@ document.addEventListener('click', (event) => {
         });
     }
 });
+document.addEventListener('change', (event) => {
+    const select = event.target;
+
+    if (!(select instanceof HTMLSelectElement) || !select.matches('[data-reset-spotplayer-id]')) {
+        return;
+    }
+
+    if (select.value !== 'spotplayer') {
+        const courseIdInput = select.form?.querySelector('[name="spotplayer_course_id"]');
+
+        if (courseIdInput instanceof HTMLInputElement) {
+            courseIdInput.value = '';
+        }
+    }
+});
+
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         closeDrawer();
