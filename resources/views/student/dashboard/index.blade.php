@@ -3,6 +3,17 @@
 @section('title', 'مرکز یادگیری')
 
 @section('content')
+    @php
+        $faNumber = static function ($value, int $precision = 0): string {
+            $formatted = number_format((float) $value, $precision, '٫', '٬');
+
+            return strtr($formatted, [
+                '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
+                '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹',
+            ]);
+        };
+    @endphp
+
     <section class="hero" id="overview" aria-labelledby="student-welcome-title">
         <svg class="av" viewBox="0 0 120 120" aria-hidden="true">
             <use href="#avatar"></use>
@@ -10,9 +21,12 @@
         <div class="txt">
             <h2 id="student-welcome-title">سلام، {{ auth()->user()->name }}!</h2>
             <p>
-                نمای یکپارچه‌ی کلاس‌ها، تکالیف، حضور و نتایج آموزشی ثبت‌شده‌ی شما.
+                {{ $faNumber($classroom_count) }} کلاس فعال و
+                {{ $faNumber($pending_homework_count) }} تکلیف باز در کارتابل شما ثبت شده است.
             </p>
-            <a class="btn" href="#classes">مشاهده‌ی کلاس‌های من</a>
+            @can('classes.view.enrolled')
+                <a class="btn" href="#classes">مشاهده‌ی کلاس‌های من</a>
+            @endcan
             @can('homework.view.own')
                 <a class="btn g" href="#homework">پیگیری تکالیف</a>
             @endcan
@@ -24,7 +38,7 @@
             tone="s1"
             icon="book"
             label="کلاس‌های فعال"
-            :value="number_format($classroom_count, 0, '.', '،')"
+            :value="$faNumber($classroom_count)"
             hint="کلاس‌های ثبت‌شده برای شما"
             href="#classes"
         />
@@ -32,7 +46,7 @@
             tone="s2"
             icon="task"
             label="تکالیف باز"
-            :value="number_format($pending_homework_count, 0, '.', '،')"
+            :value="$faNumber($pending_homework_count)"
             hint="تکالیف بدون پاسخ ثبت‌شده"
             href="#homework"
         />
@@ -40,16 +54,16 @@
             tone="s3"
             icon="cal"
             label="نرخ حضور"
-            :value="$attendance_rate === null ? '—' : number_format($attendance_rate, 0, '.', '،').'٪'"
-            :hint="number_format($attendance_count, 0, '.', '،').' جلسه‌ی ثبت‌شده'"
+            :value="$attendance_rate === null ? '—' : $faNumber($attendance_rate).'٪'"
+            :hint="$faNumber($attendance_count).' جلسه‌ی ثبت‌شده'"
             href="#attendance"
         />
         <x-stat
             tone="s4"
             icon="chart"
-            label="نتایج ثبت‌شده"
-            :value="number_format($results->count(), 0, '.', '،')"
-            hint="نتایج قابل مشاهده‌ی شما"
+            label="نتایج اخیر"
+            :value="$faNumber($results->count())"
+            hint="آخرین نمرات ثبت‌شده"
             href="#results"
         />
     </section>
@@ -58,7 +72,7 @@
         <section class="card" id="classes" aria-labelledby="student-classes-title">
             <div class="chead">
                 <h2 id="student-classes-title">کلاس‌های من</h2>
-                <span class="pill">{{ number_format($classroom_count, 0, '.', '،') }} کلاس</span>
+                <span class="pill">{{ $faNumber($classroom_count) }} کلاس</span>
             </div>
 
             @if($classrooms->isNotEmpty())
@@ -88,7 +102,7 @@
         <section class="card" id="homework" aria-labelledby="student-homework-title">
             <div class="chead">
                 <h2 id="student-homework-title">تکالیف اخیر</h2>
-                <span class="pill">{{ number_format($pending_homework_count, 0, '.', '،') }} تکلیف باز</span>
+                <span class="pill">{{ $faNumber($pending_homework_count) }} تکلیف باز</span>
             </div>
 
             <div class="tw">
@@ -131,7 +145,7 @@
             <div class="chead">
                 <h2 id="student-attendance-title">آخرین وضعیت حضور و غیاب</h2>
                 <span class="pill">
-                    {{ $attendance_rate === null ? 'بدون داده' : number_format($attendance_rate, 0, '.', '،').'٪ حضور' }}
+                    {{ $attendance_rate === null ? 'بدون داده' : $faNumber($attendance_rate).'٪ حضور' }}
                 </span>
             </div>
 
@@ -174,7 +188,7 @@
         <section class="card" id="results" aria-labelledby="student-results-title">
             <div class="chead">
                 <h2 id="student-results-title">نتایج آزمون‌ها</h2>
-                <span class="pill">{{ number_format($results->count(), 0, '.', '،') }} نتیجه</span>
+                <span class="pill">{{ $faNumber($results->count()) }} نتیجه‌ی اخیر</span>
             </div>
 
             <div class="tw">
@@ -195,7 +209,7 @@
                                 <td>
                                     {{ $result->score === null
                                         ? 'در انتظار نمره'
-                                        : number_format((float) $result->score, 2).' / '.number_format((float) $result->max_score, 2) }}
+                                        : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}
                                 </td>
                                 <td>{{ $result->synced_at?->translatedFormat('Y/m/d') ?? $result->created_at?->translatedFormat('Y/m/d') ?? '—' }}</td>
                             </tr>
@@ -214,7 +228,7 @@
         <section class="card" id="resources" aria-labelledby="student-resources-title">
             <div class="chead">
                 <h2 id="student-resources-title">جزوه‌ها و منابع آموزشی</h2>
-                <span class="pill">{{ number_format($resource_count, 0, '.', '،') }} منبع</span>
+                <span class="pill">{{ $faNumber($resource_count) }} منبع</span>
             </div>
 
             @if($resources->isNotEmpty())
@@ -225,7 +239,7 @@
                             <h3>{{ $resource->title }}</h3>
                             <p>{{ $resource->kind }}</p>
                             <span class="mu">
-                                {{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}
+                                {{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}
                             </span>
                         </article>
                     @endforeach
@@ -240,7 +254,7 @@
         <section class="card" id="announcements" aria-labelledby="student-announcements-title">
             <div class="chead">
                 <h2 id="student-announcements-title">اطلاعیه‌های آکادمی</h2>
-                <span class="pill">{{ number_format($announcements->count(), 0, '.', '،') }} اطلاعیه</span>
+                <span class="pill">{{ $faNumber($announcements->count()) }} اطلاعیه‌ی اخیر</span>
             </div>
 
             @forelse($announcements as $announcement)
