@@ -39,7 +39,8 @@
         @if($hasPerformanceItems)
             <h6>عملکرد آموزشی</h6>
             @can('exams.view.own')
-                <a href="{{ $dashboardAnchor('results') }}" data-nav-link data-dashboard-nav-target="results"><x-icon name="exam"/> نتایج آزمون‌ها</a>
+                <a href="{{ route('student.exams.index') }}" data-nav-link><x-icon name="exam"/> آزمون‌های من</a>
+                <a href="{{ $dashboardAnchor('results') }}" data-nav-link data-dashboard-nav-target="results"><x-icon name="chart"/> نتایج آزمون‌ها</a>
             @endcan
             @can('attendance.view.own')
                 <a href="{{ $dashboardAnchor('attendance') }}" data-nav-link data-dashboard-nav-target="attendance"><x-icon name="cal"/> حضور و غیاب</a>
