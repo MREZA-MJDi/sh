@@ -42,17 +42,22 @@
                 @if ($role === 'student')
                     <div class="panel-field">
                         <label for="grade">پایه تحصیلی</label>
-                        <select class="panel-select" id="grade" name="grade">
+                        <select class="panel-select" id="grade" name="grade" required>
                             <option value="">انتخاب پایه</option>
                             @foreach (['دهم', 'یازدهم', 'دوازدهم', 'فارغ‌التحصیل'] as $grade)
                                 <option value="{{ $grade }}" @selected(old('grade') === $grade)>{{ $grade }}</option>
                             @endforeach
                         </select>
                     </div>
+                    <div class="panel-field">
+                        <label for="external_student_id">شناسه پایدار دانش‌آموز در Quiz24 (در صورت وجود)</label>
+                        <input class="panel-input" id="external_student_id" name="external_student_id" value="{{ old('external_student_id') }}" maxlength="120" dir="ltr" autocomplete="off">
+                        <p class="panel-muted mt-1">پس از تحویل قرارداد Quiz24 برای تطبیق نتایج و ورود یکپارچه استفاده می‌شود.</p>
+                    </div>
                 @elseif ($role === 'teacher')
                     <div class="panel-field">
                         <label for="subject">درس تخصصی</label>
-                        <input class="panel-input" id="subject" name="subject" value="{{ old('subject') }}" maxlength="100">
+                        <input class="panel-input" id="subject" name="subject" value="{{ old('subject') }}" maxlength="100" required>
                     </div>
                 @endif
             </div>
@@ -102,7 +107,12 @@
                     <tr>
                         <td><strong>{{ $user->name }}</strong><div class="panel-muted">شناسه: {{ $user->id }}</div></td>
                         <td><div>{{ $user->email }}</div><div class="panel-muted" dir="ltr">{{ $user->phone ?: '—' }}</div></td>
-                        <td>{{ $role === 'student' ? ($user->grade ?: '—') : ($role === 'teacher' ? ($user->subject ?: '—') : $user->children()->count().' فرزند متصل') }}</td>
+                        <td>
+                            {{ $role === 'student' ? ($user->grade ?: '—') : ($role === 'teacher' ? ($user->subject ?: '—') : $user->children()->count().' فرزند متصل') }}
+                            @if ($role === 'student' && $user->external_student_id)
+                                <div class="panel-muted" dir="ltr">Quiz24: {{ $user->external_student_id }}</div>
+                            @endif
+                        </td>
                         <td>
                             @if ($user->is_active)
                                 <span class="panel-badge panel-badge-success">فعال</span>

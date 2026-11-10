@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\DB;
 class Quiz24ResultImporter
 {
     /**
-     * Imports only normalized provider DTOs. Provider-specific payload mapping
-     * belongs in the future Quiz24Gateway adapter.
-     *
      * @param iterable<Quiz24ResultData> $results
      * @return array{matched:int,unmatched:int,invalid:int}
      */
@@ -51,9 +48,13 @@ class Quiz24ResultImporter
                     : User::query()
                         ->where('is_active', true)
                         ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
-                        ->where(fn ($query) => $query
-                            ->where('external_student_id', $identifier)
-                            ->orWhere('phone', $identifier))
+                        ->where(function ($query) use ($identifier) {
+                            $phoneIdentifier = $this->normalizePhone($identifier);
+
+                            $query->where('external_student_id', $identifier)
+                                ->orWhere('phone', $phoneIdentifier)
+                                ->orWhere('phone', $identifier);
+                        })
                         ->first();
 
                 $source = [
@@ -154,6 +155,12 @@ class Quiz24ResultImporter
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        return preg_replace('/[\\s\\-]/u', '', $identifier) ?? $identifier;
+        // Preserve meaningful provider ID characters such as hyphens.
+        return preg_replace('/\\s+/u', '', $identifier) ?? $identifier;
+    }
+
+    private function normalizePhone(string $phone): string
+    {
+        return preg_replace('/[\\s\\-()]+/u', '', $phone) ?? $phone;
     }
 }
