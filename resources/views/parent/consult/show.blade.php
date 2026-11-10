@@ -7,6 +7,7 @@
 
     @php
         $typeLabels = ['ticket' => 'تیکت و پیام‌رسانی', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'];
+        $consultationStatus = ['approved' => 'scheduled', 'completed' => 'done'][$consultation->status] ?? $consultation->status;
         $statusLabels = ['pending' => 'در انتظار بررسی', 'scheduled' => 'هماهنگ‌شده', 'done' => 'انجام‌شده', 'cancelled' => 'لغوشده'];
     @endphp
 
@@ -14,11 +15,11 @@
         <div class="stack">
             <x-card title="جزئیات درخواست">
                 <x-slot:actions>
-                    @if($consultation->status === 'pending')
+                    @if($consultationStatus === 'pending')
                         <x-tag tone="w">در انتظار بررسی</x-tag>
-                    @elseif($consultation->status === 'scheduled')
+                    @elseif($consultationStatus === 'scheduled')
                         <x-tag>هماهنگ‌شده</x-tag>
-                    @elseif($consultation->status === 'done')
+                    @elseif($consultationStatus === 'done')
                         <x-tag tone="d">انجام‌شده</x-tag>
                     @else
                         <x-tag tone="r">لغوشده</x-tag>
@@ -36,7 +37,7 @@
                     <p class="article" style="margin-top:14px">{{ $consultation->notes }}</p>
                 @endif
 
-                @if($consultation->status === 'pending')
+                @if($consultationStatus === 'pending')
                     <form method="POST" action="{{ route('guardian.consultations.destroy', $consultation) }}" class="frm" onsubmit="return confirm('درخواست مشاوره حذف شود؟')">
                         @csrf
                         @method('DELETE')
@@ -57,7 +58,7 @@
                     @endforelse
                 </div>
 
-                @if(! in_array($consultation->status, ['done', 'cancelled'], true))
+                @if(! in_array($consultationStatus, ['done', 'cancelled'], true))
                     <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}">
                         @csrf
                         <div class="frm" style="align-items:flex-start">
