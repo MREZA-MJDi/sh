@@ -18,7 +18,7 @@ final class CourseProgressService
      *
      * @return Collection<int, object>
      */
-    public function forStudent(User $student, $courseIds): Collection
+    public function forStudent(User $student, $courseIds, ?int $limit = null): Collection
     {
         return DB::table('courses')
             ->leftJoin('course_sections', function ($join): void {
@@ -33,10 +33,11 @@ final class CourseProgressService
                 $join->on('lesson_progress.lesson_id', '=', 'lessons.id')
                     ->where('lesson_progress.student_id', '=', $student->id);
             })
-            ->whereIn('courses.id', clone $courseIds)
+            ->whereIn('courses.id', $courseIds instanceof \\Illuminate\\Database\\Eloquent\\Builder ? clone $courseIds : $courseIds)
             ->where('courses.status', 'published')
             ->groupBy('courses.id', 'courses.title', 'courses.slug')
             ->orderBy('courses.title')
+            ->when($limit !== null, fn ($query) => $query->limit(max(1, $limit)))
             ->select([
                 'courses.id',
                 'courses.title',
