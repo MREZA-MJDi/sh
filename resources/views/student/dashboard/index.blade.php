@@ -5,7 +5,7 @@
 @section('content')
     @php
         $faNumber = static fn ($value, int $precision = 0): string =>
-            \\App\\Support\\PersianDate::toPersianDigits(number_format((float) $value, $precision, '٫', '٬'));
+            \App\Support\PersianDate::toPersianDigits(number_format((float) $value, $precision, '٫', '٬'));
 
         $firstPendingHomework = $homeworks->first(
             fn ($homework) => $homework->submissions->isEmpty()
@@ -97,10 +97,10 @@
                             <div class="student-announcement__copy">
                                 <h3>{{ $announcement->title }}</h3>
                                 @if (filled($announcement->body))
-                                    <p>{{ \\Illuminate\\Support\\Str::limit(strip_tags((string) $announcement->body), 150) }}</p>
+                                    <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 150) }}</p>
                                 @endif
                                 <time datetime="{{ $announcement->published_at?->toIso8601String() }}">
-                                    {{ \\App\\Support\\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') }}
+                                    {{ \App\Support\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') }}
                                 </time>
                             </div>
                         </article>
@@ -182,12 +182,12 @@
                                 @endif
                             </div>
                             @if (filled($homework->instructions))
-                                <p class="student-homework-item__description">{{ \\Illuminate\\Support\\Str::limit(strip_tags((string) $homework->instructions), 170) }}</p>
+                                <p class="student-homework-item__description">{{ \Illuminate\Support\Str::limit(strip_tags((string) $homework->instructions), 170) }}</p>
                             @endif
                             <div class="student-homework-item__footer">
                                 <span class="mu">
                                     مهلت:
-                                    {{ $homework->due_at ? \\App\\Support\\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}
+                                    {{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}
                                 </span>
                                 @if ($submission?->status === 'graded' && $submission->score !== null)
                                     <strong class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</strong>
@@ -268,7 +268,7 @@
                             @forelse ($attendance as $record)
                                 <tr>
                                     <td>{{ $record->classroom?->name ?? '—' }}</td>
-                                    <td>{{ \\App\\Support\\PersianDate::format($record->session_date, 'l، d F Y') }}</td>
+                                    <td>{{ \App\Support\PersianDate::format($record->session_date, 'l، d F Y') }}</td>
                                     <td>
                                         @if ($record->status === 'present')<span class="tag">حاضر</span>
                                         @elseif ($record->status === 'late')<span class="tag w">با تأخیر</span>
@@ -302,7 +302,7 @@
                                     <td>{{ $result->exam?->title ?? 'آزمون حذف‌شده' }}</td>
                                     <td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td>
                                     <td>{{ $result->score === null ? 'در انتظار نمره' : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}</td>
-                                    <td>{{ \\App\\Support\\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
+                                    <td>{{ \App\Support\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="empty">هنوز نتیجه‌ای برای حساب تو ثبت نشده است.</td></tr>
@@ -352,9 +352,9 @@
             @forelse ($announcements as $announcement)
                 <article class="news">
                     <b>{{ $announcement->title }}</b>
-                    <span class="mu">{{ \\App\\Support\\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') }}</span>
+                    <span class="mu">{{ \App\Support\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') }}</span>
                     @if (filled($announcement->body))
-                        <p>{{ \\Illuminate\\Support\\Str::limit(strip_tags((string) $announcement->body), 180) }}</p>
+                        <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 180) }}</p>
                     @endif
                 </article>
             @empty
@@ -381,7 +381,7 @@
                 @forelse ($notes as $note)
                     <article class="note {{ $note->tone }}">
                         <p>{{ $note->body }}</p>
-                        <span class="mu">{{ \\App\\Support\\PersianDate::format($note->created_at, 'Y/m/d') }}</span>
+                        <span class="mu">{{ \App\Support\PersianDate::format($note->created_at, 'Y/m/d') }}</span>
                         <details>
                             <summary class="btn g s">ویرایش</summary>
                             <form method="POST" action="{{ route('student.notes.update', $note) }}" class="stack">
