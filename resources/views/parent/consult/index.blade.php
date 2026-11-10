@@ -7,11 +7,11 @@
 
     <x-card title="درخواست‌های من">
         <x-slot:actions>
-            <a class="btn s" href="{{ route('parent.consult.create') }}">درخواست جدید</a>
+            <a class="btn s" href="{{ route('guardian.consultations.create') }}">درخواست جدید</a>
         </x-slot:actions>
 
         @forelse($consultations as $consultation)
-            <a class="trk" href="{{ route('parent.consult.show', $consultation) }}">
+            <a class="trk" href="{{ route('guardian.consultations.show', $consultation) }}">
                 <div class="th t-{{ ['a','b','c','d'][$loop->index % 4] }}"><x-icon name="phone"/></div>
                 <div>
                     <b>{{ $consultation->subject ?: 'درخواست مشاوره' }}</b>
