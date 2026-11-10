@@ -22,8 +22,7 @@ class CourseEnrollmentService
 
     /**
      * A course enrollment is unique per student/course, not per classroom.
-     * Reconcile the union of all classroom rosters so moving a classroom does
-     * not accidentally remove access granted by another classroom.
+     * Reconcile the union of all classroom rosters and preserve verified payments.
      */
     public function syncCourseRoster(Course $course): void
     {
@@ -35,28 +34,36 @@ class CourseEnrollmentService
             ->values();
 
         DB::transaction(function () use ($course, $studentIds): void {
+            // Keep payment evidence, but suspend its access while a course is unpublished.
+            CourseEnrollment::query()
+                ->where('course_id', $course->id)
+                ->where('source', 'payment')
+                ->update([
+                    'status' => $course->status === 'published' ? 'active' : 'suspended',
+                ]);
+
             foreach ($studentIds as $studentId) {
                 $enrollment = CourseEnrollment::firstOrNew([
                     'course_id' => $course->id,
                     'student_id' => $studentId,
                 ]);
 
-                // A verified payment grant remains authoritative.
-                if ($course->type === 'paid' && $enrollment->exists &&
-                    $enrollment->source === 'payment' && $enrollment->status === 'active') {
+                if ($enrollment->exists && $enrollment->source === 'payment') {
                     continue;
                 }
 
-                $isFreeAndPublished = $course->type === 'free' && $course->status === 'published';
+                $status = match (true) {
+                    $course->status !== 'published' => 'suspended',
+                    $course->type === 'free' => 'active',
+                    default => 'pending_payment',
+                };
 
                 $enrollment->fill([
                     'source' => 'classroom',
-                    'status' => $isFreeAndPublished
-                        ? 'active'
-                        : ($course->type === 'paid' ? 'pending_payment' : 'pending_publication'),
+                    'status' => $status,
                     'granted_by' => auth()->id(),
                     'source_reference' => 'course:'.$course->id.':classroom-roster',
-                    'granted_at' => $isFreeAndPublished ? ($enrollment->granted_at ?? now()) : null,
+                    'granted_at' => $status === 'active' ? ($enrollment->granted_at ?? now()) : null,
                 ])->save();
             }
 
@@ -103,6 +110,10 @@ class CourseEnrollmentService
 
     public function hasActiveAccess(User $student, Course $course): bool
     {
+        if ($course->status !== 'published') {
+            return false;
+        }
+
         return CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)

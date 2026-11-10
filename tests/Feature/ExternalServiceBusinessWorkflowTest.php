@@ -162,6 +162,23 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
             'status' => 'active',
             'source_reference' => 'PAYMENT-VERIFIED-001',
         ]);
+
+        $course->update(['status' => 'archived']);
+        $enrollmentService->syncCourseRoster($course->refresh());
+
+        $this->assertFalse($enrollmentService->hasActiveAccess($student, $course->refresh()));
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'source' => 'payment',
+            'status' => 'suspended',
+            'source_reference' => 'PAYMENT-VERIFIED-001',
+        ]);
+
+        $course->update(['status' => 'published']);
+        $enrollmentService->syncCourseRoster($course->refresh());
+
+        $this->assertTrue($enrollmentService->hasActiveAccess($student, $course->refresh()));
     }
 
     public function test_quiz24_exam_is_created_locally_and_external_provisioning_is_queued(): void
@@ -296,21 +313,23 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         $this->assertSame('unmatched', $participant->status);
         $this->assertNull($participant->resolved_user_id);
 
-        $importer->resolveManually($participant, $student, $this->admin);
+        $linkedStudent = $this->createUserWithRole('student', ['external_student_id' => 'SH-LINKED-900']);
+        $importer->resolveManually($participant, $linkedStudent, $this->admin);
 
         $this->assertDatabaseHas('quiz24_student_mappings', [
             'provider' => 'quiz24',
             'external_identifier' => 'QUIZ24-UNKNOWN-900',
-            'student_id' => $student->id,
+            'student_id' => $linkedStudent->id,
         ]);
 
         $this->assertDatabaseHas('quiz24_unmatched_participants', [
             'id' => $participant->id,
             'status' => 'matched',
-            'resolved_user_id' => $student->id,
+            'resolved_user_id' => $linkedStudent->id,
         ]);
 
         $this->assertSame(1, ExamResult::where('exam_id', $exam->id)->where('student_id', $student->id)->count());
+        $this->assertSame(1, ExamResult::where('exam_id', $exam->id)->where('student_id', $linkedStudent->id)->count());
     }
 
     public function test_default_provider_gateways_report_contract_missing_and_do_not_send_requests(): void
