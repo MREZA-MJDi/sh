@@ -6,6 +6,7 @@ use App\Models\Exam;
 use App\Models\IntegrationRun;
 use App\Models\Quiz24UnmatchedParticipant;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use App\Services\Integrations\Contracts\IntegrationHealth;
 use App\Services\Integrations\IntegrationException;
 use App\Services\Integrations\IntegrationOperationService;
@@ -19,6 +20,7 @@ class Quiz24Service
         private readonly Quiz24Gateway $gateway,
         private readonly IntegrationOperationService $operations,
         private readonly Quiz24ResultImporter $importer,
+        private readonly CourseEnrollmentService $enrollments,
     ) {}
 
     public function health(): IntegrationHealth
@@ -91,6 +93,23 @@ class Quiz24Service
 
         if (blank($student->external_student_id)) {
             throw new IntegrationException('شناسه پایدار دانش‌آموز برای ورود یکپارچه Quiz24 ثبت نشده است.');
+        }
+
+        if (! $exam->classroom_id && ! $exam->course_id) {
+            throw new IntegrationException('آزمون باید به کلاس یا دوره مشخصی متصل باشد.');
+        }
+
+        if ($exam->classroom_id &&
+            ! $exam->classroom()->whereHas('students', fn ($query) => $query->whereKey($student->id))->exists()) {
+            throw new IntegrationException('دانش‌آموز عضو کلاس مربوط به این آزمون نیست.');
+        }
+
+        if ($exam->course_id) {
+            $course = $exam->course;
+
+            if (! $course || ! $this->enrollments->hasActiveAccess($student, $course)) {
+                throw new IntegrationException('دانش‌آموز برای دوره مرتبط با این آزمون دسترسی فعال ندارد.');
+            }
         }
 
         if (! str_starts_with($returnPath, '/') ||
