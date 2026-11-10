@@ -21,8 +21,7 @@ Route::redirect('/', '/admin');
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AdminLoginController::class, 'create'])->name('admin.login');
     Route::post('/admin/login', [AdminLoginController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('admin.login.store');
+        ->middleware('throttle:6,1')->name('admin.login.store');
 });
 
 Route::middleware(['auth', 'role:admin'])
@@ -32,24 +31,20 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/logout', [AdminLoginController::class, 'destroy'])->name('logout');
 
         Route::get('/', [DashboardController::class, 'index'])
-            ->middleware('permission:dashboard.view')
-            ->name('dashboard');
+            ->middleware('permission:dashboard.view')->name('dashboard');
 
         Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')
             ->middleware('permission:users.manage')->name('students.index');
         Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')
             ->middleware('permission:users.manage')->name('students.store');
-
         Route::get('/teachers', [UserController::class, 'index'])->defaults('role', 'teacher')
             ->middleware('permission:users.manage')->name('teachers.index');
         Route::post('/teachers', [UserController::class, 'store'])->defaults('role', 'teacher')
             ->middleware('permission:users.manage')->name('teachers.store');
-
         Route::get('/parents', [UserController::class, 'index'])->defaults('role', 'parent')
             ->middleware('permission:users.manage')->name('parents.index');
         Route::post('/parents', [UserController::class, 'store'])->defaults('role', 'parent')
             ->middleware('permission:users.manage')->name('parents.store');
-
         Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])
             ->middleware('permission:users.manage')->name('users.status');
 
@@ -124,13 +119,21 @@ Route::middleware(['auth', 'role:admin'])
             ->middleware('permission:integrations.manage')->name('spotplayer.index');
         Route::patch('/spotplayer/settings', [SpotPlayerController::class, 'updateSettings'])
             ->middleware('permission:integrations.manage')->name('spotplayer.settings');
+        Route::post('/spotplayer/sync-courses', [SpotPlayerController::class, 'requestCourseSync'])
+            ->middleware('permission:integrations.manage')->name('spotplayer.sync-courses');
         Route::post('/spotplayer/videos', [SpotPlayerController::class, 'storeVideo'])
             ->middleware('permission:integrations.manage')->name('spotplayer.videos.store');
-        Route::patch('/spotplayer/licenses/{license}', [SpotPlayerController::class, 'updateLicense'])
-            ->middleware('permission:integrations.manage')->name('spotplayer.licenses.update');
+        Route::post('/spotplayer/licenses', [SpotPlayerController::class, 'requestLicense'])
+            ->middleware('permission:integrations.manage')->name('spotplayer.licenses.store');
+        Route::post('/spotplayer/licenses/{license}/revoke', [SpotPlayerController::class, 'requestRevocation'])
+            ->middleware('permission:integrations.manage')->name('spotplayer.licenses.revoke');
 
         Route::get('/quiz24', [Quiz24Controller::class, 'index'])
             ->middleware('permission:integrations.manage')->name('quiz24.index');
         Route::patch('/quiz24/settings', [Quiz24Controller::class, 'updateSettings'])
             ->middleware('permission:integrations.manage')->name('quiz24.settings');
+        Route::post('/quiz24/sync-exams', [Quiz24Controller::class, 'requestExamSync'])
+            ->middleware('permission:integrations.manage')->name('quiz24.sync-exams');
+        Route::post('/quiz24/exams/{exam}/sync-results', [Quiz24Controller::class, 'requestResultsSync'])
+            ->middleware('permission:integrations.manage')->name('quiz24.sync-results');
     });
