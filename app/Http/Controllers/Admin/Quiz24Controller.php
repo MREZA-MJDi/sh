@@ -25,7 +25,8 @@ class Quiz24Controller extends Controller
             ->where('provider', 'quiz24')->latest()->paginate(12);
 
         $unmatched = Quiz24UnmatchedParticipant::with(['exam', 'resolvedUser'])
-            ->where('status', 'unmatched')->latest()->limit(30)->get();
+            ->whereIn('status', ['unmatched', 'conflict'])
+            ->latest()->limit(30)->get();
 
         $operations = IntegrationRun::where('provider', 'quiz24')->latest()->limit(15)->get();
 

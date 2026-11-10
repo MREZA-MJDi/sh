@@ -6,7 +6,7 @@
 @section('content')
     <section class="panel-card mb-4">
         <div class="panel-card-title">
-            <div><h3>وضعیت وب‌سرویس Quiz24</h3><p>ساختار داخلی آماده است اما قرارداد API و دسترسی واقعی هنوز تحویل نشده است.</p></div>
+            <div><h3>وضعیت وب‌سرویس Quiz24</h3><p>هسته داخلی آماده است اما قرارداد API و دسترسی واقعی هنوز تحویل نشده است.</p></div>
             <span class="panel-badge panel-badge-warning">قرارداد API دریافت نشده</span>
         </div>
         <div class="panel-alert panel-alert-error">{{ $health->message }}</div>
@@ -64,13 +64,14 @@
     </section>
 
     <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>نتایج بدون پروفایل متناظر</h3><p>نتیجه تا زمان اتصال دستی به دانش‌آموز، وارد کارنامه نمی‌شود.</p></div><span class="panel-badge panel-badge-warning">{{ $unmatched->count() }} مورد</span></div>
+        <div class="panel-card-title"><div><h3>نتایج بدون پروفایل متناظر</h3><p>نتیجه تا زمان اتصال دستی به دانش‌آموز، وارد کارنامه نمی‌شود. تعارض با نتیجهٔ قبلی هم در همین فهرست نگهداری می‌شود.</p></div><span class="panel-badge panel-badge-warning">{{ $unmatched->count() }} مورد</span></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>آزمون</th><th>شناسه شرکت‌کننده</th><th>نام برگشتی</th><th>نمره</th><th>اتصال به دانش‌آموز</th></tr></thead>
+                <thead><tr><th>وضعیت</th><th>آزمون</th><th>شناسه شرکت‌کننده</th><th>نام برگشتی</th><th>نمره</th><th>اتصال به دانش‌آموز</th></tr></thead>
                 <tbody>
                 @forelse ($unmatched as $participant)
                     <tr>
+                        <td><span class="panel-badge {{ $participant->status === 'conflict' ? 'panel-badge-danger' : 'panel-badge-warning' }}">{{ $participant->status === 'conflict' ? 'تعارض با نتیجه قبلی' : 'بدون پروفایل' }}</span></td>
                         <td>{{ $participant->exam->title ?? 'آزمون حذف‌شده' }}</td>
                         <td dir="ltr">{{ $participant->external_identifier }}</td>
                         <td>{{ $participant->display_name ?: '—' }}</td>
@@ -89,7 +90,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="panel-empty">مغایرتی برای تعیین هویت وجود ندارد.</td></tr>
+                    <tr><td colspan="6" class="panel-empty">مغایرتی برای تعیین هویت وجود ندارد.</td></tr>
                 @endforelse
                 </tbody>
             </table>

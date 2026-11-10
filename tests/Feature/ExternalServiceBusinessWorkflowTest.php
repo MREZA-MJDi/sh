@@ -4,10 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Classroom;
 use App\Models\Course;
-use App\Models\CourseEnrollment;
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\IntegrationRun;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
@@ -118,7 +116,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_paid_course_requires_verified_payment_before_spotplayer_access(): void
+    public function test_paid_course_requires_verified_payment_and_unpublished_courses_suspend_access(): void
     {
         $teacher = $this->createUserWithRole('teacher');
         $student = $this->createUserWithRole('student');

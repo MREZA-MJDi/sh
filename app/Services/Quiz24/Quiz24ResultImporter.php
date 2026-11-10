@@ -15,7 +15,7 @@ class Quiz24ResultImporter
 {
     /**
      * @param iterable<Quiz24ResultData> $results
-     * @return array{matched:int,unmatched:int,invalid:int}
+     * @return array{matched:int,unmatched:int,conflicts:int,invalid:int}
      */
     public function import(Exam $exam, iterable $results): array
     {
@@ -23,7 +23,7 @@ class Quiz24ResultImporter
             throw new IntegrationException('آزمون به شناسه معتبر Quiz24 متصل نیست.');
         }
 
-        $summary = ['matched' => 0, 'unmatched' => 0, 'invalid' => 0];
+        $summary = ['matched' => 0, 'unmatched' => 0, 'conflicts' => 0, 'invalid' => 0];
 
         DB::transaction(function () use ($exam, $results, &$summary): void {
             foreach ($results as $result) {
@@ -64,19 +64,22 @@ class Quiz24ResultImporter
                 ];
 
                 if (! $student) {
-                    Quiz24UnmatchedParticipant::updateOrCreate(
-                        ['exam_id' => $exam->id, 'external_identifier' => $identifier],
-                        [
-                            'display_name' => $result->studentName,
-                            'score' => $result->score,
-                            'max_score' => $result->maxScore,
-                            'status' => 'unmatched',
-                            'source_data' => $source,
-                            'first_seen_at' => now(),
-                        ]
-                    );
-
+                    $this->storeUnmatched($exam, $result, $identifier, 'unmatched', $source);
                     $summary['unmatched']++;
+                    continue;
+                }
+
+                $existingResult = ExamResult::query()
+                    ->where('exam_id', $exam->id)
+                    ->where('student_id', $student->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $existingIdentifier = data_get($existingResult?->source_data ?? [], 'external_student_identifier');
+
+                if ($existingResult && $existingIdentifier !== $identifier) {
+                    $this->storeUnmatched($exam, $result, $identifier, 'conflict', $source);
+                    $summary['conflicts']++;
                     continue;
                 }
 
@@ -108,12 +111,34 @@ class Quiz24ResultImporter
             throw new IntegrationException('فقط دانش‌آموز فعال قابل اتصال به نتیجه آزمون است.');
         }
 
-        if ($participant->status !== 'unmatched') {
+        if (! in_array($participant->status, ['unmatched', 'conflict'], true)) {
             throw new IntegrationException('این شرکت‌کننده قبلاً تعیین تکلیف شده است.');
         }
 
         DB::transaction(function () use ($participant, $student, $resolvedBy): void {
             $participant = Quiz24UnmatchedParticipant::query()->lockForUpdate()->findOrFail($participant->id);
+
+            $existingMapping = Quiz24StudentMapping::query()
+                ->where('provider', 'quiz24')
+                ->where('external_identifier', $participant->external_identifier)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingMapping && $existingMapping->student_id !== $student->id) {
+                throw new IntegrationException('این شناسه Quiz24 قبلاً به دانش‌آموز دیگری متصل شده است؛ ابتدا مغایرت نگاشت را بررسی کنید.');
+            }
+
+            $existingResult = ExamResult::query()
+                ->where('exam_id', $participant->exam_id)
+                ->where('student_id', $student->id)
+                ->lockForUpdate()
+                ->first();
+
+            $existingIdentifier = data_get($existingResult?->source_data ?? [], 'external_student_identifier');
+
+            if ($existingResult && $existingIdentifier !== $participant->external_identifier) {
+                throw new IntegrationException('برای این دانش‌آموز در همین آزمون نتیجه دیگری ثبت شده است؛ برای جلوگیری از بازنویسی نمره، دانش‌آموز دیگری انتخاب کنید یا ابتدا مغایرت را بررسی کنید.');
+            }
 
             Quiz24StudentMapping::updateOrCreate(
                 [
@@ -146,6 +171,26 @@ class Quiz24ResultImporter
         });
     }
 
+    private function storeUnmatched(
+        Exam $exam,
+        Quiz24ResultData $result,
+        string $identifier,
+        string $status,
+        array $source,
+    ): Quiz24UnmatchedParticipant {
+        return Quiz24UnmatchedParticipant::updateOrCreate(
+            ['exam_id' => $exam->id, 'external_identifier' => $identifier],
+            [
+                'display_name' => $result->studentName,
+                'score' => $result->score,
+                'max_score' => $result->maxScore,
+                'status' => $status,
+                'source_data' => $source,
+                'first_seen_at' => now(),
+            ]
+        );
+    }
+
     private function normalizeIdentifier(string $identifier): string
     {
         $identifier = strtr(trim($identifier), [
@@ -155,7 +200,6 @@ class Quiz24ResultImporter
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        // Preserve meaningful provider ID characters such as hyphens.
         return preg_replace('/\\s+/u', '', $identifier) ?? $identifier;
     }
 
