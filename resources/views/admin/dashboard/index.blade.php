@@ -14,31 +14,31 @@
     </section>
 
     <section class="panel-grid panel-grid-4 mb-4">
-        <article class="panel-card panel-stat" style="--stat-color:#5065d8;--stat-soft:#edf0ff">
+        <article class="panel-card panel-stat" class="panel-card panel-stat panel-stat--students">
             <div class="panel-stat-symbol">♙</div>
             <span class="panel-stat-label">دانش‌آموزان فعال</span>
             <strong class="panel-stat-value">{{ number_format($stats['students']) }}</strong>
             <span class="panel-stat-note">حساب‌های فعال دارای نقش دانش‌آموز</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#0b9a89;--stat-soft:#e2f6f2">
+        <article class="panel-card panel-stat" class="panel-card panel-stat panel-stat--teachers">
             <div class="panel-stat-symbol">♟</div>
             <span class="panel-stat-label">مدرسان فعال</span>
             <strong class="panel-stat-value">{{ number_format($stats['teachers']) }}</strong>
             <span class="panel-stat-note">حساب‌های فعال دارای نقش معلم</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#d18b11;--stat-soft:#fff5dc">
+        <article class="panel-card panel-stat" class="panel-card panel-stat panel-stat--classes">
             <div class="panel-stat-symbol">▣</div>
             <span class="panel-stat-label">کلاس‌های فعال</span>
             <strong class="panel-stat-value">{{ number_format($stats['classes']) }}</strong>
             <span class="panel-stat-note">کلاس‌های در وضعیت فعال</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#d84b59;--stat-soft:#fff0f1">
+        <article class="panel-card panel-stat" class="panel-card panel-stat panel-stat--courses">
             <div class="panel-stat-symbol">▤</div>
             <span class="panel-stat-label">دوره‌های منتشرشده</span>
             <strong class="panel-stat-value">{{ number_format($stats['courses']) }}</strong>
             <span class="panel-stat-note">دوره‌های قابل ارائه</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#7b55c7;--stat-soft:#f1ebff">
+        <article class="panel-card panel-stat" class="panel-card panel-stat panel-stat--homework">
             <div class="panel-stat-symbol">✎</div>
             <span class="panel-stat-label">ارسال‌های تکلیف منتظر بررسی</span>
             <strong class="panel-stat-value">{{ number_format($stats['pending_homework']) }}</strong>
