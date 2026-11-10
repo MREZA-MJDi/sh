@@ -1,15 +1,41 @@
-@extends('layouts.app')
-@section('title', 'درخواست مشاوره')
+@extends('layouts.portal')
+
+@section('title', 'درخواست‌های مشاوره')
+
 @section('content')
-@php $types = ['ticket' => ['تیکت', 'ticket'], 'phone' => ['تماس تلفنی', 'phone'], 'in_person' => ['حضوری', 'pin']]; @endphp
-<x-card title="درخواست‌های من">
-  <x-slot:actions><a class="btn s" href="{{ route('parent.consult.create') }}">درخواست جدید</a></x-slot:actions>
-  @forelse($m['consults'] as $c)
-    <a class="trk" href="{{ route('parent.consult.show', $c['id']) }}">
-      <div class="th t-{{ ['a','b','c'][$c['id'] % 3] }}"><x-icon :name="$types[$c['type']][1]"/></div>
-      <div><b>{{ $c['topic'] }}</b><span class="mu">{{ $types[$c['type']][0] }} · {{ $c['scheduled'] ?? 'زمان هنوز هماهنگ نشده' }}</span></div>
-      <x-status :s="$c['status']"/>
-    </a>
-  @empty<div class="empty">هنوز درخواستی ثبت نکرده‌اید.</div>@endforelse
-</x-card>
+    <x-crumbs :items="['کارتابل اولیا' => route('guardian.dashboard'), 'درخواست‌های مشاوره' => null]"/>
+
+    <x-card title="درخواست‌های من">
+        <x-slot:actions>
+            <a class="btn s" href="{{ route('parent.consult.create') }}">درخواست جدید</a>
+        </x-slot:actions>
+
+        @forelse($consultations as $consultation)
+            <a class="trk" href="{{ route('parent.consult.show', $consultation) }}">
+                <div class="th t-{{ ['a','b','c','d'][$loop->index % 4] }}"><x-icon name="phone"/></div>
+                <div>
+                    <b>{{ $consultation->subject ?: 'درخواست مشاوره' }}</b>
+                    <span class="mu">
+                        {{ $consultation->student?->name ?? 'فرزند حذف‌شده' }}
+                        · {{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'yyyy/MM/dd HH:mm') : 'زمان پیشنهادی ثبت نشده' }}
+                    </span>
+                </div>
+                @if($consultation->status === 'pending')
+                    <x-tag tone="w">در انتظار بررسی</x-tag>
+                @elseif($consultation->status === 'scheduled')
+                    <x-tag>هماهنگ‌شده</x-tag>
+                @elseif($consultation->status === 'done')
+                    <x-tag tone="d">انجام‌شده</x-tag>
+                @else
+                    <x-tag tone="r">بسته‌شده</x-tag>
+                @endif
+            </a>
+        @empty
+            <div class="empty">هنوز درخواستی ثبت نکرده‌اید.</div>
+        @endforelse
+
+        @if($consultations->hasPages())
+            <div class="frm">{{ $consultations->links() }}</div>
+        @endif
+    </x-card>
 @endsection
