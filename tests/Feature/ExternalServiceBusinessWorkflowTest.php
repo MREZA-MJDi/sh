@@ -121,6 +121,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
     {
         $teacher = $this->createUserWithRole('teacher');
         $student = $this->createUserWithRole('student');
+        $cancelledStudent = $this->createUserWithRole('student');
 
         $course = Course::create([
             'title' => 'دوره پولی فیزیک',
@@ -140,6 +141,15 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
             'status' => 'active',
         ]);
         $classroom->students()->attach($student->id, ['assigned_by' => $this->admin->id]);
+
+        CourseEnrollment::query()->create([
+            'course_id' => $course->id,
+            'student_id' => $cancelledStudent->id,
+            'source' => 'payment',
+            'status' => 'revoked',
+            'source_reference' => 'PAYMENT-CANCELLED-002',
+            'granted_at' => now(),
+        ]);
 
         $enrollmentService = app(CourseEnrollmentService::class);
         $enrollmentService->syncClassroomRoster($classroom);
@@ -178,6 +188,13 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         $enrollmentService->syncCourseRoster($course->refresh());
 
         $this->assertTrue($enrollmentService->hasActiveAccess($student, $course->refresh()));
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $cancelledStudent->id,
+            'source' => 'payment',
+            'status' => 'revoked',
+            'source_reference' => 'PAYMENT-CANCELLED-002',
+        ]);
     }
 
     public function test_quiz24_exam_is_created_locally_and_external_provisioning_is_queued(): void
