@@ -9,10 +9,7 @@
             <div><h3>وضعیت وب‌سرویس</h3><p>هسته داخلی آماده است؛ هیچ فراخوانی خارجی تا تحویل قرارداد رسمی انجام نمی‌شود.</p></div>
             <span class="panel-badge panel-badge-warning">قرارداد API دریافت نشده</span>
         </div>
-        <div class="panel-alert panel-alert-error">
-            {{ $health->message }}
-            وضعیت اتصال: {{ $health->state }}
-        </div>
+        <div class="panel-alert panel-alert-error">{{ $health->message }} وضعیت اتصال: {{ $health->state }}</div>
         <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">
             @csrf
             <button class="panel-btn panel-btn-secondary" type="submit">ثبت درخواست همگام‌سازی فهرست دوره‌ها</button>
@@ -71,27 +68,54 @@
     </section>
 
     <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده در شیخان</h3><p>در حال حاضر فقط متادیتا و ارتباط داخلی نگهداری می‌شود؛ آپلود و انتشار خارجی منتظر API است.</p></div></div>
-        <form method="POST" action="{{ route('admin.spotplayer.videos.store') }}" class="mb-4">
+        <div class="panel-card-title">
+            <div><h3>آپلود و آماده‌سازی ویدیو</h3><p>فایل ابتدا در Storage خصوصی شیخان ذخیره می‌شود؛ انتقال به SpotPlayer تا دریافت API انجام نمی‌شود.</p></div>
+            <span class="panel-badge panel-badge-warning">منتظر قرارداد API</span>
+        </div>
+        <form method="POST" action="{{ route('admin.spotplayer.videos.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="panel-form-grid panel-form-grid-3">
-                <div class="panel-field"><label>عنوان ویدیو</label><input class="panel-input" name="title" required maxlength="180"></div>
-                <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
-                <div class="panel-field"><label>کلاس مرتبط</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
-                <div class="panel-field"><label>شناسه ویدیو در سرویس (بعد از ساخت)</label><input class="panel-input" name="external_id" maxlength="190" dir="ltr"></div>
-                <div class="panel-field"><label>لینک نمایش امن (در صورت ارائه)</label><input class="panel-input" name="embed_url" type="url" dir="ltr" placeholder="https://..."></div>
-                <input type="hidden" name="status" value="waiting_contract">
+                <div class="panel-field"><label>عنوان ویدیو</label><input class="panel-input" name="title" value="{{ old('title') }}" required maxlength="180"></div>
+                <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}" @selected(old('course_id') == $course->id)>{{ $course->title }}</option>@endforeach</select></div>
+                <div class="panel-field"><label>کلاس مرتبط</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected(old('classroom_id') == $classroom->id)>{{ $classroom->name }}</option>@endforeach</select></div>
+                <div class="panel-field"><label>فایل ویدیویی</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv" required><p class="panel-muted mt-1">MP4، MOV، M4V، WebM یا MKV · حداکثر ۱ گیگابایت</p></div>
+                <div class="panel-field"><label>شناسه ویدیو در سرویس (در صورت وجود)</label><input class="panel-input" name="external_id" value="{{ old('external_id') }}" maxlength="190" dir="ltr"></div>
+                <div class="panel-field"><label>لینک نمایش امن (در صورت ارائه)</label><input class="panel-input" name="embed_url" value="{{ old('embed_url') }}" type="url" dir="ltr" placeholder="https://..."></div>
             </div>
-            <div class="panel-form-actions"><button class="panel-btn panel-btn-secondary" type="submit">ثبت متادیتای ویدیو</button></div>
+            <input type="hidden" name="status" value="waiting_contract">
+            <div class="panel-form-actions"><button class="panel-btn panel-btn-secondary" type="submit">ذخیره خصوصی و ثبت درخواست آپلود</button></div>
         </form>
+        <p class="panel-muted mt-3">فایل از مسیر عمومی قابل دسترسی نیست. تا زمان ارائه روش آپلود، احراز هویت و تأیید پردازش توسط SpotPlayer، ویدیو فقط در فضای خصوصی شیخان باقی می‌ماند.</p>
+    </section>
+
+    <section class="panel-card mb-4">
+        <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده در شیخان</h3><p>فایل‌های محلی، هش و شناسه خارجی مستقل نگهداری می‌شوند.</p></div></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>عنوان ویدیو</th><th>دوره / کلاس</th><th>شناسه خارجی</th><th>وضعیت</th></tr></thead>
+                <thead><tr><th>عنوان</th><th>دوره / کلاس</th><th>فایل محلی</th><th>شناسه خارجی</th><th>وضعیت</th><th>دریافت</th></tr></thead>
                 <tbody>
                 @forelse ($videos as $video)
-                    <tr><td>{{ $video->title }}</td><td>{{ $video->course->title ?? $video->classroom->name ?? '—' }}</td><td dir="ltr">{{ $video->external_id ?: '—' }}</td><td><span class="panel-badge panel-badge-warning">منتظر وب‌سرویس</span></td></tr>
+                    <tr>
+                        <td>{{ $video->title }}</td>
+                        <td>{{ $video->course->title ?? $video->classroom->name ?? '—' }}</td>
+                        <td>
+                            {{ $video->file_original_name ?: 'بدون فایل' }}
+                            @if ($video->file_size_bytes)
+                                <div class="panel-muted">{{ number_format($video->file_size_bytes / 1048576, 1) }} MB</div>
+                            @endif
+                        </td>
+                        <td dir="ltr">{{ $video->external_id ?: '—' }}</td>
+                        <td><span class="panel-badge panel-badge-warning">منتظر وب‌سرویس</span><div class="panel-muted" dir="ltr">{{ $video->file_sha256 ? substr($video->file_sha256, 0, 12).'…' : '' }}</div></td>
+                        <td>
+                            @if ($video->file_path)
+                                <a class="panel-btn panel-btn-sm panel-btn-secondary" href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>
+                            @else
+                                —
+                            @endif
+                        </td>
+                    </tr>
                 @empty
-                    <tr><td colspan="4" class="panel-empty">ویدیویی ثبت نشده است.</td></tr>
+                    <tr><td colspan="6" class="panel-empty">ویدیویی ثبت نشده است.</td></tr>
                 @endforelse
                 </tbody>
             </table>
