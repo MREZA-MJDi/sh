@@ -31,6 +31,9 @@ final class BoundedStudentLookupTest extends TestCase
             ->getJson(route('admin.lookups.students'))
             ->assertUnprocessable();
 
+        $this->getJson(route('admin.lookups.students', ['q' => '   ']))
+            ->assertUnprocessable();
+
         $response = $this->actingAs($admin)
             ->getJson(route('admin.lookups.students', ['q' => 'دانش‌آموز']))
             ->assertOk()
