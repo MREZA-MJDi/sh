@@ -8,11 +8,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seed only application roles and permissions by default.
-        // Real academic records are created and maintained through admin CRUD.
-        // LocalDemoAccountsSeeder remains an explicit local/testing-only opt-in.
+        // Demo accounts are guarded by their own local/testing + opt-in checks.
+        // Academic records remain real CRUD data and are not seeded as fake data.
         $this->call([
             RolePermissionSeeder::class,
+            LocalDemoAccountsSeeder::class,
         ]);
     }
 }
