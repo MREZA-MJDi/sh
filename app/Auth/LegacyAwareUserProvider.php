@@ -9,6 +9,25 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 
 final class LegacyAwareUserProvider extends EloquentUserProvider
 {
+    public function retrieveByCredentials(array $credentials): ?AuthenticatableContract
+    {
+        $user = parent::retrieveByCredentials($credentials);
+
+        if ($user) {
+            return $user;
+        }
+
+        $identifier = $credentials['email'] ?? $credentials['phone'] ?? null;
+        if (! is_string($identifier) || trim($identifier) === '') {
+            return null;
+        }
+
+        return User::query()
+            ->where('legacy_login', trim($identifier))
+            ->where('is_active', true)
+            ->first();
+    }
+
     public function validateCredentials(AuthenticatableContract $user, array $credentials): bool
     {
         $plain = $credentials['password'] ?? null;
