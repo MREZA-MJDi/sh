@@ -234,7 +234,11 @@ final class MessageController extends Controller
         }
 
         abort_unless(
-            $actor->children()->whereKey($message->student_id)->exists(),
+            $actor->children()
+                ->whereKey($message->student_id)
+                ->where('users.is_active', true)
+                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
+                ->exists(),
             404
         );
 
