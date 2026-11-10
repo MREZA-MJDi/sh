@@ -3,14 +3,15 @@
         <span class="panel-brand-mark">ش</span>
         <span class="panel-brand-copy"><strong>آکادمی شیخان</strong><small>پنل مدیریت و آموزش</small></span>
     </a>
+    <button type="button" class="panel-sidebar-collapse" data-admin-sidebar-mini-toggle aria-label="جمع یا باز کردن نوار کناری" title="جمع یا باز کردن منو">⇔</button>
     <nav class="panel-nav" aria-label="منوی اصلی">
-        <div class="panel-nav-heading">عمومی</div>
+        <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">عمومی</button>
         @can('dashboard.view')
             <a href="{{ route('admin.dashboard') }}" class="panel-nav-link {{ request()->routeIs('admin.dashboard') || request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-home"/></svg></span><span>داشبورد</span></a>
         @endcan
 
         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
-            <div class="panel-nav-heading">آموزش</div>
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">آموزش</button>
             <a href="{{ route('admin.classes.index') }}" class="panel-nav-link {{ request()->routeIs('admin.classes.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-classes"/></svg></span><span>کلاس‌ها و اسکای‌روم</span></a>
         @endcanany
         @canany(['courses.manage', 'courses.view.assigned'])
@@ -30,7 +31,7 @@
         @endcanany
 
         @canany(['users.manage', 'students.view.assigned'])
-            <div class="panel-nav-heading">کاربران</div>
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">کاربران</button>
             <a href="{{ route('admin.students.index') }}" class="panel-nav-link {{ request()->routeIs('admin.students.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-users"/></svg></span><span>دانش‌آموزان</span></a>
         @endcanany
         @can('users.manage')
@@ -39,16 +40,16 @@
         @endcan
 
         @canany(['resources.manage', 'resources.manage.assigned'])
-            <div class="panel-nav-heading">منابع و فروش</div>
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">منابع و فروش</button>
             <a href="{{ route('admin.resources.index') }}" class="panel-nav-link {{ request()->routeIs('admin.resources.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bag"/></svg></span><span>منابع و فروشگاه</span></a>
         @endcanany
 
         @can('consultations.manage')
-            <div class="panel-nav-heading">ارتباطات</div>
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
             <a href="{{ route('admin.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('admin.consultations.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>مشاوره و جلسات</span></a>
         @endcan
         @canany(['messages.view.all', 'messages.view.assigned'])
-            <div class="panel-nav-heading">ارتباطات</div>
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
             <a href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>پیام‌ها</span></a>
         @endcanany
         @canany(['announcements.manage', 'announcements.view'])
@@ -56,7 +57,7 @@
         @endcanany
 
         @can('integrations.manage')
-            <div class="panel-nav-heading">سرویس‌های خارجی</div>
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">سرویس‌های خارجی</button>
             <a href="{{ route('admin.quiz24.index') }}" class="panel-nav-link {{ request()->routeIs('admin.quiz24.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>کوییز ۲۴</span></a>
         @endcan
     </nav>
