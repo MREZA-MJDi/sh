@@ -32,6 +32,11 @@ class Classroom extends Model
             ->withPivot('assigned_by')->withTimestamps();
     }
 
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(ClassSession::class)->orderBy('starts_at');
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
