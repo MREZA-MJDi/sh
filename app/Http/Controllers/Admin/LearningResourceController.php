@@ -21,13 +21,29 @@ class LearningResourceController extends Controller
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
-        $resources = LearningResource::query()
-            ->with(['course', 'classroom', 'uploader'])
-            ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
-                $scope->whereIn('classroom_id', $classroomIds)
-                    ->orWhereIn('course_id', $courseIds);
-            }))
-            ->latest()->paginate(15);
+        $resourcesQuery = LearningResource::query()->with(['course', 'classroom', 'uploader']);
+
+        if ($teacherView) {
+            $resourcesQuery->where(function ($scope) use ($classroomIds, $courseIds): void {
+                $scope->where(function ($classScoped) use ($classroomIds, $courseIds): void {
+                    $classScoped->whereNotNull('classroom_id')
+                        ->whereHas('classroom', function ($classrooms) use ($classroomIds): void {
+                            $classrooms->whereIn('classrooms.id', $classroomIds)
+                                ->where(function ($courseMatch): void {
+                                    $courseMatch->whereNull('learning_resources.course_id')
+                                        ->orWhereColumn('classrooms.course_id', 'learning_resources.course_id');
+                                });
+                        })
+                        ->where(function ($courseScope) use ($courseIds): void {
+                            $courseScope->whereNull('course_id')->orWhereIn('course_id', $courseIds);
+                        });
+                })->orWhere(function ($courseScoped) use ($courseIds): void {
+                    $courseScoped->whereNull('classroom_id')->whereIn('course_id', $courseIds);
+                });
+            });
+        }
+
+        $resources = $resourcesQuery->latest()->paginate(15)->withQueryString();
 
         $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
         $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
@@ -84,11 +100,25 @@ class LearningResourceController extends Controller
             return;
         }
 
-        $courseAllowed = $resource->course_id
-            && $workspace->coursesQueryFor($user)->whereKey($resource->course_id)->exists();
-        $classAllowed = $resource->classroom_id
-            && $workspace->queryFor($user)->whereKey($resource->classroom_id)->exists();
+        if ($resource->classroom_id) {
+            $classroom = $workspace->queryFor($user)->find($resource->classroom_id);
+            abort_unless($classroom, 403);
 
-        abort_unless($courseAllowed || $classAllowed, 403);
+            if ($resource->course_id) {
+                abort_unless(
+                    (int) $classroom->course_id === (int) $resource->course_id
+                    && $workspace->coursesQueryFor($user)->whereKey($resource->course_id)->exists(),
+                    403
+                );
+            }
+
+            return;
+        }
+
+        abort_unless(
+            $resource->course_id
+            && $workspace->coursesQueryFor($user)->whereKey($resource->course_id)->exists(),
+            403
+        );
     }
 }
