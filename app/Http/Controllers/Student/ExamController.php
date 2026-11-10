@@ -65,7 +65,8 @@ final class ExamController extends Controller
             ->where('student_id', $request->user()->id)
             ->with('reviewer:id,name')
             ->latest('attempt_number')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('student.exams.result', compact('exam', 'attempts'));
     }
