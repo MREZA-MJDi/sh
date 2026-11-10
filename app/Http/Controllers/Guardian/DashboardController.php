@@ -11,8 +11,16 @@ final class DashboardController extends Controller
 {
     public function index(Request $request, GuardianDashboardService $dashboard): View
     {
-        $selectedChildId = $request->integer('child') ?: null;
+        $validated = $request->validate([
+            'child' => ['nullable', 'integer', 'min:1'],
+        ]);
 
-        return view('guardian.dashboard.index', $dashboard->build($request->user(), $selectedChildId));
+        return view(
+            'guardian.dashboard.index',
+            $dashboard->build(
+                $request->user(),
+                isset($validated['child']) ? (int) $validated['child'] : null
+            )
+        );
     }
 }
