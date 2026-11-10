@@ -97,6 +97,7 @@ class StoreUserRequest extends FormRequest
             if ($role === 'parent' && $this->filled('child_ids')) {
                 $ids = $this->input('child_ids', []);
                 $valid = User::whereIn('id', $ids)
+                    ->where('is_active', true)
                     ->whereHas('roles', fn ($query) => $query->where('name', 'student'))->count();
                 if ($valid !== count($ids)) {
                     $validator->errors()->add('child_ids', 'فقط حساب‌های دارای نقش دانش‌آموز قابل اتصال هستند.');
