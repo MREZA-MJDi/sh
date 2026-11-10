@@ -64,7 +64,7 @@
     </section>
 
     <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>نتایج بدون پروفایل متناظر</h3><p>نتیجه تا زمان اتصال دستی به دانش‌آموز، وارد کارنامه نمی‌شود. تعارض با نتیجهٔ قبلی هم در همین فهرست نگهداری می‌شود.</p></div><span class="panel-badge panel-badge-warning">{{ $unmatched->count() }} مورد</span></div>
+        <div class="panel-card-title"><div><h3>نتایج بدون پروفایل متناظر</h3><p>نتیجه تا زمان اتصال دستی به دانش‌آموز، وارد کارنامه نمی‌شود. تعارض با نتیجهٔ قبلی هم در همین فهرست نگهداری می‌شود.</p></div><span class="panel-badge panel-badge-warning">{{ number_format($unmatched->total()) }} مورد</span></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
                 <thead><tr><th>وضعیت</th><th>آزمون</th><th>شناسه شرکت‌کننده</th><th>نام برگشتی</th><th>نمره</th><th>اتصال به دانش‌آموز</th></tr></thead>
@@ -95,6 +95,9 @@
                 </tbody>
             </table>
         </div>
+        @if ($unmatched->hasPages())
+            <div class="panel-pagination">{{ $unmatched->links() }}</div>
+        @endif
     </section>
 
     <section class="panel-card">
