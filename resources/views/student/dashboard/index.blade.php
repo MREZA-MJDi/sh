@@ -171,6 +171,9 @@
                         <h3>{{ $resource->title }}</h3>
                         <p>{{ $resource->kind }}</p>
                         <span class="mu">{{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}</span>
+                        @if($resource->file_path)
+                            <a class="btn g s" href="{{ route('student.resources.download', $resource) }}">دریافت منبع</a>
+                        @endif
                     </article>
                 @empty
                     <div class="empty">منبع منتشرشده‌ای برای کلاس‌های شما وجود ندارد.</div>
