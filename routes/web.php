@@ -24,6 +24,7 @@ use App\Http\Controllers\Student\DashboardController as StudentDashboardControll
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
+use App\Http\Controllers\Student\VideoController as StudentVideoController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
@@ -154,6 +155,12 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
         });
         Route::post('/exams/{exam}/start', [StudentExamController::class, 'start'])->middleware('permission:exams.attempt')->name('exams.start');
         Route::post('/exam-attempts/{attempt}/submit', [StudentExamController::class, 'submit'])->middleware('permission:exams.attempt')->name('exam-attempts.submit');
+        Route::middleware('permission:videos.view.enrolled')->group(function (): void {
+            Route::get('/videos', [StudentVideoController::class, 'index'])->name('videos.index');
+            Route::get('/videos/{video}', [StudentVideoController::class, 'show'])->name('videos.show');
+            Route::get('/videos/{video}/stream', [StudentVideoController::class, 'stream'])->name('videos.stream');
+        });
+
         Route::middleware('permission:lessons.view')->group(function (): void {
             Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
