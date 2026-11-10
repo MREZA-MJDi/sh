@@ -21,7 +21,7 @@ final class ConsultationController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('parent.consult.index', compact('consultations'));
+        return view('guardian.consultations.index', compact('consultations'));
     }
 
     public function create(Request $request): View
@@ -55,7 +55,7 @@ final class ConsultationController extends Controller
         ]);
 
         return redirect()
-            ->route('parent.consult.show', $consultation)
+            ->route('guardian.consultations.show', $consultation)
             ->with('status', 'درخواست مشاوره ثبت شد.');
     }
 
@@ -66,7 +66,7 @@ final class ConsultationController extends Controller
             ->with(['student:id,name,grade', 'replies.sender:id,name'])
             ->firstOrFail();
 
-        return view('parent.consult.show', compact('consultation'));
+        return view('guardian.consultations.show', compact('consultation'));
     }
 
     public function reply(
@@ -98,6 +98,6 @@ final class ConsultationController extends Controller
 
         $consultation->delete();
 
-        return redirect()->route('parent.consult.index')->with('status', 'درخواست مشاوره حذف شد.');
+        return redirect()->route('guardian.consultations.index')->with('status', 'درخواست مشاوره حذف شد.');
     }
 }
