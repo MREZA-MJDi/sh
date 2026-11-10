@@ -117,6 +117,31 @@
         <x-stat tone="s4" icon="chart" label="نتایج اخیر" :value="$faNumber($results->count())" hint="نتایج قابل مشاهده آزمون‌ها" href="#results"/>
     </section>
 
+    @can('lessons.view')
+        <section class="card student-course-progress" id="course-progress" aria-labelledby="student-course-progress-title">
+            <div class="chead">
+                <div><span class="student-section-eyebrow">مسیر یادگیری</span><h2 id="student-course-progress-title">پیشرفت دوره‌های من</h2></div>
+                <a class="btn g s" href="{{ route('student.courses.index') }}">همه دوره‌ها</a>
+            </div>
+            <div class="student-course-progress__list">
+                @forelse ($course_progress as $courseProgress)
+                    <a class="student-course-progress__item" href="{{ route('student.courses.show', $courseProgress->id) }}">
+                        <div class="student-course-progress__head">
+                            <strong>{{ $courseProgress->title }}</strong>
+                            <span>{{ $faNumber($courseProgress->progress_percent) }}٪</span>
+                        </div>
+                        <div class="student-attendance-meter__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $courseProgress->progress_percent }}">
+                            <span style="width: {{ max(0, min(100, (int) $courseProgress->progress_percent)) }}%"></span>
+                        </div>
+                        <small class="mu">{{ $faNumber($courseProgress->completed_lessons) }} از {{ $faNumber($courseProgress->total_lessons) }} درس تکمیل‌شده</small>
+                    </a>
+                @empty
+                    <div class="empty">برای دوره‌های ثبت‌نام‌شده هنوز درس منتشرشده‌ای ثبت نشده است.</div>
+                @endforelse
+            </div>
+        </section>
+    @endcan
+
     <div class="row student-dashboard-primary">
         @can('classes.view.enrolled')
             <section class="card" id="classes" aria-labelledby="student-classes-title">
