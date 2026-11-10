@@ -56,8 +56,12 @@ final class TeacherAccessService
             throw ValidationException::withMessages(['teacher_access' => 'یکی از گروه‌های دسترسی معتبر نیست.']);
         }
 
-        $permissionNames = collect($accessGroups)
-            ->flatMap(fn (string $group) => self::ACCESS_GROUPS[$group]['permissions'])
+        // Customized teachers still need the minimum permissions required to enter
+        // their workspace and maintain their own profile. Access groups only
+        // control optional work areas.
+        $permissionNames = collect(['dashboard.view', 'profile.update'])
+            ->merge(collect($accessGroups)
+                ->flatMap(fn (string $group) => self::ACCESS_GROUPS[$group]['permissions']))
             ->unique()
             ->values();
 
