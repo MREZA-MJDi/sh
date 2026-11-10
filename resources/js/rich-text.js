@@ -1,4 +1,4 @@
-const EDITOR_SELECTOR = 'textarea[data-rich-text], textarea.panel-textarea, textarea.fld[data-count]';
+const EDITOR_SELECTOR = 'textarea:not([data-rich-text-ignore])';
 const TOOLBAR = [
     { command: 'bold', label: 'B', title: 'ضخیم', className: 'is-bold' },
     { command: 'italic', label: 'I', title: 'ایتالیک', className: 'is-italic' },
