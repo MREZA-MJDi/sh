@@ -111,4 +111,30 @@
             </article>
         @endcanany
     </section>
+
+    <section class="panel-card mt-4">
+        <div class="panel-card-title">
+            <div><h3>میانبرهای سریع</h3><p>ورود مستقیم به کارهای پرتکرار، بر اساس دسترسی حساب شما</p></div>
+        </div>
+        <div class="admin-quick-actions__items">
+            @canany(['users.manage', 'students.view.assigned'])
+                <a class="admin-quick-action" href="{{ route('admin.students.index') }}"><span class="admin-quick-action-icon">♙</span><span>دانش‌آموزان</span></a>
+            @endcanany
+            @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
+                <a class="admin-quick-action" href="{{ route('admin.classes.index') }}"><span class="admin-quick-action-icon">▣</span><span>کلاس‌ها و جلسات</span></a>
+            @endcanany
+            @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned', 'homework.grade'])
+                <a class="admin-quick-action" href="{{ route('admin.homework.index') }}"><span class="admin-quick-action-icon">✎</span><span>تکالیف</span></a>
+            @endcanany
+            @canany(['exams.manage', 'exams.manage.assigned'])
+                <a class="admin-quick-action" href="{{ route('admin.exams.index') }}"><span class="admin-quick-action-icon">✓</span><span>آزمون‌ها</span></a>
+            @endcanany
+            @canany(['announcements.manage', 'announcements.view'])
+                <a class="admin-quick-action" href="{{ route('admin.announcements.index') }}"><span class="admin-quick-action-icon">⚑</span><span>اطلاعیه‌ها</span></a>
+            @endcanany
+            @canany(['resources.manage', 'resources.manage.assigned'])
+                <a class="admin-quick-action" href="{{ route('admin.resources.index') }}"><span class="admin-quick-action-icon">▧</span><span>منابع و محصولات</span></a>
+            @endcanany
+        </div>
+    </section>
 @endsection
