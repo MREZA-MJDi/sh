@@ -10,6 +10,7 @@ use App\Models\HomeworkSubmission;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -362,6 +363,43 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->get(route('admin.homework.index', ['submissions' => 2]))
             ->assertOk()
             ->assertSee('دانش‌آموز قدیمی 16');
+    }
+
+
+    public function test_classroom_exam_inherits_course_and_is_visible_to_its_enrolled_students(): void
+    {
+        $teacher = $this->teacherWithPermissions(['exams.manage.assigned']);
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+
+        $course = $this->courseFor($teacher, 'classroom-exam-inherited-course');
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس آزمون ارث‌بری دوره',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $this->actingAs($teacher)
+            ->post(route('admin.exams.store'), [
+                'title' => 'آزمون کلاس بدون انتخاب مجدد دوره',
+                'classroom_id' => $classroom->id,
+                'provider' => 'internal',
+                'duration_hours' => 1,
+                'show_to_guardians' => 1,
+                'status' => 'published',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $exam = Exam::query()->where('title', 'آزمون کلاس بدون انتخاب مجدد دوره')->firstOrFail();
+        $this->assertSame($course->id, $exam->course_id);
+
+        $this->actingAs($student)
+            ->get(route('student.exams.index'))
+            ->assertOk()
+            ->assertSee('آزمون کلاس بدون انتخاب مجدد دوره');
     }
 
 }
