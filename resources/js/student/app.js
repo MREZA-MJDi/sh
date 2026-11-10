@@ -339,6 +339,21 @@ function initDemoPlayers() {
 }
 
 
+function initChildSwitcher() {
+    const selector = $('[data-child]');
+    if (!selector) return;
+
+    selector.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        if (selector.value) {
+            url.searchParams.set('child', selector.value);
+        } else {
+            url.searchParams.delete('child');
+        }
+        window.location.assign(url.toString());
+    });
+}
+
 function initDashboardNavigation() {
     const links = $('[data-dashboard-nav-target]');
     if (!links.length || typeof window.IntersectionObserver === 'undefined') {
@@ -378,6 +393,7 @@ function initDashboardNavigation() {
 
 function initStudentDashboard() {
     initMobileMenu();
+    initChildSwitcher();
     initDashboardNavigation();
     initThemeToggle();
     initTabs();
