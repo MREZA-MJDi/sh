@@ -20,7 +20,9 @@ return new class extends Migration
 
         Schema::create('homework_submission_files', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('homework_submission_id')->constrained('homework_submissions')->cascadeOnDelete();
+            $table->foreignId('homework_submission_id')
+                ->constrained('homework_submissions')
+                ->cascadeOnDelete();
             $table->string('path', 500);
             $table->string('original_name', 255);
             $table->string('mime_type', 120)->nullable();
@@ -30,7 +32,11 @@ return new class extends Migration
         });
 
         Schema::table('messages', function (Blueprint $table): void {
-            $table->foreignId('student_id')->nullable()->after('recipient_id')->constrained('users')->nullOnDelete();
+            $table->foreignId('student_id')
+                ->nullable()
+                ->after('recipient_id')
+                ->constrained('users')
+                ->nullOnDelete();
             $table->index(['student_id', 'created_at']);
         });
 
@@ -47,6 +53,7 @@ return new class extends Migration
         });
 
         Schema::table('messages', function (Blueprint $table): void {
+            $table->dropIndex(['student_id', 'created_at']);
             $table->dropConstrainedForeignId('student_id');
         });
 
