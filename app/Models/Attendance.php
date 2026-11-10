@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
-    protected $fillable = ['classroom_id', 'student_id', 'session_date', 'status', 'joined_at', 'note', 'marked_by'];
+    protected $fillable = [
+        'classroom_id', 'class_session_id', 'student_id', 'session_date',
+        'status', 'joined_at', 'note', 'marked_by',
+    ];
 
     protected function casts(): array
     {
@@ -17,6 +20,11 @@ class Attendance extends Model
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    public function classSession(): BelongsTo
+    {
+        return $this->belongsTo(ClassSession::class, 'class_session_id');
     }
 
     public function student(): BelongsTo
