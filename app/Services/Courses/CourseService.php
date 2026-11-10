@@ -8,6 +8,7 @@ use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class CourseService
 {
