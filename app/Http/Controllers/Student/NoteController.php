@@ -25,7 +25,7 @@ final class NoteController extends Controller
     public function store(StoreStudentNoteRequest $request): RedirectResponse
     {
         $request->user()->studentNotes()->create([
-            'body' => $request->validated('text'),
+            'body' => $request->validated('body'),
             'tone' => $request->validated('tone') ?? '',
         ]);
 
@@ -39,7 +39,7 @@ final class NoteController extends Controller
         $note = $request->user()->studentNotes()->whereKey($note->getKey())->firstOrFail();
 
         $note->update([
-            'body' => $request->validated('text'),
+            'body' => $request->validated('body'),
             'tone' => $request->validated('tone') ?? '',
         ]);
 
