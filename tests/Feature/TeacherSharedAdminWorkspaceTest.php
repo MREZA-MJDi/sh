@@ -303,4 +303,65 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->assertForbidden();
     }
 
+
+    public function test_customized_teacher_can_open_the_dashboard_after_admin_creates_the_account(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)->post(route('admin.teachers.store'), [
+            'name' => 'مدرس تازه',
+            'phone' => '09120000088',
+            'subject' => 'علوم',
+            'status' => 'active',
+            'password' => 'StrongTeacherPassword!2026',
+            'password_confirmation' => 'StrongTeacherPassword!2026',
+            'teacher_access' => ['attendance'],
+        ])->assertSessionHasNoErrors();
+
+        $teacher = User::query()->where('phone', '09120000088')->firstOrFail();
+
+        $this->assertTrue($teacher->hasPermissionTo('dashboard.view'));
+        $this->assertTrue($teacher->hasPermissionTo('profile.update'));
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.dashboard'))
+            ->assertOk()
+            ->assertSee('کلاس‌ها و فعالیت‌های شما');
+    }
+
+    public function test_homework_submission_list_is_paginated_instead_of_truncated_at_thirty(): void
+    {
+        $teacher = $this->teacherWithPermissions(['homework.view.assigned']);
+        $course = $this->courseFor($teacher, 'teacher-homework-pagination-course');
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس صفحه‌بندی تکالیف',
+            'status' => 'active',
+        ]);
+        $homework = Homework::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'تکلیف صفحه‌بندی',
+            'status' => 'published',
+        ]);
+
+        for ($index = 1; $index <= 16; $index++) {
+            $student = User::factory()->create(['name' => 'دانش‌آموز قدیمی '.$index]);
+            $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+            HomeworkSubmission::query()->create([
+                'homework_id' => $homework->id,
+                'student_id' => $student->id,
+                'answer' => 'پاسخ '.$index,
+                'status' => 'submitted',
+                'submitted_at' => now()->subMinutes($index),
+            ]);
+        }
+
+        $this->actingAs($teacher)
+            ->get(route('admin.homework.index', ['submissions' => 2]))
+            ->assertOk()
+            ->assertSee('دانش‌آموز قدیمی ۱۶');
+    }
+
 }
