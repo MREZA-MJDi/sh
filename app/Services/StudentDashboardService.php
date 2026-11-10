@@ -96,6 +96,8 @@ final class StudentDashboardService
             ->limit(5)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
+        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds);
+
         $announcements = Announcement::query()
             ->where('status', 'published')
             ->whereIn('audience', ['all', 'students'])
@@ -104,7 +106,7 @@ final class StudentDashboardService
             ->get(['id', 'title', 'body', 'published_at']);
 
         return [
-            'classrooms' => $classrooms,
+            'classrooms' => $classrooms,\n            'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
