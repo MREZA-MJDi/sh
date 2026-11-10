@@ -41,4 +41,19 @@ class Classroom extends Model
     {
         return $this->hasMany(Homework::class);
     }
+
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
+    }
+
+    public function learningResources(): HasMany
+    {
+        return $this->hasMany(LearningResource::class);
+    }
+
+    public function spotPlayerVideos(): HasMany
+    {
+        return $this->hasMany(SpotPlayerVideo::class);
+    }
 }
