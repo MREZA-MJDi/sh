@@ -18,7 +18,11 @@ final class CourseContentController extends Controller
     public function show(int $course, ClassroomWorkspaceService $workspace): View
     {
         $course = $workspace->coursesQueryFor(request()->user())
-            ->with(['sections.lessons'])
+            ->with([
+                'sections' => fn ($sections) => $sections
+                    ->orderBy('sort_order')->orderBy('id')
+                    ->with(['lessons' => fn ($lessons) => $lessons->orderBy('sort_order')->orderBy('id')]),
+            ])
             ->findOrFail($course);
 
         return view('admin.courses.content', compact('course'));
