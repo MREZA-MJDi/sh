@@ -12,6 +12,7 @@
     @vite(['resources/css/student/app.css', 'resources/js/student/app.js'])
     @stack('head')
 </head>
+@php($portalRole = request()->routeIs('guardian.dashboard') ? 'parent' : 'student')
 <body class="reference-dashboard-page {{ $portalRole === 'parent' ? 'reference-parent' : 'reference-student' }}">
     @include('partials.sprite')
     <div class="app">
