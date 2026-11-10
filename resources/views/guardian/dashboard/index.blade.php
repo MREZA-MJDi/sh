@@ -104,6 +104,9 @@
                     <div class="th t-c"><x-icon name="file"/></div>
                     <div><b>{{ $resource->title }}</b><span class="mu">{{ $resource->course?->title ?? $resource->classroom?->name ?? $resource->kind }}</span></div>
                     <span class="tag">{{ $resource->is_free ? 'رایگان' : $faNumber($resource->price).' تومان' }}</span>
+                    @if($resource->file_path && $selected_child)
+                        <a class="btn g s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $selected_child->id]) }}">دریافت منبع</a>
+                    @endif
                 </div>
             @empty
                 <div class="empty">منبع آموزشی منتشرشده‌ای در دسترس نیست.</div>
