@@ -21,7 +21,7 @@ final class TeacherAccessService
         ],
         'course_content' => [
             'label' => 'مدیریت بخش‌ها و درس‌های دوره',
-            'permissions' => ['courses.content.manage.assigned'],
+            'permissions' => ['courses.view.assigned', 'courses.content.manage.assigned'],
         ],
         'videos' => [
             'label' => 'بارگذاری فیلم کلاس',
@@ -59,7 +59,7 @@ final class TeacherAccessService
         // Customized teachers still need the minimum permissions required to enter
         // their workspace and maintain their own profile. Access groups only
         // control optional work areas.
-        $permissionNames = collect(['dashboard.view', 'profile.update'])
+        $permissionNames = collect(['dashboard.view', 'profile.update', 'announcements.view'])
             ->merge(collect($accessGroups)
                 ->flatMap(fn (string $group) => self::ACCESS_GROUPS[$group]['permissions']))
             ->unique()
