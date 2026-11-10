@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - chore/resource-role-directories
+      - feat/student-dashboard-frontend
   pull_request:
     branches:
       - main
