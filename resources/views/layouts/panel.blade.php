@@ -12,13 +12,13 @@
     $panelUser = auth()->user();
     $panelRoleLabel = $panelUser?->roles()->value('label') ?? 'کاربر آکادمی';
 @endphp
-<div class="panel-shell">
+<div class="panel-shell" data-panel-shell>
     @include('admin.partials.sidebar')
     <div class="panel-overlay" data-panel-overlay></div>
 
     <main class="panel-main">
         <header class="panel-topbar">
-            <div class="flex items-center gap-3">
+            <div class="panel-topbar-heading">
                 <button type="button" class="panel-icon-btn panel-mobile-toggle" data-panel-menu-toggle aria-label="باز کردن منو">☰</button>
                 <div class="panel-topbar-title">
                     <h1>@yield('page-title', 'داشبورد')</h1>
@@ -28,9 +28,9 @@
 
             <div class="panel-topbar-actions">
                 <div class="panel-global-search">
-                    <input type="search" placeholder="جستجو در جدول همین صفحه..." data-table-search aria-label="جستجو در جدول">
+                    <input type="search" placeholder="جستجو در جدول همین صفحه..." data-table-search aria-label="جستجو در جدول همین صفحه">
                 </div>
-                <button type="button" class="panel-icon-btn" data-panel-theme-toggle aria-label="تغییر تم" title="تغییر تم">◐</button>
+                <button type="button" class="panel-icon-btn" data-panel-theme-toggle aria-label="تغییر پوسته روشن یا تیره" title="تغییر پوسته">◐</button>
                 <div class="panel-user">
                     <div class="panel-user-avatar">{{ mb_substr($panelUser->name, 0, 1) }}</div>
                     <div class="panel-user-meta">
@@ -40,7 +40,7 @@
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="panel-icon-btn" type="submit" title="خروج از حساب" aria-label="خروج">↪</button>
+                    <button class="panel-icon-btn" type="submit" title="خروج از حساب" aria-label="خروج از حساب">↪</button>
                 </form>
             </div>
         </header>

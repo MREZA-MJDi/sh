@@ -1,5 +1,6 @@
 const sidebar = document.querySelector('[data-panel-sidebar]');
 const overlay = document.querySelector('[data-panel-overlay]');
+const shell = document.querySelector('[data-panel-shell]');
 
 const closeSidebar = () => {
     sidebar?.classList.remove('is-open');
@@ -18,6 +19,34 @@ document.querySelectorAll('[data-panel-menu-toggle]').forEach((button) => {
 overlay?.addEventListener('click', closeSidebar);
 sidebar?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeSidebar));
 
+const miniToggle = document.querySelector('[data-panel-sidebar-mini-toggle]');
+const savedSidebarMode = localStorage.getItem('shikhan-panel-sidebar');
+
+if (savedSidebarMode === 'mini') {
+    shell?.classList.add('is-mini');
+}
+
+miniToggle?.addEventListener('click', () => {
+    shell?.classList.toggle('is-mini');
+    localStorage.setItem('shikhan-panel-sidebar', shell?.classList.contains('is-mini') ? 'mini' : 'full');
+});
+
+document.querySelectorAll('[data-nav-group-toggle]').forEach((button) => {
+    const group = button.closest('.panel-nav-group');
+    const items = group?.querySelector('.panel-nav-group-items');
+    const hasActiveLink = Boolean(items?.querySelector('.panel-nav-link.is-active'));
+
+    if (hasActiveLink) {
+        group?.classList.remove('is-collapsed');
+        button.setAttribute('aria-expanded', 'true');
+    }
+
+    button.addEventListener('click', () => {
+        const collapsed = group?.classList.toggle('is-collapsed') ?? false;
+        button.setAttribute('aria-expanded', String(!collapsed));
+    });
+});
+
 const themeButton = document.querySelector('[data-panel-theme-toggle]');
 const root = document.documentElement;
 const savedTheme = localStorage.getItem('shikhan-panel-theme');
@@ -27,7 +56,10 @@ if (savedTheme === 'dark' || savedTheme === 'light') {
 }
 
 themeButton?.addEventListener('click', () => {
-    const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    const systemPrefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    const currentlyDark = root.dataset.theme === 'dark' || (!root.dataset.theme && systemPrefersDark);
+    const nextTheme = currentlyDark ? 'light' : 'dark';
+
     root.dataset.theme = nextTheme;
     localStorage.setItem('shikhan-panel-theme', nextTheme);
 });
@@ -41,9 +73,9 @@ document.querySelectorAll('form[data-confirm]').forEach((form) => {
 
 const tableSearch = document.querySelector('[data-table-search]');
 tableSearch?.addEventListener('input', () => {
-    const term = tableSearch.value.trim().toLocaleLowerCase();
+    const term = tableSearch.value.trim().toLocaleLowerCase('fa');
     document.querySelectorAll('[data-searchable-table] tbody tr').forEach((row) => {
-        row.hidden = !row.textContent.toLocaleLowerCase().includes(term);
+        row.hidden = !row.textContent.toLocaleLowerCase('fa').includes(term);
     });
 });
 

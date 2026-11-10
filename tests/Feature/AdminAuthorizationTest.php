@@ -36,6 +36,22 @@ class AdminAuthorizationTest extends TestCase
             ->assertSee('داشبورد مدیریت');
     }
 
+    public function test_admin_workspace_uses_rtl_reference_layout_and_grouped_sidebar(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('<html lang="fa" dir="rtl">', false)
+            ->assertSee('data-panel-shell', false)
+            ->assertSee('data-panel-sidebar-mini-toggle', false)
+            ->assertSee('data-nav-group-toggle', false)
+            ->assertSee('فروش و محصولات')
+            ->assertSee('میانبرهای سریع');
+    }
+
     public function test_every_admin_section_renders_without_sample_records(): void
     {
         $admin = User::factory()->create();

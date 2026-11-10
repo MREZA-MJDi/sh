@@ -1,46 +1,36 @@
 @extends('layouts.panel')
 
 @section('page-title', 'داشبورد مدیریت')
-@section('page-description', 'نمای کلی وضعیت آموزشی و عملیاتی آکادمی')
+@section('page-description', 'نمای کلی امروز و وضعیت آموزشی آکادمی')
 
 @section('content')
     <section class="panel-card panel-hero mb-4">
         <div>
-            <span class="text-xs text-indigo-100">به پنل مدیریت آکادمی شیخان خوش آمدید</span>
+            <span class="panel-hero-eyebrow">به پنل مدیریت آکادمی شیخان خوش آمدید</span>
             <h2>مدیریت امروز آکادمی</h2>
             <p>آمارها و فعالیت‌های واقعی ثبت‌شده در سامانه در این صفحه نمایش داده می‌شوند.</p>
         </div>
-        <a href="{{ route('admin.classes.index') }}" class="panel-btn">مشاهده کلاس‌ها <span>←</span></a>
+        <a href="{{ route('admin.classes.index') }}" class="panel-btn">مشاهده کلاس‌ها <span aria-hidden="true">←</span></a>
     </section>
 
     <section class="panel-grid panel-grid-4 mb-4">
-        <article class="panel-card panel-stat" style="--stat-color:#5065d8;--stat-soft:#edf0ff">
-            <div class="panel-stat-symbol">♙</div>
+        <article class="panel-card panel-stat panel-stat-indigo">
             <span class="panel-stat-label">دانش‌آموزان فعال</span>
             <strong class="panel-stat-value">{{ number_format($stats['students']) }}</strong>
             <span class="panel-stat-note">حساب‌های فعال دارای نقش دانش‌آموز</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#0b9a89;--stat-soft:#e2f6f2">
-            <div class="panel-stat-symbol">♟</div>
-            <span class="panel-stat-label">مدرسان فعال</span>
-            <strong class="panel-stat-value">{{ number_format($stats['teachers']) }}</strong>
-            <span class="panel-stat-note">حساب‌های فعال دارای نقش معلم</span>
-        </article>
-        <article class="panel-card panel-stat" style="--stat-color:#d18b11;--stat-soft:#fff5dc">
-            <div class="panel-stat-symbol">▣</div>
+        <article class="panel-card panel-stat panel-stat-teal">
             <span class="panel-stat-label">کلاس‌های فعال</span>
             <strong class="panel-stat-value">{{ number_format($stats['classes']) }}</strong>
-            <span class="panel-stat-note">کلاس‌های در وضعیت فعال</span>
+            <span class="panel-stat-note">{{ number_format($stats['teachers']) }} مدرس فعال · {{ number_format($stats['courses']) }} دوره منتشرشده</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#d84b59;--stat-soft:#fff0f1">
-            <div class="panel-stat-symbol">▤</div>
-            <span class="panel-stat-label">دوره‌های منتشرشده</span>
-            <strong class="panel-stat-value">{{ number_format($stats['courses']) }}</strong>
-            <span class="panel-stat-note">دوره‌های قابل ارائه</span>
+        <article class="panel-card panel-stat panel-stat-amber">
+            <span class="panel-stat-label">میانگین حضور امروز</span>
+            <strong class="panel-stat-value">{{ number_format($stats['attendance_rate']) }}٪</strong>
+            <span class="panel-stat-note">بر اساس رکوردهای واقعی حضور و غیاب</span>
         </article>
-        <article class="panel-card panel-stat" style="--stat-color:#7b55c7;--stat-soft:#f1ebff">
-            <div class="panel-stat-symbol">✎</div>
-            <span class="panel-stat-label">ارسال‌های تکلیف منتظر بررسی</span>
+        <article class="panel-card panel-stat panel-stat-red">
+            <span class="panel-stat-label">تکالیف منتظر بررسی</span>
             <strong class="panel-stat-value">{{ number_format($stats['pending_homework']) }}</strong>
             <span class="panel-stat-note">پاسخ‌های تحویل‌شده دانش‌آموزان</span>
         </article>
@@ -49,7 +39,7 @@
     <section class="panel-grid panel-grid-2 mb-4">
         <article class="panel-card">
             <div class="panel-card-title">
-                <div><h3>نرخ حضور در هفت روز گذشته</h3><p>بر اساس رکوردهای واقعی حضور و غیاب</p></div>
+                <div><h3>حضور در هفت روز گذشته</h3><p>بر اساس رکوردهای واقعی حضور و غیاب</p></div>
                 <span class="panel-badge panel-badge-success">امروز {{ $stats['attendance_rate'] }}٪</span>
             </div>
             <div class="panel-bars">
@@ -65,7 +55,7 @@
 
         <article class="panel-card">
             <div class="panel-card-title">
-                <div><h3>کلاس‌های فعال</h3><p>آخرین کلاس‌های تعریف‌شده در سامانه</p></div>
+                <div><h3>کلاس‌های امروز</h3><p>آخرین کلاس‌های فعال ثبت‌شده در سامانه</p></div>
                 <a href="{{ route('admin.classes.index') }}" class="panel-btn panel-btn-secondary panel-btn-sm">همه کلاس‌ها</a>
             </div>
             <div class="panel-table-wrap">
@@ -80,7 +70,7 @@
                             <td><span class="panel-badge">{{ $classroom->students_count ?? $classroom->students()->count() }}</span></td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="panel-empty">هنوز کلاسی ثبت نشده است.</td></tr>
+                        <tr><td colspan="4" class="panel-empty">هنوز کلاسی برای نمایش ثبت نشده است.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -88,7 +78,7 @@
         </article>
     </section>
 
-    <section class="panel-grid panel-grid-3">
+    <section class="panel-grid panel-grid-3 mb-4">
         <article class="panel-card">
             <div class="panel-card-title"><h3>پیام‌های بی‌پاسخ</h3><a href="{{ route('admin.messages.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">مشاهده</a></div>
             <div class="panel-list">
@@ -131,5 +121,15 @@
                 @endforelse
             </div>
         </article>
+    </section>
+
+    <section class="panel-card">
+        <div class="panel-card-title"><div><h3>میانبرهای سریع</h3><p>دسترسی مستقیم به عملیات پرکاربرد مدیریت</p></div></div>
+        <div class="panel-quick-actions">
+            <a class="panel-btn" href="{{ route('admin.students.index') }}">+ ثبت دانش‌آموز</a>
+            <a class="panel-btn panel-btn-secondary" href="{{ route('admin.classes.index') }}">+ کلاس جدید</a>
+            <a class="panel-btn panel-btn-ghost" href="{{ route('admin.announcements.index') }}">ارسال اطلاعیه</a>
+            <a class="panel-btn panel-btn-ghost" href="{{ route('admin.resources.index') }}">افزودن منبع</a>
+        </div>
     </section>
 @endsection
