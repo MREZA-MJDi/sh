@@ -95,6 +95,14 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
     Route::post('/exams', [ExamController::class, 'store'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.store');
     Route::patch('/exams/{exam}', [ExamController::class, 'update'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.update');
     Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.results');
+    Route::middleware('permission:exams.manage,exams.manage.assigned')->group(function (): void {
+        Route::get('/exams/{exam}/questions', [ExamQuestionController::class, 'index'])->name('exams.questions');
+        Route::post('/exams/{exam}/questions', [ExamQuestionController::class, 'store'])->name('exams.questions.store');
+        Route::patch('/exams/{exam}/questions/{question}', [ExamQuestionController::class, 'update'])->name('exams.questions.update');
+        Route::delete('/exams/{exam}/questions/{question}', [ExamQuestionController::class, 'destroy'])->name('exams.questions.destroy');
+        Route::get('/exams/{exam}/attempts', [ExamAttemptReviewController::class, 'index'])->name('exams.attempts');
+        Route::patch('/exams/{exam}/attempts/{attempt}/grade', [ExamAttemptReviewController::class, 'grade'])->name('exams.attempts.grade');
+    });
 
     Route::get('/resources', [LearningResourceController::class, 'index'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.index');
     Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.store');
@@ -134,6 +142,15 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+
+        Route::middleware('permission:exams.view.own')->group(function (): void {
+            Route::get('/exams', [StudentExamController::class, 'index'])->name('exams.index');
+            Route::get('/exams/{exam}', [StudentExamController::class, 'show'])->name('exams.show');
+            Route::get('/exams/{exam}/attempts/{attempt}', [StudentExamController::class, 'attempt'])->name('exams.attempt');
+            Route::get('/exams/{exam}/result', [StudentExamController::class, 'result'])->name('exams.result');
+        });
+        Route::post('/exams/{exam}/start', [StudentExamController::class, 'start'])->middleware('permission:exams.attempt')->name('exams.start');
+        Route::post('/exam-attempts/{attempt}/submit', [StudentExamController::class, 'submit'])->middleware('permission:exams.attempt')->name('exam-attempts.submit');
         Route::middleware('permission:lessons.view')->group(function (): void {
             Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
