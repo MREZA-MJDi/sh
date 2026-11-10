@@ -89,8 +89,7 @@ final class VideoController extends Controller
                     ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
                         ->where('status', 'active')
                         ->whereHas('students', fn (Builder $students) => $students
-                            ->whereKey($student->id)
-                            ->wherePivot('status', 'active')));
+                            ->whereKey($student->id)));
             });
     }
 }
