@@ -20,11 +20,12 @@
                         · {{ $consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'Y/m/d H:i') : 'زمان پیشنهادی ثبت نشده' }}
                     </span>
                 </div>
-                @if($consultation->status === 'pending')
+                @php($consultationStatus = ['approved' => 'scheduled', 'completed' => 'done'][$consultation->status] ?? $consultation->status)
+                @if($consultationStatus === 'pending')
                     <x-tag tone="w">در انتظار بررسی</x-tag>
-                @elseif($consultation->status === 'scheduled')
+                @elseif($consultationStatus === 'scheduled')
                     <x-tag>هماهنگ‌شده</x-tag>
-                @elseif($consultation->status === 'done')
+                @elseif($consultationStatus === 'done')
                     <x-tag tone="d">انجام‌شده</x-tag>
                 @else
                     <x-tag tone="r">بسته‌شده</x-tag>
