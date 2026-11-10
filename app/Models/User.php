@@ -143,8 +143,4 @@ class User extends Authenticatable
         return $this->hasMany(CourseEnrollment::class, 'student_id');
     }
 
-    public function studentNotes(): HasMany
-    {
-        return $this->hasMany(StudentNote::class, 'student_id')->latest();
-    }
 }
