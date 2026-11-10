@@ -9,6 +9,7 @@ use IntlDateFormatter;
 
 final class PersianDate
 {
+    private const TIMEZONE = 'Asia/Tehran';
     private const DIGITS = [
         '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
         '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹',
@@ -32,11 +33,11 @@ final class PersianDate
             return '—';
         }
 
-        $timezone = new DateTimeZone((string) config('app.timezone', 'Asia/Tehran'));
+        $timezone = new DateTimeZone((string) self::TIMEZONE);
         $date = self::toDateTime($value)->setTimezone($timezone);
 
         if (! class_exists(IntlDateFormatter::class)) {
-            return self::formatGregorianFallback($date, $pattern);
+            throw new \\RuntimeException('The PHP intl extension is required for Jalali date formatting.');
         }
 
         $formatter = new IntlDateFormatter(
@@ -50,7 +51,7 @@ final class PersianDate
 
         $formatted = $formatter->format($date);
         if ($formatted === false) {
-            return self::formatGregorianFallback($date, $pattern);
+            throw new \\RuntimeException('Unable to format the requested Persian date.');
         }
 
         return strtr($formatted, self::DIGITS);
@@ -78,20 +79,8 @@ final class PersianDate
 
         return new DateTimeImmutable(
             $value,
-            new DateTimeZone((string) config('app.timezone', 'Asia/Tehran'))
+            new DateTimeZone((string) self::TIMEZONE)
         );
     }
 
-    private static function formatGregorianFallback(DateTimeImmutable $date, string $pattern): string
-    {
-        $phpPattern = strtr($pattern, [
-            'yyyy' => 'Y',
-            'MM' => 'm',
-            'dd' => 'd',
-            'HH' => 'H',
-            'mm' => 'i',
-        ]);
-
-        return strtr($date->format($phpPattern), self::DIGITS);
-    }
 }
