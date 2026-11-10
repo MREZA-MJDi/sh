@@ -27,7 +27,7 @@
                         <td>{{ $classroom->course->title ?? '—' }}</td>
                         <td>
                             {{ collect($classroom->schedule['days'] ?? [])->map(fn ($day) => ['sat'=>'شنبه','sun'=>'یکشنبه','mon'=>'دوشنبه','tue'=>'سه‌شنبه','wed'=>'چهارشنبه','thu'=>'پنجشنبه','fri'=>'جمعه'][$day] ?? $day)->join('، ') ?: '—' }}
-                            <span class="panel-muted">{{ $classroom->schedule['time'] ?? '' }}</span>
+                            <span class="panel-muted">{{ $classroom->schedule['time'] ?? '' }} · {{ $classroom->schedule['duration_minutes'] ?? 90 }} دقیقه</span>
                         </td>
                         <td>{{ number_format($classroom->students_count) }}</td>
                         <td><x-admin.badge :variant="$classroom->status === 'active' ? 'success' : 'warning'">{{ ['active'=>'فعال','paused'=>'متوقف','archived'=>'بایگانی'][$classroom->status] ?? $classroom->status }}</x-admin.badge></td>
