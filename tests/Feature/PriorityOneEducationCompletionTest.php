@@ -69,6 +69,21 @@ class PriorityOneEducationCompletionTest extends TestCase
         return [$course, $classroom];
     }
 
+    public function test_legacy_account_can_sign_in_with_its_stable_legacy_id(): void
+    {
+        $student = $this->userWithRole('student', [
+            'legacy_login' => 'wp-120',
+            'password' => \Illuminate\Support\Facades\Hash::make('Legacy-Test-Password-1'),
+        ]);
+
+        $this->post(route('login.store'), [
+            'email' => 'wp-120',
+            'password' => 'Legacy-Test-Password-1',
+        ])
+            ->assertRedirect(route('student.dashboard'))
+            ->assertAuthenticatedAs($student);
+    }
+
     public function test_student_and_parent_can_see_course_and_lesson_progress(): void
     {
         $teacher = $this->userWithRole('teacher');
