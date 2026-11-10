@@ -1,88 +1,125 @@
-@extends('layouts.panel')
+@extends('layouts.student')
 
-@section('page-title', 'داشبورد دانش‌آموز')
-@section('page-description', 'نمای یکپارچه کلاس‌ها، تکالیف و پیشرفت آموزشی شما')
+@section('title', 'مرکز یادگیری')
 
 @section('content')
-    <section class="panel-card panel-hero panel-section-anchor mb-4" id="overview">
-        <div>
-            <span class="text-xs text-indigo-100">سلام {{ auth()->user()->name }}</span>
-            <h2>مسیر یادگیری تو از همین‌جا ادامه پیدا می‌کند</h2>
-            <p>وضعیت و فعالیت‌های آموزشی ثبت‌شده برای حساب خودت را اینجا می‌بینی.</p>
+    <section class="hero" id="overview" aria-labelledby="student-welcome-title">
+        <svg class="av" viewBox="0 0 120 120" aria-hidden="true">
+            <use href="#avatar"></use>
+        </svg>
+        <div class="txt">
+            <h2 id="student-welcome-title">سلام، {{ auth()->user()->name }}!</h2>
+            <p>
+                نمای یکپارچه‌ی کلاس‌ها، تکالیف، حضور و نتایج آموزشی ثبت‌شده‌ی شما.
+            </p>
+            <a class="btn" href="#classes">مشاهده‌ی کلاس‌های من</a>
+            @can('homework.view.own')
+                <a class="btn g" href="#homework">پیگیری تکالیف</a>
+            @endcan
         </div>
-        <span class="panel-hero-meta">{{ now()->translatedFormat('l، d F Y') }}</span>
     </section>
 
-    <section class="panel-grid panel-grid-4 mb-4">
-        <article class="panel-card panel-stat" style="--stat-color:#5065d8;--stat-soft:#edf0ff">
-            <div class="panel-stat-symbol">▣</div>
-            <span class="panel-stat-label">کلاس‌های فعال من</span>
-            <strong class="panel-stat-value">{{ number_format($classroom_count) }}</strong>
-            <span class="panel-stat-note">کلاس‌هایی که برایت ثبت شده‌اند</span>
-        </article>
-        <article class="panel-card panel-stat" style="--stat-color:#d18b11;--stat-soft:#fff5dc">
-            <div class="panel-stat-symbol">✎</div>
-            <span class="panel-stat-label">تکالیف انجام‌نشده</span>
-            <strong class="panel-stat-value">{{ number_format($pending_homework_count) }}</strong>
-            <span class="panel-stat-note">تکالیف منتشرشده بدون پاسخ ثبت‌شده</span>
-        </article>
-        <article class="panel-card panel-stat" style="--stat-color:#0b9a89;--stat-soft:#e2f6f2">
-            <div class="panel-stat-symbol">✓</div>
-            <span class="panel-stat-label">نرخ حضور</span>
-            <strong class="panel-stat-value">{{ $attendance_rate === null ? '—' : number_format($attendance_rate).'٪' }}</strong>
-            <span class="panel-stat-note">{{ number_format($attendance_count) }} جلسه دارای رکورد حضور</span>
-        </article>
-        <article class="panel-card panel-stat" style="--stat-color:#7b55c7;--stat-soft:#f1ebff">
-            <div class="panel-stat-symbol">★</div>
-            <span class="panel-stat-label">نتایج ثبت‌شده</span>
-            <strong class="panel-stat-value">{{ number_format($results->count()) }}</strong>
-            <span class="panel-stat-note">آخرین نتایج آزمون‌های ثبت‌شده</span>
-        </article>
+    <section class="stats" aria-label="خلاصه‌ی وضعیت آموزشی">
+        <x-stat
+            tone="s1"
+            icon="book"
+            label="کلاس‌های فعال"
+            :value="number_format($classroom_count, 0, '.', '،')"
+            hint="کلاس‌های ثبت‌شده برای شما"
+            href="#classes"
+        />
+        <x-stat
+            tone="s2"
+            icon="task"
+            label="تکالیف باز"
+            :value="number_format($pending_homework_count, 0, '.', '،')"
+            hint="تکالیف بدون پاسخ ثبت‌شده"
+            href="#homework"
+        />
+        <x-stat
+            tone="s3"
+            icon="cal"
+            label="نرخ حضور"
+            :value="$attendance_rate === null ? '—' : number_format($attendance_rate, 0, '.', '،').'٪'"
+            :hint="number_format($attendance_count, 0, '.', '،').' جلسه‌ی ثبت‌شده'"
+            href="#attendance"
+        />
+        <x-stat
+            tone="s4"
+            icon="chart"
+            label="نتایج ثبت‌شده"
+            :value="number_format($results->count(), 0, '.', '،')"
+            hint="نتایج قابل مشاهده‌ی شما"
+            href="#results"
+        />
     </section>
 
     @can('classes.view.enrolled')
-        <section class="panel-card panel-section-anchor mb-4" id="classes">
-            <div class="panel-card-title">
-                <div><h3>کلاس‌های من</h3><p>کلاس‌های فعال مرتبط با حساب دانش‌آموزی</p></div>
-                <span class="panel-badge">{{ number_format($classroom_count) }} کلاس</span>
+        <section class="card" id="classes" aria-labelledby="student-classes-title">
+            <div class="chead">
+                <h2 id="student-classes-title">کلاس‌های من</h2>
+                <span class="pill">{{ number_format($classroom_count, 0, '.', '،') }} کلاس</span>
             </div>
-            <div class="panel-grid panel-grid-3">
-                @forelse ($classrooms as $classroom)
-                    <article class="panel-subcard">
-                        <strong>{{ $classroom->name }}</strong>
-                        <span>{{ $classroom->course?->title ?? 'بدون دوره متصل' }}</span>
-                        <small>مدرس: {{ $classroom->teacher?->name ?? 'تعیین نشده' }}</small>
-                    </article>
-                @empty
-                    <div class="panel-empty">هنوز کلاسی برای این حساب ثبت نشده است.</div>
-                @endforelse
-            </div>
+
+            @if($classrooms->isNotEmpty())
+                <div class="g3">
+                    @foreach($classrooms as $classroom)
+                        @php
+                            $tones = ['t-a', 't-b', 't-c', 't-d'];
+                            $tone = $tones[$loop->index % count($tones)];
+                        @endphp
+                        <article class="cc">
+                            <div class="th big {{ $tone }}">
+                                <x-icon name="book"/>
+                            </div>
+                            <h3>{{ $classroom->name }}</h3>
+                            <p>{{ $classroom->course?->title ?? 'بدون دوره‌ی متصل' }}</p>
+                            <span class="mu">مدرس: {{ $classroom->teacher?->name ?? 'تعیین نشده' }}</span>
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <div class="empty">هنوز کلاسی برای این حساب ثبت نشده است.</div>
+            @endif
         </section>
     @endcan
 
     @can('homework.view.own')
-        <section class="panel-card panel-section-anchor mb-4" id="homework">
-            <div class="panel-card-title"><div><h3>تکالیف اخیر</h3><p>وضعیت پاسخ‌های ثبت‌شده برای تکالیف کلاس‌های شما</p></div></div>
-            <div class="panel-table-wrap">
-                <table class="panel-table" data-searchable-table>
-                    <thead><tr><th>عنوان تکلیف</th><th>کلاس</th><th>مهلت</th><th>وضعیت پاسخ</th></tr></thead>
-                    <tbody>
-                    @forelse ($homeworks as $homework)
+        <section class="card" id="homework" aria-labelledby="student-homework-title">
+            <div class="chead">
+                <h2 id="student-homework-title">تکالیف اخیر</h2>
+                <span class="pill">{{ number_format($pending_homework_count, 0, '.', '،') }} تکلیف باز</span>
+            </div>
+
+            <div class="tw">
+                <table class="tbl">
+                    <thead>
                         <tr>
-                            <td>{{ $homework->title }}</td>
-                            <td>{{ $homework->classroom?->name ?? '—' }}</td>
-                            <td>{{ $homework->due_at?->translatedFormat('Y/m/d H:i') ?? 'بدون مهلت' }}</td>
-                            <td>
-                                @if ($homework->submitted_by_student_count > 0)
-                                    <span class="panel-badge panel-badge-success">ارسال شده</span>
-                                @else
-                                    <span class="panel-badge panel-badge-warning">نیازمند انجام</span>
-                                @endif
-                            </td>
+                            <th scope="col">عنوان تکلیف</th>
+                            <th scope="col">کلاس</th>
+                            <th scope="col">مهلت</th>
+                            <th scope="col">وضعیت پاسخ</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="4" class="panel-empty">تکلیف منتشرشده‌ای برای کلاس‌های شما ثبت نشده است.</td></tr>
-                    @endforelse
+                    </thead>
+                    <tbody>
+                        @forelse($homeworks as $homework)
+                            <tr>
+                                <td>{{ $homework->title }}</td>
+                                <td>{{ $homework->classroom?->name ?? '—' }}</td>
+                                <td>{{ $homework->due_at?->translatedFormat('Y/m/d H:i') ?? 'بدون مهلت' }}</td>
+                                <td>
+                                    @if($homework->submitted_by_student_count > 0)
+                                        <span class="tag">ارسال شده</span>
+                                    @else
+                                        <span class="tag w">نیازمند انجام</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="empty">تکلیف منتشرشده‌ای برای کلاس‌های شما ثبت نشده است.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -90,29 +127,43 @@
     @endcan
 
     @can('attendance.view.own')
-        <section class="panel-card panel-section-anchor mb-4" id="attendance">
-            <div class="panel-card-title"><div><h3>آخرین وضعیت حضور و غیاب</h3><p>رکوردهای ثبت‌شده برای خود دانش‌آموز</p></div></div>
-            <div class="panel-table-wrap">
-                <table class="panel-table">
-                    <thead><tr><th>کلاس</th><th>تاریخ</th><th>وضعیت</th></tr></thead>
-                    <tbody>
-                    @forelse ($attendance as $record)
+        <section class="card" id="attendance" aria-labelledby="student-attendance-title">
+            <div class="chead">
+                <h2 id="student-attendance-title">آخرین وضعیت حضور و غیاب</h2>
+                <span class="pill">
+                    {{ $attendance_rate === null ? 'بدون داده' : number_format($attendance_rate, 0, '.', '،').'٪ حضور' }}
+                </span>
+            </div>
+
+            <div class="tw">
+                <table class="tbl">
+                    <thead>
                         <tr>
-                            <td>{{ $record->classroom?->name ?? '—' }}</td>
-                            <td>{{ $record->session_date?->translatedFormat('Y/m/d') ?? '—' }}</td>
-                            <td>
-                                @if ($record->status === 'present')
-                                    <span class="panel-badge panel-badge-success">حاضر</span>
-                                @elseif ($record->status === 'late')
-                                    <span class="panel-badge panel-badge-warning">با تأخیر</span>
-                                @else
-                                    <span class="panel-badge panel-badge-danger">غایب</span>
-                                @endif
-                            </td>
+                            <th scope="col">کلاس</th>
+                            <th scope="col">تاریخ جلسه</th>
+                            <th scope="col">وضعیت</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="3" class="panel-empty">رکوردی از حضور و غیاب برای شما ثبت نشده است.</td></tr>
-                    @endforelse
+                    </thead>
+                    <tbody>
+                        @forelse($attendance as $record)
+                            <tr>
+                                <td>{{ $record->classroom?->name ?? '—' }}</td>
+                                <td>{{ $record->session_date?->translatedFormat('Y/m/d') ?? '—' }}</td>
+                                <td>
+                                    @if($record->status === 'present')
+                                        <span class="tag">حاضر</span>
+                                    @elseif($record->status === 'late')
+                                        <span class="tag w">با تأخیر</span>
+                                    @else
+                                        <span class="tag r">غایب</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="empty">رکوردی از حضور و غیاب برای شما ثبت نشده است.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -120,22 +171,39 @@
     @endcan
 
     @can('exams.view.own')
-        <section class="panel-card panel-section-anchor mb-4" id="results">
-            <div class="panel-card-title"><div><h3>نتایج آزمون‌ها</h3><p>نتایج دریافت‌شده و ثبت‌شده در سامانه</p></div></div>
-            <div class="panel-table-wrap">
-                <table class="panel-table">
-                    <thead><tr><th>آزمون</th><th>دوره / کلاس</th><th>نمره</th><th>زمان ثبت</th></tr></thead>
-                    <tbody>
-                    @forelse ($results as $result)
+        <section class="card" id="results" aria-labelledby="student-results-title">
+            <div class="chead">
+                <h2 id="student-results-title">نتایج آزمون‌ها</h2>
+                <span class="pill">{{ number_format($results->count(), 0, '.', '،') }} نتیجه</span>
+            </div>
+
+            <div class="tw">
+                <table class="tbl">
+                    <thead>
                         <tr>
-                            <td>{{ $result->exam?->title ?? 'آزمون حذف‌شده' }}</td>
-                            <td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td>
-                            <td>{{ $result->score === null ? 'در انتظار نمره' : number_format((float) $result->score, 2).' / '.number_format((float) $result->max_score, 2) }}</td>
-                            <td>{{ $result->synced_at?->translatedFormat('Y/m/d') ?? $result->created_at?->translatedFormat('Y/m/d') ?? '—' }}</td>
+                            <th scope="col">آزمون</th>
+                            <th scope="col">دوره یا کلاس</th>
+                            <th scope="col">نمره</th>
+                            <th scope="col">زمان ثبت</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="4" class="panel-empty">هنوز نتیجه‌ای برای حساب شما ثبت نشده است.</td></tr>
-                    @endforelse
+                    </thead>
+                    <tbody>
+                        @forelse($results as $result)
+                            <tr>
+                                <td>{{ $result->exam?->title ?? 'آزمون حذف‌شده' }}</td>
+                                <td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td>
+                                <td>
+                                    {{ $result->score === null
+                                        ? 'در انتظار نمره'
+                                        : number_format((float) $result->score, 2).' / '.number_format((float) $result->max_score, 2) }}
+                                </td>
+                                <td>{{ $result->synced_at?->translatedFormat('Y/m/d') ?? $result->created_at?->translatedFormat('Y/m/d') ?? '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="empty">هنوز نتیجه‌ای برای حساب شما ثبت نشده است.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -143,34 +211,49 @@
     @endcan
 
     @can('resources.view.enrolled')
-        <section class="panel-card panel-section-anchor mb-4" id="resources">
-            <div class="panel-card-title"><div><h3>منابع آموزشی اخیر</h3><p>منابع منتشرشده در کلاس‌های ثبت‌شده شما</p></div><span class="panel-badge">{{ number_format($resource_count) }} منبع</span></div>
-            <div class="panel-list">
-                @forelse ($resources as $resource)
-                    <div class="panel-list-row">
-                        <div class="panel-avatar">▧</div>
-                        <div class="panel-list-main"><strong>{{ $resource->title }}</strong><span>{{ $resource->kind }} · {{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</span></div>
-                    </div>
-                @empty
-                    <div class="panel-empty">منبع منتشرشده‌ای برای کلاس‌های شما وجود ندارد.</div>
-                @endforelse
+        <section class="card" id="resources" aria-labelledby="student-resources-title">
+            <div class="chead">
+                <h2 id="student-resources-title">جزوه‌ها و منابع آموزشی</h2>
+                <span class="pill">{{ number_format($resource_count, 0, '.', '،') }} منبع</span>
             </div>
+
+            @if($resources->isNotEmpty())
+                <div class="g3">
+                    @foreach($resources as $resource)
+                        <article class="cc">
+                            <div class="th big t-c"><x-icon name="file"/></div>
+                            <h3>{{ $resource->title }}</h3>
+                            <p>{{ $resource->kind }}</p>
+                            <span class="mu">
+                                {{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}
+                            </span>
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <div class="empty">منبع منتشرشده‌ای برای کلاس‌های شما وجود ندارد.</div>
+            @endif
         </section>
     @endcan
 
     @can('announcements.view')
-        <section class="panel-card panel-section-anchor" id="announcements">
-            <div class="panel-card-title"><div><h3>اطلاعیه‌های آکادمی</h3><p>اطلاعیه‌های منتشرشده برای دانش‌آموزان</p></div></div>
-            <div class="panel-list">
-                @forelse ($announcements as $announcement)
-                    <div class="panel-list-row">
-                        <div class="panel-avatar">⚑</div>
-                        <div class="panel-list-main"><strong>{{ $announcement->title }}</strong><span>{{ $announcement->published_at?->diffForHumans() ?? '—' }}</span></div>
-                    </div>
-                @empty
-                    <div class="panel-empty">اطلاعیه‌ای برای نمایش وجود ندارد.</div>
-                @endforelse
+        <section class="card" id="announcements" aria-labelledby="student-announcements-title">
+            <div class="chead">
+                <h2 id="student-announcements-title">اطلاعیه‌های آکادمی</h2>
+                <span class="pill">{{ number_format($announcements->count(), 0, '.', '،') }} اطلاعیه</span>
             </div>
+
+            @forelse($announcements as $announcement)
+                <article class="news">
+                    <b>{{ $announcement->title }}</b>
+                    <span class="mu">{{ $announcement->published_at?->diffForHumans() ?? '—' }}</span>
+                    @if(filled($announcement->body))
+                        <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 160) }}</p>
+                    @endif
+                </article>
+            @empty
+                <div class="empty">اطلاعیه‌ای برای نمایش وجود ندارد.</div>
+            @endforelse
         </section>
     @endcan
 @endsection
