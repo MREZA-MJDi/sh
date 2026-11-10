@@ -187,7 +187,24 @@
                     <div class="panel-field"><label>شناسه دانش‌آموز در Quiz24 (اختیاری)</label><input class="panel-input" name="external_student_id" maxlength="120" dir="ltr"></div>
                     <div class="panel-field"><label>عضویت در کلاس‌ها</label><select class="panel-select" name="classroom_ids[]" multiple size="6">@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
                 @elseif ($role === 'parent')
-                    <div class="panel-field"><label>اتصال به دانش‌آموزان</label><select class="panel-select" name="child_ids[]" multiple size="6">@foreach ($students as $student)<option value="{{ $student->id }}">{{ $student->name }}</option>@endforeach</select></div>
+                    <div class="panel-field">
+                        <label>اتصال به دانش‌آموزان</label>
+                        <div class="panel-remote-lookup" data-remote-lookup data-lookup-url="{{ route('admin.lookups.students') }}" data-lookup-name="child_ids[]">
+                            <input class="panel-input" type="search" data-lookup-input minlength="2" maxlength="80" autocomplete="off" placeholder="حداقل دو حرف از نام یا شماره تماس را وارد کنید">
+                            <div class="panel-lookup-results" data-lookup-results role="listbox" aria-label="نتایج جستجوی دانش‌آموزان"></div>
+                            <div class="panel-lookup-selected" data-lookup-selected aria-live="polite">
+                                @foreach ($selectedChildren as $selectedChild)
+                                    <span class="panel-lookup-chip">
+                                        <input type="hidden" name="child_ids[]" value="{{ $selectedChild->id }}" data-lookup-value="{{ $selectedChild->id }}">
+                                        <span>{{ $selectedChild->name }}</span>
+                                        <button type="button" data-lookup-remove aria-label="حذف دانش‌آموز">×</button>
+                                    </span>
+                                @endforeach
+                            </div>
+                            <small class="panel-muted">نتایج فقط پس از جستجوی شما و حداکثر ۲۰ مورد در هر درخواست دریافت می‌شوند.</small>
+                            <div class="panel-muted" data-lookup-status role="status"></div>
+                        </div>
+                    </div>
                 @endif
             </x-admin.drawer-form>
         @endif
