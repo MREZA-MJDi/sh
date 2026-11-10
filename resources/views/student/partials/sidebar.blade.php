@@ -3,7 +3,7 @@
     $dashboardAnchor = static fn (string $section): string => request()->routeIs('student.dashboard')
         ? '#' . $section
         : route('student.dashboard') . '#' . $section;
-    $hasLearningItems = $student?->can('classes.view.enrolled') || $student?->can('homework.view.own');
+    $hasLearningItems = $student?->can('classes.view.enrolled') || $student?->can('homework.view.own') || $student?->can('lessons.view');
     $hasPerformanceItems = $student?->can('exams.view.own') || $student?->can('attendance.view.own');
 @endphp
 
@@ -25,6 +25,9 @@
 
         @if($hasLearningItems)
             <h6>یادگیری</h6>
+            @can('lessons.view')
+                <a href="{{ route('student.courses.index') }}" data-nav-link><x-icon name="book"/> دوره‌های من</a>
+            @endcan
             @can('classes.view.enrolled')
                 <a href="{{ $dashboardAnchor('classes') }}" data-nav-link data-dashboard-nav-target="classes"><x-icon name="book"/> کلاس‌های من</a>
             @endcan
