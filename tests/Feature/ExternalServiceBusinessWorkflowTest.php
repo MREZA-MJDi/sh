@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\CourseEnrollment;
 use App\Models\Exam;
 use App\Models\ExamResult;
 use App\Models\Quiz24StudentMapping;
