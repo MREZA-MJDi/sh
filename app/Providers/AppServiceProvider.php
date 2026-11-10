@@ -6,9 +6,9 @@ use App\Services\Quiz24\Contracts\Quiz24Gateway;
 use App\Services\Quiz24\UnavailableQuiz24Gateway;
 use App\Services\SpotPlayer\Contracts\SpotPlayerGateway;
 use App\Services\SpotPlayer\UnavailableSpotPlayerGateway;
-use App\\Auth\\LegacyAwareUserProvider;
-use Illuminate\\Support\\Facades\\Auth;
-use Illuminate\\Support\\Facades\\Blade;
+use App\Auth\LegacyAwareUserProvider;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
