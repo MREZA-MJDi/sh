@@ -6,6 +6,7 @@ use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Exam;
 use App\Models\ExamResult;
+use App\Models\Quiz24StudentMapping;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
@@ -389,6 +390,70 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
         $this->get(route('admin.spotplayer.videos.download', $video))->assertOk();
         Http::assertNothingSent();
+    }
+
+    public function test_quiz24_import_does_not_assign_a_result_to_a_non_student_or_ambiguous_phone(): void
+    {
+        $parent = $this->createUserWithRole('parent', ['phone' => '09129990000']);
+        $firstStudent = $this->createUserWithRole('student', ['phone' => '09128887777']);
+        $secondStudent = $this->createUserWithRole('student', ['phone' => '09128887777']);
+
+        $exam = Exam::create([
+            'title' => 'آزمون کنترل هویت',
+            'provider' => 'quiz24',
+            'external_id' => 'QUIZ-IDENTITY-10',
+            'status' => 'published',
+        ]);
+
+        Quiz24StudentMapping::create([
+            'provider' => 'quiz24',
+            'external_identifier' => 'PARENT-IDENTIFIER-10',
+            'student_id' => $parent->id,
+            'created_by' => $this->admin->id,
+        ]);
+
+        $importer = app(Quiz24ResultImporter::class);
+        $summary = $importer->import($exam, [
+            new Quiz24ResultData(
+                resultId: 'RESULT-PARENT-10',
+                studentIdentifier: 'PARENT-IDENTIFIER-10',
+                studentName: 'حساب ولی',
+                score: 14,
+                maxScore: 20,
+            ),
+            new Quiz24ResultData(
+                resultId: 'RESULT-AMBIGUOUS-10',
+                studentIdentifier: '09128887777',
+                studentName: 'شماره مشترک',
+                score: 15,
+                maxScore: 20,
+            ),
+        ]);
+
+        $this->assertSame(0, $summary['matched']);
+        $this->assertSame(2, $summary['unmatched']);
+        $this->assertDatabaseMissing('exam_results', [
+            'exam_id' => $exam->id,
+            'student_id' => $parent->id,
+        ]);
+        $this->assertDatabaseMissing('exam_results', [
+            'exam_id' => $exam->id,
+            'student_id' => $firstStudent->id,
+        ]);
+        $this->assertDatabaseMissing('exam_results', [
+            'exam_id' => $exam->id,
+            'student_id' => $secondStudent->id,
+        ]);
+        $this->assertDatabaseHas('quiz24_unmatched_participants', [
+            'exam_id' => $exam->id,
+            'external_identifier' => 'PARENT-IDENTIFIER-10',
+            'status' => 'unmatched',
+        ]);
+        $this->assertDatabaseHas('quiz24_unmatched_participants', [
+            'exam_id' => $exam->id,
+            'external_identifier' => '09128887777',
+            'status' => 'unmatched',
+        ]);
     }
 
     private function createUserWithRole(string $role, array $attributes = []): User
