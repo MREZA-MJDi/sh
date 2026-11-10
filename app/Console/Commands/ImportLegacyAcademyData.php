@@ -234,6 +234,16 @@ final class ImportLegacyAcademyData extends Command
                 }
                 $phones[$phone] = true;
             }
+
+            $legacyLogin = (string) $user->id;
+            if (DB::table('users')->where('legacy_login', $legacyLogin)->exists()) {
+                $conflicts[] = 'شناسه ورود legacy قبلاً در مقصد استفاده شده است: '.$legacyLogin;
+            }
+
+            $syntheticEmail = 'legacy-'.$legacyLogin.'@accounts.invalid';
+            if ($email === '' && DB::table('users')->where('email', $syntheticEmail)->exists()) {
+                $conflicts[] = 'ایمیل سیستمی حساب legacy قبلاً در مقصد استفاده شده است: '.$syntheticEmail;
+            }
             // Accounts with neither email nor mobile can still sign in with
             // their stable legacy ID after the destination legacy_login migration.
         }
