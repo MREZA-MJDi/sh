@@ -30,7 +30,6 @@ class CourseEnrollmentService
             ->join('classrooms', 'classrooms.id', '=', 'classroom_student.classroom_id')
             ->where('classrooms.course_id', $course->id)
             ->where('classrooms.status', 'active')
-            ->whereNull('classroom_student.left_at')
             ->distinct()
             ->pluck('classroom_student.student_id')
             ->map(static fn ($id): int => (int) $id)
