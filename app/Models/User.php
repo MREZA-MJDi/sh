@@ -31,6 +31,41 @@ class User extends Authenticatable
         ];
     }
 
+    public function setPhoneAttribute(?string $value): void
+    {
+        if ($value === null || trim($value) === '') {
+            $this->attributes['phone'] = null;
+            return;
+        }
+
+        $digits = strtr(trim($value), [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
+
+        $this->attributes['phone'] = preg_replace('/[\\s-]+/u', '', $digits) ?? $digits;
+    }
+
+    public function setExternalStudentIdAttribute(?string $value): void
+    {
+        if ($value === null || trim($value) === '') {
+            $this->attributes['external_student_id'] = null;
+            return;
+        }
+
+        $identifier = strtr(trim($value), [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
+
+        // Keep meaningful provider separators (for example STU-204); remove whitespace only.
+        $this->attributes['external_student_id'] = preg_replace('/\\s+/u', '', $identifier) ?? $identifier;
+    }
+
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class)->withTimestamps();

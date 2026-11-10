@@ -22,6 +22,12 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:160'],
             'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')],
             'phone' => ['nullable', 'string', 'max:30'],
+            'external_student_id' => [
+                $role === 'student' ? 'nullable' : 'prohibited',
+                'string',
+                'max:120',
+                Rule::unique('users', 'external_student_id'),
+            ],
             'password' => ['required', 'string', 'min:12', 'confirmed'],
             'grade' => [$role === 'student' ? 'required' : 'nullable', 'string', 'max:50'],
             'subject' => [$role === 'teacher' ? 'required' : 'nullable', 'string', 'max:100'],

@@ -54,6 +54,7 @@ class UserController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
+                'external_student_id' => $role === 'student' ? ($data['external_student_id'] ?? null) : null,
                 'password' => $data['password'],
                 'grade' => $role === 'student' ? ($data['grade'] ?? null) : null,
                 'subject' => $role === 'teacher' ? ($data['subject'] ?? null) : null,
