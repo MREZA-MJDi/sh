@@ -75,6 +75,9 @@
                 </tbody>
             </table>
         </div>
+        @if ($submissions->hasPages())
+            <div class="panel-pagination">{{ $submissions->links() }}</div>
+        @endif
     </section>
 
     @canany(['homework.manage.all', 'homework.manage.assigned'])
