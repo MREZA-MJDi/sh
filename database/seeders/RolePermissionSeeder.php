@@ -53,6 +53,7 @@ class RolePermissionSeeder extends Seeder
             'homework.grade' => ['تصحیح و نمره‌دهی تکالیف', 'homework'],
             'exams.view.all' => ['مشاهده همه آزمون‌ها', 'exams'],
             'exams.view.own' => ['مشاهده نتایج شخصی آزمون‌ها', 'exams'],
+            'exams.attempt' => ['شرکت در آزمون‌های مجاز', 'exams'],
             'exams.view.children' => ['مشاهده نتایج آزمون فرزندان', 'exams'],
             'exams.manage' => ['مدیریت آزمون‌ها', 'exams'],
             'exams.manage.assigned' => ['مدیریت آزمون‌های کلاس‌های خود', 'exams'],
@@ -105,7 +106,7 @@ class RolePermissionSeeder extends Seeder
             ],
             'student' => [
                 'dashboard.view', 'classes.view.enrolled', 'homework.view.own', 'homework.submit', 'lessons.view', 'lessons.progress',
-                'attendance.view.own', 'exams.view.own', 'resources.view.enrolled', 'notes.manage.own',
+                'attendance.view.own', 'exams.view.own', 'exams.attempt', 'resources.view.enrolled', 'notes.manage.own',
                 'messages.view.own', 'messages.send.own', 'announcements.view', 'profile.update',
             ],
             'parent' => [
