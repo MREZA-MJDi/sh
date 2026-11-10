@@ -26,7 +26,7 @@
         <div class="panel-card-title"><div><h3>فهرست آزمون‌ها</h3><p>نتایج فقط پس از ثبت داخلی یا پیاده‌سازی همگام‌سازی واقعی نمایش داده می‌شوند.</p></div><span class="panel-badge">{{ $exams->total() }} آزمون</span></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>آزمون</th><th>کلاس / دوره</th><th>منبع</th><th>تاریخ</th><th>نتایج</th><th>وضعیت</th></tr></thead>
+                <thead><tr><th>آزمون</th><th>کلاس / دوره</th><th>منبع</th><th>تاریخ</th><th>نتایج</th><th>وضعیت</th><th>عملیات</th></tr></thead>
                 <tbody>
                 @forelse ($exams as $exam)
                     <tr>
@@ -36,9 +36,29 @@
                         <td>{{ $exam->starts_at?->format('Y-m-d H:i') ?? '—' }}</td>
                         <td>{{ $exam->results_count }}</td>
                         <td><span class="panel-badge {{ $exam->status==='published' ? 'panel-badge-success' : 'panel-badge-warning' }}">{{ ['draft'=>'پیش‌نویس','scheduled'=>'زمان‌بندی‌شده','published'=>'منتشرشده','closed'=>'بسته‌شده'][$exam->status] ?? $exam->status }}</span></td>
+                        <td class="panel-table-actions">
+                            <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.results', $exam) }}">مشاهده نتایج</a>
+                            <details class="panel-details">
+                                <summary>ویرایش</summary>
+                                <div class="panel-details-content">
+                                    <form method="POST" action="{{ route('admin.exams.update', $exam) }}" class="grid gap-2">
+                                        @csrf @method('PATCH')
+                                        <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $exam->title }}" required maxlength="180"></div>
+                                        <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected($exam->classroom_id===$classroom->id)>{{ $classroom->name }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id"><option value="">بدون دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}" @selected($exam->course_id===$course->id)>{{ $course->title }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>ارائه‌دهنده</label><select class="panel-select" name="provider"><option value="internal" @selected($exam->provider==='internal')>داخلی</option><option value="quiz24" @selected($exam->provider==='quiz24')>Quiz24</option></select></div>
+                                        <div class="panel-field"><label>شناسه آزمون خارجی</label><input class="panel-input" name="external_id" value="{{ $exam->external_id }}" maxlength="190" dir="ltr"></div>
+                                        <div class="panel-field"><label>زمان شروع</label><input class="panel-input" type="datetime-local" name="starts_at" value="{{ $exam->starts_at?->format('Y-m-d\\TH:i') }}"></div>
+                                        <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['draft'=>'پیش‌نویس','scheduled'=>'زمان‌بندی‌شده','published'=>'منتشرشده','closed'=>'بسته‌شده'] as $key=>$label)<option value="{{ $key }}" @selected($exam->status===$key)>{{ $label }}</option>@endforeach</select></div>
+                                        <div class="panel-field"><label>توضیحات</label><textarea class="panel-textarea" name="description" maxlength="10000">{{ $exam->description }}</textarea></div>
+                                        <button class="panel-btn panel-btn-sm" type="submit">ذخیره تغییرات</button>
+                                    </form>
+                                </div>
+                            </details>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="panel-empty">آزمونی ثبت نشده است.</td></tr>
+                    <tr><td colspan="7" class="panel-empty">آزمونی ثبت نشده است.</td></tr>
                 @endforelse
                 </tbody>
             </table>
