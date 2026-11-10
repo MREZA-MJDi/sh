@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\LocalDemoAccountsSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -91,7 +92,7 @@ class LocalDemoAccountsTest extends TestCase
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
-        $this->seed(DatabaseSeeder::class);
+        app(LocalDemoAccountsSeeder::class)->run();
 
         foreach (['admin@sh.local', 'teacher@sh.local', 'student@sh.local', 'parent@sh.local'] as $email) {
             $this->assertDatabaseMissing('users', ['email' => $email]);
