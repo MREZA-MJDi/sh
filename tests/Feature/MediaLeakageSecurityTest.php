@@ -93,6 +93,28 @@ final class MediaLeakageSecurityTest extends TestCase
             ->assertDontSee('OTHER-CLASS-VIDEO');
     }
 
+    public function test_course_enrollment_does_not_bypass_a_resource_specific_classroom_restriction(): void
+    {
+        [$student, $teacher, $course, $enrolledClassroom] = $this->makeCourseAndStudent();
+
+        // The student is enrolled in the course through classroom A, but the
+        // material is explicitly assigned to classroom B.
+        $otherClassroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس دیگر',
+            'status' => 'active',
+        ]);
+
+        $resource = $this->makeResource($course, $otherClassroom);
+        Storage::disk('local')->put($resource->file_path, 'CLASSROOM-RESTRICTED-HANDOUT');
+
+        $this->actingAs($student)
+            ->get(route('student.resources.download', $resource))
+            ->assertNotFound()
+            ->assertDontSee('CLASSROOM-RESTRICTED-HANDOUT');
+    }
+
     public function test_expired_course_enrollment_cannot_download_learning_resource(): void
     {
         [$student, , $course, $classroom] = $this->makeCourseAndStudent();
