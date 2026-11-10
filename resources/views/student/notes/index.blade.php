@@ -29,7 +29,7 @@
                     <x-field-error name="text"/>
                     <div class="frm">
                         <button class="btn s" type="submit">ذخیره‌ی تغییرات</button>
-                        <span class="mu">{{ \App\Support\PersianDate::format($note->updated_at, 'yyyy/MM/dd HH:mm') }}</span>
+                        <span class="mu">{{ \App\Support\PersianDate::format($note->updated_at, 'Y/m/d H:i') }}</span>
                     </div>
                 </form>
                 <form method="POST" action="{{ route('student.notes.destroy', $note) }}" onsubmit="return confirm('این یادداشت حذف شود؟')">
