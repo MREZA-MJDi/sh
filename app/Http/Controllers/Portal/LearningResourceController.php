@@ -1,16 +1,16 @@
 <?php
 
-namespace App\\Http\\Controllers\\Portal;
+namespace App\Http\Controllers\Portal;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Classroom;
-use App\\Models\\CourseEnrollment;
-use App\\Models\\LearningResource;
-use App\\Models\\User;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Storage;
-use Symfony\\Component\\HttpFoundation\\StreamedResponse;
+use App\Http\Controllers\Controller;
+use App\Models\Classroom;
+use App\Models\CourseEnrollment;
+use App\Models\LearningResource;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class LearningResourceController extends Controller
 {
