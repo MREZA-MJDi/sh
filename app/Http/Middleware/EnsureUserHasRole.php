@@ -12,7 +12,7 @@ class EnsureUserHasRole
     {
         $user = $request->user();
 
-        abort_unless($user && $user->hasRole($roles), 403, 'شما اجازه دسترسی به این بخش را ندارید.');
+        abort_unless($user && $user->is_active && $user->hasRole($roles), 403, 'شما اجازه دسترسی به این بخش را ندارید.');
 
         return $next($request);
     }

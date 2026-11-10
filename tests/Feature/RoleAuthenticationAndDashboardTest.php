@@ -292,6 +292,16 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         $this->assertNotContains('نتیجه کلاس غیرمجاز', $titles);
     }
 
+    public function test_deactivated_users_cannot_keep_access_to_a_role_dashboard(): void
+    {
+        $teacher = User::factory()->create(['is_active' => false]);
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.dashboard'))
+            ->assertForbidden();
+    }
+
     public function test_roles_cannot_open_another_roles_dashboard(): void
     {
         $student = User::factory()->create();
