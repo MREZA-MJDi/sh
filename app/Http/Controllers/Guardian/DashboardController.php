@@ -11,6 +11,8 @@ final class DashboardController extends Controller
 {
     public function index(Request $request, GuardianDashboardService $dashboard): View
     {
-        return view('guardian.dashboard.index', $dashboard->build($request->user()));
+        $selectedChildId = $request->integer('child') ?: null;
+
+        return view('guardian.dashboard.index', $dashboard->build($request->user(), $selectedChildId));
     }
 }
