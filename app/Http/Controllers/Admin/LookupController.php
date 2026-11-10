@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 final class LookupController extends Controller
 {
@@ -20,7 +21,13 @@ final class LookupController extends Controller
         ]);
 
         $term = trim($validated['q']);
-        if (mb_strlen($term) < 2) {\n            throw ValidationException::withMessages(['q' => 'برای جستجو حداقل دو حرف معتبر وارد کنید.']);\n        }\n\n        $pattern = '%' . addcslashes($term, '%_\\') . '%';
+        if (mb_strlen($term) < 2) {
+            throw ValidationException::withMessages([
+                'q' => 'برای جستجو حداقل دو حرف معتبر وارد کنید.',
+            ]);
+        }
+
+        $pattern = '%' . addcslashes($term, '%_\\') . '%';
 
         $matches = User::query()
             ->select(['id', 'name', 'phone'])
@@ -32,6 +39,7 @@ final class LookupController extends Controller
                     ->orWhere('email', 'like', $pattern);
             })
             ->orderBy('name')
+            ->orderBy('id')
             ->limit(self::RESULT_LIMIT + 1)
             ->get();
 
