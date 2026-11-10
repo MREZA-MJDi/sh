@@ -85,21 +85,9 @@ final class StudentDashboardService
         $resourceQuery = LearningResource::query()
             ->whereIn('visibility', ['enrolled', 'authenticated'])
             ->where('status', 'published')
-                        ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
-                $scope->where(function (Builder $classScoped) use ($classroomIds, $courseIds): void {
-                    $classScoped->whereNotNull('classroom_id')
-                        ->whereIn('classroom_id', clone $classroomIds)
-                        ->where(function (Builder $courseScope) use ($courseIds): void {
-                            $courseScope->whereNull('course_id')
-                                ->orWhere(function (Builder $matchingCourse) use ($courseIds): void {
-                                    $matchingCourse->whereIn('course_id', clone $courseIds)
-                                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
-                                            ->whereColumn('classrooms.course_id', 'learning_resources.course_id'));
-                                });
-                        });
-                })->orWhere(function (Builder $courseOnly) use ($courseIds): void {
-                    $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
-                });
+            ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
+                $scope->whereIn('classroom_id', clone $classroomIds)
+                    ->orWhereIn('course_id', clone $courseIds);
             });
 
         $resources = (clone $resourceQuery)
@@ -108,7 +96,7 @@ final class StudentDashboardService
             ->limit(5)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
-        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds);
+        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6);
 
         $announcements = Announcement::query()
             ->where('status', 'published')
