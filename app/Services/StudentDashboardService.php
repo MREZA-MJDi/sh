@@ -32,6 +32,11 @@ final class StudentDashboardService
 
         $homeworks = (clone $homeworkQuery)
             ->with('classroom:id,name,course_id')
+            ->with([
+                'submissions' => fn (Builder $query) => $query
+                    ->where('student_id', $student->id)
+                    ->with('files'),
+            ])
             ->withCount([
                 'submissions as submitted_by_student_count' => fn (Builder $query) => $query
                     ->where('student_id', $student->id),
@@ -39,7 +44,7 @@ final class StudentDashboardService
             ->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_at')
             ->latest('created_at')
-            ->limit(6)
+            ->limit(8)
             ->get();
 
         $attendanceQuery = Attendance::query()
@@ -62,8 +67,8 @@ final class StudentDashboardService
 
         $results = ExamResult::query()
             ->where('student_id', $student->id)
-            ->whereHas('exam', function (Builder $exam) use ($student, $classroomIds, $courseIds): void {
-                $exam->where(function (Builder $scope) use ($student, $classroomIds, $courseIds): void {
+            ->whereHas('exam', function (Builder $exam) use ($classroomIds, $courseIds): void {
+                $exam->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
                     $scope->whereIn('exams.classroom_id', clone $classroomIds)
                         ->orWhere(function (Builder $courseLevel) use ($courseIds): void {
                             $courseLevel
@@ -86,9 +91,10 @@ final class StudentDashboardService
             });
 
         $resources = (clone $resourceQuery)
+            ->with(['course:id,title', 'classroom:id,name'])
             ->latest()
             ->limit(5)
-            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'created_at']);
+            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
         $announcements = Announcement::query()
             ->where('status', 'published')
