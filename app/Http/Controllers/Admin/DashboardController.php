@@ -9,6 +9,7 @@ use App\Models\Classroom;
 use App\Models\Consultation;
 use App\Models\Course;
 use App\Models\Homework;
+use App\Models\HomeworkSubmission;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -26,7 +27,7 @@ class DashboardController extends Controller
             'classes' => Classroom::where('status', 'active')->count(),
             'courses' => Course::where('status', 'published')->count(),
             'attendance_rate' => $this->attendanceRate($today),
-            'pending_homework' => Homework::whereHas('submissions', fn ($query) => $query->where('status', 'submitted'))->count(),
+            'pending_homework' => HomeworkSubmission::where('status', 'submitted')->count(),
         ];
 
         $todayClasses = Classroom::with(['teacher', 'course'])
@@ -43,11 +44,22 @@ class DashboardController extends Controller
         $recentAnnouncements = Announcement::where('status', 'published')
             ->latest('published_at')->limit(4)->get();
 
-        $weeklyAttendance = collect(range(6, 0))->map(function (int $daysAgo) {
-            $date = Carbon::today()->subDays($daysAgo);
-            $total = Attendance::whereDate('session_date', $date)->count();
-            $present = Attendance::whereDate('session_date', $date)
-                ->whereIn('status', ['present', 'late'])->count();
+        $weekStart = $today->copy()->subDays(6);
+        $attendanceByDay = Attendance::query()
+            ->selectRaw(
+                'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
+                ['present', 'late']
+            )
+            ->whereBetween('session_date', [$weekStart->toDateString(), $today->toDateString()])
+            ->groupBy('session_date')
+            ->get()
+            ->keyBy('attendance_day');
+
+        $weeklyAttendance = collect(range(6, 0))->map(function (int $daysAgo) use ($today, $attendanceByDay) {
+            $date = $today->copy()->subDays($daysAgo);
+            $attendance = $attendanceByDay->get($date->toDateString());
+            $total = (int) ($attendance->total ?? 0);
+            $present = (int) ($attendance->present ?? 0);
 
             return [
                 'label' => $date->translatedFormat('D'),
