@@ -16,7 +16,7 @@ class ClassroomController extends Controller
 {
     public function index(): View
     {
-        $classrooms = Classroom::with(['course', 'teacher'])
+        $classrooms = Classroom::with(['course', 'teacher', 'students:id,name'])
             ->withCount('students')->latest()->paginate(15);
         $courses = Course::whereIn('status', ['published', 'draft'])->orderBy('title')->get(['id', 'title']);
         $teachers = User::whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
@@ -33,25 +33,27 @@ class ClassroomController extends Controller
     ): RedirectResponse {
         $data = $request->validated();
 
-        $classroom = Classroom::create([
-            'name' => $data['name'],
-            'course_id' => $data['course_id'] ?? null,
-            'teacher_id' => $data['teacher_id'],
-            'meeting_url' => $data['meeting_url'] ?? null,
-            'status' => $data['status'],
-            'schedule' => [
-                'days' => $data['schedule_days'] ?? [],
-                'time' => $data['schedule_time'] ?? null,
-            ],
-            'created_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($data, $enrollments): void {
+            $classroom = Classroom::create([
+                'name' => $data['name'],
+                'course_id' => $data['course_id'] ?? null,
+                'teacher_id' => $data['teacher_id'],
+                'meeting_url' => $data['meeting_url'] ?? null,
+                'status' => $data['status'],
+                'schedule' => [
+                    'days' => $data['schedule_days'] ?? [],
+                    'time' => $data['schedule_time'] ?? null,
+                ],
+                'created_by' => auth()->id(),
+            ]);
 
-        $classroom->students()->syncWithPivotValues(
-            $data['student_ids'] ?? [],
-            ['assigned_by' => auth()->id()]
-        );
+            $classroom->students()->syncWithPivotValues(
+                $data['student_ids'] ?? [],
+                ['assigned_by' => auth()->id()]
+            );
 
-        $enrollments->syncClassroomRoster($classroom);
+            $enrollments->syncClassroomRoster($classroom);
+        });
 
         return back()->with('success', 'کلاس ساخته شد؛ دسترسی دوره رایگان برای اعضای آن ثبت شد.');
     }
@@ -64,20 +66,36 @@ class ClassroomController extends Controller
         $previousCourseId = $classroom->course_id;
         $data = $request->validated();
 
-        $classroom->update($data);
+        DB::transaction(function () use ($classroom, $data, $previousCourseId, $enrollments): void {
+            $classroom->update([
+                'name' => $data['name'],
+                'course_id' => $data['course_id'] ?? null,
+                'teacher_id' => $data['teacher_id'],
+                'meeting_url' => $data['meeting_url'] ?? null,
+                'status' => $data['status'],
+                'schedule' => [
+                    'days' => $data['schedule_days'] ?? [],
+                    'time' => $data['schedule_time'] ?? null,
+                ],
+            ]);
 
-        if ($previousCourseId !== $classroom->course_id) {
-            if ($previousCourseId) {
+            $classroom->students()->syncWithPivotValues(
+                $data['student_ids'] ?? [],
+                ['assigned_by' => auth()->id()]
+            );
+
+            if ($previousCourseId && $previousCourseId !== $classroom->course_id) {
                 $previousCourse = Course::find($previousCourseId);
+
                 if ($previousCourse) {
                     $enrollments->syncCourseRoster($previousCourse);
                 }
             }
 
-            $enrollments->syncClassroomRoster($classroom);
-        }
+            $enrollments->syncClassroomRoster($classroom->fresh());
+        });
 
-        return back()->with('success', 'کلاس به‌روزرسانی شد و دسترسی دوره‌ها نیز بازبینی شد.');
+        return back()->with('success', 'کلاس، برنامه زمانی و اعضا به‌روزرسانی شدند؛ دسترسی دوره نیز بازبینی شد.');
     }
 
     public function destroy(Classroom $classroom): RedirectResponse
