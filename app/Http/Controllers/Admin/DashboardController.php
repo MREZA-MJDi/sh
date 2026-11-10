@@ -12,7 +12,6 @@ use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -20,13 +19,28 @@ class DashboardController extends Controller
     public function index(): View
     {
         $today = today();
+        $weekStart = $today->copy()->subDays(6);
+
+        $attendanceByDay = Attendance::query()
+            ->selectRaw(
+                'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
+                ['present', 'late']
+            )
+            ->whereBetween('session_date', [$weekStart->toDateString(), $today->toDateString()])
+            ->groupBy('session_date')
+            ->get()
+            ->keyBy('attendance_day');
+
+        $todayAttendance = $attendanceByDay->get($today->toDateString());
+        $todayTotal = (int) ($todayAttendance->total ?? 0);
+        $todayPresent = (int) ($todayAttendance->present ?? 0);
 
         $stats = [
             'students' => User::whereHas('roles', fn ($query) => $query->where('name', 'student'))->where('is_active', true)->count(),
             'teachers' => User::whereHas('roles', fn ($query) => $query->where('name', 'teacher'))->where('is_active', true)->count(),
             'classes' => Classroom::where('status', 'active')->count(),
             'courses' => Course::where('status', 'published')->count(),
-            'attendance_rate' => $this->attendanceRate($today),
+            'attendance_rate' => $todayTotal > 0 ? (int) round(($todayPresent / $todayTotal) * 100) : 0,
             'pending_homework' => HomeworkSubmission::where('status', 'submitted')->count(),
         ];
 
@@ -43,17 +57,6 @@ class DashboardController extends Controller
 
         $recentAnnouncements = Announcement::where('status', 'published')
             ->latest('published_at')->limit(4)->get();
-
-        $weekStart = $today->copy()->subDays(6);
-        $attendanceByDay = Attendance::query()
-            ->selectRaw(
-                'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
-                ['present', 'late']
-            )
-            ->whereBetween('session_date', [$weekStart->toDateString(), $today->toDateString()])
-            ->groupBy('session_date')
-            ->get()
-            ->keyBy('attendance_day');
 
         $weeklyAttendance = collect(range(6, 0))->map(function (int $daysAgo) use ($today, $attendanceByDay) {
             $date = $today->copy()->subDays($daysAgo);
@@ -73,17 +76,4 @@ class DashboardController extends Controller
         ));
     }
 
-    private function attendanceRate(Carbon $date): int
-    {
-        $total = Attendance::whereDate('session_date', $date)->count();
-
-        if ($total === 0) {
-            return 0;
-        }
-
-        $present = Attendance::whereDate('session_date', $date)
-            ->whereIn('status', ['present', 'late'])->count();
-
-        return (int) round(($present / $total) * 100);
-    }
 }
