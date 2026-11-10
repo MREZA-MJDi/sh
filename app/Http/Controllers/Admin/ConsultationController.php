@@ -19,7 +19,14 @@ class ConsultationController extends Controller
 
     public function update(UpdateConsultationRequest $request, Consultation $consultation): RedirectResponse
     {
-        $consultation->update($request->validated() + ['handled_by' => auth()->id()]);
+        $data = $request->validated();
+        $data['status'] = match ($data['status']) {
+            'approved' => 'scheduled',
+            'completed' => 'done',
+            default => $data['status'],
+        };
+
+        $consultation->update($data + ['handled_by' => auth()->id()]);
 
         return back()->with('success', 'وضعیت درخواست مشاوره به‌روزرسانی شد.');
     }
