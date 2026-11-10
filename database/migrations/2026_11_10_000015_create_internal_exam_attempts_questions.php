@@ -33,6 +33,7 @@ return new class extends Migration
             $table->timestamp('started_at');
             $table->timestamp('submitted_at')->nullable();
             $table->decimal('score', 8, 2)->nullable();
+            $table->decimal('max_score', 8, 2)->default(0);
             $table->string('status', 24)->default('in_progress')->index();
             $table->longText('feedback')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
@@ -40,6 +41,10 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['exam_id', 'student_id', 'attempt_number']);
             $table->index(['student_id', 'status', 'submitted_at']);
+        });
+
+        Schema::table('exam_results', function (Blueprint $table): void {
+            $table->longText('feedback')->nullable();
         });
 
         Schema::create('exam_answers', function (Blueprint $table): void {
@@ -57,6 +62,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('exam_answers');
+        Schema::table('exam_results', function (Blueprint $table): void {
+            $table->dropColumn('feedback');
+        });
         Schema::dropIfExists('exam_attempts');
         Schema::dropIfExists('questions');
 
