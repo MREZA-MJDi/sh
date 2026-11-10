@@ -36,6 +36,36 @@ class AdminAuthorizationTest extends TestCase
             ->assertSee('داشبورد مدیریت');
     }
 
+    public function test_every_admin_section_renders_without_sample_records(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', 'admin')->value('id'));
+
+        $pages = [
+            route('admin.dashboard'),
+            route('admin.classes.index'),
+            route('admin.courses.index'),
+            route('admin.students.index'),
+            route('admin.teachers.index'),
+            route('admin.parents.index'),
+            route('admin.attendance.index'),
+            route('admin.homework.index'),
+            route('admin.exams.index'),
+            route('admin.resources.index'),
+            route('admin.consultations.index'),
+            route('admin.messages.index'),
+            route('admin.announcements.index'),
+            route('admin.spotplayer.index'),
+            route('admin.quiz24.index'),
+        ];
+
+        $this->actingAs($admin);
+
+        foreach ($pages as $page) {
+            $this->get($page)->assertOk();
+        }
+    }
+
     public function test_teacher_cannot_enter_admin_area(): void
     {
         $teacher = User::factory()->create();
