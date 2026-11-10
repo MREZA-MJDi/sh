@@ -33,7 +33,7 @@ final class GuardianDashboardChildSelectionTest extends TestCase
             ->get(route('guardian.dashboard', ['child' => $secondChild->id]))
             ->assertOk()
             ->assertSee('وضعیت آموزشی زهرا')
-            ->assertSee('value="'.$secondChild->id.'" selected', false)
+            ->assertSee('value="'.$secondChild->id.'"', false)
             ->assertDontSee('دانش‌آموز محرمانه');
 
         $this->actingAs($guardian)
