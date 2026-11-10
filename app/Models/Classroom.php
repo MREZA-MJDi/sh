@@ -29,7 +29,12 @@ class Classroom extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'classroom_student', 'classroom_id', 'student_id')
-            ->withPivot('assigned_by', 'left_at')->wherePivotNull('left_at')->withTimestamps();
+            ->withPivot('assigned_by')->withTimestamps();
+    }
+
+    public function membershipHistory(): HasMany
+    {
+        return $this->hasMany(ClassroomMembershipHistory::class);
     }
 
     public function attendances(): HasMany
@@ -40,5 +45,20 @@ class Classroom extends Model
     public function homeworks(): HasMany
     {
         return $this->hasMany(Homework::class);
+    }
+
+    public function exams(): HasMany
+    {
+        return $this->hasMany(Exam::class);
+    }
+
+    public function learningResources(): HasMany
+    {
+        return $this->hasMany(LearningResource::class);
+    }
+
+    public function spotPlayerVideos(): HasMany
+    {
+        return $this->hasMany(SpotPlayerVideo::class);
     }
 }
