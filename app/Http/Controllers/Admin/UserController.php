@@ -34,9 +34,21 @@ class UserController extends Controller
             })
             ->latest()->paginate(15)->withQueryString();
 
-        $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
-            ->orderBy('name')->get(['id', 'name']);
-        $classrooms = Classroom::where('status', 'active')->orderBy('name')->get(['id', 'name']);
+        $students = collect();
+        $classrooms = collect();
+
+        if ($role === 'parent') {
+            $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
+        if ($role === 'student') {
+            $classrooms = Classroom::where('status', 'active')
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
 
         return view('admin.users.index', compact('users', 'role', 'students', 'classrooms'));
     }
