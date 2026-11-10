@@ -65,6 +65,21 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
+        $reviewedHomework = HomeworkSubmission::query()
+            ->where('student_id', $student->id)
+            ->whereNotNull('reviewed_at')
+            ->whereHas('homework', fn (Builder $homework) => $homework
+                ->where('status', 'published')
+                ->whereIn('classroom_id', clone $classroomIds))
+            ->with([
+                'homework:id,title,classroom_id',
+                'homework.classroom:id,name',
+                'reviewer:id,name',
+            ])
+            ->latest('reviewed_at')
+            ->limit(8)
+            ->get();
+
         $attendanceQuery = Attendance::query()
             ->where('student_id', $student->id)
             ->whereIn('classroom_id', clone $classroomIds);
@@ -134,7 +149,7 @@ final class GuardianDashboardService
             'selected_child' => $selectedChild,
             'classrooms' => $classrooms,
             'classroom_count' => (clone $classroomIds)->count(),
-            'homeworks' => $homeworks,
+            'homeworks' => $homeworks,\n            'reviewed_homework' => $reviewedHomework,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
                 'submissions',
                 fn (Builder $query) => $query->where('student_id', $student->id)
@@ -194,7 +209,7 @@ final class GuardianDashboardService
             'selected_child' => null,
             'classrooms' => collect(),
             'classroom_count' => 0,
-            'homeworks' => collect(),
+            'homeworks' => collect(),\n            'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
             'attendance' => collect(),
             'attendance_count' => 0,
