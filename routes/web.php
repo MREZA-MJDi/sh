@@ -60,7 +60,7 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
-    Route::get('/lookups/students', [LookupController::class, 'students'])->middleware('permission:users.manage')->name('lookups.students');
+    Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage', 'throttle:60,1'])->name('lookups.students');
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage,students.view.assigned')->name('students.index');
     Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.store');
     Route::get('/teachers', [UserController::class, 'index'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.index');
