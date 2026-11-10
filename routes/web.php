@@ -19,6 +19,7 @@ use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardContro
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\NoteController;
+use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -122,6 +123,12 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
 
+        Route::middleware('permission:homework.submit')->group(function (): void {
+            Route::post('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'store'])->name('homework.submissions.store');
+            Route::delete('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'destroy'])->name('homework.submissions.destroy');
+            Route::get('/homework-submission-files/{file}/download', [StudentHomeworkSubmissionController::class, 'downloadFile'])->name('homework.submission-files.download');
+            Route::delete('/homework-submission-files/{file}', [StudentHomeworkSubmissionController::class, 'destroyFile'])->name('homework.submission-files.destroy');
+        });
         Route::middleware('permission:notes.manage.own')->group(function (): void {
             Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
             Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
