@@ -4,14 +4,15 @@
 
 @section('content')
     @php
-        $faNumber = static function ($value, int $precision = 0): string {
-            $formatted = number_format((float) $value, $precision, '٫', '٬');
+        $faNumber = static fn ($value, int $precision = 0): string =>
+            \App\Support\PersianDate::toPersianDigits(
+                number_format((float) $value, $precision, '٫', '٬')
+            );
 
-            return strtr($formatted, [
-                '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴',
-                '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹',
-            ]);
-        };
+        $weekdayOrder = ['sat' => 0, 'sun' => 1, 'mon' => 2, 'tue' => 3, 'wed' => 4, 'thu' => 5, 'fri' => 6];
+        $scheduledClasses = $classrooms
+            ->filter(fn ($classroom) => filled(data_get($classroom->schedule, 'time')) || filled(data_get($classroom->schedule, 'days')))
+            ->sortBy(fn ($classroom) => data_get($classroom->schedule, 'time', '99:99'));
     @endphp
 
     <section class="hero" id="overview" aria-labelledby="student-welcome-title">
@@ -27,19 +28,26 @@
             @can('classes.view.enrolled')
                 <a class="btn" href="#classes">مشاهده‌ی کلاس‌های من</a>
             @endcan
-        
+            @can('homework.view.own')
+                <a class="btn g" href="#homework">پیگیری تکالیف</a>
+            @endcan
+        </div>
+    </section>
+
+    <section class="stats" aria-label="خلاصه‌ی وضعیت آموزشی">
+        <x-stat tone="s1" icon="book" label="کلاس‌های فعال" :value="$faNumber($classroom_count)" hint="کلاس‌های ثبت‌شده برای شما" href="#classes"/>
+        <x-stat tone="s2" icon="task" label="تکالیف باز" :value="$faNumber($pending_homework_count)" hint="تکالیف بدون پاسخ ثبت‌شده" href="#homework"/>
+        <x-stat tone="s3" icon="cal" label="نرخ حضور" :value="$attendance_rate === null ? '—' : $faNumber($attendance_rate).'٪'" :hint="$faNumber($attendance_count).' جلسه‌ی ثبت‌شده'" href="#attendance"/>
+        <x-stat tone="s4" icon="chart" label="نتایج اخیر" :value="$faNumber($results->count())" hint="آخرین نمرات ثبت‌شده" href="#results"/>
+    </section>
+
     @can('classes.view.enrolled')
         <section class="card" id="schedule" aria-labelledby="student-schedule-title">
             <div class="chead">
                 <h2 id="student-schedule-title">برنامه‌ی هفتگی کلاس‌ها</h2>
                 <span class="pill">برنامه‌ی ثبت‌شده</span>
             </div>
-            @php
-                $weekdayOrder = ['sat' => 0, 'sun' => 1, 'mon' => 2, 'tue' => 3, 'wed' => 4, 'thu' => 5, 'fri' => 6];
-                $scheduledClasses = $classrooms
-                    ->filter(fn ($classroom) => filled(data_get($classroom->schedule, 'time')) || filled(data_get($classroom->schedule, 'days')))
-                    ->sortBy(fn ($classroom) => data_get($classroom->schedule, 'time', '99:99'));
-            @endphp
+
             @forelse($scheduledClasses as $classroom)
                 @php
                     $days = collect(data_get($classroom->schedule, 'days', []))
@@ -50,57 +58,17 @@
                     <div>
                         <b>{{ $classroom->name }}</b>
                         <span class="mu">
-                            {{ $days->map(fn ($day) => \App\Support\\PersianDate::weekdayName($day))->filter(fn ($day) => $day !== '—')->join('، ') ?: 'روز ثبت نشده' }}
-                            · ساعت {{ \App\Support\\PersianDate::time(data_get($classroom->schedule, 'time')) }}
+                            {{ $days->map(fn ($day) => \App\Support\PersianDate::weekdayName($day))->filter(fn ($day) => $day !== '—')->join('، ') ?: 'روز ثبت نشده' }}
+                            · ساعت {{ \App\Support\PersianDate::time(data_get($classroom->schedule, 'time')) }}
                         </span>
+                        <span class="mu">{{ $classroom->course?->title ?? 'کلاس مستقل' }} · مدرس: {{ $classroom->teacher?->name ?? 'تعیین نشده' }}</span>
                     </div>
                 </div>
             @empty
-                <div class="empty">برنامه‌ی زمانی برای کلاس‌های شما ثبت نشده است.</div>
+                <div class="empty">برنامه‌ی هفتگی برای کلاس‌های شما ثبت نشده است.</div>
             @endforelse
         </section>
     @endcan
-
-    @can('homework.view.own')
-                <a class="btn g" href="#homework">پیگیری تکالیف</a>
-            @endcan
-        </div>
-    </section>
-
-    <section class="stats" aria-label="خلاصه‌ی وضعیت آموزشی">
-        <x-stat
-            tone="s1"
-            icon="book"
-            label="کلاس‌های فعال"
-            :value="$faNumber($classroom_count)"
-            hint="کلاس‌های ثبت‌شده برای شما"
-            href="#classes"
-        />
-        <x-stat
-            tone="s2"
-            icon="task"
-            label="تکالیف باز"
-            :value="$faNumber($pending_homework_count)"
-            hint="تکالیف بدون پاسخ ثبت‌شده"
-            href="#homework"
-        />
-        <x-stat
-            tone="s3"
-            icon="cal"
-            label="نرخ حضور"
-            :value="$attendance_rate === null ? '—' : $faNumber($attendance_rate).'٪'"
-            :hint="$faNumber($attendance_count).' جلسه‌ی ثبت‌شده'"
-            href="#attendance"
-        />
-        <x-stat
-            tone="s4"
-            icon="chart"
-            label="نتایج اخیر"
-            :value="$faNumber($results->count())"
-            hint="آخرین نمرات ثبت‌شده"
-            href="#results"
-        />
-    </section>
 
     @can('classes.view.enrolled')
         <section class="card" id="classes" aria-labelledby="student-classes-title">
@@ -117,11 +85,9 @@
                             $tone = $tones[$loop->index % count($tones)];
                         @endphp
                         <article class="cc">
-                            <div class="th big {{ $tone }}">
-                                <x-icon name="book"/>
-                            </div>
+                            <div class="th big {{ $tone }}"><x-icon name="book"/></div>
                             <h3>{{ $classroom->name }}</h3>
-                            <p>{{ $classroom->course?->title ?? 'بدون دوره‌ی متصل' }}</p>
+                            <p>{{ $classroom->course?->title ?? 'کلاس مستقل' }}</p>
                             <span class="mu">مدرس: {{ $classroom->teacher?->name ?? 'تعیین نشده' }}</span>
                         </article>
                     @endforeach
@@ -154,19 +120,19 @@
                             <tr>
                                 <td>{{ $homework->title }}</td>
                                 <td>{{ $homework->classroom?->name ?? '—' }}</td>
-                                <td>{{ $homework->due_at ? \App\Support\\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
+                                <td>{{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}</td>
                                 <td>
                                     @if($homework->submitted_by_student_count > 0)
                                         <span class="tag">ارسال شده</span>
+                                    @elseif($homework->due_at && $homework->due_at->isPast())
+                                        <span class="tag r">مهلت گذشته</span>
                                     @else
                                         <span class="tag w">نیازمند انجام</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="4" class="empty">تکلیف منتشرشده‌ای برای کلاس‌های شما ثبت نشده است.</td>
-                            </tr>
+                            <tr><td colspan="4" class="empty">تکلیف منتشرشده‌ای برای کلاس‌های شما ثبت نشده است.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -178,43 +144,27 @@
         <section class="card" id="attendance" aria-labelledby="student-attendance-title">
             <div class="chead">
                 <h2 id="student-attendance-title">آخرین وضعیت حضور و غیاب</h2>
-                <span class="pill">
-                    {{ $attendance_rate === null ? 'بدون داده' : $faNumber($attendance_rate).'٪ حضور' }}
-                </span>
+                <span class="pill">{{ $attendance_rate === null ? 'بدون داده' : $faNumber($attendance_rate).'٪ حضور' }}</span>
             </div>
 
-            <div class="tw">
-                <table class="tbl">
-                    <thead>
-                        <tr>
-                            <th scope="col">کلاس</th>
-                            <th scope="col">تاریخ جلسه</th>
-                            <th scope="col">وضعیت</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($attendance as $record)
-                            <tr>
-                                <td>{{ $record->classroom?->name ?? '—' }}</td>
-                                <td>{{ \App\Support\\PersianDate::format($record->session_date, 'Y/m/d') }}</td>
-                                <td>
-                                    @if($record->status === 'present')
-                                        <span class="tag">حاضر</span>
-                                    @elseif($record->status === 'late')
-                                        <span class="tag w">با تأخیر</span>
-                                    @else
-                                        <span class="tag r">غایب</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="empty">رکوردی از حضور و غیاب برای شما ثبت نشده است.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+            @forelse($attendance as $record)
+                <div class="trk">
+                    <div class="th t-b"><x-icon name="cal"/></div>
+                    <div>
+                        <b>{{ $record->classroom?->name ?? 'کلاس' }}</b>
+                        <span class="mu">{{ \App\Support\PersianDate::format($record->session_date, 'l، d F Y') }}</span>
+                    </div>
+                    @if($record->status === 'present')
+                        <span class="tag">حاضر</span>
+                    @elseif($record->status === 'late')
+                        <span class="tag w">با تأخیر</span>
+                    @else
+                        <span class="tag r">غایب</span>
+                    @endif
+                </div>
+            @empty
+                <div class="empty">رکوردی از حضور و غیاب برای شما ثبت نشده است.</div>
+            @endforelse
         </section>
     @endcan
 
@@ -245,12 +195,10 @@
                                         ? 'در انتظار نمره'
                                         : $faNumber($result->score, 2).' / '.$faNumber($result->max_score, 2) }}
                                 </td>
-                                <td>{{ \App\Support\\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
+                                <td>{{ \App\Support\PersianDate::format($result->synced_at ?? $result->created_at, 'Y/m/d') }}</td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="4" class="empty">هنوز نتیجه‌ای برای حساب شما ثبت نشده است.</td>
-                            </tr>
+                            <tr><td colspan="4" class="empty">هنوز نتیجه‌ای برای حساب شما ثبت نشده است.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -265,22 +213,17 @@
                 <span class="pill">{{ $faNumber($resource_count) }} منبع</span>
             </div>
 
-            @if($resources->isNotEmpty())
-                <div class="g3">
-                    @foreach($resources as $resource)
-                        <article class="cc">
-                            <div class="th big t-c"><x-icon name="file"/></div>
-                            <h3>{{ $resource->title }}</h3>
-                            <p>{{ $resource->kind }}</p>
-                            <span class="mu">
-                                {{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}
-                            </span>
-                        </article>
-                    @endforeach
+            @forelse($resources as $resource)
+                <div class="trk">
+                    <div class="th t-c"><x-icon name="file"/></div>
+                    <div>
+                        <b>{{ $resource->title }}</b>
+                        <span class="mu">{{ $resource->kind }} · {{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}</span>
+                    </div>
                 </div>
-            @else
+            @empty
                 <div class="empty">منبع منتشرشده‌ای برای کلاس‌های شما وجود ندارد.</div>
-            @endif
+            @endforelse
         </section>
     @endcan
 
@@ -294,9 +237,9 @@
             @forelse($announcements as $announcement)
                 <article class="news">
                     <b>{{ $announcement->title }}</b>
-                    <span class="mu">{{ $announcement->published_at?->diffForHumans() ?? '—' }}</span>
+                    <span class="mu">{{ $announcement->published_at ? \App\Support\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') : '—' }}</span>
                     @if(filled($announcement->body))
-                        <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 160) }}</p>
+                        <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 180) }}</p>
                     @endif
                 </article>
             @empty
