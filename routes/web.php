@@ -19,6 +19,7 @@ use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardContro
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\NoteController;
+use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -153,4 +154,31 @@ Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])
         Route::get('/{consultation}', [GuardianConsultationController::class, 'show'])->name('show');
         Route::post('/{consultation}/replies', [GuardianConsultationController::class, 'reply'])->name('reply');
         Route::delete('/{consultation}', [GuardianConsultationController::class, 'destroy'])->name('destroy');
+    });
+
+
+Route::middleware(['auth', 'role:student'])
+    ->prefix('student/messages')
+    ->name('student.messages.')
+    ->group(function (): void {
+        Route::get('/', [PortalMessageController::class, 'index'])->middleware('permission:messages.view.own')->name('index');
+        Route::get('/create', [PortalMessageController::class, 'create'])->middleware('permission:messages.send.own')->name('create');
+        Route::post('/', [PortalMessageController::class, 'store'])->middleware('permission:messages.send.own')->name('store');
+        Route::get('/{message}', [PortalMessageController::class, 'show'])->middleware('permission:messages.view.own')->name('show');
+        Route::patch('/{message}', [PortalMessageController::class, 'update'])->middleware('permission:messages.send.own')->name('update');
+        Route::post('/{message}/replies', [PortalMessageController::class, 'reply'])->middleware('permission:messages.send.own')->name('reply');
+        Route::delete('/{message}', [PortalMessageController::class, 'destroy'])->middleware('permission:messages.send.own')->name('destroy');
+    });
+
+Route::middleware(['auth', 'role:parent'])
+    ->prefix('parent/messages')
+    ->name('guardian.messages.')
+    ->group(function (): void {
+        Route::get('/', [PortalMessageController::class, 'index'])->middleware('permission:messages.view.children')->name('index');
+        Route::get('/create', [PortalMessageController::class, 'create'])->middleware('permission:messages.send.own')->name('create');
+        Route::post('/', [PortalMessageController::class, 'store'])->middleware('permission:messages.send.own')->name('store');
+        Route::get('/{message}', [PortalMessageController::class, 'show'])->middleware('permission:messages.view.children')->name('show');
+        Route::patch('/{message}', [PortalMessageController::class, 'update'])->middleware('permission:messages.send.own')->name('update');
+        Route::post('/{message}/replies', [PortalMessageController::class, 'reply'])->middleware('permission:messages.send.own')->name('reply');
+        Route::delete('/{message}', [PortalMessageController::class, 'destroy'])->middleware('permission:messages.send.own')->name('destroy');
     });
