@@ -8,9 +8,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            RolePermissionSeeder::class,
-            LocalDemoAccountsSeeder::class,
-        ]);
+        $this->call(RolePermissionSeeder::class);
     }
 }
