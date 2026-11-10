@@ -1,9 +1,5 @@
 @php
-    $portalRole = request()->routeIs('guardian.*') ? 'parent' : 'student';
     $portalUser = auth()->user();
-    $nextClass = $portalRole === 'student'
-        ? ($classrooms->firstWhere('status', 'active') ?? null)
-        : ($classrooms->firstWhere('status', 'active') ?? null);
 @endphp
 
 <aside class="side" id="side" aria-label="{{ $portalRole === 'student' ? 'منوی دانش‌آموز' : 'منوی اولیا' }}">
