@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\Admin\ClassroomService;
 use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class ClassroomRosterHistoryTest extends TestCase
@@ -60,14 +59,34 @@ final class ClassroomRosterHistoryTest extends TestCase
             'student_ids' => [],
         ]);
 
+        $this->assertDatabaseMissing('classroom_student', [
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+        ]);
+        $this->assertDatabaseHas('classroom_membership_history', [
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+            'removed_by' => $admin->id,
+        ]);
+
+        // A later re-enrollment creates a fresh active pivot row without
+        // overwriting the immutable history record.
+        app(ClassroomService::class)->update($admin, $classroom->fresh(), [
+            'name' => $classroom->name,
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'meeting_url' => null,
+            'status' => 'active',
+            'schedule_days' => [],
+            'schedule_time' => null,
+            'duration_minutes' => 90,
+            'student_ids' => [$student->id],
+        ]);
         $this->assertDatabaseHas('classroom_student', [
             'classroom_id' => $classroom->id,
             'student_id' => $student->id,
         ]);
-        $this->assertNotNull(DB::table('classroom_student')
-            ->where('classroom_id', $classroom->id)
-            ->where('student_id', $student->id)
-            ->value('left_at'));
+        $this->assertDatabaseCount('classroom_membership_history', 1);
 
         $this->assertFalse($classroom->fresh()->students()->whereKey($student->id)->exists());
         $this->assertDatabaseHas('course_enrollments', [
