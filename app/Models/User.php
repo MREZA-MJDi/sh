@@ -120,7 +120,7 @@ class User extends Authenticatable
 
     public function studentNotes(): HasMany
     {
-        return $this->hasMany(StudentNote::class, 'user_id');
+        return $this->hasMany(StudentNote::class, 'student_id');
     }
 
     public function consultations(): HasMany
