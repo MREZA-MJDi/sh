@@ -24,7 +24,7 @@ final class ImportLegacyAcademyData extends Command
     protected $description = 'Dry-run-first import of old accounts, courses, classrooms and enrollments';
 
     private const SOURCE = 'sheykhan';
-    private const ROLES = ['student' => 'student', 'parent' => 'parent', 'teacher' => 'teacher', 'admin' => 'admin'];
+    private const ROLES = ['student' => 'student', 'parent' => 'parent', 'teacher' => 'teacher', 'admin' => 'admin', 'academy-owner' => 'admin'];
 
     private array $targetRoles = [];
     private array $currentRoles = [];
@@ -74,7 +74,7 @@ final class ImportLegacyAcademyData extends Command
         }
 
         $this->targetRoles = Role::query()->whereIn('name', array_values(self::ROLES))->pluck('id', 'name')->all();
-        if (count($this->targetRoles) !== count(self::ROLES)) {
+        if (count($this->targetRoles) !== count(array_unique(array_values(self::ROLES)))) {
             $this->error('نقش‌های مقصد کامل نیستند؛ ابتدا RolePermissionSeeder را اجرا کنید.');
             return self::FAILURE;
         }
@@ -150,8 +150,18 @@ final class ImportLegacyAcademyData extends Command
         $classTeachers = $classIds === [] ? collect() : $source->table('classroom_teacher')->whereIn('classroom_id', $classIds)->get();
 
         $roles = [];
+        $unsupportedMemberships = [];
         foreach ($source->table('academy_user')->where('academy_id', $academyId)->where('status', 'active')->get(['user_id', 'role']) as $membership) {
-            $this->addRole($roles, (int) $membership->user_id, (string) $membership->role);
+            $legacyRole = (string) $membership->role;
+            if (! isset(self::ROLES[$legacyRole])) {
+                $unsupportedMemberships[] = [
+                    'user_id' => (int) $membership->user_id,
+                    'role' => $legacyRole,
+                ];
+                continue;
+            }
+
+            $this->addRole($roles, (int) $membership->user_id, $legacyRole);
         }
 
         foreach ($rosters as $row) $this->addRole($roles, (int) $row->student_id, 'student');
@@ -205,7 +215,7 @@ final class ImportLegacyAcademyData extends Command
             ->map(fn (Collection $rows) => (float) $rows->sum('amount'))
             ->all();
 
-        return compact('users', 'roles', 'parents', 'courses', 'classrooms', 'courseTeachers', 'classTeachers', 'rosters', 'enrollments', 'paidTotals');
+        return compact('users', 'roles', 'parents', 'courses', 'classrooms', 'courseTeachers', 'classTeachers', 'rosters', 'enrollments', 'paidTotals', 'unsupportedMemberships');
     }
 
     private function addRole(array &$roles, int $userId, string $legacyRole): void
@@ -280,10 +290,16 @@ final class ImportLegacyAcademyData extends Command
             ['دوره‌ها', $data['courses']->count()], ['کلاس‌ها', $data['classrooms']->count()],
             ['ارتباط ولی/دانش‌آموز', $data['parents']->count()], ['عضویت فعال کلاس', $data['rosters']->count()],
             ['ثبت‌نام دوره', $data['enrollments']->count()], ['پرداخت‌های نیازمند بررسی', $paidPending],
+            ['نقش‌های قدیمی بدون نگاشت', count($data['unsupportedMemberships'])],
             ['تعارض هویتی', count($conflicts)],
         ]);
 
         foreach (array_slice($conflicts, 0, 20) as $conflict) $this->warn($conflict);
+
+        $unsupportedRoles = collect($data['unsupportedMemberships'])->pluck('role')->unique()->values();
+        if ($unsupportedRoles->isNotEmpty()) {
+            $this->warn('این نقش‌ها در SH معادل امن ندارند و خودکار منتقل نمی‌شوند: '.$unsupportedRoles->implode(', '));
+        }
     }
 
     private function importUsers(Collection $users, array &$counts): void
