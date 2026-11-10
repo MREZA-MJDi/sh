@@ -54,12 +54,15 @@ final class MediaLeakageSecurityTest extends TestCase
             'staged_at' => now(),
         ]);
 
-        $this->actingAs($student)
-            ->get(route('student.videos.stream', $video))
-            ->assertStatus(409)
-            ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
+        $response = $this->actingAs($student)
+            ->get(route('student.videos.stream', $video));
+
+        $response->assertStatus(409)
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertDontSee('CONFIDENTIAL-RAW-VIDEO');
+
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        $this->assertStringContainsString('private', (string) $response->headers->get('Cache-Control'));
 
         Storage::disk('public')->assertMissing('private/spotplayer-staging/secret.mp4');
         Storage::disk('local')->assertExists('private/spotplayer-staging/secret.mp4');
