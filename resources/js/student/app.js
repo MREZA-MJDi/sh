@@ -1,3 +1,4 @@
+import '../rich-text.js';
 // کارتابل دانش‌آموز — تعامل‌های مستقل سمت مرورگر
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
