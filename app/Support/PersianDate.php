@@ -91,6 +91,21 @@ final class PersianDate
         return strtr((string) $value, self::DIGITS);
     }
 
+    public static function weekdayName(string $day): string
+    {
+        $names = [
+            'sat' => 'شنبه',
+            'sun' => 'یکشنبه',
+            'mon' => 'دوشنبه',
+            'tue' => 'سه‌شنبه',
+            'wed' => 'چهارشنبه',
+            'thu' => 'پنجشنبه',
+            'fri' => 'جمعه',
+        ];
+
+        return $names[strtolower($day)] ?? '—';
+    }
+
     /**
      * @return array{0:int,1:int,2:int}
      */
