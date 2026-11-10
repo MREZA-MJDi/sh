@@ -193,10 +193,10 @@
                             <input class="panel-input" type="search" data-lookup-input minlength="2" maxlength="80" autocomplete="off" placeholder="حداقل دو حرف از نام یا شماره تماس را وارد کنید">
                             <div class="panel-lookup-results" data-lookup-results role="listbox" aria-label="نتایج جستجوی دانش‌آموزان"></div>
                             <div class="panel-lookup-selected" data-lookup-selected aria-live="polite">
-                                @foreach ((array) old('child_ids', []) as $childId)
+                                @foreach ($selectedChildren as $selectedChild)
                                     <span class="panel-lookup-chip">
-                                        <input type="hidden" name="child_ids[]" value="{{ (int) $childId }}">
-                                        <span>دانش‌آموز انتخاب‌شده #{{ (int) $childId }}</span>
+                                        <input type="hidden" name="child_ids[]" value="{{ $selectedChild->id }}" data-lookup-value="{{ $selectedChild->id }}">
+                                        <span>{{ $selectedChild->name }}</span>
                                         <button type="button" data-lookup-remove aria-label="حذف دانش‌آموز">×</button>
                                     </span>
                                 @endforeach
