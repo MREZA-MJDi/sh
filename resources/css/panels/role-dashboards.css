@@ -62,8 +62,94 @@
     scroll-margin-top: 105px;
 }
 
+.panel-demo-accounts {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--sh-line);
+}
+
+.panel-demo-accounts h3 {
+    margin: 0;
+    color: var(--sh-ink);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.panel-demo-accounts > p {
+    margin: 0;
+}
+
+.panel-demo-account {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--sh-line);
+    border-radius: 10px;
+    color: var(--sh-ink);
+    background: var(--sh-surface-soft);
+    text-align: right;
+    cursor: pointer;
+    transition: border-color .15s ease, transform .15s ease;
+}
+
+.panel-demo-account:hover {
+    border-color: var(--sh-primary);
+    transform: translateY(-1px);
+}
+
+.panel-demo-account > span:first-child {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+}
+
+.panel-demo-account strong {
+    font-size: 11px;
+}
+
+.panel-demo-account small {
+    color: var(--sh-muted);
+    font-size: 10px;
+    text-align: right;
+}
+
+.panel-demo-account-action {
+    flex: 0 0 auto;
+    color: var(--sh-primary);
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.panel-demo-password {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px dashed var(--sh-line);
+    border-radius: 9px;
+    color: var(--sh-muted);
+    font-size: 10px;
+}
+
+.panel-demo-password strong {
+    color: var(--sh-ink);
+    font-size: 11px;
+}
+
 @media (max-width: 640px) {
     .panel-hero-meta {
         align-self: flex-start;
+    }
+
+    .panel-demo-account {
+        align-items: flex-start;
     }
 }

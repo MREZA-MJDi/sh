@@ -56,30 +56,41 @@
             <button class="panel-btn w-full" type="submit">ورود امن</button>
         </form>
 
+        @if (! empty($demoAccounts) && is_string($demoPassword) && $demoPassword !== '')
+            <section class="panel-demo-accounts" aria-labelledby="demo-accounts-title">
+                <h3 id="demo-accounts-title">ورود سریع برای بررسی پنل‌ها</h3>
+                <p class="panel-muted">برای پر شدن خودکار فرم، حساب موردنظر را انتخاب کنید.</p>
+
+                <div class="grid gap-2">
+                    @foreach ($demoAccounts as $account)
+                        <button
+                            class="panel-demo-account"
+                            type="button"
+                            data-demo-account
+                            data-demo-email="{{ $account['email'] }}"
+                            data-demo-password="{{ $demoPassword }}"
+                        >
+                            <span>
+                                <strong>{{ $account['label'] }}</strong>
+                                <small dir="ltr">{{ $account['email'] }}</small>
+                            </span>
+                            <span class="panel-demo-account-action">انتخاب حساب</span>
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="panel-demo-password">
+                    <span>گذرواژه مشترک حساب‌های آزمایشی</span>
+                    <strong dir="ltr">{{ $demoPassword }}</strong>
+                </div>
+                <p class="panel-muted">این حساب‌ها فقط در محیط توسعه و با فعال‌سازی گزینهٔ آزمایشی ساخته و نمایش داده می‌شوند.</p>
+            </section>
+        @endif
+
         <div class="panel-auth-footer">
             <span>حساب دانش‌آموزی ندارید؟</span>
             <a href="{{ route('register') }}">ثبت‌نام دانش‌آموز</a>
         </div>
-
-        @if (app()->environment('local') && config('demo.enabled'))
-            <details class="panel-details mt-5">
-                <summary>حساب‌های آزمایشی محیط توسعه</summary>
-                <div class="panel-details-content grid gap-2">
-                    @foreach ([
-                        'مدیر' => 'admin@sh.local',
-                        'مدرس' => 'teacher@sh.local',
-                        'دانش‌آموز' => 'student@sh.local',
-                        'ولی دانش‌آموز' => 'parent@sh.local',
-                    ] as $label => $email)
-                        <div class="flex items-center justify-between gap-3 text-xs">
-                            <span>{{ $label }}</span>
-                            <strong dir="ltr">{{ $email }}</strong>
-                        </div>
-                    @endforeach
-                    <p class="panel-muted">گذرواژه مشترک حساب‌ها از متغیر SHIKHAN_DEMO_PASSWORD خوانده می‌شود.</p>
-                </div>
-            </details>
-        @endif
     </section>
 </main>
 </body>

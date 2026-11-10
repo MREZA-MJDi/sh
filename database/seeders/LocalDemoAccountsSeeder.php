@@ -21,14 +21,9 @@ final class LocalDemoAccountsSeeder extends Seeder
             throw new RuntimeException('SHIKHAN_DEMO_PASSWORD must contain at least 12 characters when demo accounts are enabled.');
         }
 
-        $accounts = [
-            ['name' => 'مدیر آزمایشی', 'email' => 'admin@sh.local', 'role' => 'admin'],
-            ['name' => 'مدرس آزمایشی', 'email' => 'teacher@sh.local', 'role' => 'teacher'],
-            ['name' => 'دانش‌آموز آزمایشی', 'email' => 'student@sh.local', 'role' => 'student'],
-            ['name' => 'ولی آزمایشی', 'email' => 'parent@sh.local', 'role' => 'parent'],
-        ];
+        $users = [];
 
-        foreach ($accounts as $account) {
+        foreach (config('demo.accounts', []) as $account) {
             $role = Role::query()->where('name', $account['role'])->firstOrFail();
 
             $user = User::query()->updateOrCreate(
@@ -41,6 +36,13 @@ final class LocalDemoAccountsSeeder extends Seeder
             );
 
             $user->roles()->sync([$role->getKey()]);
+            $users[$account['role']] = $user;
+        }
+
+        // Give the test guardian a real linked student account so that the
+        // parent dashboard can exercise its ownership-scoped child queries.
+        if (isset($users['parent'], $users['student'])) {
+            $users['parent']->children()->sync([$users['student']->getKey()]);
         }
     }
 }

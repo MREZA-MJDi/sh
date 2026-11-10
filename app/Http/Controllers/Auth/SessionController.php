@@ -16,7 +16,12 @@ final class SessionController extends Controller
 {
     public function create(): View
     {
-        return view('auth.login');
+        $showDemoAccounts = app()->environment('local') && config('demo.enabled');
+
+        return view('auth.login', [
+            'demoAccounts' => $showDemoAccounts ? config('demo.accounts', []) : [],
+            'demoPassword' => $showDemoAccounts ? config('demo.password') : null,
+        ]);
     }
 
     public function store(
