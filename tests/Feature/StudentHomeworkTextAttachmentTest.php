@@ -79,7 +79,7 @@ final class StudentHomeworkTextAttachmentTest extends TestCase
         $this->assertSame('submitted', $submission->status);
 
         $attachment = HomeworkSubmissionFile::query()
-            ->where('submission_id', $submission->id)
+            ->where('homework_submission_id', $submission->id)
             ->firstOrFail();
 
         $this->assertSame('answer.txt', $attachment->original_name);
