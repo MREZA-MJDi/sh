@@ -118,6 +118,16 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function studentNotes(): HasMany
+    {
+        return $this->hasMany(StudentNote::class, 'user_id');
+    }
+
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class, 'requester_id');
+    }
+
     public function attendanceRecords(): HasMany
     {
         return $this->hasMany(Attendance::class, 'student_id');
