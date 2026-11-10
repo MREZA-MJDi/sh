@@ -18,7 +18,7 @@ final class StoreHomeworkSubmissionRequest extends FormRequest
             'files' => ['nullable', 'array', 'max:5'],
             'files.*' => [
                 'file',
-                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,zip',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,zip,txt',
                 'max:10240',
             ],
         ];
