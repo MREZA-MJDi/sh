@@ -150,7 +150,7 @@ body.admin-body .panel-inline-form .panel-select, body.admin-body .panel-inline-
 body.admin-body .panel-progress, body.admin-body .prog { height:7px; overflow:hidden; border-radius:7px; background:var(--adm-line); }
 body.admin-body .panel-progress i, body.admin-body .prog i { display:block; height:100%; background:var(--adm-teal); }
 body.admin-body .admin-scrim { position:fixed; inset:0; z-index:60; background:rgba(8,12,34,.55); opacity:0; pointer-events:none; transition:opacity .2s; }
-body.admin-body .admin-drawer { position:fixed; inset-block:0; inset-inline-end:0; z-index:80; display:flex; flex-direction:column; width:min(520px,100%); background:var(--adm-card); box-shadow:0 0 40px rgba(0,0,0,.3); transform:translateX(-105%); visibility:hidden; transition:transform .25s,visibility 0s .25s; }
+body.admin-body .admin-drawer { position:fixed; inset-block:0; inset-inline-end:0; z-index:80; display:flex; flex-direction:column; width:min(520px,100%); background:var(--adm-card); box-shadow:0 0 40px rgba(0,0,0,.3); transform:translateX(105%); visibility:hidden; transition:transform .25s,visibility 0s .25s; }
 body.admin-body .admin-drawer.is-open { transform:none; visibility:visible; transition-delay:0s; }
 body.admin-body .admin-drawer-head { display:flex; justify-content:space-between; align-items:center; padding:max(16px,env(safe-area-inset-top)) 22px 14px; border-bottom:1px solid var(--adm-line); }
 body.admin-body .admin-drawer-head h2 { margin:0; font-size:17px; }
@@ -161,6 +161,8 @@ body.admin-body.admin-drawer-open { overflow:hidden; }
 body.admin-body.admin-drawer-open .admin-scrim { opacity:1; pointer-events:auto; }
 body.admin-body .admin-toasts { position:fixed; inset-inline-start:20px; bottom:max(20px,env(safe-area-inset-bottom)); z-index:90; display:grid; gap:8px; }
 body.admin-body .admin-toast { display:flex; align-items:center; gap:8px; padding:10px 18px; border-radius:12px; color:var(--adm-bg); background:var(--adm-ink); box-shadow:var(--adm-shadow); animation:admin-toast-in .2s ease; }
+body.admin-body .admin-toast.is-error { background:var(--adm-red); color:#fff; }
+body.admin-body .admin-toast ul { margin:3px 0 0; padding-inline-start:18px; font-size:11px; }
 @keyframes admin-toast-in { from { opacity:0; transform:translateY(10px); } }
 body.admin-body .admin-date-wrap { position:relative; }
 body.admin-body .admin-date-popover { position:absolute; top:calc(100% + 8px); inset-inline-start:0; z-index:100; width:300px; padding:12px; border:1px solid var(--adm-line); border-radius:14px; background:var(--adm-card); box-shadow:0 18px 45px rgba(10,20,50,.2); }

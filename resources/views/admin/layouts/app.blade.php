@@ -26,7 +26,6 @@
         <main class="panel-main admin-main" id="admin-main">
             @include('admin.partials.topbar')
             <section class="admin-content">
-                @include('admin.partials.flash')
                 @yield('content')
             </section>
         </main>
@@ -35,7 +34,9 @@
         <div class="admin-drawer-head"><h2 data-drawer-title>فرم</h2><button type="button" class="admin-icon-btn" data-admin-close aria-label="بستن">×</button></div>
         <div class="admin-drawer-body" data-drawer-body></div>
     </aside>
-    <div class="admin-toasts" id="admin-toasts" role="status" aria-live="polite"></div>
+    <div class="admin-toasts" id="admin-toasts" role="status" aria-live="polite">
+        @include('admin.partials.flash')
+    </div>
     @stack('scripts')
 </body>
 </html>
