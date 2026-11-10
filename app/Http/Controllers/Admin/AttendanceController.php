@@ -3,28 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class AttendanceController extends Controller
 {
     public function index(Request $request): View
     {
-        $classrooms = Classroom::with('teacher')
-            ->where('status', '!=', 'archived')->orderBy('name')->get();
+        $classrooms = Classroom::with('teacher')->where('status', '!=', 'archived')->orderBy('name')->get();
 
         $classroom = $request->filled('classroom_id')
             ? Classroom::with('students')->findOrFail($request->integer('classroom_id'))
             : $classrooms->first();
 
-        $requestedDate = $request->query('date');
-        $date = is_string($requestedDate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $requestedDate)
-            ? $requestedDate
-            : today()->toDateString();
+        $date = $request->date('date')?->toDateString() ?? today()->toDateString();
 
         $records = $classroom
             ? Attendance::where('classroom_id', $classroom->id)->whereDate('session_date', $date)->get()->keyBy('student_id')
@@ -38,25 +34,23 @@ class AttendanceController extends Controller
         return view('admin.attendance.index', compact('classrooms', 'classroom', 'date', 'records', 'history'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreAttendanceRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
-            'session_date' => ['required', 'date'],
-            'attendance' => ['required', 'array', 'min:1'],
-            'attendance.*.status' => ['required', Rule::in(['present', 'absent', 'late', 'excused'])],
-            'attendance.*.note' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $classroom = Classroom::with('students')->findOrFail($data['classroom_id']);
-        $allowedStudentIds = $classroom->students->modelKeys();
+        $data = $request->validated();
+        $classroom = Classroom::findOrFail($data['classroom_id']);
 
         foreach ($data['attendance'] as $studentId => $entry) {
-            abort_unless(in_array((int) $studentId, $allowedStudentIds, true), 422, 'دانش‌آموز انتخاب‌شده عضو این کلاس نیست.');
-
             Attendance::updateOrCreate(
-                ['classroom_id' => $classroom->id, 'student_id' => $studentId, 'session_date' => $data['session_date']],
-                ['status' => $entry['status'], 'note' => $entry['note'] ?? null, 'marked_by' => auth()->id()]
+                [
+                    'classroom_id' => $classroom->id,
+                    'student_id' => $studentId,
+                    'session_date' => $data['session_date'],
+                ],
+                [
+                    'status' => $entry['status'],
+                    'note' => $entry['note'] ?? null,
+                    'marked_by' => auth()->id(),
+                ]
             );
         }
 

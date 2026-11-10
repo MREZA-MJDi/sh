@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -14,15 +15,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'password',
-        'is_active',
-        'grade',
-        'subject',
-        'profile_note',
-        'external_student_id',
+        'name', 'email', 'phone', 'password', 'is_active', 'grade', 'subject',
+        'profile_note', 'external_student_id',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -58,7 +52,7 @@ class User extends Authenticatable
             ->exists();
     }
 
-    public function taughtClasses()
+    public function taughtClasses(): HasMany
     {
         return $this->hasMany(Classroom::class, 'teacher_id');
     }
@@ -81,13 +75,18 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function attendanceRecords()
+    public function attendanceRecords(): HasMany
     {
         return $this->hasMany(Attendance::class, 'student_id');
     }
 
-    public function homeworkSubmissions()
+    public function homeworkSubmissions(): HasMany
     {
         return $this->hasMany(HomeworkSubmission::class, 'student_id');
+    }
+
+    public function courseEnrollments(): HasMany
+    {
+        return $this->hasMany(CourseEnrollment::class, 'student_id');
     }
 }

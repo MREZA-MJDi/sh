@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreClassroomRequest;
+use App\Http\Requests\Admin\UpdateClassroomRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ClassroomController extends Controller
@@ -26,29 +27,11 @@ class ClassroomController extends Controller
         return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students'));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:180'],
-            'course_id' => ['nullable', 'integer', 'exists:courses,id'],
-            'teacher_id' => ['required', 'integer', 'exists:users,id'],
-            'meeting_url' => ['nullable', 'url:http,https', 'max:2000'],
-            'status' => ['required', Rule::in(['active', 'paused', 'archived'])],
-            'schedule_days' => ['nullable', 'array'],
-            'schedule_days.*' => [Rule::in(['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'])],
-            'schedule_time' => ['nullable', 'date_format:H:i'],
-            'student_ids' => ['nullable', 'array'],
-            'student_ids.*' => ['integer', 'exists:users,id'],
-        ]);
-
-        abort_unless(User::findOrFail($data['teacher_id'])->hasRole('teacher'), 422, 'کاربر انتخاب‌شده معلم نیست.');
-
-        $selectedStudentIds = $data['student_ids'] ?? [];
-        $studentIds = User::whereIn('id', $selectedStudentIds)
-            ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
-            ->pluck('id')->all();
-
-        abort_if(count($studentIds) !== count($selectedStudentIds), 422, 'فقط حساب‌های دارای نقش دانش‌آموز قابل افزودن به کلاس هستند.');
+    public function store(
+        StoreClassroomRequest $request,
+        CourseEnrollmentService $enrollments
+    ): RedirectResponse {
+        $data = $request->validated();
 
         $classroom = Classroom::create([
             'name' => $data['name'],
@@ -56,28 +39,26 @@ class ClassroomController extends Controller
             'teacher_id' => $data['teacher_id'],
             'meeting_url' => $data['meeting_url'] ?? null,
             'status' => $data['status'],
-            'schedule' => ['days' => $data['schedule_days'] ?? [], 'time' => $data['schedule_time'] ?? null],
+            'schedule' => [
+                'days' => $data['schedule_days'] ?? [],
+                'time' => $data['schedule_time'] ?? null,
+            ],
             'created_by' => auth()->id(),
         ]);
 
-        $classroom->students()->syncWithPivotValues($studentIds, ['assigned_by' => auth()->id()]);
+        $classroom->students()->syncWithPivotValues(
+            $data['student_ids'] ?? [],
+            ['assigned_by' => auth()->id()]
+        );
 
-        return back()->with('success', 'کلاس با موفقیت ایجاد شد.');
+        $enrollments->syncClassroomRoster($classroom);
+
+        return back()->with('success', 'کلاس ساخته شد؛ دسترسی دوره رایگان برای اعضای آن ثبت شد.');
     }
 
-    public function update(Request $request, Classroom $classroom): RedirectResponse
+    public function update(UpdateClassroomRequest $request, Classroom $classroom): RedirectResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:180'],
-            'course_id' => ['nullable', 'integer', 'exists:courses,id'],
-            'teacher_id' => ['required', 'integer', 'exists:users,id'],
-            'meeting_url' => ['nullable', 'url:http,https', 'max:2000'],
-            'status' => ['required', Rule::in(['active', 'paused', 'archived'])],
-        ]);
-
-        abort_unless(User::findOrFail($data['teacher_id'])->hasRole('teacher'), 422, 'کاربر انتخاب‌شده معلم نیست.');
-
-        $classroom->update($data);
+        $classroom->update($request->validated());
 
         return back()->with('success', 'کلاس به‌روزرسانی شد.');
     }
@@ -85,7 +66,9 @@ class ClassroomController extends Controller
     public function destroy(Classroom $classroom): RedirectResponse
     {
         abort_if(
-            $classroom->homeworks()->exists() || $classroom->attendances()->exists() || $classroom->students()->exists(),
+            $classroom->homeworks()->exists() ||
+            $classroom->attendances()->exists() ||
+            $classroom->students()->exists(),
             422,
             'کلاس دارای سوابق آموزشی یا اعضای ثبت‌نام‌شده است؛ آن را بایگانی کنید.'
         );

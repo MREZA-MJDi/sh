@@ -38,4 +38,9 @@ class Course extends Model
     {
         return $this->hasMany(CourseEnrollment::class);
     }
+
+    public function spotPlayerLicenses(): HasMany
+    {
+        return $this->hasMany(SpotPlayerLicense::class);
+    }
 }
