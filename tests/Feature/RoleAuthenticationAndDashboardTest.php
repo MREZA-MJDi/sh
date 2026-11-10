@@ -4,10 +4,15 @@ namespace Tests\Feature;
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\Exam;
+use App\Models\ExamResult;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
+use App\Services\StudentDashboardService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class RoleAuthenticationAndDashboardTest extends TestCase
@@ -96,7 +101,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             'status' => 'published',
         ]);
 
-        $visibleClass = Classroom::query()->create([
+        Classroom::query()->create([
             'course_id' => $course->id,
             'teacher_id' => $teacher->id,
             'name' => 'کلاس قابل مشاهده مدرس اول',
@@ -147,6 +152,8 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         ]);
         $enrolled->students()->attach($student->id);
 
+        app(CourseEnrollmentService::class)->syncClassroomRoster($enrolled);
+
         Classroom::query()->create([
             'course_id' => $course->id,
             'teacher_id' => $teacher->id,
@@ -162,6 +169,127 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             ->assertSee('تکالیف من')
             ->assertDontSee('اسپات پلیر')
             ->assertDontSee('کوییز ۲۴');
+    }
+
+    public function test_student_dashboard_does_not_show_class_after_course_enrollment_is_revoked(): void
+    {
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+
+        $teacher = User::factory()->create();
+        $course = Course::query()->create([
+            'title' => 'دوره لغوشده',
+            'slug' => 'revoked-student-dashboard-course',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس با ثبت‌نام لغوشده',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'status' => 'active',
+        ]);
+
+        $student->courseEnrollments()
+            ->where('course_id', $course->id)
+            ->update(['status' => 'revoked']);
+
+        $dashboard = app(StudentDashboardService::class)->build($student);
+
+        $this->assertSame(0, $dashboard['classroom_count']);
+        $this->assertTrue($dashboard['classrooms']->isEmpty());
+    }
+
+    public function test_student_results_only_include_own_class_or_accessible_course_level_exams(): void
+    {
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+
+        $teacher = User::factory()->create();
+        $otherTeacher = User::factory()->create();
+
+        $course = Course::query()->create([
+            'title' => 'دوره مجاز دانش‌آموز',
+            'slug' => 'student-result-accessible-course',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس مجاز نتایج',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $otherCourse = Course::query()->create([
+            'title' => 'دوره کلاس دیگر',
+            'slug' => 'student-result-other-course',
+            'teacher_id' => $otherTeacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+        $otherClassroom = Classroom::query()->create([
+            'course_id' => $otherCourse->id,
+            'teacher_id' => $otherTeacher->id,
+            'name' => 'کلاس غیرمجاز نتایج',
+            'status' => 'active',
+        ]);
+
+        $courseLevelExam = Exam::query()->create([
+            'course_id' => $course->id,
+            'created_by' => $teacher->id,
+            'title' => 'آزمون سطح دوره مجاز',
+            'provider' => 'internal',
+            'status' => 'published',
+        ]);
+        ExamResult::query()->create([
+            'exam_id' => $courseLevelExam->id,
+            'student_id' => $student->id,
+            'score' => 18,
+            'max_score' => 20,
+        ]);
+
+        $otherClassExam = Exam::query()->create([
+            'classroom_id' => $otherClassroom->id,
+            'course_id' => $otherCourse->id,
+            'created_by' => $otherTeacher->id,
+            'title' => 'نتیجه کلاس غیرمجاز',
+            'provider' => 'internal',
+            'status' => 'published',
+        ]);
+        ExamResult::query()->create([
+            'exam_id' => $otherClassExam->id,
+            'student_id' => $student->id,
+            'score' => 19,
+            'max_score' => 20,
+        ]);
+
+        $dashboard = app(StudentDashboardService::class)->build($student);
+        $titles = $dashboard['results']->map(fn (ExamResult $result) => $result->exam?->title)->all();
+
+        $this->assertContains('آزمون سطح دوره مجاز', $titles);
+        $this->assertNotContains('نتیجه کلاس غیرمجاز', $titles);
     }
 
     public function test_roles_cannot_open_another_roles_dashboard(): void
@@ -194,7 +322,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         ] as $email => $roleName) {
             $user = User::query()->where('email', $email)->firstOrFail();
             $this->assertTrue($user->hasRole($roleName));
-            $this->assertTrue(\Illuminate\Support\Facades\Hash::check('LocalOnlyDemoPassword!2026', $user->password));
+            $this->assertTrue(Hash::check('LocalOnlyDemoPassword!2026', $user->password));
         }
     }
 }
