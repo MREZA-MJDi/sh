@@ -44,15 +44,14 @@ final class DashboardService
                         ->whereIn('course_id', $courseIds)->where('status', 'active'));
             }));
 
-        $attendanceToday = Attendance::query()->whereDate('session_date', today())
-            ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds));
         $weeklyAttendanceQuery = Attendance::query()
             ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds));
 
-        $attendanceTotal = $canSeeAttendance ? (clone $attendanceToday)->count() : 0;
-        $attendancePresent = $canSeeAttendance
-            ? (clone $attendanceToday)->whereIn('status', ['present', 'late'])->count()
-            : 0;
+        // Reuse the grouped seven-day result for today's KPI instead of issuing
+        // two additional COUNT queries for the same attendance records.
+        $todayAttendance = $attendanceByDay->get(today()->toDateString());
+        $attendanceTotal = (int) ($todayAttendance->total ?? 0);
+        $attendancePresent = (int) ($todayAttendance->present ?? 0);
 
         $pendingHomework = $canSeeHomework
             ? HomeworkSubmission::query()
