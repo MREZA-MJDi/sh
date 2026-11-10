@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLearningResourceRequest;
+use App\Http\Requests\Admin\UpdateLearningResourceRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\LearningResource;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
