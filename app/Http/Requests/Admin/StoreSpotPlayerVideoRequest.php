@@ -31,7 +31,6 @@ class StoreSpotPlayerVideoRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             $courseId = $this->integer('course_id');
-
             if ($courseId && ! Course::whereKey($courseId)->where('delivery_type', 'spotplayer')->exists()) {
                 $validator->errors()->add('course_id', 'ویدیو باید به یک دوره با روش ارائه SpotPlayer متصل شود.');
             }

@@ -22,14 +22,7 @@ return new class extends Migration
     {
         Schema::table('spot_player_videos', function (Blueprint $table) {
             $table->dropIndex(['file_sha256']);
-            $table->dropColumn([
-                'file_path',
-                'file_original_name',
-                'file_mime_type',
-                'file_size_bytes',
-                'file_sha256',
-                'staged_at',
-            ]);
+            $table->dropColumn(['file_path', 'file_original_name', 'file_mime_type', 'file_size_bytes', 'file_sha256', 'staged_at']);
         });
     }
 };
