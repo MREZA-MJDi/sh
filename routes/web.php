@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\CourseContentController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamController;
+use App\Http\Controllers\Admin\ExamQuestionController;
+use App\Http\Controllers\Admin\ExamAttemptReviewController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
 use App\Http\Controllers\Admin\MessageController;
@@ -20,6 +22,7 @@ use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardContro
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
