@@ -1,4 +1,4 @@
-@extends('layouts.portal')
+@extends('layouts.student')
 
 @section('title', 'یادداشت‌های من')
 
@@ -9,8 +9,8 @@
         <form method="POST" action="{{ route('student.notes.store') }}">
             @csrf
             <label class="sr" for="note-text">متن یادداشت</label>
-            <textarea class="fld" id="note-text" name="text" data-count="2000" placeholder="یادداشت جدید خود را بنویسید…">{{ old('text') }}</textarea>
-            <x-field-error name="text"/>
+            <textarea class="fld" id="note-text" name="body" data-count="2000" placeholder="یادداشت جدید خود را بنویسید…">{{ old('body') }}</textarea>
+            <x-field-error name="body"/>
             <div class="frm">
                 <button class="btn" type="submit">ذخیره‌ی یادداشت</button>
                 <a class="btn g" href="{{ route('student.dashboard') }}">بازگشت به داشبورد</a>
@@ -25,8 +25,8 @@
                     @csrf
                     @method('PATCH')
                     <label class="sr" for="note-{{ $note->id }}">ویرایش یادداشت</label>
-                    <textarea class="fld" id="note-{{ $note->id }}" name="text" data-count="2000">{{ $note->body }}</textarea>
-                    <x-field-error name="text"/>
+                    <textarea class="fld" id="note-{{ $note->id }}" name="body" data-count="2000">{{ $note->body }}</textarea>
+                    <x-field-error name="body"/>
                     <div class="frm">
                         <button class="btn s" type="submit">ذخیره‌ی تغییرات</button>
                         <span class="mu">{{ \App\Support\PersianDate::format($note->updated_at, 'Y/m/d H:i') }}</span>
