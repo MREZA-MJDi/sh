@@ -171,7 +171,7 @@
                                     <h3>{{ $homework->title }}</h3>
                                     <span class="mu">{{ $homework->classroom?->name ?? 'کلاس آموزشی' }}</span>
                                 </div>
-                                @if (($submission?->reviewed_at !== null || $submission?->status === 'reviewed'))
+                                @if ($submission?->reviewed_at !== null || $submission?->status === 'reviewed')
                                     <span class="tag d">بررسی‌شده</span>
                                 @elseif ($submission)
                                     <span class="tag">ارسال شده</span>
@@ -189,10 +189,7 @@
                                     مهلت:
                                     {{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}
                                 </span>
-                                @if (($submission?->reviewed_at !== null || $submission?->status === 'reviewed') && $submission->score !== null)
-                                    <strong class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</strong>
-                                @endif
-                            </div>
+                                                            </div>
 
                             @if ($submission?->reviewed_at !== null || $submission?->status === 'reviewed')
                                 <div class="student-homework-item__review" role="status">
