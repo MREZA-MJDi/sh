@@ -159,7 +159,13 @@ final class ImportLegacyAcademyData extends Command
         foreach ($courseTeachers as $row) $this->addRole($roles, (int) $row->teacher_id, 'teacher');
         foreach ($classTeachers as $row) $this->addRole($roles, (int) $row->teacher_id, 'teacher');
 
-        $studentIds = $rosters->pluck('student_id')->merge($enrollments->pluck('student_id'))->unique()->values()->all();
+        $studentIds = collect(array_keys($roles))
+            ->filter(fn (int $userId) => isset($roles[$userId]['student']))
+            ->merge($rosters->pluck('student_id'))
+            ->merge($enrollments->pluck('student_id'))
+            ->unique()
+            ->values()
+            ->all();
         $parents = $studentIds === [] ? collect() : $source->table('parent_student')->whereIn('student_id', $studentIds)->orderBy('parent_id')->get();
         foreach ($parents as $row) {
             $this->addRole($roles, (int) $row->parent_id, 'parent');
