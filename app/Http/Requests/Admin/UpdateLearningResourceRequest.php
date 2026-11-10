@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Http\\Requests\\Admin;
+namespace App\Http\Requests\Admin;
 
-use Illuminate\\Foundation\\Http\\FormRequest;
-use Illuminate\\Validation\\Rule;
-use Illuminate\\Validation\\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateLearningResourceRequest extends FormRequest
 {
