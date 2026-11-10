@@ -150,3 +150,134 @@ document.querySelectorAll('form[data-confirm]').forEach((form) => {
 document.querySelectorAll('[data-auto-dismiss]').forEach((notice) => {
     window.setTimeout(() => notice.remove(), 5000);
 });
+
+
+// Remote lookups are opt-in: no request is sent on page load or drawer render.
+const lookupTimers = new WeakMap();
+const lookupRequests = new WeakMap();
+
+document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.matches('[data-lookup-input]')) return;
+
+    const widget = input.closest('[data-remote-lookup]');
+    if (!widget) return;
+
+    const results = widget.querySelector('[data-lookup-results]');
+    const status = widget.querySelector('[data-lookup-status]');
+    const term = input.value.trim();
+    const previousTimer = lookupTimers.get(widget);
+    if (previousTimer) window.clearTimeout(previousTimer);
+
+    const previousRequest = lookupRequests.get(widget);
+    if (previousRequest) previousRequest.abort();
+
+    results?.replaceChildren();
+    if (term.length < 2) {
+        if (status) status.textContent = 'برای جستجو حداقل دو حرف وارد کنید.';
+        return;
+    }
+
+    if (status) status.textContent = 'در حال جستجو…';
+    const timer = window.setTimeout(async () => {
+        const controller = new AbortController();
+        lookupRequests.set(widget, controller);
+
+        try {
+            const url = new URL(widget.dataset.lookupUrl, window.location.origin);
+            url.searchParams.set('q', term);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                signal: controller.signal,
+            });
+            if (!response.ok) throw new Error('lookup_failed');
+
+            const payload = await response.json();
+            if (input.value.trim() !== term) return;
+
+            const fragment = document.createDocumentFragment();
+            (payload.data || []).forEach((item) => {
+                const selected = [...widget.querySelectorAll('[data-lookup-value]')]
+                    .some((node) => node.value === String(item.id));
+                if (selected) return;
+
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'panel-lookup-option';
+                option.dataset.lookupAdd = '';
+                option.dataset.lookupValue = String(item.id);
+                option.dataset.lookupLabel = item.label || '';
+                option.setAttribute('role', 'option');
+
+                const label = document.createElement('span');
+                label.textContent = item.label || '';
+                option.append(label);
+
+                if (item.meta) {
+                    const meta = document.createElement('small');
+                    meta.textContent = item.meta;
+                    option.append(meta);
+                }
+                fragment.append(option);
+            });
+
+            results?.replaceChildren(fragment);
+            if (status) {
+                const count = (payload.data || []).length;
+                status.textContent = count
+                    ? `${count} نتیجه نمایش داده شد.${payload.has_more ? ' برای محدودماندن نتایج، جستجو را دقیق‌تر کنید.' : ''}`
+                    : 'موردی با این عبارت پیدا نشد.';
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError' && status) {
+                status.textContent = 'جستجو انجام نشد؛ دوباره تلاش کنید.';
+            }
+        }
+    }, 300);
+
+    lookupTimers.set(widget, timer);
+});
+
+document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const option = target.closest('[data-lookup-add]');
+    if (option) {
+        const widget = option.closest('[data-remote-lookup]');
+        const selected = widget?.querySelector('[data-lookup-selected]');
+        if (!widget || !selected) return;
+
+        const value = option.dataset.lookupValue;
+        if ([...selected.querySelectorAll('[data-lookup-value]')].some((input) => input.value === value)) return;
+
+        const chip = document.createElement('span');
+        chip.className = 'panel-lookup-chip';
+
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = widget.dataset.lookupName;
+        hidden.value = value;
+        hidden.dataset.lookupValue = value;
+
+        const label = document.createElement('span');
+        label.textContent = option.dataset.lookupLabel || `شناسه ${value}`;
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.dataset.lookupRemove = '';
+        remove.setAttribute('aria-label', 'حذف مورد انتخاب‌شده');
+        remove.textContent = '×';
+
+        chip.append(hidden, label, remove);
+        selected.append(chip);
+        option.remove();
+        return;
+    }
+
+    const remove = target.closest('[data-lookup-remove]');
+    if (remove) remove.closest('.panel-lookup-chip')?.remove();
+});
