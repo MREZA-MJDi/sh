@@ -7,6 +7,7 @@ use App\Models\CourseEnrollment;
 use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
 class CourseService
