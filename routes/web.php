@@ -121,7 +121,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->prefix('student')
     ->name('student.')
     ->group(function (): void {
-        Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');\n        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
 
         Route::middleware('permission:homework.submit')->group(function (): void {
             Route::post('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'store'])->name('homework.submissions.store');
@@ -148,7 +148,7 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->prefix('parent')
     ->name('guardian.')
     ->group(function (): void {
-        Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');\n        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
     });
 
 Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])
