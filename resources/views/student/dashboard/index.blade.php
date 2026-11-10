@@ -81,8 +81,7 @@
     </section>
 
     @can('announcements.view')
-        @if ($announcements->isNotEmpty())
-            <section class="card student-announcements" id="announcements" aria-labelledby="student-announcements-preview-title">
+        <section class="card student-announcements" id="announcements" aria-labelledby="student-announcements-preview-title">
                 <div class="chead">
                     <div>
                         <span class="student-section-eyebrow">از طرف آموزشگاه</span>
@@ -91,7 +90,7 @@
                     <span class="pill">{{ $faNumber($announcements->count()) }} اطلاعیه</span>
                 </div>
                 <div class="student-announcements__list">
-                    @foreach ($announcements->take(3) as $announcement)
+                    @forelse ($announcements as $announcement)
                         <article class="student-announcement">
                             <span class="student-announcement__icon"><x-icon name="bell"/></span>
                             <div class="student-announcement__copy">
@@ -104,10 +103,11 @@
                                 </time>
                             </div>
                         </article>
-                    @endforeach
+                    @empty
+                        <div class="empty">در حال حاضر اطلاعیه‌ای برای نمایش وجود ندارد.</div>
+                    @endforelse
                 </div>
-            </section>
-        @endif
+        </section>
     @endcan
 
     <section class="stats student-dashboard-stats" aria-label="خلاصه وضعیت آموزشی">
@@ -341,27 +341,7 @@
         </section>
     @endcan
 
-    @can('announcements.view')
-        <section class="card" id="announcements-all" aria-labelledby="student-announcements-title">
-            <div class="chead">
-                <div>
-                    <span class="student-section-eyebrow">خبرهای آموزشگاه</span>
-                    <h2 id="student-announcements-title">همه اطلاعیه‌ها</h2>
-                </div>
-            </div>
-            @forelse ($announcements as $announcement)
-                <article class="news">
-                    <b>{{ $announcement->title }}</b>
-                    <span class="mu">{{ \App\Support\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') }}</span>
-                    @if (filled($announcement->body))
-                        <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 180) }}</p>
-                    @endif
-                </article>
-            @empty
-                <div class="empty">اطلاعیه‌ای برای نمایش وجود ندارد.</div>
-            @endforelse
-        </section>
-    @endcan
+
 
     @can('notes.manage.own')
         <section class="card" id="notes" aria-labelledby="student-notes-title">
