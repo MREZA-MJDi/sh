@@ -39,7 +39,6 @@ class UserController extends Controller
 
         if ($role === 'parent') {
             $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
-                ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name']);
         }
