@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ExamQuestionController;
 use App\Http\Controllers\Admin\ExamAttemptReviewController;
 use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
+use App\Http\Controllers\Admin\LookupController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
