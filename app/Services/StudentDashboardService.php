@@ -106,7 +106,8 @@ final class StudentDashboardService
             ->get(['id', 'title', 'body', 'published_at']);
 
         return [
-            'classrooms' => $classrooms,\n            'course_progress' => $courseProgress,
+            'classrooms' => $classrooms,
+            'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
