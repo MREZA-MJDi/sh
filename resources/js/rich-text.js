@@ -85,6 +85,18 @@ function enhanceRichTextarea(textarea) {
     font.addEventListener('change', () => { editor.focus(); wrapSelection({fontSize:font.value}); sync(); });
     toolbar.append(font);
 
+    const fontFamily = document.createElement('select');
+    fontFamily.className = 'rich-editor__select';
+    fontFamily.setAttribute('aria-label', 'قلم نوشته');
+    [['Vazirmatn','وزیرمتن'],['Tahoma','تاهوما'],['Arial','Arial'],['Georgia','Georgia']].forEach(([value,label]) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        fontFamily.append(option);
+    });
+    fontFamily.addEventListener('change', () => { editor.focus(); wrapSelection({fontFamily:fontFamily.value}); sync(); });
+    toolbar.append(fontFamily);
+
     const color = document.createElement('label');
     color.className = 'rich-editor__color';
     color.title = 'رنگ متن';
@@ -127,6 +139,18 @@ function enhanceRichTextarea(textarea) {
         sync();
     });
     toolbar.append(linkButton);
+
+    const tableButton = document.createElement('button');
+    tableButton.type = 'button';
+    tableButton.className = 'rich-editor__tool';
+    tableButton.textContent = 'جدول ۳×۳';
+    tableButton.addEventListener('click', () => {
+        editor.focus();
+        const rows = Array.from({length:3}, () => '<tr><td><br></td><td><br></td><td><br></td></tr>').join('');
+        document.execCommand('insertHTML', false, '<table><tbody>' + rows + '</tbody></table><p><br></p>');
+        sync();
+    });
+    toolbar.append(tableButton);
 
     const clearButton = document.createElement('button');
     clearButton.type = 'button';
