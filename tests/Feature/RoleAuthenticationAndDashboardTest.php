@@ -108,8 +108,18 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             'status' => 'active',
         ]);
 
+        $otherCourse = Course::query()->create([
+            'title' => 'دوره مدرس دوم',
+            'slug' => 'other-teacher-dashboard-course',
+            'teacher_id' => $otherTeacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
         Classroom::query()->create([
-            'course_id' => $course->id,
+            'course_id' => $otherCourse->id,
             'teacher_id' => $otherTeacher->id,
             'name' => 'کلاس محرمانه مدرس دوم',
             'status' => 'active',

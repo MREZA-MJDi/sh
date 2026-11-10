@@ -27,6 +27,7 @@ class AttendanceController extends Controller
             ? Attendance::where('classroom_id', $classroom->id)->whereDate('session_date', $date)->get()->keyBy('student_id')
             : collect();
         $history = Attendance::with(['student', 'classroom', 'marker'])
+            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
             ->when($classroom, fn ($query) => $query->where('classroom_id', $classroom->id))
             ->whereDate('session_date', $date)
             ->latest()->paginate(20)->withQueryString();

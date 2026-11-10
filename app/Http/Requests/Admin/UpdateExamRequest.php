@@ -27,6 +27,11 @@ class UpdateExamRequest extends FormRequest
             $workspace = app(ClassroomWorkspaceService::class);
             $user = $this->user();
             if (! $workspace->isTeacher($user)) return;
+
+            if ($this->input('provider') === 'quiz24') {
+                $validator->errors()->add('provider', 'اتصال به Quiz24 فقط از دسترسی مدیریتی انجام می‌شود؛ مدرس می‌تواند آزمون داخلی بسازد.');
+            }
+
             $classroomId = $this->integer('classroom_id');
             $courseId = $this->integer('course_id');
             if (! $classroomId && ! $courseId) {
