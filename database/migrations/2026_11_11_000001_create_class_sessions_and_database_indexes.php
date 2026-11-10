@@ -32,7 +32,7 @@ return new class extends Migration
                 ->nullable()
                 ->after('classroom_id')
                 ->constrained('class_sessions')
-                ->nullOnDelete();
+                ->restrictOnDelete();
             $table->index(['class_session_id', 'status'], 'attendance_session_status_idx');
         });
 
@@ -50,7 +50,7 @@ return new class extends Migration
             $sessionId = DB::table('class_sessions')->insertGetId([
                 'classroom_id' => $group->classroom_id,
                 'title' => 'جلسه ثبت‌شده ' . $group->session_date,
-                'session_type' => 'online',
+                'session_type' => 'legacy',
                 'starts_at' => $group->session_date . ' 00:00:00',
                 'status' => 'completed',
                 'created_at' => now(),
@@ -65,6 +65,22 @@ return new class extends Migration
 
         Schema::table('attendances', function (Blueprint $table): void {
             $table->unique(['class_session_id', 'student_id'], 'attendance_session_student_unique');
+        });
+
+        Schema::table('guardian_student', function (Blueprint $table): void {
+            $table->index(['student_id', 'guardian_id'], 'guardian_student_reverse_idx');
+        });
+
+        Schema::table('classroom_student', function (Blueprint $table): void {
+            $table->index(['student_id', 'classroom_id'], 'classroom_student_reverse_idx');
+        });
+
+        Schema::table('role_user', function (Blueprint $table): void {
+            $table->index(['user_id', 'role_id'], 'role_user_reverse_idx');
+        });
+
+        Schema::table('permission_role', function (Blueprint $table): void {
+            $table->index(['role_id', 'permission_id'], 'permission_role_reverse_idx');
         });
 
         Schema::table('classrooms', function (Blueprint $table): void {
@@ -109,6 +125,22 @@ return new class extends Migration
 
         Schema::table('homeworks', function (Blueprint $table): void {
             $table->dropIndex('homeworks_classroom_status_due_idx');
+        });
+
+        Schema::table('permission_role', function (Blueprint $table): void {
+            $table->dropIndex('permission_role_reverse_idx');
+        });
+
+        Schema::table('role_user', function (Blueprint $table): void {
+            $table->dropIndex('role_user_reverse_idx');
+        });
+
+        Schema::table('classroom_student', function (Blueprint $table): void {
+            $table->dropIndex('classroom_student_reverse_idx');
+        });
+
+        Schema::table('guardian_student', function (Blueprint $table): void {
+            $table->dropIndex('guardian_student_reverse_idx');
         });
 
         Schema::table('classrooms', function (Blueprint $table): void {
