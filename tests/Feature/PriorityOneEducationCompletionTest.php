@@ -16,10 +16,12 @@ use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Question;
 use App\Models\Role;
+use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PriorityOneEducationCompletionTest extends TestCase
@@ -328,6 +330,97 @@ class PriorityOneEducationCompletionTest extends TestCase
             ->assertSee('استدلال صحیح و کامل بود.');
 
         $this->assertSame('graded', $attempt->fresh()->status);
+    }
+
+
+    public function test_recorded_video_is_visible_only_to_enrolled_student_and_raw_file_is_never_streamed(): void
+    {
+        Storage::fake('local');
+
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $otherStudent = $this->userWithRole('student');
+
+        [$course, $classroom] = $this->enrolledClass($student, $teacher, 'protected-video-course');
+        $course->update([
+            'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => null,
+        ]);
+
+        Storage::disk('local')->put('private/spotplayer-staging/recording.mp4', 'raw-video-bytes');
+
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'created_by' => $teacher->id,
+            'title' => 'ضبط جلسه اول',
+            'status' => 'waiting_contract',
+            'file_path' => 'private/spotplayer-staging/recording.mp4',
+            'file_original_name' => 'recording.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => strlen('raw-video-bytes'),
+            'file_sha256' => hash('sha256', 'raw-video-bytes'),
+            'staged_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('student.videos.index'))
+            ->assertOk()
+            ->assertSee('ضبط جلسه اول')
+            ->assertSee('فایل خام ویدئو');
+
+        $this->actingAs($student)
+            ->get(route('student.videos.show', $video))
+            ->assertOk()
+            ->assertSee('پخش محافظت‌شده هنوز آماده نیست')
+            ->assertSee('SpotPlayer');
+
+        $this->actingAs($student)
+            ->get(route('student.videos.stream', $video))
+            ->assertStatus(409)
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertDontSee('raw-video-bytes');
+
+        $this->actingAs($otherStudent)
+            ->get(route('student.videos.show', $video))
+            ->assertNotFound();
+
+        $this->actingAs($otherStudent)
+            ->get(route('student.videos.stream', $video))
+            ->assertNotFound();
+    }
+
+    public function test_teacher_can_manage_course_content_only_for_an_assigned_course(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $otherTeacher = $this->userWithRole('teacher');
+
+        [$assignedCourse] = $this->enrolledClass($student, $teacher, 'teacher-assigned-content');
+        [$otherCourse] = $this->enrolledClass($student, $otherTeacher, 'other-teacher-content');
+
+        $this->actingAs($teacher)
+            ->get(route('admin.courses.content', $assignedCourse))
+            ->assertOk()
+            ->assertSee('افزودن بخش جدید');
+
+        $this->actingAs($teacher)
+            ->post(route('admin.courses.sections.store', $assignedCourse), [
+                'title' => 'بخش معلم',
+                'sort_order' => 1,
+                'status' => 'published',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('course_sections', [
+            'course_id' => $assignedCourse->id,
+            'title' => 'بخش معلم',
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('admin.courses.content', $otherCourse))
+            ->assertNotFound();
     }
 
     public function test_student_cannot_open_an_exam_for_another_class(): void
