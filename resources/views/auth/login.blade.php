@@ -61,24 +61,45 @@
             <a href="{{ route('register') }}">ثبت‌نام دانش‌آموز</a>
         </div>
 
-        @if (app()->environment('local') && config('demo.enabled'))
-            <details class="panel-details mt-5">
-                <summary>حساب‌های آزمایشی محیط توسعه</summary>
-                <div class="panel-details-content grid gap-2">
+        @if (app()->environment('local') && config('demo.enabled') && config('demo.password'))
+            <details class="panel-details mt-5" open>
+                <summary>ورود سریع به داشبوردهای آزمایشی</summary>
+                <div class="panel-details-content grid gap-3">
+                    <p class="panel-muted">برای ورود سریع، یکی از نقش‌ها را انتخاب کنید. این حساب‌ها فقط در محیط توسعه ساخته می‌شوند.</p>
                     @foreach ([
-                        'مدیر' => 'admin@sh.local',
-                        'مدرس' => 'teacher@sh.local',
-                        'دانش‌آموز' => 'student@sh.local',
-                        'ولی دانش‌آموز' => 'parent@sh.local',
-                    ] as $label => $email)
+                        ['label' => 'مدیر سامانه', 'email' => 'admin@sh.local'],
+                        ['label' => 'معلم', 'email' => 'teacher@sh.local'],
+                        ['label' => 'دانش‌آموز', 'email' => 'student@sh.local'],
+                        ['label' => 'ولی دانش‌آموز', 'email' => 'parent@sh.local'],
+                    ] as $account)
                         <div class="flex items-center justify-between gap-3 text-xs">
-                            <span>{{ $label }}</span>
-                            <strong dir="ltr">{{ $email }}</strong>
+                            <div class="grid gap-1">
+                                <strong>{{ $account['label'] }}</strong>
+                                <span dir="ltr">{{ $account['email'] }}</span>
+                            </div>
+                            <button
+                                class="panel-btn"
+                                type="button"
+                                data-demo-email="{{ $account['email'] }}"
+                                data-demo-password="{{ config('demo.password') }}"
+                            >انتخاب حساب</button>
                         </div>
                     @endforeach
-                    <p class="panel-muted">گذرواژه مشترک حساب‌ها از متغیر SHIKHAN_DEMO_PASSWORD خوانده می‌شود.</p>
+                    <div class="grid gap-1 text-xs">
+                        <span class="panel-muted">گذرواژه مشترک:</span>
+                        <strong dir="ltr">{{ config('demo.password') }}</strong>
+                    </div>
                 </div>
             </details>
+            <script>
+                document.querySelectorAll('[data-demo-email]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        document.getElementById('email').value = button.dataset.demoEmail;
+                        document.getElementById('password').value = button.dataset.demoPassword;
+                        document.getElementById('password').focus();
+                    });
+                });
+            </script>
         @endif
     </section>
 </main>
