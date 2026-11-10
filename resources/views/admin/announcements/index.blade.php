@@ -19,7 +19,7 @@
                 <tbody>
                 @forelse ($announcements as $announcement)
                     <tr>
-                        <td><strong>{{ $announcement->title }}</strong><details class="panel-details mt-1"><summary>متن اطلاعیه</summary><div class="panel-details-content whitespace-normal">{{ $announcement->body }}</div></details></td>
+                        <td><strong>{{ $announcement->title }}</strong><details class="panel-details mt-1"><summary>متن اطلاعیه</summary><x-rich-content :value="$announcement->body" class="panel-details-content whitespace-normal"/></details></td>
                         <td>{{ ['all'=>'همه','students'=>'دانش‌آموزان','parents'=>'اولیا','teachers'=>'مدرسان'][$announcement->audience] ?? $announcement->audience }}</td>
                         <td>{{ $announcement->creator->name ?? '—' }}</td>
                         <td>{{ $announcement->published_at?->format('Y-m-d H:i') ?? '—' }}</td>
