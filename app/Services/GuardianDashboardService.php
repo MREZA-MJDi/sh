@@ -153,7 +153,8 @@ final class GuardianDashboardService
             'classrooms' => $classrooms,
             'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
-            'homeworks' => $homeworks,\n            'reviewed_homework' => $reviewedHomework,
+            'homeworks' => $homeworks,
+            'reviewed_homework' => $reviewedHomework,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
                 'submissions',
                 fn (Builder $query) => $query->where('student_id', $student->id)
@@ -214,7 +215,8 @@ final class GuardianDashboardService
             'classrooms' => collect(),
             'course_progress' => collect(),
             'classroom_count' => 0,
-            'homeworks' => collect(),\n            'reviewed_homework' => collect(),
+            'homeworks' => collect(),
+            'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
             'attendance' => collect(),
             'attendance_count' => 0,
