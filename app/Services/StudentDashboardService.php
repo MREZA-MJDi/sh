@@ -62,8 +62,25 @@ final class StudentDashboardService
             ->limit(6)
             ->get();
 
+        // Never expose a result attached to another classroom. Course-wide
+        // results remain visible only while the student has active course access.
         $results = ExamResult::query()
             ->where('student_id', $student->id)
+            ->whereHas('exam', function (Builder $exam) use ($student, $classroomIds): void {
+                $exam->where(function (Builder $scope) use ($student, $classroomIds): void {
+                    $scope->whereIn('exams.classroom_id', clone $classroomIds)
+                        ->orWhere(function (Builder $courseLevel) use ($student): void {
+                            $courseLevel
+                                ->whereNull('exams.classroom_id')
+                                ->whereHas('course.enrollments', fn (Builder $enrollments) => $enrollments
+                                    ->where('student_id', $student->id)
+                                    ->where('status', 'active')
+                                    ->where(fn (Builder $expiry) => $expiry
+                                        ->whereNull('expires_at')
+                                        ->orWhere('expires_at', '>', now())));
+                        });
+                });
+            })
             ->with(['exam:id,title,classroom_id,course_id', 'exam.classroom:id,name', 'exam.course:id,title'])
             ->latest()
             ->limit(6)
@@ -115,6 +132,19 @@ final class StudentDashboardService
         return Classroom::query()
             ->where('classrooms.status', 'active')
             ->whereHas('students', fn (Builder $query) => $query->whereKey($student->id))
+            ->where(function (Builder $access) use ($student): void {
+                // Standalone classes remain available through explicit roster membership.
+                // Course-linked classes also require a current course enrollment.
+                $access->whereNull('classrooms.course_id')
+                    ->orWhereHas('course', fn (Builder $course) => $course
+                        ->where('status', 'published')
+                        ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
+                            ->where('student_id', $student->id)
+                            ->where('status', 'active')
+                            ->where(fn (Builder $expiry) => $expiry
+                                ->whereNull('expires_at')
+                                ->orWhere('expires_at', '>', now()))));
+            })
             ->select('classrooms.id');
     }
 }
