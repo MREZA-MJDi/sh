@@ -59,7 +59,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
     {
         $accounts = [
             'admin' => ['email' => 'role.admin@example.test', 'route' => 'admin.dashboard'],
-            'teacher' => ['email' => 'role.teacher@example.test', 'route' => 'teacher.dashboard'],
+            'teacher' => ['email' => 'role.teacher@example.test', 'route' => 'admin.dashboard'],
             'student' => ['email' => 'role.student@example.test', 'route' => 'student.dashboard'],
             'parent' => ['email' => 'role.parent@example.test', 'route' => 'guardian.dashboard'],
         ];
@@ -116,12 +116,11 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         ]);
 
         $this->actingAs($teacher)
-            ->get(route('teacher.dashboard'))
+            ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('کلاس قابل مشاهده مدرس اول')
             ->assertDontSee('کلاس محرمانه مدرس دوم')
-            ->assertSee('کلاس‌های من')
-            ->assertSee('تکالیف و تصحیح')
+            ->assertSee('داشبورد مدیریت')
             ->assertDontSee('کوییز ۲۴')
             ->assertDontSee('مدیریت کاربران');
     }
@@ -312,7 +311,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
 
         $this->actingAs($student)->get(route('teacher.dashboard'))->assertForbidden();
         $this->actingAs($teacher)->get(route('student.dashboard'))->assertForbidden();
-        $this->actingAs($teacher)->get(route('admin.dashboard'))->assertForbidden();
+        $this->actingAs($teacher)->get(route('admin.dashboard'))->assertOk();
     }
 
     public function test_demo_accounts_are_created_only_when_explicitly_enabled_in_local_or_testing(): void

@@ -85,6 +85,17 @@ class User extends Authenticatable
         return $this->roles()->whereIn('name', $names)->exists();
     }
 
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermissionTo((string) $permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function hasPermissionTo(string $permission): bool
     {
         $this->loadMissing('roles.permissions');
