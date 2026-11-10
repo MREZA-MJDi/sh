@@ -9,7 +9,7 @@
         <form method="POST" action="{{ route('student.notes.store') }}">
             @csrf
             <label class="sr" for="note-text">متن یادداشت</label>
-            <textarea class="fld" id="note-text" name="body" data-count="2000" placeholder="یادداشت جدید خود را بنویسید…">{{ old('body') }}</textarea>
+            <textarea class="fld" id="note-text" name="body" data-count="10000" data-rich-text placeholder="یادداشت جدید خود را بنویسید…">{{ old('body') }}</textarea>
             <x-field-error name="body"/>
             <div class="frm">
                 <button class="btn" type="submit">ذخیره‌ی یادداشت</button>
@@ -25,7 +25,7 @@
                     @csrf
                     @method('PATCH')
                     <label class="sr" for="note-{{ $note->id }}">ویرایش یادداشت</label>
-                    <textarea class="fld" id="note-{{ $note->id }}" name="body" data-count="2000">{{ $note->body }}</textarea>
+                    <textarea class="fld" id="note-{{ $note->id }}" name="body" data-count="10000" data-rich-text>{{ $note->body }}</textarea>
                     <x-field-error name="body"/>
                     <div class="frm">
                         <button class="btn s" type="submit">ذخیره‌ی تغییرات</button>

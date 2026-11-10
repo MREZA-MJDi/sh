@@ -19,7 +19,7 @@ class StoreHomeworkRequest extends FormRequest
         return [
             'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
             'title' => ['required', 'string', 'max:180'],
-            'instructions' => ['nullable', 'string', 'max:20000'],
+            'instructions' => ['nullable', 'string', 'max:40000'],
             'due_at' => ['nullable', 'date', 'after:now'],
             'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:20480'],
             'status' => ['required', Rule::in(['draft', 'published'])],

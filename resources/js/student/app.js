@@ -1,3 +1,4 @@
+import '../rich-text.js';
 // کارتابل دانش‌آموز — تعامل‌های مستقل سمت مرورگر
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -184,7 +185,10 @@ function initCharacterCounters() {
         const counter = document.createElement('div');
         counter.className = 'cnt';
         counter.setAttribute('aria-live', 'polite');
-        textarea.insertAdjacentElement('afterend', counter);
+        const editorShell = textarea.nextElementSibling?.classList.contains('rich-editor')
+            ? textarea.nextElementSibling
+            : textarea;
+        editorShell.insertAdjacentElement('afterend', counter);
         textarea.maxLength = maximum;
 
         const update = () => {

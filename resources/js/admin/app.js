@@ -1,3 +1,4 @@
+import '../rich-text.js';
 import './persian-date.js';
 
 const body = document.body;
@@ -84,6 +85,7 @@ document.addEventListener('click', (event) => {
         drawer.querySelector('[data-drawer-title]').textContent = button.dataset.drawerTitle || 'فرم';
         const drawerBody = drawer.querySelector('[data-drawer-body]');
         drawerBody.replaceChildren(template.content.cloneNode(true));
+        document.dispatchEvent(new CustomEvent('admin:drawer-mounted', { detail: { root: drawerBody } }));
         window.initializeAdminPersianPickers?.(drawerBody);
         drawer.classList.add('is-open');
         drawer.setAttribute('aria-hidden', 'false');

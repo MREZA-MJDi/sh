@@ -21,7 +21,7 @@
                     {{ $message->sender?->name ?? 'کاربر آکادمی' }}
                     · {{ \App\Support\PersianDate::format($message->created_at, 'Y/m/d H:i') }}
                 </small>
-                <p>{{ $message->body }}</p>
+                <x-rich-content :value="$message->body"/>
             </div>
 
             @foreach($message->replies as $reply)
@@ -30,7 +30,7 @@
                         {{ $reply->sender?->name ?? 'کاربر آکادمی' }}
                         · {{ \App\Support\PersianDate::format($reply->created_at, 'Y/m/d H:i') }}
                     </small>
-                    <p>{{ $reply->body }}</p>
+                    <x-rich-content :value="$reply->body"/>
                 </div>
             @endforeach
         </div>
@@ -48,7 +48,7 @@
                     </div>
                     <div class="w">
                         <label for="edit-body">متن پیام</label>
-                        <textarea class="fld" id="edit-body" name="body" data-count="10000" required>{{ old('body', $message->body) }}</textarea>
+                        <textarea class="fld" id="edit-body" name="body" data-count="20000" data-rich-text required>{{ old('body', $message->body) }}</textarea>
                         <x-field-error name="body"/>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
             <form method="POST" action="{{ route($messageRoutePrefix.'.reply', $message) }}">
                 @csrf
                 <label class="sr" for="reply-body">متن پاسخ</label>
-                <textarea class="fld" id="reply-body" name="body" data-count="10000" placeholder="پاسخ خود را بنویسید…" required>{{ old('body') }}</textarea>
+                <textarea class="fld" id="reply-body" name="body" data-count="20000" data-rich-text placeholder="پاسخ خود را بنویسید…" required>{{ old('body') }}</textarea>
                 <x-field-error name="body"/>
                 <div class="frm">
                     <button class="btn" type="submit">ارسال پاسخ</button>

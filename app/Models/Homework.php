@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Homework extends Model
 {
+    use \App\Models\Concerns\SanitizesRichText;
+
     protected $table = 'homeworks';
 
     protected $fillable = ['classroom_id', 'title', 'instructions', 'due_at', 'attachment_path', 'status', 'created_by'];

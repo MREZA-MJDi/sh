@@ -66,7 +66,7 @@
                                 <div class="panel-field"><label>فایل‌های پیوست</label>@foreach ($submission->files as $file)<div class="panel-muted">{{ $file->original_name }}</div>@endforeach</div>
                             @endif
                             <div class="panel-field"><label>نمره از ۲۰</label><input class="panel-input" type="number" name="score" min="0" max="20" step=".25" value="{{ $submission->score }}"></div>
-                            <div class="panel-field"><label>بازخورد مدرس</label><textarea class="panel-textarea" name="feedback" required maxlength="10000">{{ $submission->feedback }}</textarea></div>
+                            <div class="panel-field"><label>بازخورد مدرس</label><textarea class="panel-textarea" name="feedback" data-rich-text required maxlength="20000">{{ $submission->feedback }}</textarea></div>
                         </x-admin.drawer-form>
                     @endcan
                 @empty
@@ -85,7 +85,7 @@
             <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id" required><option value="">انتخاب کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
             <div class="panel-field"><label>مهلت تحویل</label><input class="panel-input" type="datetime-local" name="due_at"></div>
-            <div class="panel-field"><label>دستورالعمل</label><textarea class="panel-textarea" name="instructions" maxlength="20000"></textarea></div>
+            <div class="panel-field"><label>دستورالعمل</label><textarea class="panel-textarea" name="instructions" data-rich-text maxlength="30000"></textarea></div>
             <div class="panel-field"><label>پیوست (اختیاری)</label><input class="panel-input" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"></div>
             <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="published">منتشر شود</option><option value="draft">پیش‌نویس</option></select></div>
         </x-admin.drawer-form>

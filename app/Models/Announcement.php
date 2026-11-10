@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Announcement extends Model
 {
+    use \App\Models\Concerns\SanitizesRichText;
+
     protected $fillable = ['created_by', 'title', 'body', 'audience', 'status', 'published_at'];
 
     protected function casts(): array

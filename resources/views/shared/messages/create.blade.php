@@ -51,7 +51,7 @@
 
                     <div class="w">
                         <label for="body">متن پیام</label>
-                        <textarea class="fld" id="body" name="body" data-count="10000" required>{{ old('body') }}</textarea>
+                        <textarea class="fld" id="body" name="body" data-count="20000" data-rich-text required>{{ old('body') }}</textarea>
                         <x-field-error name="body"/>
                     </div>
                 </div>

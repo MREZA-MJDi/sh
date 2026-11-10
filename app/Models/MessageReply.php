@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MessageReply extends Model
 {
+    use \App\Models\Concerns\SanitizesRichText;
+
     protected $fillable = ['message_id', 'sender_id', 'body'];
 
     public function message(): BelongsTo
