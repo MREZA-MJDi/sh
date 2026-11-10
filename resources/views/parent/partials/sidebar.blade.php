@@ -14,23 +14,23 @@
     </div>
 
     <nav class="nav" aria-label="بخش‌های کارتابل اولیاء">
-        <a href="#overview" class="on" aria-current="page" data-nav-link>
+        <a href="#overview" data-dashboard-nav-target="overview" class="on" aria-current="page" data-nav-link>
             <x-icon name="home"/> خانه
         </a>
 
         <h6>وضعیت فرزند</h6>
-        <a href="#classes" data-nav-link><x-icon name="book"/> کلاس‌ها و دوره‌ها</a>
-        <a href="#homework" data-nav-link><x-icon name="task"/> تکالیف</a>
-        <a href="#results" data-nav-link><x-icon name="exam"/> نتایج آزمون‌ها</a>
-        <a href="#attendance" data-nav-link><x-icon name="cal"/> حضور و غیاب</a>
-        <a href="#resources" data-nav-link><x-icon name="file"/> منابع آموزشی</a>
+        <a href="#classes" data-dashboard-nav-target="classes" data-nav-link><x-icon name="book"/> کلاس‌ها و دوره‌ها</a>
+        <a href="#homework" data-dashboard-nav-target="homework" data-nav-link><x-icon name="task"/> تکالیف</a>
+        <a href="#results" data-dashboard-nav-target="results" data-nav-link><x-icon name="exam"/> نتایج آزمون‌ها</a>
+        <a href="#attendance" data-dashboard-nav-target="attendance" data-nav-link><x-icon name="cal"/> حضور و غیاب</a>
+        <a href="#resources" data-dashboard-nav-target="resources" data-nav-link><x-icon name="file"/> منابع آموزشی</a>
 
         <h6>ارتباط با آکادمی</h6>
         <a href="{{ route('guardian.consultations.index') }}"><x-icon name="phone"/> درخواست مشاوره</a>
         <a href="{{ route('guardian.messages.index') }}"><x-icon name="msg"/> پیام‌ها</a>
 
         <h6>اطلاع‌رسانی</h6>
-        <a href="#announcements" data-nav-link><x-icon name="bell"/> اطلاعیه‌ها</a>
+        <a href="#announcements" data-dashboard-nav-target="announcements" data-nav-link><x-icon name="bell"/> اطلاعیه‌ها</a>
     </nav>
 
     <div class="prem">
