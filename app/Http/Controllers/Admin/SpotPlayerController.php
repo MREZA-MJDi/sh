@@ -59,7 +59,11 @@ class SpotPlayerController extends Controller
             ->orderBy('title')
             ->get(['id', 'title', 'spotplayer_course_id', 'integration_status']);
 
-        $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
+        $spotPlayerCourseIds = $courses->modelKeys();
+        $classrooms = $workspace->queryFor($user)
+            ->whereIn('course_id', $spotPlayerCourseIds)
+            ->orderBy('name')
+            ->get(['id', 'name', 'course_id']);
 
         $students = $teacherView
             ? collect()
@@ -112,10 +116,11 @@ class SpotPlayerController extends Controller
     ): RedirectResponse {
         $video = $videos->stage($request->validated(), $request->user());
 
-        return back()->with(
-            'success',
-            'ویدیو در فضای خصوصی ذخیره و درخواست آپلود ثبت شد؛ انتقال به SpotPlayer پس از تحویل API انجام می‌شود. شناسه فایل: '.$video->id
-        );
+        $message = $video->file_path
+            ? 'فایل ویدیو در فضای خصوصی ذخیره شد؛ انتقال به SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
+            : 'شناسه ویدیوی موجود در SpotPlayer ثبت شد؛ اتصال و نمایش پلیر رسمی پس از تأیید قرارداد سرویس فعال می‌شود. شناسه داخلی: '.$video->id;
+
+        return back()->with('success', $message);
     }
 
     public function downloadStagedVideo(SpotPlayerVideo $video, ClassroomWorkspaceService $workspace)

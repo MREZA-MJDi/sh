@@ -456,6 +456,48 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         ]);
     }
 
+
+    public function test_existing_spotplayer_video_can_be_registered_without_reuploading_the_raw_file(): void
+    {
+        $course = Course::create([
+            'title' => 'دوره دارای ویدئوی آماده در Spot',
+            'slug' => 'existing-spotplayer-asset-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => 'SP-EXISTING-COURSE',
+            'status' => 'published',
+            'integration_status' => 'awaiting_api_verification',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.spotplayer.videos.store'), [
+                'title' => 'جلسه‌ای که قبلاً در Spot آپلود شده',
+                'course_id' => $course->id,
+                'external_id' => 'SP-VIDEO-EXISTING-77',
+                'status' => 'waiting_contract',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $video = \App\Models\SpotPlayerVideo::query()
+            ->where('external_id', 'SP-VIDEO-EXISTING-77')
+            ->firstOrFail();
+
+        $this->assertSame($course->id, $video->course_id);
+        $this->assertNull($video->file_path);
+        $this->assertNull($video->file_sha256);
+        $this->assertDatabaseHas('integration_runs', [
+            'provider' => 'spotplayer',
+            'action' => 'register_existing_video',
+            'status' => 'waiting_contract',
+            'entity_id' => $video->id,
+        ]);
+
+        Http::assertNothingSent();
+    }
+
+
     private function createUserWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create([
