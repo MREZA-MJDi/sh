@@ -32,7 +32,7 @@ final class RichTextSanitizer
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
 
-        $root = $document->getElementById('rich-root');
+        $root = $document->getElementsByTagName('div')->item(0);
         if (! $root) {
             return e(strip_tags($html));
         }
