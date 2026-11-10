@@ -30,6 +30,10 @@
                         <td><x-admin::badge :variant="$exam->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','scheduled'=>'زمان‌بندی‌شده','published'=>'منتشرشده','closed'=>'بسته‌شده'][$exam->status] ?? $exam->status }}</x-admin.badge></td>
                         <td class="panel-table-actions">
                             <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.results', $exam) }}">نتایج</a>
+                            @if ($exam->provider === 'internal')
+                                <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.questions', $exam) }}">سؤال‌ها</a>
+                                <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.exams.attempts', $exam) }}">برگه‌ها</a>
+                            @endif
                             @if (! $teacherView || $exam->provider === 'internal')
                                 @canany(['exams.manage', 'exams.manage.assigned'])
                                     <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="exam-edit-{{ $exam->id }}" data-drawer-title="ویرایش آزمون">ویرایش</button>
@@ -79,6 +83,9 @@
                 <div class="panel-field"><label>ارائه‌دهنده آزمون</label><select class="panel-select" name="provider"><option value="internal">داخلی</option><option value="quiz24">Quiz24</option></select></div>
                 <div class="panel-field"><label>شناسه آزمون Quiz24 (در صورت وجود)</label><input class="panel-input" name="external_id" value="{{ old('external_id') }}" maxlength="190" dir="ltr"></div>
             @endif
+            <div class="panel-field"><label>مدت آزمون (ساعت)</label><select class="panel-select" name="duration_hours">@foreach ([1,2,3,4] as $hours)<option value="{{ $hours }}" @selected((int) old('duration_hours', 2) === $hours)>{{ $hours }} ساعت</option>@endforeach</select></div>
+            <div class="panel-field"><label>تعداد دفعات مجاز</label><select class="panel-select" name="attempts_allowed">@foreach ([1,2,3,4,5] as $count)<option value="{{ $count }}" @selected((int) old('attempts_allowed', 1) === $count)>{{ $count }} بار</option>@endforeach</select></div>
+            <div class="panel-field"><label class="panel-checkbox"><input type="hidden" name="show_to_guardians" value="0"><input type="checkbox" name="show_to_guardians" value="1" checked> نمایش نتیجه به اولیا</label></div>
             <div class="panel-field"><label>زمان شروع</label><input class="panel-input" type="datetime-local" name="starts_at" value="{{ old('starts_at') }}"></div>
             <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="draft">پیش‌نویس</option><option value="scheduled">زمان‌بندی‌شده</option><option value="published">منتشرشده</option><option value="closed">بسته‌شده</option></select></div>
             <div class="panel-field"><label>توضیحات</label><textarea class="panel-textarea" name="description" maxlength="10000">{{ old('description') }}</textarea></div>
