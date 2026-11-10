@@ -3,10 +3,10 @@
 @section('title', 'درخواست جلسه‌ی مشاوره')
 
 @section('content')
-    <x-crumbs :items="['درخواست‌های مشاوره' => route('parent.consult.index'), 'درخواست جدید' => null]"/>
+    <x-crumbs :items="['درخواست‌های مشاوره' => route('guardian.consultations.index'), 'درخواست جدید' => null]"/>
 
     <x-card title="ثبت درخواست">
-        <form method="POST" action="{{ route('parent.consult.store') }}">
+        <form method="POST" action="{{ route('guardian.consultations.store') }}">
             @csrf
             <div class="fm">
                 <div>
@@ -58,7 +58,7 @@
 
             <div class="frm">
                 <button class="btn" type="submit">ثبت درخواست</button>
-                <a class="btn g" href="{{ route('parent.consult.index') }}">انصراف</a>
+                <a class="btn g" href="{{ route('guardian.consultations.index') }}">انصراف</a>
             </div>
         </form>
     </x-card>
