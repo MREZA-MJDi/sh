@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class StudentNote extends Model
 {
-    protected $fillable = ['student_id', 'title', 'body', 'tone'];
+    protected $fillable = ['user_id', 'tone', 'body'];
 
     public function student(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
