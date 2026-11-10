@@ -33,7 +33,7 @@ final class CourseProgressService
                 $join->on('lesson_progress.lesson_id', '=', 'lessons.id')
                     ->where('lesson_progress.student_id', '=', $student->id);
             })
-            ->whereIn('courses.id', $courseIds instanceof \\Illuminate\\Database\\Eloquent\\Builder ? clone $courseIds : $courseIds)
+            ->whereIn('courses.id', $courseIds instanceof \Illuminate\Database\Eloquent\Builder ? clone $courseIds : $courseIds)
             ->where('courses.status', 'published')
             ->groupBy('courses.id', 'courses.title', 'courses.slug')
             ->orderBy('courses.title')
