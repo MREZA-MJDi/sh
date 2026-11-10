@@ -46,6 +46,21 @@
                                         <div class="panel-field"><label>مدرس</label><select class="panel-select" name="teacher_id" required>@foreach ($teachers as $teacher)<option value="{{ $teacher->id }}" @selected($classroom->teacher_id===$teacher->id)>{{ $teacher->name }}</option>@endforeach</select></div>
                                         <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id"><option value="">بدون دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}" @selected($classroom->course_id===$course->id)>{{ $course->title }}</option>@endforeach</select></div>
                                         <div class="panel-field"><label>لینک ورود</label><input class="panel-input" name="meeting_url" type="url" value="{{ $classroom->meeting_url }}" dir="ltr"></div>
+                                        <div class="panel-field"><label>روزهای برگزاری</label>
+                                            <select class="panel-select" name="schedule_days[]" multiple size="4">
+                                                @foreach (['sat'=>'شنبه','sun'=>'یکشنبه','mon'=>'دوشنبه','tue'=>'سه‌شنبه','wed'=>'چهارشنبه','thu'=>'پنجشنبه','fri'=>'جمعه'] as $day=>$label)
+                                                    <option value="{{ $day }}" @selected(in_array($day, $classroom->schedule['days'] ?? [], true))>{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="panel-field"><label>ساعت شروع</label><input class="panel-input" type="time" name="schedule_time" value="{{ $classroom->schedule['time'] ?? '' }}"></div>
+                                        <div class="panel-field"><label>دانش‌آموزان کلاس</label>
+                                            <select class="panel-select" name="student_ids[]" multiple size="5">
+                                                @foreach ($students as $student)
+                                                    <option value="{{ $student->id }}" @selected($classroom->students->contains('id', $student->id))>{{ $student->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                         <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['active'=>'فعال','paused'=>'متوقف','archived'=>'بایگانی'] as $key=>$value)<option value="{{ $key }}" @selected($classroom->status===$key)>{{ $value }}</option>@endforeach</select></div>
                                         <button class="panel-btn panel-btn-sm" type="submit">ذخیره</button>
                                     </form>
