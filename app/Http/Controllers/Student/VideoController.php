@@ -79,7 +79,9 @@ final class VideoController extends Controller
             ->select('course_id');
 
         return SpotPlayerVideo::query()
-            ->whereNotNull('file_path')
+            ->where(function (Builder $delivery) {
+                $delivery->whereNotNull('file_path')->orWhereNotNull('external_id');
+            })
             ->whereHas('course', fn (Builder $course) => $course
                 ->where('status', 'published')
                 ->where('delivery_type', 'spotplayer')
@@ -88,6 +90,7 @@ final class VideoController extends Controller
                 $scope->whereNull('classroom_id')
                     ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
                         ->where('status', 'active')
+                        ->whereColumn('classrooms.course_id', 'spot_player_videos.course_id')
                         ->whereHas('students', fn (Builder $students) => $students
                             ->whereKey($student->id)));
             });
