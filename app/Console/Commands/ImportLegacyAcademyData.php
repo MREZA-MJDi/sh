@@ -40,6 +40,11 @@ final class ImportLegacyAcademyData extends Command
             return self::FAILURE;
         }
 
+        if (! Schema::hasColumn('users', 'legacy_login')) {
+            $this->error('Migration legacy_login اجرا نشده است؛ ابتدا migrationهای مقصد را اجرا کنید.');
+            return self::FAILURE;
+        }
+
         if (! Schema::hasTable('legacy_import_maps')) {
             $this->error('جدول legacy_import_maps وجود ندارد؛ ابتدا migrationهای مقصد را اجرا کنید.');
             return self::FAILURE;
@@ -229,9 +234,8 @@ final class ImportLegacyAcademyData extends Command
                 }
                 $phones[$phone] = true;
             }
-            if ($email === '' && $phone === '') {
-                $conflicts[] = 'حساب #'.$user->id.' هیچ ایمیل یا موبایل قابل ورود ندارد.';
-            }
+            // Accounts with neither email nor mobile can still sign in with
+            // their stable legacy ID after the destination legacy_login migration.
         }
 
         return array_values(array_unique($conflicts));
@@ -287,6 +291,7 @@ final class ImportLegacyAcademyData extends Command
                     'created_at' => $legacy->created_at ?? $now,
                     'updated_at' => $now,
                     'phone' => ($phone = $this->phone((string) ($legacy->mobile ?? ''))) !== '' ? $phone : null,
+                    'legacy_login' => (string) $legacyId,
                     'is_active' => strtolower((string) ($legacy->status ?? 'active')) === 'active',
                     'grade' => null, 'subject' => null,
                     'profile_note' => 'حساب منتقل‌شده از سامانه قبلی',
@@ -296,6 +301,11 @@ final class ImportLegacyAcademyData extends Command
                 $this->saveMap('user', $legacyId, $targetId);
                 $counts['users']++;
             }
+
+            DB::table('users')
+                ->where('id', $targetId)
+                ->whereNull('legacy_login')
+                ->update(['legacy_login' => (string) $legacyId, 'updated_at' => now()]);
 
             foreach (array_keys($this->currentRoles[$legacyId] ?? []) as $roleName) {
                 $inserted = DB::table('role_user')->insertOrIgnore([
