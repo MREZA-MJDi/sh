@@ -96,7 +96,7 @@
                             <div class="student-announcement__copy">
                                 <h3>{{ $announcement->title }}</h3>
                                 @if (filled($announcement->body))
-                                    <p>{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 150) }}</p>
+                                    <p><x-rich-content :value="$announcement->body" class="student-announcement__body"/></p>
                                 @endif
                                 <time datetime="{{ $announcement->published_at?->toIso8601String() }}">
                                     {{ \App\Support\PersianDate::format($announcement->published_at, 'l، d F Y ساعت H:i') }}
