@@ -42,6 +42,14 @@ class UpdateLearningResourceRequest extends FormRequest
                 $validator->errors()->add('price', 'برای محصول پولی، قیمت باید بیشتر از صفر باشد.');
             }
 
+            if ($this->filled('classroom_id') && $this->filled('course_id')
+                && ! Classroom::query()
+                    ->whereKey($this->integer('classroom_id'))
+                    ->where('course_id', $this->integer('course_id'))
+                    ->exists()) {
+                $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
+            }
+
             $workspace = app(ClassroomWorkspaceService::class);
             if (! $workspace->isTeacher($this->user())) {
                 return;
