@@ -253,6 +253,11 @@ document.addEventListener('click', (event) => {
 
         const value = option.dataset.lookupValue;
         if ([...selected.querySelectorAll('[data-lookup-value]')].some((input) => input.value === value)) return;
+        if (selected.querySelectorAll('[data-lookup-value]').length >= 30) {
+            const status = widget.querySelector('[data-lookup-status]');
+            if (status) status.textContent = 'حداکثر ۳۰ دانش‌آموز قابل اتصال است.';
+            return;
+        }
 
         const chip = document.createElement('span');
         chip.className = 'panel-lookup-chip';
