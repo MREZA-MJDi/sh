@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\CourseSection;
 use App\Models\Lesson;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -97,4 +99,57 @@ final class TeacherCourseContentAccessTest extends TestCase
             'status' => 'published',
         ]);
     }
+
+    public function test_course_sections_and_lessons_render_in_their_configured_order(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $course = $this->courseFor($teacher, 'ordered-curriculum');
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس محتوای مرتب‌شده',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $secondSection = CourseSection::query()->create([
+            'course_id' => $course->id,
+            'title' => 'فصل دوم',
+            'status' => 'published',
+            'sort_order' => 2,
+        ]);
+        $firstSection = CourseSection::query()->create([
+            'course_id' => $course->id,
+            'title' => 'فصل اول',
+            'status' => 'published',
+            'sort_order' => 1,
+        ]);
+
+        Lesson::query()->create([
+            'course_section_id' => $secondSection->id,
+            'title' => 'درس دوم',
+            'status' => 'published',
+            'sort_order' => 2,
+        ]);
+        Lesson::query()->create([
+            'course_section_id' => $secondSection->id,
+            'title' => 'درس اول',
+            'status' => 'published',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('admin.courses.content', $course))
+            ->assertOk()
+            ->assertSeeInOrder(['فصل اول', 'فصل دوم', 'درس اول', 'درس دوم']);
+
+        $this->actingAs($student)
+            ->get(route('student.courses.show', $course))
+            ->assertOk()
+            ->assertSeeInOrder(['فصل اول', 'فصل دوم', 'درس اول', 'درس دوم']);
+    }
+
 }
