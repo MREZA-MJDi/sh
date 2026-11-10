@@ -29,6 +29,7 @@ final class StudentExamService
                         ->where(function (Builder $classScope) use ($student): void {
                             $classScope->whereNull('classroom_id')
                                 ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
+                                    ->whereColumn('classrooms.course_id', 'exams.course_id')
                                     ->where('status', 'active')
                                     ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
                         });
