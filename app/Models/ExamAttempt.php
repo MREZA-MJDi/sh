@@ -10,7 +10,7 @@ class ExamAttempt extends Model
 {
     protected $fillable = [
         'exam_id', 'student_id', 'attempt_number', 'started_at', 'submitted_at',
-        'score', 'status', 'feedback', 'reviewed_by', 'reviewed_at',
+        'score', 'max_score', 'status', 'feedback', 'reviewed_by', 'reviewed_at',
     ];
 
     protected function casts(): array
@@ -20,6 +20,7 @@ class ExamAttempt extends Model
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'score' => 'decimal:2',
+            'max_score' => 'decimal:2',
         ];
     }
 
