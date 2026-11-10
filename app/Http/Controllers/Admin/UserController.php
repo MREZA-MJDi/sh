@@ -52,10 +52,21 @@ class UserController extends Controller
             })
             ->latest()->paginate(15)->withQueryString();
 
-        $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
-            ->orderBy('name')->get(['id', 'name']);
-        $classrooms = $workspace->queryFor($request->user())->where('status', 'active')
-            ->orderBy('name')->get(['id', 'name']);
+        $students = collect();
+        $classrooms = collect();
+
+        // Only prepare the selector data required by the active user form.
+        // This avoids loading the full student roster on teacher pages or the
+        // classroom list on parent/teacher pages.
+        if ($role === 'parent') {
+            $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                ->orderBy('name')->get(['id', 'name']);
+        }
+
+        if ($role === 'student') {
+            $classrooms = $workspace->queryFor($request->user())->where('status', 'active')
+                ->orderBy('name')->get(['id', 'name']);
+        }
         $courses = $role === 'teacher'
             ? Course::orderBy('title')->get(['id', 'title', 'teacher_id'])
             : collect();

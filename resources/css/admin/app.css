@@ -209,3 +209,161 @@ body.admin-body .admin-drawer-body form .admin-drawer-foot { margin-top:auto; }
 @media(prefers-reduced-motion:reduce) {
     body.admin-body *, body.admin-body *::before, body.admin-body *::after { transition:none!important; animation:none!important; scroll-behavior:auto!important; }
 }
+
+
+/* Compact, collapsible RTL navigation carried forward onto the current admin shell. */
+body.admin-body .panel-nav-heading {
+    display:flex;
+    width:100%;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    border:0;
+    background:transparent;
+    text-align:right;
+    cursor:pointer;
+    font:inherit;
+}
+body.admin-body .panel-nav-heading::after {
+    content:"⌄";
+    margin-inline-start:auto;
+    color:#8e99d6;
+    transition:transform .16s ease;
+}
+body.admin-body .panel-nav-heading[aria-expanded="false"]::after {
+    transform:rotate(90deg);
+}
+body.admin-body .panel-sidebar-collapse {
+    display:grid;
+    place-items:center;
+    width:34px;
+    height:32px;
+    margin:0 8px 8px auto;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:9px;
+    color:var(--adm-sidebar-muted);
+    background:rgba(255,255,255,.06);
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+}
+body.admin-body .panel-sidebar-collapse:hover {
+    color:#fff;
+    background:rgba(255,255,255,.12);
+}
+body.admin-body .panel-nav-heading:focus-visible,
+body.admin-body .panel-sidebar-collapse:focus-visible {
+    outline:2px solid var(--adm-amber);
+    outline-offset:2px;
+}
+body.admin-body .admin-shell.is-mini .panel-sidebar {
+    width:68px;
+    padding-right:8px;
+    padding-left:8px;
+}
+body.admin-body .admin-shell.is-mini .panel-brand {
+    justify-content:center;
+    padding-right:0;
+    padding-left:0;
+}
+body.admin-body .admin-shell.is-mini .panel-brand-copy,
+body.admin-body .admin-shell.is-mini .panel-sidebar-footer,
+body.admin-body .admin-shell.is-mini .panel-nav-heading {
+    display:none;
+}
+body.admin-body .admin-shell.is-mini .panel-sidebar-collapse {
+    margin:0 auto 8px;
+}
+body.admin-body .admin-shell.is-mini .panel-nav-link {
+    justify-content:center;
+    gap:0;
+    padding:6px;
+}
+body.admin-body .admin-shell.is-mini .panel-nav-link[hidden] {
+    display:flex !important;
+}
+body.admin-body .admin-shell.is-mini .panel-nav-link > span:not(.panel-nav-icon) {
+    display:none;
+}
+body.admin-body .admin-shell.is-mini .panel-nav-icon {
+    width:36px;
+    height:36px;
+}
+body.admin-body .admin-shell.is-mini .panel-main {
+    margin-right:68px;
+}
+
+body.admin-body .admin-quick-actions__items {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr));
+    gap:10px;
+}
+body.admin-body .admin-quick-action {
+    display:flex;
+    min-width:0;
+    min-height:48px;
+    align-items:center;
+    gap:10px;
+    padding:11px 13px;
+    border:1px solid var(--adm-line);
+    border-radius:12px;
+    color:var(--adm-ink);
+    background:var(--adm-card);
+    font-size:12px;
+    font-weight:800;
+    text-decoration:none;
+    transition:border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+body.admin-body .admin-quick-action:hover {
+    transform:translateY(-1px);
+    border-color:var(--adm-primary);
+    box-shadow:var(--adm-shadow);
+}
+body.admin-body .admin-quick-action-icon {
+    display:grid;
+    flex:0 0 32px;
+    place-items:center;
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    color:var(--adm-primary);
+    background:var(--adm-primary-soft);
+    font-size:16px;
+}
+
+@media(max-width:900px) {
+    body.admin-body .admin-shell.is-mini .panel-sidebar {
+        width:248px;
+        padding-right:12px;
+        padding-left:12px;
+    }
+    body.admin-body .admin-shell.is-mini .panel-brand {
+        justify-content:flex-start;
+        padding-right:8px;
+        padding-left:8px;
+    }
+    body.admin-body .admin-shell.is-mini .panel-brand-copy,
+    body.admin-body .admin-shell.is-mini .panel-sidebar-footer {
+        display:flex;
+    }
+    body.admin-body .admin-shell.is-mini .panel-nav-heading {
+        display:flex;
+    }
+    body.admin-body .admin-shell.is-mini .panel-nav-link {
+        justify-content:flex-start;
+        gap:10px;
+        padding:6px 10px;
+    }
+    body.admin-body .admin-shell.is-mini .panel-nav-link[hidden] {
+        display:none !important;
+    }
+    body.admin-body .admin-shell.is-mini .panel-nav-link > span:not(.panel-nav-icon) {
+        display:inline;
+    }
+    body.admin-body .admin-shell.is-mini .panel-main {
+        margin:0;
+    }
+    body.admin-body .panel-sidebar-collapse {
+        display:none;
+    }
+}

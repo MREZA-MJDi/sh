@@ -5,6 +5,60 @@ const sidebar = document.querySelector('[data-panel-sidebar]');
 const scrim = document.querySelector('.admin-scrim');
 const drawer = document.getElementById('admin-drawer');
 
+const adminShell = document.querySelector('[data-admin-shell]');
+const miniSidebarToggle = document.querySelector('[data-admin-sidebar-mini-toggle]');
+
+try {
+    if (localStorage.getItem('shikhan-admin-sidebar') === 'mini') {
+        adminShell?.classList.add('is-mini');
+    }
+} catch { /* Sidebar preference is optional. */ }
+
+miniSidebarToggle?.addEventListener('click', () => {
+    adminShell?.classList.toggle('is-mini');
+    try {
+        localStorage.setItem(
+            'shikhan-admin-sidebar',
+            adminShell?.classList.contains('is-mini') ? 'mini' : 'full'
+        );
+    } catch { /* Sidebar preference is optional. */ }
+});
+
+sidebar?.querySelectorAll('.panel-nav-link').forEach((link) => {
+    const label = link.querySelector('span:not(.panel-nav-icon)')?.textContent.trim()
+        || link.textContent.trim();
+    if (!label) return;
+    link.setAttribute('aria-label', label);
+    link.title = label;
+});
+
+document.querySelectorAll('[data-admin-nav-group-toggle]').forEach((button) => {
+    const items = [];
+    let sibling = button.nextElementSibling;
+
+    while (sibling && !sibling.matches('[data-admin-nav-group-toggle]')) {
+        items.push(sibling);
+        sibling = sibling.nextElementSibling;
+    }
+
+    const hasActiveLink = items.some((item) =>
+        item.matches('.panel-nav-link.is-active') || item.querySelector('.panel-nav-link.is-active')
+    );
+
+    const applyExpandedState = (expanded) => {
+        button.setAttribute('aria-expanded', String(expanded));
+        items.forEach((item) => {
+            item.hidden = !expanded;
+        });
+    };
+
+    applyExpandedState(hasActiveLink || button.getAttribute('aria-expanded') === 'true');
+
+    button.addEventListener('click', () => {
+        applyExpandedState(button.getAttribute('aria-expanded') !== 'true');
+    });
+});
+
 const closeMenu = () => {
     sidebar?.classList.remove('is-open');
     scrim?.classList.remove('is-visible');
@@ -50,6 +104,22 @@ document.addEventListener('click', (event) => {
         });
     }
 });
+document.addEventListener('change', (event) => {
+    const select = event.target;
+
+    if (!(select instanceof HTMLSelectElement) || !select.matches('[data-reset-spotplayer-id]')) {
+        return;
+    }
+
+    if (select.value !== 'spotplayer') {
+        const courseIdInput = select.form?.querySelector('[name="spotplayer_course_id"]');
+
+        if (courseIdInput instanceof HTMLInputElement) {
+            courseIdInput.value = '';
+        }
+    }
+});
+
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         closeDrawer();
