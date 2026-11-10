@@ -36,13 +36,23 @@ class SpotPlayerController extends Controller
         $settings = $teacherView ? null : SpotPlayerSetting::query()->first();
         $health = $teacherView ? null : $spotPlayer->health();
 
-        $videos = SpotPlayerVideo::query()
-            ->with(['course', 'classroom'])
-            ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
-                $scope->whereIn('course_id', $courseIds)
-                    ->orWhereIn('classroom_id', $classroomIds);
-            }))
-            ->latest()->paginate(10, ['*'], 'videos');
+        $videosQuery = SpotPlayerVideo::query()->with(['course', 'classroom']);
+
+        if ($teacherView) {
+            $videosQuery->where(function ($scope) use ($classroomIds, $courseIds): void {
+                $scope->where(function ($classScoped) use ($classroomIds, $courseIds): void {
+                    $classScoped->whereNotNull('classroom_id')
+                        ->whereIn('classroom_id', $classroomIds)
+                        ->whereIn('course_id', $courseIds)
+                        ->whereHas('classroom', fn ($classrooms) => $classrooms
+                            ->whereColumn('classrooms.course_id', 'spot_player_videos.course_id'));
+                })->orWhere(function ($courseScoped) use ($courseIds): void {
+                    $courseScoped->whereNull('classroom_id')->whereIn('course_id', $courseIds);
+                });
+            });
+        }
+
+        $videos = $videosQuery->latest()->paginate(10, ['*'], 'videos');
 
         $courses = $workspace->coursesQueryFor($user)
             ->where('delivery_type', 'spotplayer')
@@ -111,10 +121,22 @@ class SpotPlayerController extends Controller
     public function downloadStagedVideo(SpotPlayerVideo $video, ClassroomWorkspaceService $workspace)
     {
         if ($workspace->isTeacher(auth()->user())) {
-            $classroomAllowed = $video->classroom_id
-                && $workspace->queryFor(auth()->user())->whereKey($video->classroom_id)->exists();
-            $courseAllowed = $workspace->coursesQueryFor(auth()->user())->whereKey($video->course_id)->exists();
-            abort_unless($classroomAllowed || $courseAllowed, 403);
+            if ($video->classroom_id) {
+                $classroom = $workspace->queryFor(auth()->user())->find($video->classroom_id);
+                abort_unless(
+                    $classroom
+                    && $video->course_id
+                    && (int) $classroom->course_id === (int) $video->course_id
+                    && $workspace->coursesQueryFor(auth()->user())->whereKey($video->course_id)->exists(),
+                    403
+                );
+            } else {
+                abort_unless(
+                    $video->course_id
+                    && $workspace->coursesQueryFor(auth()->user())->whereKey($video->course_id)->exists(),
+                    403
+                );
+            }
         }
 
         abort_unless(filled($video->file_path) && Storage::disk('local')->exists($video->file_path), 404);
