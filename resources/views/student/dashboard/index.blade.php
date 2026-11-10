@@ -171,7 +171,7 @@
                                     <h3>{{ $homework->title }}</h3>
                                     <span class="mu">{{ $homework->classroom?->name ?? 'کلاس آموزشی' }}</span>
                                 </div>
-                                @if ($submission?->status === 'graded')
+                                @if (($submission?->reviewed_at !== null || $submission?->status === 'reviewed'))
                                     <span class="tag d">بررسی‌شده</span>
                                 @elseif ($submission)
                                     <span class="tag">ارسال شده</span>
@@ -189,14 +189,28 @@
                                     مهلت:
                                     {{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'l، d F Y ساعت H:i') : 'بدون مهلت' }}
                                 </span>
-                                @if ($submission?->status === 'graded' && $submission->score !== null)
+                                @if (($submission?->reviewed_at !== null || $submission?->status === 'reviewed') && $submission->score !== null)
                                     <strong class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</strong>
                                 @endif
                             </div>
 
-                            @if ($submission?->status === 'graded' && filled($submission->feedback))
-                                <div class="info">{{ $submission->feedback }}</div>
-                            @elseif ($submission)
+                            @if ($submission?->reviewed_at !== null || $submission?->status === 'reviewed')
+                                <div class="student-homework-item__review" role="status">
+                                    <div class="student-homework-item__review-head">
+                                        <strong>نتیجه بررسی مدرس</strong>
+                                        @if ($submission->score !== null)
+                                            <span class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</span>
+                                        @endif
+                                    </div>
+                                    @if (filled($submission->feedback))
+                                        <p>{{ $submission->feedback }}</p>
+                                    @else
+                                        <p>تکلیف بررسی شده است؛ بازخورد متنی ثبت نشده است.</p>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if ($submission)
                                 @foreach ($submission->files as $file)
                                     <div class="trk">
                                         <div class="th t-c"><x-icon name="file"/></div>
