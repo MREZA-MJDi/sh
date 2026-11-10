@@ -42,6 +42,16 @@ class CourseEnrollmentService
                     ->where('source', 'payment')
                     ->where('status', 'active')
                     ->update(['status' => 'suspended']);
+            } else {
+                // Restore only previously verified payments suspended by an unpublished course.
+                // Revoked/cancelled enrollments are intentionally never reactivated.
+                CourseEnrollment::query()
+                    ->where('course_id', $course->id)
+                    ->where('source', 'payment')
+                    ->where('status', 'suspended')
+                    ->whereNotNull('source_reference')
+                    ->where('source_reference', '<>', '')
+                    ->update(['status' => 'active']);
             }
 
             $classroomStatus = match (true) {
