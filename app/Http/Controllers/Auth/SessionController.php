@@ -68,6 +68,33 @@ final class SessionController extends Controller
         }
 
         if (! $authenticated) {
+            $legacyMatches = User::query()
+                ->where('legacy_login', $identifier)
+                ->where('is_active', true)
+                ->limit(2)
+                ->get();
+
+            if ($legacyMatches->count() === 1) {
+                $candidate = $legacyMatches->first();
+                $legacyPasswords = app(LegacyWordPressPassword::class);
+                $storedPassword = (string) $candidate->password;
+                $isLegacyHash = $legacyPasswords->isLegacyHash($storedPassword);
+                $validPassword = $isLegacyHash
+                    ? $legacyPasswords->verify($password, $storedPassword)
+                    : Hash::check($password, $storedPassword);
+
+                if ($validPassword) {
+                    if ($isLegacyHash) {
+                        $candidate->forceFill(['password' => $password])->save();
+                    }
+
+                    Auth::login($candidate, $remember);
+                    $authenticated = true;
+                }
+            }
+        }
+
+        if (! $authenticated) {
             throw ValidationException::withMessages([
                 'email' => 'ایمیل یا موبایل و گذرواژه صحیح نیست یا حساب کاربری غیرفعال است.',
             ]);
