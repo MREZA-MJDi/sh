@@ -15,7 +15,7 @@ final class UpdatePortalMessageRequest extends FormRequest
     {
         return [
             'subject' => ['required', 'string', 'max:190'],
-            'body' => ['required', 'string', 'max:10000'],
+            'body' => ['required', 'string', 'max:30000'],
         ];
     }
 }
