@@ -59,7 +59,11 @@ class SpotPlayerController extends Controller
             ->orderBy('title')
             ->get(['id', 'title', 'spotplayer_course_id', 'integration_status']);
 
-        $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
+        $spotPlayerCourseIds = $courses->modelKeys();
+        $classrooms = $workspace->queryFor($user)
+            ->whereIn('course_id', $spotPlayerCourseIds)
+            ->orderBy('name')
+            ->get(['id', 'name', 'course_id']);
 
         $students = $teacherView
             ? collect()
