@@ -56,11 +56,28 @@ class ClassroomController extends Controller
         return back()->with('success', 'کلاس ساخته شد؛ دسترسی دوره رایگان برای اعضای آن ثبت شد.');
     }
 
-    public function update(UpdateClassroomRequest $request, Classroom $classroom): RedirectResponse
-    {
-        $classroom->update($request->validated());
+    public function update(
+        UpdateClassroomRequest $request,
+        Classroom $classroom,
+        CourseEnrollmentService $enrollments
+    ): RedirectResponse {
+        $previousCourseId = $classroom->course_id;
+        $data = $request->validated();
 
-        return back()->with('success', 'کلاس به‌روزرسانی شد.');
+        $classroom->update($data);
+
+        if ($previousCourseId !== $classroom->course_id) {
+            if ($previousCourseId) {
+                $previousCourse = Course::find($previousCourseId);
+                if ($previousCourse) {
+                    $enrollments->syncCourseRoster($previousCourse);
+                }
+            }
+
+            $enrollments->syncClassroomRoster($classroom);
+        }
+
+        return back()->with('success', 'کلاس به‌روزرسانی شد و دسترسی دوره‌ها نیز بازبینی شد.');
     }
 
     public function destroy(Classroom $classroom): RedirectResponse

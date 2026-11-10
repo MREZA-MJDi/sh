@@ -65,18 +65,7 @@ class CourseService
                 $this->queueCourseMapping($course);
             }
 
-            if ($course->type === 'paid') {
-                CourseEnrollment::query()
-                    ->where('course_id', $course->id)
-                    ->where('source', 'classroom')
-                    ->where('status', 'active')
-                    ->update(['status' => 'pending_payment', 'granted_at' => null]);
-            } elseif ($course->type === 'free') {
-                $course->load('classrooms.students');
-                foreach ($course->classrooms as $classroom) {
-                    $this->enrollments->syncClassroomRoster($classroom);
-                }
-            }
+            $this->enrollments->syncCourseRoster($course);
 
             return $course->refresh();
         });
@@ -94,9 +83,13 @@ class CourseService
 
     private function queueCourseMapping(Course $course): IntegrationRun
     {
+        $action = filled($course->spotplayer_course_id)
+            ? 'verify_course_mapping'
+            : 'create_course';
+
         return $this->operations->waitForContract(
             provider: 'spotplayer',
-            action: 'verify_or_create_course_mapping',
+            action: $action,
             entity: $course,
             safeRequestMeta: [
                 'local_course_id' => $course->id,

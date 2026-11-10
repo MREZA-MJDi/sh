@@ -11,44 +11,66 @@ use Illuminate\Validation\ValidationException;
 
 class CourseEnrollmentService
 {
-    /**
-     * Membership in a classroom grants course access only for free courses.
-     * A paid course remains pending_payment until a verified payment callback.
-     */
     public function syncClassroomRoster(Classroom $classroom): void
     {
-        $classroom->loadMissing(['course', 'students']);
+        $classroom->loadMissing('course');
 
-        if (! $classroom->course) {
-            return;
+        if ($classroom->course) {
+            $this->syncCourseRoster($classroom->course);
         }
+    }
 
-        $course = $classroom->course;
+    /**
+     * A course enrollment is unique per student/course, not per classroom.
+     * Reconcile the union of all classroom rosters so moving a classroom does
+     * not accidentally remove access granted by another classroom.
+     */
+    public function syncCourseRoster(Course $course): void
+    {
+        $course->load('classrooms.students');
 
-        DB::transaction(function () use ($classroom, $course): void {
-            foreach ($classroom->students as $student) {
+        $studentIds = $course->classrooms
+            ->flatMap(fn (Classroom $classroom) => $classroom->students->modelKeys())
+            ->unique()
+            ->values();
+
+        DB::transaction(function () use ($course, $studentIds): void {
+            foreach ($studentIds as $studentId) {
                 $enrollment = CourseEnrollment::firstOrNew([
                     'course_id' => $course->id,
-                    'student_id' => $student->id,
+                    'student_id' => $studentId,
                 ]);
 
-                // Never downgrade a verified paid enrollment because a classroom roster was refreshed.
-                if ($course->type === 'paid' && $enrollment->exists && $enrollment->status === 'active') {
+                // A verified payment grant remains authoritative.
+                if ($course->type === 'paid' && $enrollment->exists &&
+                    $enrollment->source === 'payment' && $enrollment->status === 'active') {
                     continue;
                 }
 
                 $isFreeAndPublished = $course->type === 'free' && $course->status === 'published';
 
                 $enrollment->fill([
-                    'source' => $enrollment->source === 'payment' ? 'payment' : 'classroom',
+                    'source' => 'classroom',
                     'status' => $isFreeAndPublished
                         ? 'active'
                         : ($course->type === 'paid' ? 'pending_payment' : 'pending_publication'),
-                    'granted_by' => $enrollment->source === 'payment' ? $enrollment->granted_by : auth()->id(),
-                    'source_reference' => 'classroom:'.$classroom->id,
+                    'granted_by' => auth()->id(),
+                    'source_reference' => 'course:'.$course->id.':classroom-roster',
                     'granted_at' => $isFreeAndPublished ? ($enrollment->granted_at ?? now()) : null,
                 ])->save();
             }
+
+            CourseEnrollment::query()
+                ->where('course_id', $course->id)
+                ->where('source', 'classroom')
+                ->when(
+                    $studentIds->isNotEmpty(),
+                    fn ($query) => $query->whereNotIn('student_id', $studentIds->all())
+                )
+                ->update([
+                    'status' => 'revoked',
+                    'granted_at' => null,
+                ]);
         });
     }
 
