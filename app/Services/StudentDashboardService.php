@@ -33,7 +33,7 @@ final class StudentDashboardService
         $homeworks = (clone $homeworkQuery)
             ->with('classroom:id,name,course_id')
             ->with([
-                'submissions' => fn (Builder $query) => $query
+                'submissions' => fn ($query) => $query
                     ->where('student_id', $student->id)
                     ->with('files'),
             ])
