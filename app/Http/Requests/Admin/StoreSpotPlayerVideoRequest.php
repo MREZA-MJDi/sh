@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Course;
+use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -11,7 +12,7 @@ class StoreSpotPlayerVideoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasPermissionTo('integrations.manage') ?? false;
+        return $this->user()?->hasAnyPermission(['integrations.manage', 'videos.manage.assigned']) ?? false;
     }
 
     public function rules(): array
@@ -30,9 +31,25 @@ class StoreSpotPlayerVideoRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            $courseId = $this->integer('course_id');
-            if ($courseId && ! Course::whereKey($courseId)->where('delivery_type', 'spotplayer')->exists()) {
+            $workspace = app(ClassroomWorkspaceService::class);
+            $course = Course::query()->find($this->integer('course_id'));
+
+            if (! $course || $course->delivery_type !== 'spotplayer') {
                 $validator->errors()->add('course_id', 'ویدیو باید به یک دوره با روش ارائه SpotPlayer متصل شود.');
+                return;
+            }
+
+            if (! $workspace->isTeacher($this->user())) {
+                return;
+            }
+
+            if (! $workspace->coursesQueryFor($this->user())->whereKey($course->id)->exists()) {
+                $validator->errors()->add('course_id', 'این دوره به شما تخصیص داده نشده است.');
+            }
+
+            if ($this->filled('classroom_id')
+                && ! $workspace->queryFor($this->user())->whereKey($this->integer('classroom_id'))->exists()) {
+                $validator->errors()->add('classroom_id', 'این کلاس در فهرست کلاس‌های شما نیست.');
             }
         }];
     }

@@ -1,181 +1,104 @@
-@extends('layouts.panel')
+@extends('admin.layouts.app')
 
-@section('page-title', 'اسپات پلیر')
-@section('page-description', 'مدیریت نگاشت دوره‌ها، درخواست لایسنس و محتوای ویدیویی')
+@section('page-title', 'ویدیوهای کلاس')
+@section('page-description', 'ثبت و مدیریت ویدیوهای دوره‌های متصل به SpotPlayer')
 
 @section('content')
-    <section class="panel-card mb-4">
-        <div class="panel-card-title">
-            <div><h3>وضعیت وب‌سرویس</h3><p>هسته داخلی آماده است؛ هیچ فراخوانی خارجی تا تحویل قرارداد رسمی انجام نمی‌شود.</p></div>
-            <span class="panel-badge panel-badge-warning">قرارداد API دریافت نشده</span>
+    @if ($teacherView)
+        <div class="panel-page-head">
+            <div><h2>ویدیوهای کلاس</h2><p>ویدیو فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شود.</p></div>
+            <button class="panel-btn" type="button" data-admin-drawer-open="video-create" data-drawer-title="بارگذاری فیلم کلاس">＋ بارگذاری ویدیو</button>
         </div>
-        <div class="panel-alert panel-alert-error">{{ $health->message }} وضعیت اتصال: {{ $health->state }}</div>
-        <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">
-            @csrf
-            <button class="panel-btn panel-btn-secondary" type="submit">ثبت درخواست همگام‌سازی فهرست دوره‌ها</button>
-        </form>
-    </section>
 
-    <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>تنظیمات داخلی</h3><p>کلید در دیتابیس رمزنگاری می‌شود. ذخیره کلید به معنی اتصال موفق نیست.</p></div></div>
-        <form method="POST" action="{{ route('admin.spotplayer.settings') }}">
-            @csrf @method('PATCH')
-            <div class="panel-form-grid panel-form-grid-3">
-                <div class="panel-field"><label>شناسه حساب (در صورت ارائه)</label><input class="panel-input" name="account_id" value="{{ old('account_id', $settings?->account_id) }}" maxlength="190"></div>
-                <div class="panel-field"><label>کلید API</label><input class="panel-input" name="api_key" type="password" autocomplete="new-password" placeholder="{{ $settings?->api_key ? 'برای حفظ کلید فعلی خالی بگذارید' : 'پس از تحویل دسترسی وارد شود' }}"></div>
-                <div class="panel-field"><label>حالت مورد انتظار سرویس</label><select class="panel-select" name="mode"><option value="test" @selected(($settings?->mode ?? 'test')==='test')>آزمایشی</option><option value="production" @selected(($settings?->mode ?? 'test')==='production')>عملیاتی</option></select></div>
-                <div class="panel-field"><label>حداکثر دستگاه مجاز</label><input class="panel-input" name="max_devices" type="number" min="1" max="99" value="{{ old('max_devices', $settings?->max_devices ?? 2) }}"></div>
+        <section class="panel-card">
+            <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده</h3><p>فایل در فضای خصوصی ذخیره می‌شود و پس از تحویل API به سرویس انتقال داده می‌شود.</p></div></div>
+            <div class="panel-table-wrap">
+                <table class="panel-table" data-searchable-table>
+                    <thead><tr><th>عنوان</th><th>دوره</th><th>کلاس</th><th>فایل</th><th>وضعیت</th><th>دریافت</th></tr></thead>
+                    <tbody>
+                    @forelse ($videos as $video)
+                        <tr>
+                            <td><strong>{{ $video->title }}</strong><div class="panel-muted">#{{ $video->id }}</div></td>
+                            <td>{{ $video->course->title ?? '—' }}</td>
+                            <td>{{ $video->classroom->name ?? '—' }}</td>
+                            <td>{{ $video->file_original_name ?: '—' }}<div class="panel-muted">{{ $video->file_size_bytes ? number_format($video->file_size_bytes / 1048576, 1).' MB' : '' }}</div></td>
+                            <td><x-admin.badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
+                            <td>@if($video->file_path)<a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>@else—@endif</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="panel-empty">هنوز ویدیویی برای کلاس‌های شما ثبت نشده است.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
             </div>
-            <div class="flex flex-wrap gap-5 mt-4">
-                <label class="panel-checkbox"><input type="checkbox" name="watermark_enabled" value="1" @checked($settings?->watermark_enabled ?? true)> درخواست واترمارک شماره موبایل</label>
-            </div>
-            <p class="panel-muted mt-2">صدور خودکار و فعال‌سازی اتصال عمداً قفل است تا API واقعی و قرارداد امنیتی آن تحویل شود.</p>
-            <div class="panel-form-actions"><button class="panel-btn" type="submit">ذخیره تنظیمات داخلی</button></div>
-        </form>
-    </section>
+            <div class="panel-pagination">{{ $videos->links() }}</div>
+        </section>
 
-    <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>نگاشت دوره‌های شیخان به SpotPlayer</h3><p>دوره در شیخان ساخته می‌شود؛ شناسه دوره خارجی پس از ساخت در پنل ارائه‌دهنده اینجا ثبت می‌شود.</p></div></div>
-        <div class="panel-table-wrap">
-            <table class="panel-table">
-                <thead><tr><th>دوره شیخان</th><th>شناسه خارجی</th><th>وضعیت نگاشت</th></tr></thead>
-                <tbody>
-                @forelse ($courses as $course)
-                    <tr>
-                        <td>{{ $course->title }}</td>
-                        <td dir="ltr">{{ $course->spotplayer_course_id ?: 'ثبت نشده' }}</td>
-                        <td><span class="panel-badge panel-badge-warning">{{ $course->integration_status === 'ready' ? 'تأیید شده' : 'منتظر تأیید وب‌سرویس' }}</span></td>
-                    </tr>
-                @empty
-                    <tr><td colspan="3" class="panel-empty">دوره ویدیویی تعریف نشده است.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-        <p class="panel-muted mt-3">شناسه خارجی را از فرم ویرایش هر دوره در بخش «دوره‌ها» ثبت کنید. این شناسه تا زمان بررسی سرویس، معتبر فرض نمی‌شود.</p>
-    </section>
-
-    <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>درخواست لایسنس دانش‌آموز</h3><p>این عملیات فقط درخواست محلی قابل پیگیری می‌سازد؛ کلید لایسنس تا پاسخ واقعی API تولید نمی‌شود.</p></div></div>
-        <form method="POST" action="{{ route('admin.spotplayer.licenses.store') }}">
-            @csrf
-            <div class="panel-form-grid panel-form-grid-2">
-                <div class="panel-field"><label>دانش‌آموز</label><select class="panel-select" name="student_id" required><option value="">انتخاب دانش‌آموز</option>@foreach ($students as $student)<option value="{{ $student->id }}">{{ $student->name }}</option>@endforeach</select></div>
-                <div class="panel-field"><label>دوره ویدیویی</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }} — {{ $course->spotplayer_course_id ?: 'بدون شناسه خارجی' }}</option>@endforeach</select></div>
-            </div>
-            <div class="panel-form-actions"><button class="panel-btn" type="submit">ثبت درخواست صدور لایسنس</button></div>
-        </form>
-    </section>
-
-    <section class="panel-card mb-4">
-        <div class="panel-card-title">
-            <div><h3>آپلود و آماده‌سازی ویدیو</h3><p>فایل ابتدا در Storage خصوصی شیخان ذخیره می‌شود؛ انتقال به SpotPlayer تا دریافت API انجام نمی‌شود.</p></div>
-            <span class="panel-badge panel-badge-warning">منتظر قرارداد API</span>
-        </div>
-        <form method="POST" action="{{ route('admin.spotplayer.videos.store') }}" enctype="multipart/form-data">
-            @csrf
-            <div class="panel-form-grid panel-form-grid-3">
-                <div class="panel-field"><label>عنوان ویدیو</label><input class="panel-input" name="title" value="{{ old('title') }}" required maxlength="180"></div>
-                <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}" @selected(old('course_id') == $course->id)>{{ $course->title }}</option>@endforeach</select></div>
-                <div class="panel-field"><label>کلاس مرتبط</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected(old('classroom_id') == $classroom->id)>{{ $classroom->name }}</option>@endforeach</select></div>
-                <div class="panel-field"><label>فایل ویدیویی</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv" required><p class="panel-muted mt-1">MP4، MOV، M4V، WebM یا MKV · حداکثر ۱ گیگابایت</p></div>
-                <div class="panel-field"><label>شناسه ویدیو در سرویس (در صورت وجود)</label><input class="panel-input" name="external_id" value="{{ old('external_id') }}" maxlength="190" dir="ltr"></div>
-                <div class="panel-field"><label>لینک نمایش امن (در صورت ارائه)</label><input class="panel-input" name="embed_url" value="{{ old('embed_url') }}" type="url" dir="ltr" placeholder="https://..."></div>
-            </div>
+        <x-admin.drawer-form id="video-create" title="بارگذاری فیلم کلاس" :action="route('admin.spotplayer.videos.store')" submit-label="ثبت ویدیو" enctype="multipart/form-data">
+            <div class="panel-field"><label>عنوان ویدیو</label><input class="panel-input" name="title" required maxlength="180"></div>
+            <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
+            <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id"><option value="">بدون کلاس مشخص</option>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select></div>
+            <div class="panel-field"><label>فایل ویدیو</label><input class="panel-input" type="file" name="file" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm,.mkv" required><span class="panel-muted">حداکثر ۱ گیگابایت؛ ذخیره در فضای خصوصی</span></div>
+            <div class="panel-field"><label>شناسه ویدیو در SpotPlayer (اختیاری)</label><input class="panel-input" name="external_id" dir="ltr" maxlength="190"></div>
+            <div class="panel-field"><label>لینک نمایش (در صورت ارائه)</label><input class="panel-input" type="url" name="embed_url" dir="ltr" placeholder="https://..."></div>
             <input type="hidden" name="status" value="waiting_contract">
-            <div class="panel-form-actions"><button class="panel-btn panel-btn-secondary" type="submit">ذخیره خصوصی و ثبت درخواست آپلود</button></div>
-        </form>
-        <p class="panel-muted mt-3">فایل از مسیر عمومی قابل دسترسی نیست. تا زمان ارائه روش آپلود، احراز هویت و تأیید پردازش توسط SpotPlayer، ویدیو فقط در فضای خصوصی شیخان باقی می‌ماند.</p>
-    </section>
+            <div class="panel-alert">تا زمانی که قرارداد API سرویس تحویل نشود، فایل فقط در فضای خصوصی شیخان ذخیره می‌شود و اتصال خارجی انجام‌شده تلقی نمی‌شود.</div>
+        </x-admin.drawer-form>
+    @else
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>وضعیت وب‌سرویس</h3><p>هسته داخلی آماده است؛ هیچ فراخوانی خارجی تا تحویل قرارداد رسمی انجام نمی‌شود.</p></div><span class="panel-badge panel-badge-warning">قرارداد API دریافت نشده</span></div>
+            <div class="panel-alert panel-alert-error">{{ $health->message }} وضعیت اتصال: {{ $health->state }}</div>
+            <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">@csrf<button class="panel-btn panel-btn-secondary" type="submit">ثبت درخواست همگام‌سازی دوره‌ها</button></form>
+        </section>
 
-    <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده در شیخان</h3><p>فایل‌های محلی، هش و شناسه خارجی مستقل نگهداری می‌شوند.</p></div></div>
-        <div class="panel-table-wrap">
-            <table class="panel-table" data-searchable-table>
-                <thead><tr><th>عنوان</th><th>دوره / کلاس</th><th>فایل محلی</th><th>شناسه خارجی</th><th>وضعیت</th><th>دریافت</th></tr></thead>
-                <tbody>
-                @forelse ($videos as $video)
-                    <tr>
-                        <td>{{ $video->title }}</td>
-                        <td>{{ $video->course->title ?? $video->classroom->name ?? '—' }}</td>
-                        <td>
-                            {{ $video->file_original_name ?: 'بدون فایل' }}
-                            @if ($video->file_size_bytes)
-                                <div class="panel-muted">{{ number_format($video->file_size_bytes / 1048576, 1) }} MB</div>
-                            @endif
-                        </td>
-                        <td dir="ltr">{{ $video->external_id ?: '—' }}</td>
-                        <td><span class="panel-badge panel-badge-warning">منتظر وب‌سرویس</span><div class="panel-muted" dir="ltr">{{ $video->file_sha256 ? substr($video->file_sha256, 0, 12).'…' : '' }}</div></td>
-                        <td>
-                            @if ($video->file_path)
-                                <a class="panel-btn panel-btn-sm panel-btn-secondary" href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>
-                            @else
-                                —
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6" class="panel-empty">ویدیویی ثبت نشده است.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="panel-pagination">{{ $videos->links() }}</div>
-    </section>
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>تنظیمات داخلی</h3><p>ذخیره کلید API به معنی اتصال موفق نیست.</p></div></div>
+            <form method="POST" action="{{ route('admin.spotplayer.settings') }}">
+                @csrf @method('PATCH')
+                <div class="panel-form-grid panel-form-grid-3">
+                    <div class="panel-field"><label>شناسه حساب</label><input class="panel-input" name="account_id" value="{{ old('account_id', $settings?->account_id) }}" maxlength="190"></div>
+                    <div class="panel-field"><label>کلید API</label><input class="panel-input" type="password" name="api_key" autocomplete="new-password" placeholder="{{ $settings?->api_key ? 'برای حفظ کلید فعلی خالی بگذارید' : 'پس از تحویل دسترسی وارد شود' }}"></div>
+                    <div class="panel-field"><label>حالت</label><select class="panel-select" name="mode"><option value="test" @selected(($settings?->mode ?? 'test') === 'test')>آزمایشی</option><option value="production" @selected(($settings?->mode ?? 'test') === 'production')>عملیاتی</option></select></div>
+                    <div class="panel-field"><label>حداکثر دستگاه</label><input class="panel-input" name="max_devices" type="number" min="1" max="99" value="{{ old('max_devices', $settings?->max_devices ?? 2) }}"></div>
+                </div>
+                <label class="panel-checkbox"><input type="checkbox" name="watermark_enabled" value="1" @checked($settings?->watermark_enabled ?? true)> واترمارک موبایل</label>
+                <div class="panel-form-actions"><button class="panel-btn" type="submit">ذخیره تنظیمات</button></div>
+            </form>
+        </section>
 
-    <section class="panel-card mb-4">
-        <div class="panel-card-title"><div><h3>لایسنس‌ها</h3><p>وضعیت محلی از وضعیت واقعی سرویس جداست؛ مدیر نمی‌تواند بدون پاسخ API لایسنس را فعال یا باطل کند.</p></div></div>
-        <div class="panel-table-wrap">
-            <table class="panel-table" data-searchable-table>
-                <thead><tr><th>دانش‌آموز</th><th>دوره</th><th>شناسه خارجی</th><th>وضعیت</th><th>تعداد دستگاه</th><th>عملیات</th></tr></thead>
-                <tbody>
-                @forelse ($licenses as $license)
-                    <tr>
-                        <td>{{ $license->student->name ?? '—' }}</td>
-                        <td>{{ $license->course->title ?? '—' }}</td>
-                        <td dir="ltr">{{ $license->external_license_id ?: '—' }}</td>
-                        <td><span class="panel-badge {{ $license->status==='active' ? 'panel-badge-success' : 'panel-badge-warning' }}">{{ ['pending'=>'در انتظار','waiting_contract'=>'منتظر وب‌سرویس','queued'=>'در صف','active'=>'فعال','failed'=>'ناموفق','revoked'=>'باطل‌شده'][$license->status] ?? $license->status }}</span><div class="panel-muted">{{ $license->error_message }}</div></td>
-                        <td>{{ $license->max_devices }}</td>
-                        <td>
-                            @if ($license->status === 'active')
-                                <form method="POST" action="{{ route('admin.spotplayer.licenses.revoke', $license) }}">
-                                    @csrf
-                                    <input type="hidden" name="reason" value="درخواست ابطال از پنل مدیریت">
-                                    <button class="panel-btn panel-btn-danger panel-btn-sm" type="submit">درخواست ابطال</button>
-                                </form>
-                            @else
-                                <span class="panel-muted">بدون عملیات خارجی</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6" class="panel-empty">درخواستی برای لایسنس ثبت نشده است.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="panel-pagination">{{ $licenses->links() }}</div>
-    </section>
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>درخواست لایسنس</h3><p>لایسنس فقط پس از پاسخ معتبر سرویس فعال می‌شود.</p></div></div>
+            <form method="POST" action="{{ route('admin.spotplayer.licenses.store') }}">@csrf
+                <div class="panel-form-grid panel-form-grid-2">
+                    <div class="panel-field"><label>دانش‌آموز</label><select class="panel-select" name="student_id" required><option value="">انتخاب دانش‌آموز</option>@foreach ($students as $student)<option value="{{ $student->id }}">{{ $student->name }}</option>@endforeach</select></div>
+                    <div class="panel-field"><label>دوره</label><select class="panel-select" name="course_id" required><option value="">انتخاب دوره</option>@foreach ($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select></div>
+                </div>
+                <div class="panel-form-actions"><button class="panel-btn" type="submit">ثبت درخواست لایسنس</button></div>
+            </form>
+        </section>
 
-    <section class="panel-card">
-        <div class="panel-card-title"><div><h3>کارتابل عملیات SpotPlayer</h3><p>تمام درخواست‌ها با شناسه پیگیری و وضعیت مستقل ثبت می‌شوند.</p></div></div>
-        <div class="panel-table-wrap">
-            <table class="panel-table">
-                <thead><tr><th>عملیات</th><th>موجودیت</th><th>وضعیت</th><th>شناسه پیگیری</th><th>تاریخ</th></tr></thead>
-                <tbody>
-                @forelse ($operations as $operation)
-                    <tr>
-                        <td>{{ $operation->action }}</td>
-                        <td>{{ class_basename($operation->entity_type ?? '—') }} #{{ $operation->entity_id ?? '—' }}</td>
-                        <td><span class="panel-badge panel-badge-warning">{{ $operation->status }}</span></td>
-                        <td dir="ltr">{{ $operation->correlation_id ?: '—' }}</td>
-                        <td>{{ $operation->created_at?->format('Y-m-d H:i') }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5" class="panel-empty">عملیاتی ثبت نشده است.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-    </section>
+        <section class="panel-card">
+            <div class="panel-card-title"><div><h3>ویدیوهای ثبت‌شده</h3><p>فایل‌های خصوصی و درخواست‌های انتقال</p></div></div>
+            <div class="panel-table-wrap">
+                <table class="panel-table" data-searchable-table>
+                    <thead><tr><th>عنوان</th><th>دوره / کلاس</th><th>فایل</th><th>شناسه خارجی</th><th>وضعیت</th><th>دریافت</th></tr></thead>
+                    <tbody>
+                    @forelse ($videos as $video)
+                        <tr>
+                            <td>{{ $video->title }}</td>
+                            <td>{{ $video->course->title ?? $video->classroom->name ?? '—' }}</td>
+                            <td>{{ $video->file_original_name ?: '—' }}</td>
+                            <td dir="ltr">{{ $video->external_id ?: '—' }}</td>
+                            <td><x-admin.badge variant="warning">منتظر وب‌سرویس</x-admin.badge></td>
+                            <td>@if($video->file_path)<a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت خصوصی</a>@else—@endif</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="panel-empty">ویدیویی ثبت نشده است.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-pagination">{{ $videos->links() }}</div>
+        </section>
+    @endif
 @endsection

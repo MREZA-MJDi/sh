@@ -5,124 +5,90 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLearningResourceRequest;
 use App\Http\Requests\Admin\UpdateLearningResourceRequest;
-use App\Models\Classroom;
-use App\Models\Course;
 use App\Models\LearningResource;
+use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Admin\LearningResourceService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class LearningResourceController extends Controller
 {
-    public function index(): View
+    public function index(ClassroomWorkspaceService $workspace): View
     {
-        $resources = LearningResource::with(['course', 'classroom', 'uploader'])->latest()->paginate(15);
-        $courses = Course::orderBy('title')->get(['id', 'title']);
-        $classrooms = Classroom::orderBy('name')->get(['id', 'name']);
+        $user = auth()->user();
+        $teacherView = $workspace->isTeacher($user);
+        $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
+        $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
-        return view('admin.resources.index', compact('resources', 'courses', 'classrooms'));
+        $resources = LearningResource::query()
+            ->with(['course', 'classroom', 'uploader'])
+            ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
+                $scope->whereIn('classroom_id', $classroomIds)
+                    ->orWhereIn('course_id', $courseIds);
+            }))
+            ->latest()->paginate(15);
+
+        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
+        $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.resources.index', compact('resources', 'courses', 'classrooms', 'teacherView'));
     }
 
-    public function store(StoreLearningResourceRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-        $path = isset($data['file']) ? $data['file']->store('private/resources', 'local') : null;
+    public function store(
+        StoreLearningResourceRequest $request,
+        LearningResourceService $resources
+    ): RedirectResponse {
+        $resources->create($request->validated(), $request->user());
 
-        if (isset($data['file']) && ! $path) {
-            return back()->withErrors(['file' => 'ذخیره فایل در فضای خصوصی انجام نشد.'])->withInput();
-        }
-
-        try {
-            DB::transaction(function () use ($data, $path): void {
-                $isFree = (bool) ($data['is_free'] ?? false);
-
-                LearningResource::create([
-                    'title' => $data['title'],
-                    'description' => $data['description'] ?? null,
-                    'kind' => $data['kind'],
-                    'course_id' => $data['course_id'] ?? null,
-                    'classroom_id' => $data['classroom_id'] ?? null,
-                    'is_free' => $isFree,
-                    'price' => $isFree ? 0 : (int) $data['price'],
-                    'visibility' => $data['visibility'],
-                    'file_path' => $path,
-                    'status' => $data['status'],
-                    'uploaded_by' => auth()->id(),
-                ]);
-            });
-        } catch (\Throwable $exception) {
-            if ($path) {
-                Storage::disk('local')->delete($path);
-            }
-
-            throw $exception;
-        }
-
-        return back()->with('success', 'منبع آموزشی ثبت شد.');
+        return back()->with('success', 'منبع آموزشی در فضای خصوصی شیخان ذخیره شد.');
     }
 
     public function update(
         UpdateLearningResourceRequest $request,
-        LearningResource $resource
+        LearningResource $resource,
+        LearningResourceService $resources,
+        ClassroomWorkspaceService $workspace
     ): RedirectResponse {
-        $data = $request->validated();
-        $newPath = isset($data['file']) ? $data['file']->store('private/resources', 'local') : null;
-
-        if (isset($data['file']) && ! $newPath) {
-            return back()->withErrors(['file' => 'ذخیره فایل جدید در فضای خصوصی انجام نشد.'])->withInput();
-        }
-
-        $previousPath = $resource->file_path;
-
-        try {
-            DB::transaction(function () use ($resource, $data, $newPath): void {
-                $isFree = (bool) ($data['is_free'] ?? false);
-
-                $resource->update([
-                    'title' => $data['title'],
-                    'description' => $data['description'] ?? null,
-                    'kind' => $data['kind'],
-                    'course_id' => $data['course_id'] ?? null,
-                    'classroom_id' => $data['classroom_id'] ?? null,
-                    'is_free' => $isFree,
-                    'price' => $isFree ? 0 : (int) $data['price'],
-                    'visibility' => $data['visibility'],
-                    'file_path' => $newPath ?: $resource->file_path,
-                    'status' => $data['status'],
-                ]);
-            });
-        } catch (\Throwable $exception) {
-            if ($newPath) {
-                Storage::disk('local')->delete($newPath);
-            }
-
-            throw $exception;
-        }
-
-        if ($newPath && $previousPath) {
-            Storage::disk('local')->delete($previousPath);
-        }
+        $this->authorizeResourceAccess($resource, $workspace);
+        $resources->update($resource, $request->validated());
 
         return back()->with('success', 'منبع آموزشی به‌روزرسانی شد.');
     }
 
-    public function destroy(LearningResource $resource): RedirectResponse
-    {
-        $path = $resource->file_path;
-        $resource->delete();
-
-        if ($path) {
-            Storage::disk('local')->delete($path);
-        }
+    public function destroy(
+        LearningResource $resource,
+        LearningResourceService $resources,
+        ClassroomWorkspaceService $workspace
+    ): RedirectResponse {
+        $this->authorizeResourceAccess($resource, $workspace);
+        $resources->delete($resource);
 
         return back()->with('success', 'منبع آموزشی حذف شد.');
     }
 
-    public function download(LearningResource $resource)
+    public function download(LearningResource $resource, ClassroomWorkspaceService $workspace)
     {
+        $this->authorizeResourceAccess($resource, $workspace);
         abort_unless($resource->file_path && Storage::disk('local')->exists($resource->file_path), 404);
 
         return Storage::disk('local')->download($resource->file_path);
+    }
+
+    private function authorizeResourceAccess(
+        LearningResource $resource,
+        ClassroomWorkspaceService $workspace
+    ): void {
+        $user = auth()->user();
+        if (! $workspace->isTeacher($user)) {
+            return;
+        }
+
+        $courseAllowed = $resource->course_id
+            && $workspace->coursesQueryFor($user)->whereKey($resource->course_id)->exists();
+        $classAllowed = $resource->classroom_id
+            && $workspace->queryFor($user)->whereKey($resource->classroom_id)->exists();
+
+        abort_unless($courseAllowed || $classAllowed, 403);
     }
 }
