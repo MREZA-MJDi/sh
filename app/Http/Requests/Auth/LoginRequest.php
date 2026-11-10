@@ -21,11 +21,12 @@ final class LoginRequest extends FormRequest
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        $this->merge([
-            'email' => filter_var($identifier, FILTER_VALIDATE_EMAIL)
-                ? $identifier
-                : (preg_replace('/[\\s-]+/u', '', $digits) ?? $digits),
-        ]);
+        $isPhone = preg_match('/^[0-9۰-۹٠-٩\s-]+$/u', $identifier) === 1;
+        $normalizedIdentifier = filter_var($identifier, FILTER_VALIDATE_EMAIL)
+            ? $identifier
+            : ($isPhone ? (preg_replace('/[\s-]+/u', '', $digits) ?? $digits) : $identifier);
+
+        $this->merge(['email' => $normalizedIdentifier]);
     }
 
     public function rules(): array
