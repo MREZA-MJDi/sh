@@ -39,8 +39,8 @@ class SpotPlayerService
     }
 
     /**
-     * Queues a real license operation without pretending the provider issued it.
-     * The future worker will execute this only after the official API adapter is supplied.
+     * Creates a local, idempotent request. It does not claim a license was
+     * issued: the provider adapter must process this operation after contract delivery.
      */
     public function requestLicense(User $student, Course $course, User $requestedBy): SpotPlayerLicense
     {
@@ -85,8 +85,12 @@ class SpotPlayerService
             $license->fill([
                 'max_devices' => $settings?->max_devices ?? 2,
                 'status' => 'waiting_contract',
+                'license_key' => null,
+                'download_url' => null,
+                'external_license_id' => null,
                 'error_message' => 'وب‌سرویس رسمی SpotPlayer هنوز تحویل یا فعال نشده است.',
                 'revoked_at' => null,
+                'issued_at' => null,
             ])->save();
 
             $this->operations->waitForContract(
@@ -101,7 +105,7 @@ class SpotPlayerService
                     'watermark_enabled' => (bool) ($settings?->watermark_enabled ?? true),
                     'device_limit' => (int) ($settings?->max_devices ?? 2),
                 ],
-                idempotencyKey: 'spotplayer:issue-license:'.$student->id.':'.$course->id,
+                idempotencyKey: 'spotplayer:issue-license:'.$license->id.':'.Str::uuid(),
             );
 
             return $license->refresh();

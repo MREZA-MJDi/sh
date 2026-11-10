@@ -3,6 +3,7 @@
 namespace App\Services\Courses;
 
 use App\Models\Course;
+use App\Models\CourseEnrollment;
 use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
