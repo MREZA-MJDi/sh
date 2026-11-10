@@ -7,8 +7,8 @@ use App\Models\CourseEnrollment;
 use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class CourseService
 {
@@ -84,7 +84,7 @@ class CourseService
             || $course->spotPlayerVideos()->exists()
         ) {
             throw ValidationException::withMessages([
-                'course' => 'این دوره دارای محتوای آموزشی، منابع، آزمون، کلاس، ثبت‌نام یا لایسنس است؛ برای حفظ سوابق آن را بایگانی کنید.',
+                'course' => 'این دوره دارای کلاس، ثبت‌نام یا محتوای آموزشی است؛ برای حفظ سوابق آن را بایگانی کنید.',
             ]);
         }
 

@@ -32,6 +32,11 @@ class Classroom extends Model
             ->withPivot('assigned_by')->withTimestamps();
     }
 
+    public function membershipHistory(): HasMany
+    {
+        return $this->hasMany(ClassroomMembershipHistory::class);
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);
