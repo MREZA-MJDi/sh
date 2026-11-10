@@ -30,34 +30,24 @@ class DashboardController extends Controller
         ];
 
         $todayClasses = Classroom::with(['teacher', 'course'])
+            ->withCount('students')
             ->where('status', 'active')
-            ->latest()
-            ->limit(6)
-            ->get();
+            ->latest()->limit(6)->get();
 
         $recentMessages = Message::with('sender')
-            ->whereNull('parent_id')
-            ->where('status', 'open')
-            ->latest()
-            ->limit(5)
-            ->get();
+            ->whereNull('parent_id')->where('status', 'open')->latest()->limit(5)->get();
 
         $pendingConsultations = Consultation::with(['requester', 'student'])
-            ->where('status', 'pending')
-            ->latest()
-            ->limit(5)
-            ->get();
+            ->where('status', 'pending')->latest()->limit(5)->get();
 
         $recentAnnouncements = Announcement::where('status', 'published')
-            ->latest('published_at')
-            ->limit(4)
-            ->get();
+            ->latest('published_at')->limit(4)->get();
 
         $weeklyAttendance = collect(range(6, 0))->map(function (int $daysAgo) {
             $date = Carbon::today()->subDays($daysAgo);
-
             $total = Attendance::whereDate('session_date', $date)->count();
-            $present = Attendance::whereDate('session_date', $date)->whereIn('status', ['present', 'late'])->count();
+            $present = Attendance::whereDate('session_date', $date)
+                ->whereIn('status', ['present', 'late'])->count();
 
             return [
                 'label' => $date->translatedFormat('D'),
@@ -66,12 +56,8 @@ class DashboardController extends Controller
         });
 
         return view('admin.dashboard.index', compact(
-            'stats',
-            'todayClasses',
-            'recentMessages',
-            'pendingConsultations',
-            'recentAnnouncements',
-            'weeklyAttendance'
+            'stats', 'todayClasses', 'recentMessages',
+            'pendingConsultations', 'recentAnnouncements', 'weeklyAttendance'
         ));
     }
 
@@ -84,8 +70,7 @@ class DashboardController extends Controller
         }
 
         $present = Attendance::whereDate('session_date', $date)
-            ->whereIn('status', ['present', 'late'])
-            ->count();
+            ->whereIn('status', ['present', 'late'])->count();
 
         return (int) round(($present / $total) * 100);
     }

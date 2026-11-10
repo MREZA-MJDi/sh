@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -20,21 +21,21 @@ class UserController extends Controller
     {
         abort_unless(in_array($role, self::MANAGED_ROLES, true), 404);
 
-        $query = User::query()
+        $users = User::query()
             ->with('roles')
             ->whereHas('roles', fn ($roles) => $roles->where('name', $role))
-            ->when($request->filled('q'), function ($users) use ($request) {
+            ->when($request->filled('q'), function ($query) use ($request) {
                 $term = trim($request->string('q')->toString());
 
-                $users->where(fn ($search) => $search
+                $query->where(fn ($search) => $search
                     ->where('name', 'like', "%{$term}%")
                     ->orWhere('email', 'like', "%{$term}%")
                     ->orWhere('phone', 'like', "%{$term}%"));
             })
-            ->latest();
+            ->latest()->paginate(15)->withQueryString();
 
-        $users = $query->paginate(15)->withQueryString();
-        $students = User::whereHas('roles', fn ($q) => $q->where('name', 'student'))->orderBy('name')->get(['id', 'name']);
+        $students = User::whereHas('roles', fn ($query) => $query->where('name', 'student'))
+            ->orderBy('name')->get(['id', 'name']);
         $classrooms = Classroom::where('status', 'active')->orderBy('name')->get(['id', 'name']);
 
         return view('admin.users.index', compact('users', 'role', 'students', 'classrooms'));
@@ -46,7 +47,7 @@ class UserController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:160'],
-            'email' => ['nullable', 'email:rfc', 'max:190', Rule::unique('users', 'email')],
+            'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')],
             'phone' => ['nullable', 'string', 'max:30'],
             'password' => ['required', 'string', 'min:12', 'confirmed'],
             'grade' => ['nullable', 'string', 'max:50'],
@@ -57,12 +58,36 @@ class UserController extends Controller
             'child_ids.*' => ['integer', 'exists:users,id'],
         ]);
 
-        $email = $data['email'] ?: ('user+'.str()->uuid().'@shikhan.local');
+        $classroomIds = [];
+        $childIds = [];
 
-        DB::transaction(function () use ($data, $role, $email) {
+        if ($role === 'student' && ! empty($data['classroom_ids'])) {
+            $classroomIds = Classroom::whereIn('id', $data['classroom_ids'])
+                ->where('status', 'active')->pluck('id')->all();
+
+            if (count($classroomIds) !== count($data['classroom_ids'])) {
+                throw ValidationException::withMessages([
+                    'classroom_ids' => 'همه کلاس‌های انتخاب‌شده فعال و معتبر نیستند.',
+                ]);
+            }
+        }
+
+        if ($role === 'parent' && ! empty($data['child_ids'])) {
+            $childIds = User::whereIn('id', $data['child_ids'])
+                ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                ->pluck('id')->all();
+
+            if (count($childIds) !== count($data['child_ids'])) {
+                throw ValidationException::withMessages([
+                    'child_ids' => 'فقط حساب‌های دارای نقش دانش‌آموز قابل اتصال هستند.',
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($data, $role, $classroomIds, $childIds) {
             $user = User::create([
                 'name' => $data['name'],
-                'email' => $email,
+                'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
                 'password' => $data['password'],
                 'grade' => $role === 'student' ? ($data['grade'] ?? null) : null,
@@ -70,19 +95,17 @@ class UserController extends Controller
                 'is_active' => true,
             ]);
 
-            $user->roles()->attach(Role::where('name', $role)->value('id'));
+            $roleId = Role::where('name', $role)->value('id');
+            abort_unless($roleId, 500, 'نقش کاربری تعریف نشده است.');
 
-            if ($role === 'student' && ! empty($data['classroom_ids'])) {
-                $user->enrolledClasses()->syncWithPivotValues($data['classroom_ids'], ['assigned_by' => auth()->id()]);
+            $user->roles()->attach($roleId);
+
+            if ($role === 'student' && $classroomIds !== []) {
+                $user->enrolledClasses()->syncWithPivotValues($classroomIds, ['assigned_by' => auth()->id()]);
             }
 
-            if ($role === 'parent' && ! empty($data['child_ids'])) {
-                $validChildren = User::whereIn('id', $data['child_ids'])
-                    ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
-                    ->pluck('id')
-                    ->all();
-
-                $user->children()->sync($validChildren);
+            if ($role === 'parent' && $childIds !== []) {
+                $user->children()->sync($childIds);
             }
         });
 

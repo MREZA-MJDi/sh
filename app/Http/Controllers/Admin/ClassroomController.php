@@ -17,7 +17,6 @@ class ClassroomController extends Controller
     {
         $classrooms = Classroom::with(['course', 'teacher'])
             ->withCount('students')->latest()->paginate(15);
-
         $courses = Course::whereIn('status', ['published', 'draft'])->orderBy('title')->get(['id', 'title']);
         $teachers = User::whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
             ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
@@ -44,9 +43,12 @@ class ClassroomController extends Controller
 
         abort_unless(User::findOrFail($data['teacher_id'])->hasRole('teacher'), 422, 'کاربر انتخاب‌شده معلم نیست.');
 
-        $studentIds = User::whereIn('id', $data['student_ids'] ?? [])
+        $selectedStudentIds = $data['student_ids'] ?? [];
+        $studentIds = User::whereIn('id', $selectedStudentIds)
             ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
             ->pluck('id')->all();
+
+        abort_if(count($studentIds) !== count($selectedStudentIds), 422, 'فقط حساب‌های دارای نقش دانش‌آموز قابل افزودن به کلاس هستند.');
 
         $classroom = Classroom::create([
             'name' => $data['name'],
@@ -54,10 +56,7 @@ class ClassroomController extends Controller
             'teacher_id' => $data['teacher_id'],
             'meeting_url' => $data['meeting_url'] ?? null,
             'status' => $data['status'],
-            'schedule' => [
-                'days' => $data['schedule_days'] ?? [],
-                'time' => $data['schedule_time'] ?? null,
-            ],
+            'schedule' => ['days' => $data['schedule_days'] ?? [], 'time' => $data['schedule_time'] ?? null],
             'created_by' => auth()->id(),
         ]);
 
@@ -85,7 +84,11 @@ class ClassroomController extends Controller
 
     public function destroy(Classroom $classroom): RedirectResponse
     {
-        abort_if($classroom->homeworks()->exists(), 422, 'برای حفظ سوابق آموزشی، کلاس دارای تکلیف قابل حذف نیست.');
+        abort_if(
+            $classroom->homeworks()->exists() || $classroom->attendances()->exists() || $classroom->students()->exists(),
+            422,
+            'کلاس دارای سوابق آموزشی یا اعضای ثبت‌نام‌شده است؛ آن را بایگانی کنید.'
+        );
 
         $classroom->delete();
 
