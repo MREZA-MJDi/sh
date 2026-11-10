@@ -8,8 +8,12 @@ interface SpotPlayerGateway
 {
     public function health(): IntegrationHealth;
 
-    /** @return array<int, array{id:string,title:string,status?:string}> */
+    /** @return array<int, SpotPlayerCourseData> */
     public function listCourses(): array;
+
+    public function createCourse(SpotPlayerCourseCommand $command): SpotPlayerCourseData;
+
+    public function registerVideo(SpotPlayerVideoCommand $command): SpotPlayerVideoData;
 
     public function issueLicense(SpotPlayerLicenseCommand $command): IssuedSpotPlayerLicense;
 
