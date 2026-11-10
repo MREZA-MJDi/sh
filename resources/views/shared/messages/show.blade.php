@@ -21,7 +21,7 @@
                     {{ $message->sender?->name ?? 'کاربر آکادمی' }}
                     · {{ \App\Support\PersianDate::format($message->created_at, 'Y/m/d H:i') }}
                 </small>
-                <p>{{ $message->body }}</p>
+                <x-rich-content :value="$message->body"/>
             </div>
 
             @foreach($message->replies as $reply)
@@ -30,7 +30,7 @@
                         {{ $reply->sender?->name ?? 'کاربر آکادمی' }}
                         · {{ \App\Support\PersianDate::format($reply->created_at, 'Y/m/d H:i') }}
                     </small>
-                    <p>{{ $reply->body }}</p>
+                    <x-rich-content :value="$reply->body"/>
                 </div>
             @endforeach
         </div>
