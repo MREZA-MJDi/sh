@@ -38,6 +38,12 @@
             <strong class="panel-stat-value">{{ number_format($stats['courses']) }}</strong>
             <span class="panel-stat-note">دوره‌های قابل ارائه</span>
         </article>
+        <article class="panel-card panel-stat" style="--stat-color:#7b55c7;--stat-soft:#f1ebff">
+            <div class="panel-stat-symbol">✎</div>
+            <span class="panel-stat-label">ارسال‌های تکلیف منتظر بررسی</span>
+            <strong class="panel-stat-value">{{ number_format($stats['pending_homework']) }}</strong>
+            <span class="panel-stat-note">پاسخ‌های تحویل‌شده دانش‌آموزان</span>
+        </article>
     </section>
 
     <section class="panel-grid panel-grid-2 mb-4">
