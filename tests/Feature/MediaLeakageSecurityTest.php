@@ -1,19 +1,19 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\Classroom;
-use App\\Models\\Course;
-use App\\Models\\CourseEnrollment;
-use App\\Models\\LearningResource;
-use App\\Models\\Role;
-use App\\Models\\SpotPlayerVideo;
-use App\\Models\\User;
-use App\\Services\\Courses\\CourseEnrollmentService;
-use Database\\Seeders\\RolePermissionSeeder;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\Storage;
-use Tests\\TestCase;
+use App\Models\Classroom;
+use App\Models\Course;
+use App\Models\CourseEnrollment;
+use App\Models\LearningResource;
+use App\Models\Role;
+use App\Models\SpotPlayerVideo;
+use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 /**
  * Regression tests for preventing course media and paid learning material leakage.
