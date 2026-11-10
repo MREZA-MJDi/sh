@@ -3,7 +3,7 @@
 @section('title', $consultation->subject ?: 'جزئیات درخواست مشاوره')
 
 @section('content')
-    <x-crumbs :items="['درخواست‌های مشاوره' => route('parent.consult.index'), ($consultation->subject ?: 'جزئیات درخواست') => null]"/>
+    <x-crumbs :items="['درخواست‌های مشاوره' => route('guardian.consultations.index'), ($consultation->subject ?: 'جزئیات درخواست') => null]"/>
 
     @php
         $typeLabels = ['ticket' => 'تیکت و پیام‌رسانی', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'];
@@ -37,7 +37,7 @@
                 @endif
 
                 @if($consultation->status === 'pending')
-                    <form method="POST" action="{{ route('parent.consult.destroy', $consultation) }}" class="frm" onsubmit="return confirm('درخواست مشاوره حذف شود؟')">
+                    <form method="POST" action="{{ route('guardian.consultations.destroy', $consultation) }}" class="frm" onsubmit="return confirm('درخواست مشاوره حذف شود؟')">
                         @csrf
                         @method('DELETE')
                         <button class="btn s bad" type="submit">حذف درخواست</button>
@@ -58,7 +58,7 @@
                 </div>
 
                 @if(! in_array($consultation->status, ['done', 'cancelled'], true))
-                    <form method="POST" action="{{ route('parent.consult.reply', $consultation) }}">
+                    <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}">
                         @csrf
                         <div class="frm" style="align-items:flex-start">
                             <div style="flex:1;min-width:220px">
