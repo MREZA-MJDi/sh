@@ -39,6 +39,23 @@ document.querySelectorAll('form[data-confirm]').forEach((form) => {
     });
 });
 
+
+document.addEventListener('change', (event) => {
+    const select = event.target;
+
+    if (!(select instanceof HTMLSelectElement) || !select.matches('[data-reset-spotplayer-id]')) {
+        return;
+    }
+
+    if (select.value !== 'spotplayer') {
+        const courseIdInput = select.form?.querySelector('[name="spotplayer_course_id"]');
+
+        if (courseIdInput instanceof HTMLInputElement) {
+            courseIdInput.value = '';
+        }
+    }
+});
+
 const tableSearch = document.querySelector('[data-table-search]');
 tableSearch?.addEventListener('input', () => {
     const term = tableSearch.value.trim().toLocaleLowerCase();
