@@ -131,6 +131,8 @@ final class GuardianDashboardService
             ->limit(6)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
+        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds);
+
         $announcements = Announcement::query()
             ->where('status', 'published')
             ->whereIn('audience', ['all', 'parents'])
@@ -149,6 +151,7 @@ final class GuardianDashboardService
             'children' => $children,
             'selected_child' => $selectedChild,
             'classrooms' => $classrooms,
+            'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,\n            'reviewed_homework' => $reviewedHomework,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
@@ -209,6 +212,7 @@ final class GuardianDashboardService
             'children' => $children,
             'selected_child' => null,
             'classrooms' => collect(),
+            'course_progress' => collect(),
             'classroom_count' => 0,
             'homeworks' => collect(),\n            'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
