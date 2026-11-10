@@ -10,7 +10,7 @@ class Consultation extends Model
 {
     protected $fillable = [
         'requester_id', 'student_id', 'teacher_id', 'handled_by',
-        'type', 'subject', 'contact_phone', 'desired_at', 'scheduled_at', 'status', 'notes',
+        'type', 'topic', 'contact_phone', 'desired_at', 'scheduled_at', 'status', 'notes',
     ];
 
     protected function casts(): array
