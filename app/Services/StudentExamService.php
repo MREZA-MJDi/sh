@@ -35,6 +35,7 @@ final class StudentExamService
                 })->orWhere(function (Builder $classOnly) use ($student): void {
                     $classOnly->whereNotNull('classroom_id')
                         ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                            ->whereNull('course_id')
                             ->where('status', 'active')
                             ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
                 });
@@ -51,7 +52,9 @@ final class StudentExamService
 
     public function canAccess(User $student, Exam $exam): bool
     {
-        return $this->query($student)->whereKey($exam->id)->exists();
+        return $this->accessibleQuery($student, ['published', 'closed'])
+            ->whereKey($exam->id)
+            ->exists();
     }
 
     public function find(User $student, Exam $exam): Exam
@@ -298,6 +301,33 @@ final class StudentExamService
         return is_array($answer)
             ? json_encode(array_values($answer), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)
             : (string) $answer;
+    }
+
+    private function accessibleQuery(User $student, array $statuses): Builder
+    {
+        $courseIds = $this->activeCourseIds($student);
+
+        return Exam::query()
+            ->where('provider', 'internal')
+            ->whereIn('status', $statuses)
+            ->where(function (Builder $access) use ($student, $courseIds): void {
+                $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
+                    $courseScope->whereNotNull('course_id')
+                        ->whereIn('course_id', clone $courseIds)
+                        ->where(function (Builder $classScope) use ($student): void {
+                            $classScope->whereNull('classroom_id')
+                                ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
+                                    ->where('status', 'active')
+                                    ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
+                        });
+                })->orWhere(function (Builder $classOnly) use ($student): void {
+                    $classOnly->whereNotNull('classroom_id')
+                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                            ->whereNull('course_id')
+                            ->where('status', 'active')
+                            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
+                });
+            });
     }
 
     private function activeCourseIds(User $student)
