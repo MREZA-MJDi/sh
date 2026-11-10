@@ -96,7 +96,7 @@ final class StudentDashboardService
             ->limit(5)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
 
-        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds);
+        $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6);
 
         $announcements = Announcement::query()
             ->where('status', 'published')
