@@ -130,7 +130,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('کلاس قابل مشاهده مدرس اول')
             ->assertDontSee('کلاس محرمانه مدرس دوم')
-            ->assertSee('داشبورد مدیریت')
+            ->assertSee('داشبورد من')
             ->assertDontSee('کوییز ۲۴')
             ->assertDontSee('مدیریت کاربران');
     }

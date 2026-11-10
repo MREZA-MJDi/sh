@@ -33,7 +33,7 @@ class AdminAuthorizationTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('داشبورد مدیریت');
+            ->assertSee('داشبورد من');
     }
 
     public function test_every_admin_section_renders_without_sample_records(): void

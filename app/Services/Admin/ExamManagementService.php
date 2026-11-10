@@ -13,6 +13,7 @@ final class ExamManagementService
 
     public function create(array $data, User $actor): Exam
     {
+        unset($data['duration_hours']);
         $isQuiz24 = ($data['provider'] ?? 'internal') === 'quiz24';
 
         return DB::transaction(function () use ($data, $actor, $isQuiz24): Exam {
@@ -37,6 +38,7 @@ final class ExamManagementService
 
     public function update(Exam $exam, array $data, User $actor): Exam
     {
+        unset($data['duration_hours']);
         $isQuiz24 = ($data['provider'] ?? 'internal') === 'quiz24';
 
         return DB::transaction(function () use ($exam, $data, $actor, $isQuiz24): Exam {
