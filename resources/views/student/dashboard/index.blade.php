@@ -64,7 +64,7 @@
         </div>
         <div class="student-welcome__art" aria-hidden="true">
             <div class="student-welcome__art-orbit"></div>
-            <div class="student-welcome__art-icon"><x-icon name="graduation-cap"/></div>
+            <div class="student-welcome__art-icon"><x-icon name="book"/></div>
             <span class="student-welcome__art-dot student-welcome__art-dot--one"></span>
             <span class="student-welcome__art-dot student-welcome__art-dot--two"></span>
         </div>
@@ -130,7 +130,7 @@
                 <div class="student-class-list">
                     @forelse ($classrooms as $classroom)
                         <article class="student-class-item">
-                            <span class="student-class-item__icon"><x-icon name="book-open"/></span>
+                            <span class="student-class-item__icon"><x-icon name="book"/></span>
                             <div class="student-class-item__body">
                                 <h3>{{ $classroom->name }}</h3>
                                 <p>{{ $classroom->course?->title ?? 'بدون دوره متصل' }}</p>
