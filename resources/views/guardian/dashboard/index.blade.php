@@ -76,7 +76,7 @@
                         <strong class="student-homework-item__score">نمره {{ $faNumber($submission->score, 2) }}</strong>
                     @endif
                 </div>
-                <p class="mu">بررسی توسط: {{ $submission->reviewer?->name ?? 'مدرس یا مدیر آموزشگاه' }} · {{ \\App\\Support\\PersianDate::format($submission->reviewed_at, 'Y/m/d H:i') }}</p>
+                <p class="mu">بررسی توسط: {{ $submission->reviewer?->name ?? 'مدرس یا مدیر آموزشگاه' }} · {{ \App\Support\PersianDate::format($submission->reviewed_at, 'Y/m/d H:i') }}</p>
                 @if (filled($submission->feedback))
                     <p class="student-homework-item__answer">{{ $submission->feedback }}</p>
                 @else
