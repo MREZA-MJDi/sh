@@ -45,8 +45,13 @@
             <a href="#resources" data-nav-link><x-icon name="file"/> جزوه‌ها و منابع</a>
         @endcan
 
-        @can('announcements.view')
+        @can('messages.view.own')
             <h6>ارتباط</h6>
+            <a href="{{ route('student.messages.index') }}"><x-icon name="msg"/> پیام به مدرس‌ها</a>
+        @endcan
+
+        @can('announcements.view')
+            <h6>اطلاع‌رسانی</h6>
             <a href="#announcements" data-nav-link><x-icon name="bell"/> اطلاعیه‌های آکادمی</a>
         @endcan
     </nav>
