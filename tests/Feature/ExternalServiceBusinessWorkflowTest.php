@@ -11,7 +11,9 @@ use App\Models\IntegrationRun;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
+use App\Services\Integrations\IntegrationException;
 use App\Services\Quiz24\Contracts\Quiz24ResultData;
+use App\Services\Quiz24\Quiz24Service;
 use App\Services\Quiz24\Quiz24ResultImporter;
 use App\Services\SpotPlayer\SpotPlayerService;
 use Database\Seeders\RolePermissionSeeder;
@@ -58,7 +60,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
         $this->assertDatabaseHas('integration_runs', [
             'provider' => 'spotplayer',
-            'action' => 'verify_or_create_course_mapping',
+            'action' => 'verify_course_mapping',
             'status' => 'waiting_contract',
             'entity_id' => $course->id,
         ]);
@@ -162,6 +164,91 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_quiz24_exam_is_created_locally_and_external_provisioning_is_queued(): void
+    {
+        $this->actingAs($this->admin)
+            ->post(route('admin.exams.store'), [
+                'title' => 'آزمون جامع شیخان',
+                'provider' => 'quiz24',
+                'status' => 'draft',
+            ])
+            ->assertRedirect();
+
+        $exam = Exam::where('title', 'آزمون جامع شیخان')->firstOrFail();
+
+        $this->assertSame('waiting_external_mapping', $exam->integration_status);
+
+        $this->assertDatabaseHas('integration_runs', [
+            'provider' => 'quiz24',
+            'action' => 'create_exam',
+            'status' => 'waiting_contract',
+            'entity_id' => $exam->id,
+        ]);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_quiz24_sso_requires_student_exam_access_and_stable_external_identity(): void
+    {
+        $teacher = $this->createUserWithRole('teacher');
+        $student = $this->createUserWithRole('student', [
+            'external_student_id' => 'SH-STUDENT-501',
+        ]);
+        $otherStudent = $this->createUserWithRole('student', [
+            'external_student_id' => 'SH-STUDENT-502',
+        ]);
+
+        $course = Course::create([
+            'title' => 'دوره آزمون Quiz24',
+            'slug' => 'quiz24-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $classroom = Classroom::create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس آزمون Quiz24',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id, ['assigned_by' => $this->admin->id]);
+
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $exam = Exam::create([
+            'title' => 'آزمون دسترسی‌دار Quiz24',
+            'provider' => 'quiz24',
+            'external_id' => 'Q24-ACCESS-101',
+            'classroom_id' => $classroom->id,
+            'course_id' => $course->id,
+            'status' => 'published',
+            'integration_status' => 'awaiting_api_verification',
+        ]);
+
+        $service = app(Quiz24Service::class);
+
+        try {
+            $service->requestStudentLaunch($exam, $otherStudent, '/student/exams/'.$exam->id);
+            $this->fail('Student outside the assigned classroom must not receive an SSO launch request.');
+        } catch (IntegrationException $exception) {
+            $this->assertStringContainsString('عضو کلاس', $exception->getMessage());
+        }
+
+        $operation = $service->requestStudentLaunch($exam, $student, '/student/exams/'.$exam->id);
+
+        $this->assertSame('waiting_contract', $operation->status);
+        $this->assertDatabaseHas('integration_runs', [
+            'provider' => 'quiz24',
+            'action' => 'create_student_launch_url',
+            'status' => 'waiting_contract',
+            'entity_id' => $exam->id,
+        ]);
+
+        Http::assertNothingSent();
+    }
+
     public function test_quiz24_result_import_is_idempotent_and_unmatched_people_are_not_auto_assigned(): void
     {
         $student = $this->createUserWithRole('student', [
@@ -228,8 +315,8 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
     public function test_default_provider_gateways_report_contract_missing_and_do_not_send_requests(): void
     {
-        $spotPlayer = app(\App\Services\SpotPlayer\SpotPlayerService::class);
-        $quiz24 = app(\App\Services\Quiz24\Quiz24Service::class);
+        $spotPlayer = app(SpotPlayerService::class);
+        $quiz24 = app(Quiz24Service::class);
 
         $this->assertFalse($spotPlayer->health()->available);
         $this->assertSame('contract_missing', $spotPlayer->health()->state);
