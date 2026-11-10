@@ -56,7 +56,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->get(route('student.videos.show', $video))
             ->assertOk()
-            ->assertSee(route('student.videos.stream', $video))
+            ->assertSee(route('student.videos.stream', $video), false)
             ->assertSee('پخش خصوصی در آکادمی');
         
         $this->get(route('student.videos.stream', $video))
