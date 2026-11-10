@@ -354,7 +354,71 @@ function initChildSwitcher() {
     });
 }
 
+function initReferencePages() {
+    const pages = $('.reference-dashboard-page .page');
+    const links = $('body.reference-dashboard-page [data-dashboard-nav-target]');
+    const title = $('#ttl');
+    if (!pages.length) return;
+
+    const titles = {
+        's-home': 'خانه',
+        's-news': 'اخبار مهم',
+        's-classes': 'کلاس‌های من',
+        's-videos': 'ویدیوهای ضبط‌شده',
+        's-hw': 'تکالیف',
+        's-exams': 'آزمون‌ها',
+        's-res': 'جزوات و منابع',
+        's-shop': 'کتاب‌ها و محصولات',
+        's-msg': 'پیام‌ها',
+        's-results': 'نتایج',
+        's-att': 'حضور و غیاب',
+        's-notes': 'یادداشت‌ها',
+        's-profile': 'پروفایل',
+        'p-home': 'خانه اولیاء',
+        'p-news': 'اخبار مهم',
+        'p-progress': 'پیشرفت دوره‌ها و کلاس‌ها',
+        'p-hw': 'تکالیف و نتایج بررسی',
+        'p-exams': 'نتایج آزمون‌ها',
+        'p-att': 'حضور و غیاب',
+        'p-res': 'منابع و محصولات',
+        'p-consult': 'درخواست مشاوره',
+        'p-msg': 'ارسال پیام',
+    };
+
+    const showPage = () => {
+        const requested = (window.location.hash || '').slice(1);
+        const activeId = titles[requested] ? requested : (document.body.classList.contains('reference-parent') ? 'p-home' : 's-home');
+
+        pages.forEach((page) => page.classList.toggle('on', page.id === activeId));
+        links.forEach((link) => {
+            const active = link.dataset.dashboardNavTarget === activeId;
+            link.classList.toggle('on', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+        if (title) title.textContent = titles[activeId];
+
+        const side = $('.reference-dashboard-page .side');
+        const scrim = $('.reference-dashboard-page .scrim');
+        side?.classList.remove('open');
+        scrim?.classList.remove('open');
+        $('[data-menu]').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+
+    links.forEach((link) => link.addEventListener('click', () => {
+        const side = $('.reference-dashboard-page .side');
+        const scrim = $('.reference-dashboard-page .scrim');
+        side?.classList.remove('open');
+        scrim?.classList.remove('open');
+    }));
+
+    window.addEventListener('hashchange', showPage);
+    showPage();
+}
+
 function initDashboardNavigation() {
+    if (document.body.classList.contains('reference-dashboard-page')) { initReferencePages(); return; }
     const links = $('[data-dashboard-nav-target]');
     if (!links.length || typeof window.IntersectionObserver === 'undefined') {
         return;
