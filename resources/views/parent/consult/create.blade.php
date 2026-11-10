@@ -1,4 +1,4 @@
-@extends('layouts.portal')
+@extends('layouts.parent')
 
 @section('title', 'درخواست جلسه‌ی مشاوره')
 
@@ -32,9 +32,9 @@
                 </div>
 
                 <div class="w">
-                    <label for="subject">موضوع درخواست</label>
-                    <input class="fld" id="subject" name="subject" value="{{ old('subject') }}" maxlength="180" required>
-                    <x-field-error name="subject"/>
+                    <label for="topic">موضوع درخواست</label>
+                    <input class="fld" id="topic" name="topic" value="{{ old('subject') }}" maxlength="180" required>
+                    <x-field-error name="topic"/>
                 </div>
 
                 <div>
