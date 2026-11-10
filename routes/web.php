@@ -59,6 +59,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::get('/resources', [LearningResourceController::class, 'index'])->middleware('permission:resources.manage')->name('resources.index');
     Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage')->name('resources.store');
+    Route::patch('/resources/{resource}', [LearningResourceController::class, 'update'])->middleware('permission:resources.manage')->name('resources.update');
     Route::delete('/resources/{resource}', [LearningResourceController::class, 'destroy'])->middleware('permission:resources.manage')->name('resources.destroy');
     Route::get('/resources/{resource}/download', [LearningResourceController::class, 'download'])->middleware('permission:resources.view.all')->name('resources.download');
 
