@@ -20,7 +20,7 @@
 <body class="admin-body" data-theme="light">
     @php($adminUser = auth()->user())
     @include('admin.partials.sprite')
-    <div class="admin-shell">
+    <div class="admin-shell" data-admin-shell>
         @include('admin.partials.sidebar')
         <div class="admin-scrim" data-admin-close></div>
         <main class="panel-main admin-main" id="admin-main">
