@@ -1,9 +1,9 @@
-@extends('layouts.portal')
+@extends('layouts.parent')
 
-@section('title', $consultation->subject ?: 'جزئیات درخواست مشاوره')
+@section('title', $consultation->topic ?: 'جزئیات درخواست مشاوره')
 
 @section('content')
-    <x-crumbs :items="['درخواست‌های مشاوره' => route('guardian.consultations.index'), ($consultation->subject ?: 'جزئیات درخواست') => null]"/>
+    <x-crumbs :items="['درخواست‌های مشاوره' => route('guardian.consultations.index'), ($consultation->topic ?: 'جزئیات درخواست') => null]"/>
 
     @php
         $typeLabels = ['ticket' => 'تیکت و پیام‌رسانی', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'];
