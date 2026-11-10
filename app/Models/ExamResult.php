@@ -11,7 +11,12 @@ class ExamResult extends Model
 
     protected function casts(): array
     {
-        return ['score' => 'decimal:2', 'max_score' => 'decimal:2', 'source_data' => 'array', 'synced_at' => 'datetime'];
+        return [
+            'score' => 'decimal:2',
+            'max_score' => 'decimal:2',
+            'source_data' => 'encrypted:array',
+            'synced_at' => 'datetime',
+        ];
     }
 
     public function exam(): BelongsTo

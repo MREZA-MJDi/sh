@@ -12,6 +12,10 @@ class IntegrationRun extends Model
         'entity_type',
         'entity_id',
         'status',
+        'idempotency_key',
+        'attempts',
+        'available_at',
+        'correlation_id',
         'request_meta',
         'response_meta',
         'error_message',
@@ -22,6 +26,8 @@ class IntegrationRun extends Model
     protected function casts(): array
     {
         return [
+            'attempts' => 'integer',
+            'available_at' => 'datetime',
             'request_meta' => 'array',
             'response_meta' => 'array',
             'started_at' => 'datetime',

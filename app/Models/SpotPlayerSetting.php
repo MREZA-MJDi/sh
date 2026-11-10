@@ -13,6 +13,8 @@ class SpotPlayerSetting extends Model
         'watermark_enabled',
         'auto_license_enabled',
         'mode',
+        'api_enabled',
+        'contract_version',
     ];
 
     protected function casts(): array
@@ -22,6 +24,7 @@ class SpotPlayerSetting extends Model
             'max_devices' => 'integer',
             'watermark_enabled' => 'boolean',
             'auto_license_enabled' => 'boolean',
+            'api_enabled' => 'boolean',
         ];
     }
 }

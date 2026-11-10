@@ -9,17 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Course extends Model
 {
     protected $fillable = [
-        'title',
-        'slug',
-        'description',
-        'subject',
-        'grade',
-        'teacher_id',
-        'type',
-        'price',
-        'delivery_type',
-        'status',
-        'spotplayer_course_id',
+        'title', 'slug', 'description', 'subject', 'grade', 'teacher_id',
+        'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
+        'integration_status', 'integration_note',
     ];
 
     protected function casts(): array
@@ -40,5 +32,10 @@ class Course extends Model
     public function resources(): HasMany
     {
         return $this->hasMany(LearningResource::class);
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(CourseEnrollment::class);
     }
 }
