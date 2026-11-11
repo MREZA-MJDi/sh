@@ -33,7 +33,7 @@ class SaveSeoBannerRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             $url = trim((string) $this->input('target_url'));
-            $isInternalPath = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\\\');
+            $isInternalPath = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, chr(92));
             $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
             $isSafeExternalUrl = filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true);
 
