@@ -20,9 +20,9 @@
 
     <section class="seo-admin-kpis">
         <article class="seo-admin-kpi"><span>کل بنرها</span><strong>{{ number_format($banners->total()) }}</strong><small>در فهرست فعلی</small></article>
-        <article class="seo-admin-kpi"><span>فعال در این بازه</span><strong>{{ number_format($banners->getCollection()->filter(fn ($banner) => $banner->status === 'active' && (!$banner->starts_at || $banner->starts_at->lte(now())) && (!$banner->ends_at || $banner->ends_at->gte(now())))->count()) }}</strong><small>قابل نمایش برای بازدیدکننده</small></article>
-        <article class="seo-admin-kpi"><span>پیش‌نویس</span><strong>{{ number_format($banners->getCollection()->where('status', 'draft')->count()) }}</strong><small>منتشرنشده</small></article>
-        <article class="seo-admin-kpi"><span>غیرفعال</span><strong>{{ number_format($banners->getCollection()->where('status', 'inactive')->count()) }}</strong><small>نمایش داده نمی‌شوند</small></article>
+        <article class="seo-admin-kpi"><span>فعال در این بازه</span><strong>{{ number_format($activeBannerCount) }}</strong><small>قابل نمایش برای بازدیدکننده</small></article>
+        <article class="seo-admin-kpi"><span>پیش‌نویس</span><strong>{{ number_format($draftBannerCount) }}</strong><small>منتشرنشده</small></article>
+        <article class="seo-admin-kpi"><span>غیرفعال</span><strong>{{ number_format($inactiveBannerCount) }}</strong><small>نمایش داده نمی‌شوند</small></article>
     </section>
 
     <form class="seo-admin-section" method="POST" action="{{ route('admin.seo.banners.store') }}" enctype="multipart/form-data">
