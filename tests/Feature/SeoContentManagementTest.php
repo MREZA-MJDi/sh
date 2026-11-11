@@ -206,6 +206,67 @@ class SeoContentManagementTest extends TestCase
         $this->assertDatabaseMissing('seo_articles', ['id' => $article->id]);
     }
 
+    public function test_public_article_index_only_displays_current_active_banners_in_sort_order(): void
+    {
+        $admin = $this->admin();
+        Storage::disk('public')->put('seo/banners/first.jpg', 'image');
+        Storage::disk('public')->put('seo/banners/second.jpg', 'image');
+        Storage::disk('public')->put('seo/banners/expired.jpg', 'image');
+        Storage::disk('public')->put('seo/banners/future.jpg', 'image');
+
+        SeoBanner::query()->create([
+            'created_by' => $admin->id,
+            'title' => 'بنر دوم',
+            'alt_text' => 'بنر دوم عمومی',
+            'image_path' => 'seo/banners/second.jpg',
+            'placement' => 'articles_top',
+            'sort_order' => 2,
+            'status' => 'active',
+        ]);
+        SeoBanner::query()->create([
+            'created_by' => $admin->id,
+            'title' => 'بنر اول',
+            'alt_text' => 'بنر اول عمومی',
+            'image_path' => 'seo/banners/first.jpg',
+            'placement' => 'sitewide',
+            'sort_order' => 1,
+            'status' => 'active',
+        ]);
+        SeoBanner::query()->create([
+            'created_by' => $admin->id,
+            'title' => 'بنر منقضی',
+            'alt_text' => 'بنر منقضی',
+            'image_path' => 'seo/banners/expired.jpg',
+            'placement' => 'articles_top',
+            'sort_order' => 0,
+            'starts_at' => now()->subDays(4),
+            'ends_at' => now()->subDay(),
+            'status' => 'active',
+        ]);
+        SeoBanner::query()->create([
+            'created_by' => $admin->id,
+            'title' => 'بنر آینده',
+            'alt_text' => 'بنر آینده',
+            'image_path' => 'seo/banners/future.jpg',
+            'placement' => 'articles_top',
+            'sort_order' => 0,
+            'starts_at' => now()->addDay(),
+            'status' => 'active',
+        ]);
+
+        $response = $this->get(route('seo.articles.index'))
+            ->assertOk()
+            ->assertSee('بنر اول عمومی')
+            ->assertSee('بنر دوم عمومی')
+            ->assertDontSee('بنر منقضی')
+            ->assertDontSee('بنر آینده');
+
+        self::assertLessThan(
+            strpos($response->getContent(), 'بنر دوم عمومی'),
+            strpos($response->getContent(), 'بنر اول عمومی')
+        );
+    }
+
     public function test_scheduled_article_requires_a_publication_date_and_duplicate_slugs_are_rejected(): void
     {
         $admin = $this->admin();
