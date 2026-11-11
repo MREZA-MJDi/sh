@@ -85,8 +85,19 @@ class SeoContentManagementTest extends TestCase
 
         $this->get(route('seo.robots'))
             ->assertOk()
-            ->assertSee('Disallow: /')
+            ->assertSee('Allow: /')
+            ->assertSee('Disallow: /admin')
+            ->assertDontSee("Disallow: /\\n")
             ->assertDontSee('Sitemap:');
+
+        $this->get(route('seo.articles.index'))
+            ->assertOk()
+            ->assertSee('name="robots" content="noindex,nofollow"', false)
+            ->assertSee('name="google-site-verification" content="google-token"', false)
+            ->assertSee('name="msvalidate.01" content="bing-token"', false)
+            ->assertSee('توضیح واقعی وب‌سایت برای موتورهای جست‌وجو')
+            ->assertSee('property="og:site_name"', false)
+            ->assertSee('name="twitter:site" content="@sheykhan"', false);
 
         $this->get(route('seo.sitemap'))->assertNotFound();
     }
