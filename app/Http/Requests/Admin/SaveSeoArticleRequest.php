@@ -44,8 +44,8 @@ class SaveSeoArticleRequest extends FormRequest
                 $validator->errors()->add('published_at', 'برای انتشار زمان‌بندی‌شده، تاریخ انتشار الزامی است.');
             }
 
-            if ($this->input('status') === 'scheduled' && $this->filled('published_at')
-                && $this->date('published_at')?->isPast()) {
+            $publicationTimestamp = $this->filled('published_at') ? strtotime((string) $this->input('published_at')) : false;
+            if ($this->input('status') === 'scheduled' && $publicationTimestamp !== false && $publicationTimestamp <= time()) {
                 $validator->errors()->add('published_at', 'زمان انتشار زمان‌بندی‌شده باید در آینده باشد.');
             }
 
