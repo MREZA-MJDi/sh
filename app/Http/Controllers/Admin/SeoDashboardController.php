@@ -10,7 +10,6 @@ use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
