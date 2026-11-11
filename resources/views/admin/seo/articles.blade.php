@@ -20,9 +20,9 @@
 
     <section class="seo-admin-kpis">
         <article class="seo-admin-kpi"><span>کل مقاله‌ها</span><strong>{{ number_format($articles->total()) }}</strong><small>در فهرست فعلی</small></article>
-        <article class="seo-admin-kpi"><span>منتشرشده</span><strong>{{ number_format($articles->getCollection()->where('status', 'published')->count()) }}</strong><small>در صفحه عمومی قابل مشاهده</small></article>
-        <article class="seo-admin-kpi"><span>پیش‌نویس</span><strong>{{ number_format($articles->getCollection()->where('status', 'draft')->count()) }}</strong><small>منتشرنشده</small></article>
-        <article class="seo-admin-kpi"><span>زمان‌بندی‌شده</span><strong>{{ number_format($articles->getCollection()->where('status', 'scheduled')->count()) }}</strong><small>در انتظار زمان انتشار</small></article>
+        <article class="seo-admin-kpi"><span>منتشرشده</span><strong>{{ number_format($publishedArticleCount) }}</strong><small>در صفحه عمومی قابل مشاهده</small></article>
+        <article class="seo-admin-kpi"><span>پیش‌نویس</span><strong>{{ number_format($draftArticleCount) }}</strong><small>منتشرنشده</small></article>
+        <article class="seo-admin-kpi"><span>زمان‌بندی‌شده</span><strong>{{ number_format($scheduledArticleCount) }}</strong><small>در انتظار زمان انتشار</small></article>
     </section>
 
     <form class="seo-admin-section" method="POST" action="{{ route('admin.seo.articles.store') }}" enctype="multipart/form-data">
