@@ -11,12 +11,12 @@
         <div class="panel-form-grid">
             <div class="panel-field"><label>عنوان مقاله</label><input class="panel-input" name="title" required maxlength="180"></div>
             <div class="panel-field"><label>نشانی کوتاه (Slug)</label><input class="panel-input" name="slug" maxlength="190" dir="ltr" placeholder="optional-article-slug"></div>
-            <div class="panel-field" style="grid-column:1/-1"><label>خلاصه مقاله</label><textarea class="panel-textarea" name="excerpt" maxlength="500"></textarea></div>
+            <div class="panel-field" style="grid-column:1/-1"><label>خلاصه مقاله</label><textarea class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500"></textarea></div>
             <div class="panel-field" style="grid-column:1/-1"><label>متن مقاله</label><textarea class="panel-textarea" name="body" data-rich-text required maxlength="100000"></textarea></div>
             <div class="panel-field"><label>تصویر شاخص</label><input class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp"></div>
             <div class="panel-field"><label>متن جایگزین تصویر</label><input class="panel-input" name="image_alt" maxlength="180"></div>
             <div class="panel-field"><label>عنوان سئو</label><input class="panel-input" name="meta_title" maxlength="180"></div>
-            <div class="panel-field"><label>توضیح متا</label><textarea class="panel-textarea" name="meta_description" maxlength="320"></textarea></div>
+            <div class="panel-field"><label>توضیح متا</label><textarea class="panel-textarea" name="meta_description" data-rich-text-ignore maxlength="320"></textarea></div>
             <div class="panel-field"><label>کلیدواژه‌ها (با ویرگول)</label><input class="panel-input" name="keywords" maxlength="1000"></div>
             <div class="panel-field"><label>Canonical اختصاصی</label><input class="panel-input" name="canonical_url" type="url" dir="ltr" maxlength="2048"></div>
             <div class="panel-field"><label>تصویر Open Graph (اختیاری)</label><input class="panel-input" type="file" name="og_image" accept="image/jpeg,image/png,image/webp"></div>
@@ -41,12 +41,12 @@
                         @csrf @method('PATCH')
                         <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $article->title }}" required maxlength="180"></div>
                         <div class="panel-field"><label>Slug</label><input class="panel-input" name="slug" value="{{ $article->slug }}" dir="ltr" maxlength="190"></div>
-                        <div class="panel-field"><label>خلاصه</label><textarea class="panel-textarea" name="excerpt" maxlength="500">{{ $article->excerpt }}</textarea></div>
+                        <div class="panel-field"><label>خلاصه</label><textarea class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500">{{ $article->excerpt }}</textarea></div>
                         <div class="panel-field"><label>متن مقاله</label><textarea class="panel-textarea" name="body" data-rich-text required maxlength="100000">{{ $article->body }}</textarea></div>
                         <div class="panel-field"><label>تصویر شاخص جدید (اختیاری)</label><input class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp"></div>
                         <div class="panel-field"><label>متن جایگزین</label><input class="panel-input" name="image_alt" value="{{ $article->image_alt }}" maxlength="180"></div>
                         <div class="panel-field"><label>عنوان متا</label><input class="panel-input" name="meta_title" value="{{ $article->meta_title }}" maxlength="180"></div>
-                        <div class="panel-field"><label>توضیح متا</label><textarea class="panel-textarea" name="meta_description" maxlength="320">{{ $article->meta_description }}</textarea></div>
+                        <div class="panel-field"><label>توضیح متا</label><textarea class="panel-textarea" name="meta_description" data-rich-text-ignore maxlength="320">{{ $article->meta_description }}</textarea></div>
                         <div class="panel-field"><label>کلیدواژه‌ها</label><input class="panel-input" name="keywords" value="{{ implode(', ', $article->keywords ?? []) }}"></div>
                         <div class="panel-field"><label>Canonical</label><input class="panel-input" name="canonical_url" type="url" dir="ltr" value="{{ $article->canonical_url }}"></div>
                         <div class="panel-field"><label>تصویر OG جدید (اختیاری)</label><input class="panel-input" type="file" name="og_image" accept="image/jpeg,image/png,image/webp"></div>
