@@ -21,7 +21,7 @@
         'author' => ['@type' => 'Person', 'name' => $article->author?->name ?: $settings->organization_name ?: $settings->site_name],
         'image' => $article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : null,
         'mainEntityOfPage' => route('seo.articles.show', $article->slug),
-        'publisher' => ['@type' => 'Organization', 'name' => $settings->organization_name ?: $settings->site_name],
+        'publisher' => ['@type' => 'Organization', 'name' => $settings->organization_name ?: $settings->site_name, 'url' => $settings->organization_url, 'logo' => $settings->organization_logo_path ? Storage::disk('public')->url($settings->organization_logo_path) : null, 'sameAs' => array_values($settings->social_links ?? [])],
     ])</script>
 @endpush
 
