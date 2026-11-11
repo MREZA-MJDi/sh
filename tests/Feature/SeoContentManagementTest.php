@@ -48,7 +48,17 @@ class SeoContentManagementTest extends TestCase
             ->get(route('admin.seo.index'))
             ->assertOk()
             ->assertSee('مدیریت سئو')
-            ->assertSee('تنظیمات اصلی سئو');
+            ->assertSee('مرکز مدیریت سئو')
+            ->assertSee('پیش‌نمایش نتیجه جست‌وجو')
+            ->assertSee('کد Google Search Console')
+            ->assertSee('کنترل خزنده‌ها و نقشه سایت')
+            ->assertSee('مدیریت سئو');
+
+        $this->actingAs($this->admin())->get(route('admin.seo.articles.index'))
+            ->assertOk()->assertSee('ایجاد مقاله جدید')->assertSee('تصویر Open Graph');
+
+        $this->actingAs($this->admin())->get(route('admin.seo.banners.index'))
+            ->assertOk()->assertSee('ثبت بنر جدید')->assertSee('متن جایگزین تصویر');
 
         $this->actingAs($this->teacher())
             ->get(route('admin.seo.index'))
@@ -92,7 +102,6 @@ class SeoContentManagementTest extends TestCase
             ->assertOk()
             ->assertSee('Allow: /')
             ->assertSee('Disallow: /admin')
-            ->assertDontSee("Disallow: /\\n")
             ->assertDontSee('Sitemap:');
 
         $this->get(route('seo.articles.index'))
@@ -351,4 +360,55 @@ class SeoContentManagementTest extends TestCase
             ])
             ->assertSessionHasErrors('slug');
     }
+
+    public function test_banner_rejects_non_http_external_and_protocol_relative_targets(): void
+    {
+        $admin = $this->admin();
+        $payload = [
+            'title' => 'بنر با مقصد نامعتبر',
+            'alt_text' => 'تصویر بنر',
+            'image' => UploadedFile::fake()->image('banner.jpg', 1200, 400),
+            'placement' => 'articles_top',
+            'sort_order' => 0,
+            'status' => 'active',
+        ];
+
+        foreach (['ftp://example.com/file', '//example.com/path'] as $target) {
+            $this->actingAs($admin)
+                ->from(route('admin.seo.banners.index'))
+                ->post(route('admin.seo.banners.store'), [...$payload, 'target_url' => $target])
+                ->assertSessionHasErrors('target_url');
+        }
+
+        $this->assertDatabaseCount('seo_banners', 0);
+    }
+
+    public function test_sitemap_does_not_list_noindex_articles_even_when_sitemap_is_enabled(): void
+    {
+        $admin = $this->admin();
+        SeoSetting::query()->create([
+            'id' => 1,
+            'site_name' => 'آکادمی شیخان',
+            'default_title' => 'آموزش',
+            'title_separator' => ' | ',
+            'robots_index' => false,
+            'robots_follow' => true,
+            'sitemap_enabled' => true,
+            'updated_by' => $admin->id,
+        ]);
+        $article = SeoArticle::query()->create([
+            'author_id' => $admin->id,
+            'title' => 'مقاله بدون ایندکس',
+            'slug' => 'noindex-article',
+            'body' => '<p>محتوا</p>',
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->get(route('seo.sitemap'))
+            ->assertOk()
+            ->assertSee('<urlset', false)
+            ->assertDontSee($article->slug);
+    }
+
 }
