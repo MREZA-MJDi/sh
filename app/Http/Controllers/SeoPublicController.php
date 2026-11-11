@@ -36,11 +36,15 @@ class SeoPublicController extends Controller
         $settings = SeoSetting::current();
         abort_unless($settings->sitemap_enabled, 404);
 
-        $urls = SeoArticle::published()->orderBy('published_at')->get(['slug', 'updated_at'])
+        $baseUrl = rtrim($settings->canonical_base_url ?: url('/'), '/');
+        $urls = collect([[
+            'loc' => $baseUrl.'/articles',
+            'lastmod' => now()->toAtomString(),
+        ]])->merge(SeoArticle::published()->orderBy('published_at')->get(['slug', 'updated_at'])
             ->map(fn (SeoArticle $article): array => [
-                'loc' => rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles/'.rawurlencode($article->slug),
+                'loc' => $baseUrl.'/articles/'.rawurlencode($article->slug),
                 'lastmod' => $article->updated_at?->toAtomString(),
-            ]);
+            ]));
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
