@@ -37,14 +37,14 @@ function sanitizeInitialHtml(value) {
                 if (name === 'style') {
                     const declarations = [...node.style].filter((property) => {
                         const styleValue = node.style.getPropertyValue(property).trim();
-                        return SAFE_STYLES.has(property) && !/url\\s*\\(|expression\\s*\\(|[<>]|\\\\/i.test(styleValue);
+                        return SAFE_STYLES.has(property) && !/url\s*\(|expression\s*\(|[<>]|\\/i.test(styleValue);
                     });
                     const styles = declarations.map((property) => property + ':' + node.style.getPropertyValue(property).trim());
                     if (styles.length) node.setAttribute('style', styles.join(';'));
                     else node.removeAttribute('style');
                 } else if (name === 'href' && node.tagName === 'A') {
                     if (!/^(https?:|mailto:|tel:)/i.test(attribute.value.trim())) node.removeAttribute('href');
-                } else if (!(name === 'colspan' || name === 'rowspan') || !/^\\d{1,2}$/.test(attribute.value)) {
+                } else if (!(name === 'colspan' || name === 'rowspan') || !/^\d{1,2}$/.test(attribute.value)) {
                     node.removeAttribute(attribute.name);
                 }
             });
