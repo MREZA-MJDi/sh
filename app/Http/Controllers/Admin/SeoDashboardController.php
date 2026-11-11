@@ -46,7 +46,7 @@ class SeoDashboardController extends Controller
             unset($data[$input]);
         }
 
-        $data['default_keywords'] = collect(explode(',', (string) ($data['default_keywords'] ?? '')))
+        $data['default_keywords'] = collect(preg_split('/[,،]+/u', (string) ($data['default_keywords'] ?? ''), -1, PREG_SPLIT_NO_EMPTY))
             ->map(fn (string $keyword) => trim($keyword))
             ->filter()
             ->unique()
@@ -191,7 +191,7 @@ class SeoDashboardController extends Controller
         }
 
         $data['slug'] = $slug;
-        $data['keywords'] = collect(explode(',', (string) ($data['keywords'] ?? '')))
+        $data['keywords'] = collect(preg_split('/[,،]+/u', (string) ($data['keywords'] ?? ''), -1, PREG_SPLIT_NO_EMPTY))
             ->map(fn (string $keyword) => trim($keyword))
             ->filter()
             ->unique()
