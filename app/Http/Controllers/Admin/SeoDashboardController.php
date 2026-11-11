@@ -177,10 +177,13 @@ class SeoDashboardController extends Controller
         } else {
             $slug = Str::slug($slug);
         }
+        if ($slug === '') {
+            $slug = 'article-'.Str::lower(Str::random(10));
+        }
 
         $baseSlug = $slug;
         $suffix = 2;
-        while (SeoArticle::query()->where('slug', $slug)->when($article, fn ($query) => $query->whereKeyNot($article->id))->exists()) {
+        while (SeoArticle::query()->where('slug', $slug)->when($article, fn ($query) => $query->where('id', '!=', $article->id))->exists()) {
             $slug = $baseSlug.'-'.$suffix++;
         }
 
