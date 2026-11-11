@@ -24,7 +24,7 @@ class SeoDashboardController extends Controller
             'settings' => $settings,
             'articleCount' => SeoArticle::query()->count(),
             'publishedArticleCount' => SeoArticle::published()->count(),
-            'draftArticleCount' => SeoArticle::query()->whereIn('status', ['draft', 'scheduled'])->count(),
+            'draftArticleCount' => SeoArticle::query()->where('status', 'draft')->orWhere(fn ($query) => $query->where('status', 'scheduled')->where('published_at', '>', now()))->count(),
             'bannerCount' => SeoBanner::query()->count(),
             'activeBannerCount' => SeoBanner::active()->count(),
             'recentArticles' => SeoArticle::query()->latest()->limit(5)->get(),
