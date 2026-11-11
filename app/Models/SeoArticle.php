@@ -32,7 +32,7 @@ class SeoArticle extends Model
 
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', 'published')
+        return $query->whereIn('status', ['published', 'scheduled'])
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
     }
