@@ -33,10 +33,14 @@ class SaveSeoBannerRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             $url = trim((string) $this->input('target_url'));
-            if ($url !== '' && ! str_starts_with($url, '/') && ! filter_var($url, FILTER_VALIDATE_URL)) {
-                $validator->errors()->add('target_url', 'نشانی مقصد باید یک مسیر داخلی یا نشانی کامل معتبر باشد.');
+            $isInternalPath = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\\\');
+            $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+            $isSafeExternalUrl = filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true);
+
+            if ($url !== '' && ! $isInternalPath && ! $isSafeExternalUrl) {
+                $validator->errors()->add('target_url', 'نشانی مقصد باید یک مسیر داخلی یا نشانی کامل HTTP/HTTPS معتبر باشد.');
             }
-            if (str_starts_with($url, '//') || preg_match('/^(javascript|data|vbscript):/i', $url)) {
+            if (preg_match('/^(javascript|data|vbscript):/i', $url)) {
                 $validator->errors()->add('target_url', 'نشانی مقصد مجاز نیست.');
             }
         }];
