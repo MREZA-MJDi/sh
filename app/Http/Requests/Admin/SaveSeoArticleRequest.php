@@ -15,10 +15,14 @@ class SaveSeoArticleRequest extends FormRequest
     public function rules(): array
     {
         $article = $this->route('article');
+        $slugRule = Rule::unique('seo_articles', 'slug');
+        if ($article) {
+            $slugRule->ignore($article->id);
+        }
 
         return [
             'title' => ['required', 'string', 'max:180'],
-            'slug' => ['nullable', 'string', 'max:190', Rule::unique('seo_articles', 'slug')->ignore($article?->id)],
+            'slug' => ['nullable', 'string', 'max:190', $slugRule],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'body' => ['required', 'string', 'max:100000'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
@@ -31,5 +35,14 @@ class SaveSeoArticleRequest extends FormRequest
             'status' => ['required', Rule::in(['draft', 'published', 'scheduled', 'archived'])],
             'published_at' => ['nullable', 'date'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function ($validator): void {
+            if ($this->input('status') === 'scheduled' && ! $this->filled('published_at')) {
+                $validator->errors()->add('published_at', 'برای انتشار زمان‌بندی‌شده، تاریخ انتشار الزامی است.');
+            }
+        }];
     }
 }
