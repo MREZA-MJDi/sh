@@ -43,6 +43,15 @@ class SaveSeoArticleRequest extends FormRequest
             if ($this->input('status') === 'scheduled' && ! $this->filled('published_at')) {
                 $validator->errors()->add('published_at', 'برای انتشار زمان‌بندی‌شده، تاریخ انتشار الزامی است.');
             }
+
+            if ($this->input('status') === 'scheduled' && $this->filled('published_at')
+                && $this->date('published_at')?->isPast()) {
+                $validator->errors()->add('published_at', 'زمان انتشار زمان‌بندی‌شده باید در آینده باشد.');
+            }
+
+            if ($this->hasFile('featured_image') && ! $this->filled('image_alt')) {
+                $validator->errors()->add('image_alt', 'برای تصویر شاخص، متن جایگزین الزامی است.');
+            }
         }];
     }
 }
