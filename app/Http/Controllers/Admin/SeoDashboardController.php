@@ -74,7 +74,12 @@ class SeoDashboardController extends Controller
         $banners = SeoBanner::query()->with('creator')
             ->orderBy('sort_order')->latest('id')->paginate(15)->withQueryString();
 
-        return view('admin.seo.banners', compact('banners'));
+        return view('admin.seo.banners', [
+            'banners' => $banners,
+            'activeBannerCount' => SeoBanner::active()->count(),
+            'draftBannerCount' => SeoBanner::query()->where('status', 'draft')->count(),
+            'inactiveBannerCount' => SeoBanner::query()->where('status', 'inactive')->count(),
+        ]);
     }
 
     public function storeBanner(SaveSeoBannerRequest $request): RedirectResponse
@@ -121,7 +126,12 @@ class SeoDashboardController extends Controller
     {
         $articles = SeoArticle::query()->with('author')->latest()->paginate(15)->withQueryString();
 
-        return view('admin.seo.articles', compact('articles'));
+        return view('admin.seo.articles', [
+            'articles' => $articles,
+            'publishedArticleCount' => SeoArticle::published()->count(),
+            'draftArticleCount' => SeoArticle::query()->where('status', 'draft')->count(),
+            'scheduledArticleCount' => SeoArticle::query()->where('status', 'scheduled')->where('published_at', '>', now())->count(),
+        ]);
     }
 
     public function storeArticle(SaveSeoArticleRequest $request): RedirectResponse
