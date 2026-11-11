@@ -8,6 +8,7 @@
         $seoDescription = trim((string) $__env->yieldContent('seo-description', $settings->default_description));
         $seoKeywords = trim((string) $__env->yieldContent('seo-keywords', implode(', ', $settings->default_keywords ?? [])));
         $seoImage = trim((string) $__env->yieldContent('seo-image', $settings->default_og_image_path ? Storage::disk('public')->url($settings->default_og_image_path) : ''));
+        $seoImageAlt = trim((string) $__env->yieldContent('seo-image-alt', $settings->site_name));
         $organizationData = array_filter([
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
@@ -38,7 +39,9 @@
     <meta property="og:url" content="{{ $seoCanonical }}">
     @if($seoImage !== '')
         <meta property="og:image" content="{{ $seoImage }}">
+        <meta property="og:image:alt" content="{{ $seoImageAlt }}">
         <meta name="twitter:image" content="{{ $seoImage }}">
+        <meta name="twitter:image:alt" content="{{ $seoImageAlt }}">
     @endif
     <meta name="twitter:card" content="{{ $seoImage !== '' ? 'summary_large_image' : 'summary' }}">
     <meta name="twitter:title" content="{{ $seoTitle }}">
