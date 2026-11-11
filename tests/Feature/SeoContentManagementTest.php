@@ -219,7 +219,7 @@ class SeoContentManagementTest extends TestCase
 
         $this->get(route('seo.sitemap'))
             ->assertOk()
-            ->assertSee(route('seo.articles.show', $article->slug), false)
+            ->assertSee($article->canonical_url, false)
             ->assertDontSee(route('seo.articles.show', 'draft-article'), false);
 
         $this->actingAs($admin)->patch(route('admin.seo.articles.update', $article), [
