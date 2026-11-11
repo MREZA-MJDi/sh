@@ -103,12 +103,12 @@ final class RichTextSanitizer
                     if ($property === 'font-weight' && ! in_array($styleValue, ['normal', 'bold', '400', '500', '600', '700', '800'], true)) {
                         continue;
                     }
-                    $styles[] = $property.':'.$styleValue;
+                    $styles[] = $property.': '.$styleValue;
                 }
                 if ($styles === []) {
                     $element->removeAttribute('style');
                 } else {
-                    $element->setAttribute('style', implode(';', $styles));
+                    $element->setAttribute('style', implode('; ', $styles));
                 }
                 continue;
             }
