@@ -41,7 +41,7 @@ class SeoPublicController extends Controller
 
         $baseUrl = rtrim($settings->canonical_base_url ?: url('/'), '/');
         $articles = $settings->robots_index
-            ? SeoArticle::published()->orderBy('published_at')->get(['slug', 'updated_at'])
+            ? SeoArticle::published()->orderBy('published_at')->get(['slug', 'canonical_url', 'updated_at'])
             : collect();
 
         $urls = collect();
@@ -51,7 +51,7 @@ class SeoPublicController extends Controller
                 'lastmod' => now()->toAtomString(),
             ]);
             $urls = $urls->merge($articles->map(fn (SeoArticle $article): array => [
-                'loc' => $baseUrl.'/articles/'.rawurlencode($article->slug),
+                'loc' => $article->canonical_url ?: $baseUrl.'/articles/'.rawurlencode($article->slug),
                 'lastmod' => $article->updated_at?->toAtomString(),
             ]));
         }
