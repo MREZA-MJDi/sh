@@ -43,3 +43,5 @@ body.admin-body .seo-admin-errors{padding:12px 15px;border:1px solid var(--adm-r
 body.admin-body .seo-admin-errors ul{margin:6px 18px 0 0}
 @media(max-width:900px){body.admin-body .seo-admin-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}body.admin-body .seo-admin-checks{grid-template-columns:1fr}}
 @media(max-width:640px){body.admin-body .seo-admin-hero{padding:17px}body.admin-body .seo-admin-hero h2{font-size:18px}body.admin-body .seo-admin-kpis{gap:8px}body.admin-body .seo-admin-kpi{padding:12px}body.admin-body .seo-admin-kpi strong{font-size:22px}body.admin-body .seo-admin-section{padding:13px}body.admin-body .seo-admin-inline-form{min-width:0;width:100%}body.admin-body .seo-admin-inline-form .panel-form-grid{grid-template-columns:1fr}}
+
+body.admin-body .seo-admin-save-actions{margin-top:18px}
