@@ -11,18 +11,27 @@
     <meta property="article:published_time" content="{{ $article->published_at->toAtomString() }}">
     <meta property="article:modified_time" content="{{ $article->updated_at->toAtomString() }}">
     @if($article->author)<meta name="author" content="{{ $article->author->name }}">@endif
-    <script type="application/ld+json">@json([
-        '@context' => 'https://schema.org',
-        '@type' => 'Article',
-        'headline' => $article->title,
-        'description' => $article->meta_description ?: $article->excerpt,
-        'datePublished' => $article->published_at->toAtomString(),
-        'dateModified' => $article->updated_at->toAtomString(),
-        'author' => ['@type' => 'Person', 'name' => $article->author?->name ?: $settings->organization_name ?: $settings->site_name],
-        'image' => $article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : null,
-        'mainEntityOfPage' => route('seo.articles.show', $article->slug),
-        'publisher' => ['@type' => 'Organization', 'name' => $settings->organization_name ?: $settings->site_name, 'url' => $settings->organization_url, 'logo' => $settings->organization_logo_path ? Storage::disk('public')->url($settings->organization_logo_path) : null, 'sameAs' => array_values($settings->social_links ?? [])],
-    ])</script>
+    @php
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $article->title,
+            'description' => $article->meta_description ?: $article->excerpt,
+            'datePublished' => $article->published_at->toAtomString(),
+            'dateModified' => $article->updated_at->toAtomString(),
+            'author' => ['@type' => 'Person', 'name' => $article->author?->name ?: $settings->organization_name ?: $settings->site_name],
+            'image' => $article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : null,
+            'mainEntityOfPage' => route('seo.articles.show', $article->slug),
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => $settings->organization_name ?: $settings->site_name,
+                'url' => $settings->organization_url,
+                'logo' => $settings->organization_logo_path ? Storage::disk('public')->url($settings->organization_logo_path) : null,
+                'sameAs' => array_values($settings->social_links ?? []),
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
 @endpush
 
 @section('content')
