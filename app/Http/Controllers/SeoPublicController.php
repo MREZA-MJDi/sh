@@ -38,7 +38,7 @@ class SeoPublicController extends Controller
 
         $urls = SeoArticle::published()->orderBy('published_at')->get(['slug', 'updated_at'])
             ->map(fn (SeoArticle $article): array => [
-                'loc' => route('seo.articles.show', $article->slug),
+                'loc' => rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles/'.rawurlencode($article->slug),
                 'lastmod' => $article->updated_at?->toAtomString(),
             ]);
 
@@ -70,7 +70,7 @@ class SeoPublicController extends Controller
             $lines[] = 'Disallow: /teacher';
             $lines[] = 'Disallow: /parent';
             if ($settings->sitemap_enabled) {
-                $lines[] = 'Sitemap: '.route('seo.sitemap');
+                $lines[] = 'Sitemap: '.rtrim($settings->canonical_base_url ?: url('/'), '/').'/sitemap.xml';
             }
         }
 
