@@ -5,6 +5,7 @@
 @section('seo-keywords', implode(', ', $article->keywords ?? $settings->default_keywords ?? []))
 @section('seo-canonical', $article->canonical_url ?: rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles/'.rawurlencode($article->slug))
 @section('seo-image', $article->og_image_path ? Storage::disk('public')->url($article->og_image_path) : ($article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : ''))
+@section('seo-image-alt', $article->image_alt ?: $article->title)
 @section('og-type', 'article')
 
 @push('head')
