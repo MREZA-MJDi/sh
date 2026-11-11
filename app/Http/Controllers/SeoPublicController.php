@@ -26,7 +26,10 @@ class SeoPublicController extends Controller
     {
         $settings = SeoSetting::current();
         $article = SeoArticle::published()->with('author')->where('slug', $slug)->firstOrFail();
-        $banners = SeoBanner::active()->where('placement', 'articles_sidebar')->orderBy('sort_order')->get();
+        $banners = SeoBanner::active()
+            ->whereIn('placement', ['articles_sidebar', 'sitewide'])
+            ->orderBy('sort_order')
+            ->get();
 
         return view('seo.public.show', compact('settings', 'article', 'banners'));
     }
@@ -37,14 +40,21 @@ class SeoPublicController extends Controller
         abort_unless($settings->sitemap_enabled, 404);
 
         $baseUrl = rtrim($settings->canonical_base_url ?: url('/'), '/');
-        $urls = collect([[
-            'loc' => $baseUrl.'/articles',
-            'lastmod' => now()->toAtomString(),
-        ]])->merge(SeoArticle::published()->orderBy('published_at')->get(['slug', 'updated_at'])
-            ->map(fn (SeoArticle $article): array => [
+        $articles = $settings->robots_index
+            ? SeoArticle::published()->orderBy('published_at')->get(['slug', 'updated_at'])
+            : collect();
+
+        $urls = collect();
+        if ($settings->robots_index) {
+            $urls->push([
+                'loc' => $baseUrl.'/articles',
+                'lastmod' => now()->toAtomString(),
+            ]);
+            $urls = $urls->merge($articles->map(fn (SeoArticle $article): array => [
                 'loc' => $baseUrl.'/articles/'.rawurlencode($article->slug),
                 'lastmod' => $article->updated_at?->toAtomString(),
             ]));
+        }
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
@@ -63,19 +73,19 @@ class SeoPublicController extends Controller
     public function robots(): Response
     {
         $settings = SeoSetting::current();
-        $lines = ['User-agent: *'];
+        $lines = [
+            'User-agent: *',
+            'Allow: /',
+            'Disallow: /admin',
+            'Disallow: /student',
+            'Disallow: /teacher',
+            'Disallow: /parent',
+            'Disallow: /login',
+            'Disallow: /register',
+        ];
 
-        if (! $settings->robots_index) {
-            $lines[] = 'Disallow: /';
-        } else {
-            $lines[] = 'Allow: /';
-            $lines[] = 'Disallow: /admin';
-            $lines[] = 'Disallow: /student';
-            $lines[] = 'Disallow: /teacher';
-            $lines[] = 'Disallow: /parent';
-            if ($settings->sitemap_enabled) {
-                $lines[] = 'Sitemap: '.rtrim($settings->canonical_base_url ?: url('/'), '/').'/sitemap.xml';
-            }
+        if ($settings->sitemap_enabled) {
+            $lines[] = 'Sitemap: '.rtrim($settings->canonical_base_url ?: url('/'), '/').'/sitemap.xml';
         }
 
         return response(implode("\n", $lines)."\n", 200)
