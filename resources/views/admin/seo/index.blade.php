@@ -99,7 +99,7 @@
             <label class="seo-admin-check"><input type="checkbox" name="sitemap_enabled" value="1" @checked(old('sitemap_enabled', $settings->sitemap_enabled))><span><strong>فعال‌بودن نقشه سایت</strong><br><small>فقط مقاله‌های منتشرشده در sitemap.xml قرار بگیرند.</small></span></label>
         </div>
 
-        <div class="seo-admin-actions" style="margin-top:18px">
+        <div class="seo-admin-actions seo-admin-save-actions">
             <button class="panel-btn" type="submit">ذخیره همه تنظیمات سئو</button>
             <a class="panel-btn panel-btn-secondary" href="{{ route('seo.sitemap') }}" target="_blank" rel="noopener">بازکردن sitemap.xml</a>
         </div>
