@@ -3,8 +3,8 @@
 @section('seo-title', $article->meta_title ?: $article->title)
 @section('seo-description', $article->meta_description ?: $article->excerpt ?: $settings->default_description)
 @section('seo-keywords', implode(', ', $article->keywords ?? $settings->default_keywords ?? []))
-@section('seo-canonical', $article->canonical_url ?: route('seo.articles.show', $article->slug))
-@section('seo-image', $article->og_image_path ? Storage::disk('public')->url($article->og_image_path) : ($article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : ($settings->default_og_image_path ? Storage::disk('public')->url($settings->default_og_image_path) : '')))
+@section('seo-canonical', $article->canonical_url ?: rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles/'.rawurlencode($article->slug))
+@section('seo-image', $article->og_image_path ? Storage::disk('public')->url($article->og_image_path) : ($article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : ''))
 @section('og-type', 'article')
 
 @push('head')
@@ -12,22 +12,23 @@
     <meta property="article:modified_time" content="{{ $article->updated_at->toAtomString() }}">
     @if($article->author)<meta name="author" content="{{ $article->author->name }}">@endif
     @php
+        $articleImage = $article->og_image_path ?: $article->featured_image_path;
         $structuredData = [
             '@context' => 'https://schema.org',
             '@type' => 'Article',
-            'headline' => $article->title,
+            'headline' => $article->meta_title ?: $article->title,
             'description' => $article->meta_description ?: $article->excerpt,
             'datePublished' => $article->published_at->toAtomString(),
             'dateModified' => $article->updated_at->toAtomString(),
             'author' => ['@type' => 'Person', 'name' => $article->author?->name ?: $settings->organization_name ?: $settings->site_name],
-            'image' => $article->featured_image_path ? Storage::disk('public')->url($article->featured_image_path) : null,
-            'mainEntityOfPage' => route('seo.articles.show', $article->slug),
+            'image' => $articleImage ? Storage::disk('public')->url($articleImage) : ($settings->default_og_image_path ? Storage::disk('public')->url($settings->default_og_image_path) : null),
+            'mainEntityOfPage' => $article->canonical_url ?: route('seo.articles.show', $article->slug),
             'publisher' => [
                 '@type' => 'Organization',
                 'name' => $settings->organization_name ?: $settings->site_name,
-                'url' => $settings->organization_url,
+                'url' => $settings->organization_url ?: rtrim($settings->canonical_base_url ?: url('/'), '/'),
                 'logo' => $settings->organization_logo_path ? Storage::disk('public')->url($settings->organization_logo_path) : null,
-                'sameAs' => array_values($settings->social_links ?? []),
+                'sameAs' => array_values(array_filter($settings->social_links ?? [])),
             ],
         ];
     @endphp
@@ -42,6 +43,14 @@
         <div class="seo-article-body">{!! $article->body !!}</div>
     </article>
     @if($banners->isNotEmpty())
-        <aside class="seo-related-banners">@foreach($banners as $banner)<div class="seo-banner">@if($banner->target_url)<a href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>@endif<img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" loading="lazy">@if($banner->target_url)</a>@endif</div>@endforeach</aside>
+        <aside class="seo-related-banners">
+            @foreach($banners as $banner)
+                <div class="seo-banner">
+                    @if($banner->target_url)<a href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>@endif
+                        <img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" loading="lazy">
+                    @if($banner->target_url)</a>@endif
+                </div>
+            @endforeach
+        </aside>
     @endif
 @endsection
