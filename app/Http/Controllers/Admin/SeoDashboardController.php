@@ -55,6 +55,10 @@ class SeoDashboardController extends Controller
             ->values()
             ->all();
 
+        if (array_key_exists('social_links', $data)) {
+            $data['social_links'] = array_filter($data['social_links'] ?? [], fn ($url) => filled($url));
+        }
+
         $data['robots_index'] = $request->boolean('robots_index');
         $data['robots_follow'] = $request->boolean('robots_follow');
         $data['sitemap_enabled'] = $request->boolean('sitemap_enabled');
