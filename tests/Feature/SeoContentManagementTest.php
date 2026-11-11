@@ -71,6 +71,9 @@ class SeoContentManagementTest extends TestCase
             'twitter_handle' => '@sheykhan',
             'google_site_verification' => 'google-token',
             'bing_site_verification' => 'bing-token',
+            'default_og_image' => UploadedFile::fake()->image('default-og.jpg', 1200, 630),
+            'organization_logo' => UploadedFile::fake()->image('organization.png', 500, 500),
+            'social_links' => ['instagram' => 'https://instagram.com/sheykhan', 'telegram' => 'https://t.me/sheykhan'],
             'robots_index' => '0',
             'robots_follow' => '0',
             'sitemap_enabled' => '0',
@@ -82,6 +85,8 @@ class SeoContentManagementTest extends TestCase
         $this->assertFalse($settings->robots_follow);
         $this->assertFalse($settings->sitemap_enabled);
         $this->assertSame($admin->id, $settings->updated_by);
+        Storage::disk('public')->assertExists($settings->default_og_image_path);
+        Storage::disk('public')->assertExists($settings->organization_logo_path);
 
         $this->get(route('seo.robots'))
             ->assertOk()
@@ -97,7 +102,11 @@ class SeoContentManagementTest extends TestCase
             ->assertSee('name="msvalidate.01" content="bing-token"', false)
             ->assertSee('توضیح واقعی وب‌سایت برای موتورهای جست‌وجو')
             ->assertSee('property="og:site_name"', false)
-            ->assertSee('name="twitter:site" content="@sheykhan"', false);
+            ->assertSee('name="twitter:site" content="@sheykhan"', false)
+            ->assertSee('property="og:image"', false)
+            ->assertSee('name="twitter:image"', false)
+            ->assertSee('rel="canonical" href="https://sheykhan.example/articles"', false)
+            ->assertSee('https://instagram.com/sheykhan', false);
 
         $this->get(route('seo.sitemap'))->assertNotFound();
     }
@@ -160,6 +169,9 @@ class SeoContentManagementTest extends TestCase
             'meta_description' => 'راهنمای کامل یادگیری مؤثر برای دانش‌آموزان',
             'keywords' => 'یادگیری, مطالعه, آموزش',
             'canonical_url' => 'https://sheykhan.example/articles/effective-learning-guide',
+            'featured_image' => UploadedFile::fake()->image('article-cover.jpg', 1200, 800),
+            'image_alt' => 'تصویر راهنمای یادگیری',
+            'og_image' => UploadedFile::fake()->image('article-og.jpg', 1200, 630),
             'status' => 'published',
         ])->assertRedirect();
 
@@ -167,6 +179,10 @@ class SeoContentManagementTest extends TestCase
         $this->assertSame($admin->id, $article->author_id);
         $this->assertSame(['یادگیری', 'مطالعه', 'آموزش'], $article->keywords);
         $this->assertNotNull($article->published_at);
+        Storage::disk('public')->assertExists($article->featured_image_path);
+        Storage::disk('public')->assertExists($article->og_image_path);
+        $featuredImagePath = $article->featured_image_path;
+        $ogImagePath = $article->og_image_path;
         $this->assertStringContainsString('<strong>مهم</strong>', $article->body);
         $this->assertStringNotContainsString('<script', $article->body);
 
@@ -187,6 +203,9 @@ class SeoContentManagementTest extends TestCase
             ->assertSee('راهنمای یادگیری | شیخان')
             ->assertSee('name="description"', false)
             ->assertSee('application/ld+json', false)
+            ->assertSee('property="og:image"', false)
+            ->assertSee('name="twitter:image"', false)
+            ->assertSee('تصویر راهنمای یادگیری')
             ->assertSee('<strong>مهم</strong>', false);
 
         $this->get(route('seo.sitemap'))
@@ -215,6 +234,8 @@ class SeoContentManagementTest extends TestCase
 
         $this->actingAs($admin)->delete(route('admin.seo.articles.destroy', $article))->assertRedirect();
         $this->assertDatabaseMissing('seo_articles', ['id' => $article->id]);
+        Storage::disk('public')->assertMissing($featuredImagePath);
+        Storage::disk('public')->assertMissing($ogImagePath);
     }
 
     public function test_scheduled_article_becomes_public_and_enters_sitemap_when_publication_time_arrives(): void
