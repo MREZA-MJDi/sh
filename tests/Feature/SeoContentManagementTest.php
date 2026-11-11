@@ -206,6 +206,28 @@ class SeoContentManagementTest extends TestCase
         $this->assertDatabaseMissing('seo_articles', ['id' => $article->id]);
     }
 
+    public function test_scheduled_article_becomes_public_and_enters_sitemap_when_publication_time_arrives(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post(route('admin.seo.articles.store'), [
+            'title' => 'مقاله زمان‌بندی‌شده',
+            'slug' => 'scheduled-public-article',
+            'body' => '<p>محتوای زمان‌بندی‌شده</p>',
+            'status' => 'scheduled',
+            'published_at' => now()->addDay()->format('Y-m-d H:i:s'),
+        ])->assertRedirect();
+
+        $this->get(route('seo.articles.index'))->assertDontSee('مقاله زمان‌بندی‌شده');
+        $this->get(route('seo.sitemap'))->assertDontSee('scheduled-public-article');
+
+        $this->travel(2)->days();
+
+        $this->get(route('seo.articles.index'))->assertSee('مقاله زمان‌بندی‌شده');
+        $this->get(route('seo.articles.show', 'scheduled-public-article'))->assertOk();
+        $this->get(route('seo.sitemap'))->assertSee('scheduled-public-article');
+    }
+
     public function test_public_article_index_only_displays_current_active_banners_in_sort_order(): void
     {
         $admin = $this->admin();
