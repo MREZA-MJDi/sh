@@ -1,0 +1,235 @@
+/*
+ * resources/css/admin/tones.css   (v2: tones + dark-theme audit fixes)
+ *
+ * Add near the top of app.css, after the tailwind import:
+ *   @import './tones.css';
+ * Every rule here uses a doubled .admin-body, so it wins over app.css
+ * wherever the import sits.
+ *
+ * TONES: one colour = one area. Put data-tone="..." on a sidebar group, card,
+ * stat or page header; children inherit it.
+ *   people (indigo)  learning (teal)  work (orange)  presence (green)
+ *   talk (pink)      library (violet) system (cyan)
+ * Red is reserved for problems (absence, overdue, errors). Never a tone.
+ *
+ * AUDIT (WCAG contrast, measured, not guessed). Problems found in the old theme:
+ *   dark  white text on primary button ........ 2.29  -> dark text, 8.26
+ *   dark  warning badge (#8a5a00 on amber) .... 1.92  -> amber text, 6.44
+ *   dark  card vs page background ............. 1.12  -> border + shadow added
+ *   dark  card border ......................... 1.30  -> 1.80
+ *   both  input border ........................ ~1.3   -> >= 3.0 (WCAG 1.4.11)
+ *   light success badge/button text ........... 3.43  -> 5.49
+ *   light danger badge/button text ............ 3.83  -> 5.61
+ *   light tone solids with white text were 3.1-4.0 -> darkened to >= 4.4
+ */
+
+/* ===== 1. Palette ===== */
+body.admin-body.admin-body {
+    --tone-people:#3b5bdb;
+    --tone-learning:#0a7a6e;
+    --tone-work:#c2570a;
+    --tone-presence:#277a37;
+    --tone-talk:#d6336c;
+    --tone-library:#7048e8;
+    --tone-system:#0b7c90;
+
+    --on-tone:#ffffff;
+    --on-primary:#ffffff;
+    --adm-input-line:#7d87b0;
+    --adm-teal-ink:#086b60;
+    --adm-red-ink:#a82a36;
+    --adm-warn-ink:#8a5a00;
+    --adm-danger:#cf3f4b;
+}
+
+/* ===== 2. Dark theme ===== */
+body.admin-body.admin-body[data-theme="dark"],
+html[data-admin-theme="dark"] body.admin-body.admin-body {
+    --tone-people:#8aa0ff;
+    --tone-learning:#3ccdb9;
+    --tone-work:#ffa94d;
+    --tone-presence:#69db7c;
+    --tone-talk:#f783ac;
+    --tone-library:#b197fc;
+    --tone-system:#3bc9db;
+
+    --on-tone:#0a0f26;
+    --on-primary:#0a0f26;
+
+    --adm-bg:#0a0f26;
+    --adm-card:#161e47;
+    --adm-line:#38448a;
+    --adm-input-line:#6572b8;
+    --adm-muted:#9aa5d6;
+    --adm-sidebar:#070b1f;
+    --adm-shadow:0 0 0 1px rgba(255,255,255,.04), 0 12px 28px -14px rgba(0,0,0,.7);
+
+    --adm-teal-ink:#3ccdb9;
+    --adm-red-ink:#ff7f89;
+    --adm-warn-ink:#f5b942;
+    --adm-danger:#ff7f89;
+}
+body.admin-body.admin-body[data-theme="dark"] .panel-hero,
+html[data-admin-theme="dark"] body.admin-body.admin-body .panel-hero {
+    background:linear-gradient(120deg,#2b3a9e,#1b2466);
+}
+
+/* ===== 3. Contrast fixes (both themes) ===== */
+body.admin-body.admin-body .panel-btn { color:var(--on-primary); }
+body.admin-body.admin-body .panel-btn-secondary,
+body.admin-body.admin-body .panel-btn-ghost { color:var(--adm-primary); }
+body.admin-body.admin-body .panel-btn-success { color:var(--adm-teal-ink); }
+body.admin-body.admin-body .panel-btn-danger  { color:var(--adm-red-ink); }
+body.admin-body.admin-body .panel-badge-success { color:var(--adm-teal-ink); }
+body.admin-body.admin-body .panel-badge-warning { color:var(--adm-warn-ink); }
+body.admin-body.admin-body .panel-badge-danger  { color:var(--adm-red-ink); }
+body.admin-body.admin-body .panel-stat-note { color:var(--adm-teal-ink); }
+body.admin-body.admin-body .panel-alert { color:var(--adm-teal-ink); }
+body.admin-body.admin-body .panel-alert-error { color:var(--adm-red-ink); }
+body.admin-body.admin-body .admin-calendar-day.is-selected { color:var(--on-primary); }
+
+body.admin-body.admin-body .panel-input,
+body.admin-body.admin-body .panel-select,
+body.admin-body.admin-body .panel-textarea,
+body.admin-body.admin-body .admin-input { border-color:var(--adm-input-line); }
+body.admin-body.admin-body .panel-input:disabled,
+body.admin-body.admin-body .panel-select:disabled { border-color:var(--adm-line); }
+
+/* ===== 4. Tone system ===== */
+body.admin-body [data-tone="people"]   { --tone:var(--tone-people); }
+body.admin-body [data-tone="learning"] { --tone:var(--tone-learning); }
+body.admin-body [data-tone="work"]     { --tone:var(--tone-work); }
+body.admin-body [data-tone="presence"] { --tone:var(--tone-presence); }
+body.admin-body [data-tone="talk"]     { --tone:var(--tone-talk); }
+body.admin-body [data-tone="library"]  { --tone:var(--tone-library); }
+body.admin-body [data-tone="system"]   { --tone:var(--tone-system); }
+
+body.admin-body [data-tone] {
+    --tone-soft:color-mix(in srgb, var(--tone) 14%, var(--adm-card));
+    --tone-line:color-mix(in srgb, var(--tone) 35%, var(--adm-line));
+    --tone-ink:color-mix(in srgb, var(--tone) 80%, var(--adm-ink));
+    --adm-nav-accent:var(--tone);
+    --stat-accent:var(--tone);
+}
+
+/* Sidebar: coloured icon per group */
+body.admin-body [data-tone] .panel-nav-link .panel-nav-icon,
+body.admin-body .panel-nav-link[data-tone] .panel-nav-icon {
+    color:color-mix(in srgb, var(--tone) 55%, #fff);
+    background:color-mix(in srgb, var(--tone) 28%, transparent);
+}
+body.admin-body [data-tone] .panel-nav-link:hover .panel-nav-icon,
+body.admin-body .panel-nav-link[data-tone]:hover .panel-nav-icon {
+    background:color-mix(in srgb, var(--tone) 42%, transparent);
+}
+body.admin-body [data-tone] .panel-nav-link.is-active .panel-nav-icon,
+body.admin-body .panel-nav-link[data-tone].is-active .panel-nav-icon {
+    color:var(--on-tone);
+    background:var(--tone);
+}
+body.admin-body [data-tone] .panel-nav-link.is-active::before,
+body.admin-body .panel-nav-link[data-tone].is-active::before { background:var(--tone); }
+body.admin-body [data-tone] > .panel-nav-heading { color:color-mix(in srgb, var(--tone) 55%, #fff); }
+body.admin-body [data-tone] > .panel-nav-heading::before { background:var(--tone); }
+
+/* Icon bubble: card titles, lists, page heads */
+body.admin-body .panel-tone-icon {
+    display:grid;
+    place-items:center;
+    width:38px;
+    height:38px;
+    flex:none;
+    border-radius:12px;
+    color:var(--tone, var(--adm-primary));
+    background:var(--tone-soft, var(--adm-primary-soft));
+}
+body.admin-body .panel-tone-icon.is-solid { color:var(--on-tone); background:var(--tone, var(--adm-primary)); }
+
+/* Cards */
+body.admin-body .panel-card[data-tone] {
+    border-color:var(--tone-line);
+    border-top:3px solid var(--tone);
+    background:linear-gradient(180deg, var(--tone-soft), var(--adm-card) 96px);
+}
+body.admin-body .panel-card[data-tone] .panel-card-title h3,
+body.admin-body .panel-card[data-tone] h2 { color:var(--tone-ink); }
+
+/* Stats */
+body.admin-body .panel-stat[data-tone] {
+    border-color:var(--tone-line);
+    border-top:3px solid var(--tone);
+    background:linear-gradient(160deg, var(--tone-soft), var(--adm-card) 75%);
+}
+body.admin-body .panel-stat[data-tone] .panel-stat-symbol { color:var(--on-tone); background:var(--tone); }
+body.admin-body .panel-stat[data-tone] .panel-stat-value { color:var(--tone-ink); }
+
+/* Tables inside a toned card */
+body.admin-body .panel-card[data-tone] .panel-table th {
+    background:var(--tone-soft);
+    color:var(--tone-ink);
+    border-bottom-color:var(--tone-line);
+}
+body.admin-body .panel-card[data-tone] .panel-table tbody tr:hover {
+    background:color-mix(in srgb, var(--tone-soft) 60%, transparent);
+}
+
+/* Buttons, badges, page head, focus ring */
+body.admin-body .panel-btn[data-tone],
+body.admin-body [data-tone] .panel-btn:not(.panel-btn-secondary):not(.panel-btn-ghost):not(.panel-btn-success):not(.panel-btn-danger) {
+    background:var(--tone);
+    color:var(--on-tone);
+}
+body.admin-body .panel-btn-ghost[data-tone],
+body.admin-body [data-tone] .panel-btn-ghost,
+body.admin-body [data-tone] .panel-btn-secondary {
+    color:var(--tone-ink);
+    background:var(--tone-soft);
+}
+body.admin-body .panel-badge[data-tone] { color:var(--tone-ink); background:var(--tone-soft); }
+body.admin-body .panel-page-head[data-tone] {
+    padding-bottom:14px;
+    border-bottom:2px solid var(--tone-line);
+}
+body.admin-body .panel-page-head[data-tone] h2 { color:var(--tone-ink); }
+body.admin-body [data-tone] .panel-input:focus,
+body.admin-body [data-tone] .panel-select:focus,
+body.admin-body [data-tone] .panel-textarea:focus {
+    border-color:var(--tone);
+    box-shadow:0 0 0 4px color-mix(in srgb, var(--tone) 18%, transparent);
+}
+
+/* ===== 5. SEO workspace (resources/css/admin/seo.css) =====
+ * Fixes found in the audit, plus the SEO area gets the "system" tone.
+ * In the Blade views add data-tone="system" to .seo-admin-hero,
+ * .seo-admin-kpi and .seo-admin-section.
+ */
+body.admin-body.admin-body .seo-admin-status.is-live  { color:var(--adm-teal-ink); }
+body.admin-body.admin-body .seo-admin-status.is-muted { color:var(--adm-warn-ink); }
+body.admin-body.admin-body .seo-admin-field-error,
+body.admin-body.admin-body .seo-admin-errors { color:var(--adm-red-ink); }
+
+/* Google-style preview: hardcoded link colours were unreadable on the dark page (1.52) */
+body.admin-body.admin-body .seo-admin-preview-title { color:#1a0dab; }
+body.admin-body.admin-body .seo-admin-preview-url   { color:#137333; }
+body.admin-body.admin-body[data-theme="dark"] .seo-admin-preview-title,
+html[data-admin-theme="dark"] body.admin-body.admin-body .seo-admin-preview-title { color:#8ab4f8; }
+body.admin-body.admin-body[data-theme="dark"] .seo-admin-preview-url,
+html[data-admin-theme="dark"] body.admin-body.admin-body .seo-admin-preview-url { color:#81c995; }
+
+body.admin-body .seo-admin-hero[data-tone] {
+    border-color:var(--tone-line);
+    background:linear-gradient(120deg, var(--adm-card), var(--tone-soft));
+}
+body.admin-body .seo-admin-hero[data-tone] h2 { color:var(--tone-ink); }
+body.admin-body .seo-admin-kpi[data-tone] {
+    border-color:var(--tone-line);
+    border-top:3px solid var(--tone);
+    background:linear-gradient(160deg, var(--tone-soft), var(--adm-card) 75%);
+}
+body.admin-body .seo-admin-kpi[data-tone] strong { color:var(--tone-ink); }
+body.admin-body .seo-admin-section[data-tone] {
+    border-color:var(--tone-line);
+    border-top:3px solid var(--tone);
+}
+body.admin-body .seo-admin-section[data-tone] .seo-admin-section-head h3 { color:var(--tone-ink); }
+body.admin-body .seo-admin-status[data-tone] { color:var(--tone-ink); background:var(--tone-soft); }

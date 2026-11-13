@@ -1,6 +1,6 @@
 @import '../rich-text.css';
 @import 'tailwindcss';
-
+@import './tones.css';
 @source '../../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../../storage/framework/views/*.php';
 @source '../../views/admin/**/*.blade.php';
