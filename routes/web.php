@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\ConsultationController;
+use App\Http\Controllers\Admin\ParentMeetingController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\CourseContentController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
+use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
@@ -136,6 +138,10 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
     Route::get('/consultations', [ConsultationController::class, 'index'])->middleware('permission:consultations.manage')->name('consultations.index');
     Route::patch('/consultations/{consultation}', [ConsultationController::class, 'update'])->middleware('permission:consultations.manage')->name('consultations.update');
 
+    Route::get('/parent-meetings', [ParentMeetingController::class, 'index'])->middleware('permission:meetings.manage')->name('parent-meetings.index');
+    Route::post('/parent-meetings', [ParentMeetingController::class, 'store'])->middleware('permission:meetings.manage')->name('parent-meetings.store');
+    Route::patch('/parent-meetings/{meeting}', [ParentMeetingController::class, 'update'])->middleware('permission:meetings.manage')->name('parent-meetings.update');
+
     Route::get('/messages', [MessageController::class, 'index'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.index');
     Route::post('/messages/{message}/reply', [MessageController::class, 'reply'])->middleware('permission:messages.reply')->name('messages.reply');
     Route::patch('/messages/{message}/read', [MessageController::class, 'markRead'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.read');
@@ -216,6 +222,9 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
+        Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->middleware('permission:meetings.view.own')->name('meetings.index');
+        Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('permission:meetings.create')->name('meetings.store');
+        Route::post('/meetings/{meeting}/response', [GuardianParentMeetingController::class, 'respond'])->middleware('permission:meetings.view.own')->name('meetings.respond');
     });
 
 Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])

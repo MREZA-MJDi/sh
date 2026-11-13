@@ -29,6 +29,27 @@
         <x-stat tone="s4" icon="chart" label="نتایج اخیر" :value="$faNumber($results->count())" hint="نتایج قابل مشاهده‌ی فرزند" href="#results"/>
     </section>
 
+    @can('meetings.view.own')
+    <section class="card mb-4" id="parent-meetings" aria-labelledby="guardian-parent-meetings-title">
+        <div class="chead">
+            <h2 id="guardian-parent-meetings-title">جلسات با آکادمی</h2>
+            <a class="pill" href="{{ route('guardian.meetings.index') }}">مشاهده و درخواست جلسه</a>
+        </div>
+        @forelse($meetings as $meeting)
+            <div class="trk">
+                <div class="th t-a"><x-icon name="cal"/></div>
+                <div>
+                    <b>{{ $meeting->title }}</b>
+                    <span class="mu">{{ $meeting->classroom?->name ?? 'جلسه عمومی' }} · {{ $meeting->scheduled_at ? \App\Support\PersianDate::format($meeting->scheduled_at, 'Y/m/d H:i') : ($meeting->proposed_at ? \App\Support\PersianDate::format($meeting->proposed_at, 'Y/m/d H:i') : 'در انتظار هماهنگی زمان') }}</span>
+                </div>
+                <span class="tag">{{ ['requested'=>'ثبت درخواست','proposed'=>'پیشنهاد زمان','accepted'=>'تأییدشده'][$meeting->status] ?? $meeting->status }}</span>
+            </div>
+        @empty
+            <div class="empty">برای این فرزند جلسه‌ای در جریان نیست.</div>
+        @endforelse
+    </section>
+    @endcan
+
     <section class="card student-course-progress" id="course-progress" aria-labelledby="guardian-course-progress-title">
         <div class="chead">
             <div><span class="student-section-eyebrow">گزارش تحصیلی فرزند</span><h2 id="guardian-course-progress-title">پیشرفت دوره‌ها و درس‌ها</h2></div>
@@ -142,7 +163,11 @@
             @forelse($attendance as $record)
                 <div class="trk">
                     <div class="th t-b"><x-icon name="cal"/></div>
-                    <div><b>{{ $record->classroom?->name ?? 'کلاس' }}</b><span class="mu">{{ \App\Support\PersianDate::format($record->session_date, 'l، d F Y') }}</span></div>
+                    <div>
+                        <b>{{ $record->classroom?->name ?? 'کلاس' }}</b>
+                        <span class="mu">{{ \App\Support\PersianDate::format($record->session_date, 'l، d F Y') }}</span>
+                        <span class="mu">مدت حضور: {{ $record->attended_minutes !== null ? $faNumber($record->attended_minutes).' دقیقه' : 'اندازه‌گیری نشده' }}@if($record->late_minutes !== null) · تأخیر: {{ $faNumber($record->late_minutes) }} دقیقه@endif</span>
+                    </div>
                     @if($record->status === 'present')<span class="tag">حاضر</span>@elseif($record->status === 'late')<span class="tag w">با تأخیر</span>@else<span class="tag r">غایب</span>@endif
                 </div>
             @empty

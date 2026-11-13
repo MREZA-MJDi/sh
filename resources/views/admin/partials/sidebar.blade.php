@@ -44,12 +44,16 @@
             <a href="{{ route('admin.resources.index') }}" class="panel-nav-link {{ request()->routeIs('admin.resources.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bag"/></svg></span><span>منابع و فروشگاه</span></a>
         @endcanany
 
-        @can('consultations.manage')
+                @canany(['consultations.manage', 'meetings.manage'])
             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
-            <a href="{{ route('admin.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('admin.consultations.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>مشاوره و جلسات</span></a>
-        @endcan
+            @can('consultations.manage')
+                <a href="{{ route('admin.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('admin.consultations.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>درخواست مشاوره</span></a>
+            @endcan
+            @can('meetings.manage')
+                <a href="{{ route('admin.parent-meetings.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parent-meetings.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-exams"/></svg></span><span>جلسات اولیا</span></a>
+            @endcan
+        @endcanany
         @canany(['messages.view.all', 'messages.view.assigned'])
-            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
             <a href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>پیام‌ها</span></a>
         @endcanany
         @canany(['announcements.manage', 'announcements.view'])

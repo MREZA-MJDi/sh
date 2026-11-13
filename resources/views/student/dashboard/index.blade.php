@@ -299,7 +299,7 @@
                 @endif
                 <div class="tw">
                     <table class="tbl">
-                        <thead><tr><th scope="col">کلاس</th><th scope="col">تاریخ جلسه</th><th scope="col">وضعیت</th></tr></thead>
+                        <thead><tr><th scope="col">کلاس</th><th scope="col">تاریخ جلسه</th><th scope="col">وضعیت</th><th scope="col">مدت حضور</th><th scope="col">تأخیر</th></tr></thead>
                         <tbody>
                             @forelse ($attendance as $record)
                                 <tr>
@@ -310,9 +310,11 @@
                                         @elseif ($record->status === 'late')<span class="tag w">با تأخیر</span>
                                         @else<span class="tag r">غایب</span>@endif
                                     </td>
+                                    <td>{{ $record->attended_minutes !== null ? $faNumber($record->attended_minutes).' دقیقه' : 'اندازه‌گیری نشده' }}</td>
+                                    <td>{{ $record->late_minutes !== null ? $faNumber($record->late_minutes).' دقیقه' : '—' }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="3" class="empty">رکوردی از حضور و غیاب برای تو ثبت نشده است.</td></tr>
+                                <tr><td colspan="5" class="empty">رکوردی از حضور و غیاب برای تو ثبت نشده است.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

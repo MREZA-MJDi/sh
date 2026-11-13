@@ -66,6 +66,9 @@ class RolePermissionSeeder extends Seeder
             'consultations.view.children' => ['مشاهده جلسات فرزندان', 'consultations'],
             'consultations.manage' => ['مدیریت درخواست‌های مشاوره', 'consultations'],
             'consultations.create' => ['ثبت درخواست مشاوره', 'consultations'],
+            'meetings.manage' => ['مدیریت جلسات اولیا', 'meetings'],
+            'meetings.create' => ['ثبت درخواست جلسه اولیا', 'meetings'],
+            'meetings.view.own' => ['مشاهده جلسات اولیای فرزند', 'meetings'],
             'messages.view.all' => ['مشاهده همه پیام‌ها', 'messages'],
             'messages.view.assigned' => ['مشاهده پیام‌های مرتبط با کلاس', 'messages'],
             'messages.view.own' => ['مشاهده پیام‌های شخصی', 'messages'],
@@ -114,7 +117,9 @@ class RolePermissionSeeder extends Seeder
             'parent' => [
                 'dashboard.view', 'students.view.linked', 'attendance.view.children', 'lessons.view',
                 'homework.view.children', 'exams.view.children', 'resources.view.enrolled',
-                'consultations.view.children', 'consultations.create', 'messages.view.children', 'messages.send.own',
+                'consultations.view.children', 'consultations.create',
+                'meetings.create', 'meetings.view.own',
+                'messages.view.children', 'messages.send.own',
                 'announcements.view', 'profile.update',
             ],
         ];

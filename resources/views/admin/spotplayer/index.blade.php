@@ -45,9 +45,28 @@
             <div class="panel-alert">تا زمان تحویل قرارداد رسمی، شناسه فقط در شیخان ثبت می‌شود و پلیر رسمی هنوز فعال نشده است.</div>
         </x-admin.drawer-form>
     @else
+        @if(! $health?->available)
         <section class="panel-card mb-4">
-            <div class="panel-card-title"><div><h3>وضعیت وب‌سرویس</h3><p>هسته داخلی آماده است؛ هیچ فراخوانی خارجی تا تحویل قرارداد رسمی انجام نمی‌شود.</p></div><span class="panel-badge panel-badge-warning">قرارداد API دریافت نشده</span></div>
-            <div class="panel-alert panel-alert-error">{{ $health->message }} وضعیت اتصال: {{ $health->state }}</div>
+            <div class="panel-card-title"><div><h3>پیش‌نمایش تجربه پخش دانش‌آموز</h3><p>نمایش گردش‌کار نهایی؛ این نمونه به SpotPlayer متصل نیست و لایسنس واقعی صادر نمی‌کند.</p></div><span class="panel-badge panel-badge-warning">Demo Preview</span></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div style="background:#111827;color:#fff;border-radius:14px;padding:20px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between">
+                    <div><strong>{{ $preview['course_title'] }}</strong><div style="opacity:.75;margin-top:6px">{{ $preview['video_title'] }}</div></div>
+                    <div style="display:flex;align-items:center;gap:12px"><span style="font-size:28px">▶</span><span>پخش پس از تأیید لایسنس</span></div>
+                </div>
+                <div class="panel-field">
+                    <strong>{{ $preview['student_name'] }}</strong>
+                    <p class="panel-muted">وضعیت لایسنس: در انتظار اتصال واقعی</p>
+                    <p class="panel-muted">واترمارک: {{ $preview['watermark'] }}</p>
+                    <p class="panel-muted">محدودیت دستگاه: {{ $preview['device_limit'] }}</p>
+                    <p class="panel-alert">{{ $preview['notice'] }}</p>
+                </div>
+            </div>
+        </section>
+        @endif
+
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>وضعیت وب‌سرویس</h3><p>هسته داخلی آماده است؛ هیچ فراخوانی خارجی تا تحویل قرارداد رسمی انجام نمی‌شود.</p></div><span class="panel-badge {{ $health->available ? 'panel-badge-success' : 'panel-badge-warning' }}">{{ $health->available ? 'اتصال سرویس فعال' : 'قرارداد API دریافت نشده' }}</span></div>
+            <div class="panel-alert {{ $health->available ? '' : 'panel-alert-error' }}">{{ $health->message }} وضعیت اتصال: {{ $health->state }}</div>
             <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">@csrf<button class="panel-btn panel-btn-secondary" type="submit">ثبت درخواست همگام‌سازی دوره‌ها</button></form>
         </section>
 

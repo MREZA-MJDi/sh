@@ -7,6 +7,7 @@ use App\Models\ClassSession;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\Admin\AttendanceService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -94,6 +95,38 @@ final class ClassSessionAttendanceTest extends TestCase
 
         $this->expectException(QueryException::class);
         $session->delete();
+    }
+
+
+    public function test_attendance_service_links_a_session_and_reports_only_measured_minutes(): void
+    {
+        [$teacher, $student, $classroom] = $this->classroomFixture();
+        $classroom->update(['schedule' => ['time' => '16:00', 'duration_minutes' => 90]]);
+        $date = now()->toDateString();
+
+        app(AttendanceService::class)->record($classroom, $date, [
+            $student->id => [
+                'status' => 'late',
+                'joined_at' => '16:10',
+                'left_at' => '17:10',
+            ],
+        ], $teacher->id);
+
+        $attendance = Attendance::query()->with('classSession')->firstOrFail();
+
+        $this->assertNotNull($attendance->class_session_id);
+        $this->assertSame(60, $attendance->attended_minutes);
+        $this->assertSame(10, $attendance->late_minutes);
+
+        $unmeasured = Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $attendance->class_session_id,
+            'student_id' => User::factory()->create()->id,
+            'session_date' => $date,
+            'status' => 'present',
+        ]);
+
+        $this->assertNull($unmeasured->attended_minutes);
     }
 
     /** @return array{0: User, 1: User, 2: Classroom} */

@@ -22,6 +22,15 @@
 
     @if ($classroom)
         <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>خلاصه حضور کلاس</h3><p>محاسبه بر اساس وضعیت‌های ثبت‌شده و زمان‌های ورود و خروج واقعی</p></div></div>
+            <div class="panel-form-grid panel-form-grid-3">
+                <div class="panel-field"><span class="panel-muted">پوشش ثبت</span><strong>{{ $summary['marked'] }} / {{ $summary['students'] }}</strong></div>
+                <div class="panel-field"><span class="panel-muted">درصد حضور (رکوردهای ثبت‌شده، بدون موجه)</span><strong>{{ $summary['attendance_rate'] !== null ? $summary['attendance_rate'].'٪' : '—' }}</strong></div>
+                <div class="panel-field"><span class="panel-muted">میانگین مدت حضور اندازه‌گیری‌شده</span><strong>{{ $summary['average_minutes'] !== null ? $summary['average_minutes'].' دقیقه' : 'داده کافی نیست' }}</strong><small class="panel-muted">{{ $summary['measured_count'] }} رکورد دارای ورود و خروج</small></div>
+            </div>
+        </section>
+
+        <section class="panel-card mb-4">
             <div class="panel-card-title">
                 <div><h3>ثبت حضور کلاس {{ $classroom->name }}</h3><p>تاریخ جلسه: {{ $date }} · {{ $classroom->students->count() }} دانش‌آموز ثبت‌نام‌شده</p></div>
                 <span class="panel-badge">ذخیره گروهی</span>
@@ -34,7 +43,7 @@
                     <input type="hidden" name="session_date" value="{{ $date }}">
                     <div class="panel-table-wrap">
                         <table class="panel-table">
-                            <thead><tr><th>دانش‌آموز</th><th>وضعیت حضور</th><th>یادداشت</th></tr></thead>
+                            <thead><tr><th>دانش‌آموز</th><th>وضعیت حضور</th><th>ورود</th><th>خروج</th><th>یادداشت</th></tr></thead>
                             <tbody>
                             @foreach ($classroom->students as $student)
                                 @php($record = $records->get($student->id))
@@ -47,6 +56,8 @@
                                             @endforeach
                                         </select>
                                     </td>
+                                    <td><input class="panel-input" type="time" name="attendance[{{ $student->id }}][joined_at]" value="{{ $record?->joined_at?->format('H:i') }}" aria-label="زمان ورود {{ $student->name }}"></td>
+                                    <td><input class="panel-input" type="time" name="attendance[{{ $student->id }}][left_at]" value="{{ $record?->left_at?->format('H:i') }}" aria-label="زمان خروج {{ $student->name }}"></td>
                                     <td><input class="panel-input" name="attendance[{{ $student->id }}][note]" value="{{ $record->note ?? '' }}" maxlength="500" placeholder="یادداشت اختیاری"></td>
                                 </tr>
                             @endforeach
@@ -67,7 +78,7 @@
         <div class="panel-card-title"><div><h3>سوابق ثبت‌شده</h3><p>سوابق همان کلاس و تاریخ انتخاب‌شده</p></div></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>دانش‌آموز</th><th>کلاس</th><th>تاریخ</th><th>وضعیت</th><th>یادداشت</th><th>ثبت‌کننده</th></tr></thead>
+                <thead><tr><th>دانش‌آموز</th><th>کلاس</th><th>تاریخ</th><th>وضعیت</th><th>ورود / خروج</th><th>مدت حضور</th><th>تأخیر</th><th>یادداشت</th><th>ثبت‌کننده</th></tr></thead>
                 <tbody>
                 @forelse ($history as $record)
                     <tr>
@@ -75,11 +86,14 @@
                         <td>{{ $record->classroom->name ?? '—' }}</td>
                         <td>{{ $record->session_date->format('Y-m-d') }}</td>
                         <td><span class="panel-badge {{ in_array($record->status, ['present','late']) ? 'panel-badge-success' : ($record->status==='absent' ? 'panel-badge-danger' : 'panel-badge-warning') }}">{{ ['present'=>'حاضر','absent'=>'غایب','late'=>'با تأخیر','excused'=>'موجه'][$record->status] ?? $record->status }}</span></td>
+                        <td>{{ $record->joined_at?->format('H:i') ?? '—' }} / {{ $record->left_at?->format('H:i') ?? '—' }}</td>
+                        <td>{{ $record->attended_minutes !== null ? $record->attended_minutes.' دقیقه' : 'اندازه‌گیری نشده' }}</td>
+                        <td>{{ $record->late_minutes !== null ? $record->late_minutes.' دقیقه' : '—' }}</td>
                         <td>{{ $record->note ?: '—' }}</td>
                         <td>{{ $record->marker->name ?? '—' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="panel-empty">برای این تاریخ رکوردی ثبت نشده است.</td></tr>
+                    <tr><td colspan="9" class="panel-empty">برای این تاریخ رکوردی ثبت نشده است.</td></tr>
                 @endforelse
                 </tbody>
             </table>

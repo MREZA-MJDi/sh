@@ -98,6 +98,27 @@
             </article>
         @endcan
 
+        @can('meetings.manage')
+            <article class="panel-card">
+                <div class="panel-card-title"><h3>جلسات اولیای پیش‌رو</h3><a href="{{ route('admin.parent-meetings.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">کارتابل جلسات</a></div>
+                <div class="panel-list">
+                    @forelse ($upcomingParentMeetings as $meeting)
+                        <div class="panel-list-row">
+                            <div class="panel-avatar">◷</div>
+                            <div class="panel-list-main">
+                                <strong>{{ $meeting->title }}</strong>
+                                <span>{{ $meeting->guardian->name ?? 'ولی' }} · {{ $meeting->student->name ?? 'دانش‌آموز' }}</span>
+                                <span>{{ $meeting->scheduled_at?->format('Y/m/d H:i') ?? 'در انتظار تعیین زمان' }}</span>
+                            </div>
+                            <span class="panel-badge {{ $meeting->status === 'accepted' ? 'panel-badge-success' : 'panel-badge-warning' }}">{{ ['requested'=>'درخواست','proposed'=>'پیشنهاد زمان','accepted'=>'تأییدشده'][$meeting->status] ?? $meeting->status }}</span>
+                        </div>
+                    @empty
+                        <div class="panel-empty">جلسه یا درخواست بازی برای نمایش وجود ندارد.</div>
+                    @endforelse
+                </div>
+            </article>
+        @endcan
+
         @canany(['announcements.manage', 'announcements.view'])
             <article class="panel-card">
                 <div class="panel-card-title"><h3>اطلاعیه‌های منتشرشده</h3><a href="{{ route('admin.announcements.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">مشاهده</a></div>

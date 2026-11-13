@@ -11,13 +11,15 @@ use App\Models\Quiz24Setting;
 use App\Models\Quiz24UnmatchedParticipant;
 use App\Models\User;
 use App\Services\Quiz24\Quiz24Service;
+use App\Services\Integrations\IntegrationPreviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class Quiz24Controller extends Controller
 {
-    public function index(Quiz24Service $quiz24): View
+    public function index(Quiz24Service $quiz24, IntegrationPreviewService $previewService): View
     {
+        $preview = $previewService->quiz24();
         $settings = Quiz24Setting::first();
         $health = $quiz24->health();
 
@@ -34,7 +36,7 @@ class Quiz24Controller extends Controller
             ->where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
         return view('admin.quiz24.index', compact(
-            'settings', 'health', 'exams', 'unmatched', 'operations', 'students'
+            'settings', 'health', 'exams', 'unmatched', 'operations', 'students', 'preview'
         ));
     }
 

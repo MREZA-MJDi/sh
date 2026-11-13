@@ -11,6 +11,7 @@ use App\Models\ExamResult;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\LearningResource;
+use App\Models\ParentMeeting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -94,7 +95,7 @@ final class GuardianDashboardService
             ->count();
 
         $attendance = (clone $attendanceQuery)
-            ->with('classroom:id,name')
+            ->with(['classroom:id,name', 'classSession:id,starts_at,ends_at,session_type'])
             ->latest('session_date')
             ->limit(8)
             ->get();
@@ -159,6 +160,18 @@ final class GuardianDashboardService
             ->limit(5)
             ->get();
 
+        $meetings = $guardian->hasPermissionTo('meetings.view.own')
+            ? ParentMeeting::query()
+                ->where('guardian_id', $guardian->id)
+                ->where('student_id', $student->id)
+                ->whereIn('status', ['requested', 'proposed', 'accepted'])
+                ->with('classroom:id,name')
+                ->orderByRaw('CASE WHEN scheduled_at IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('scheduled_at')
+                ->limit(5)
+                ->get()
+            : collect();
+
         return [
             'children' => $children,
             'selected_child' => $selectedChild,
@@ -181,6 +194,7 @@ final class GuardianDashboardService
             'resource_count' => (clone $resourceQuery)->count(),
             'announcements' => $announcements,
             'consultations' => $consultations,
+            'meetings' => $meetings,
         ];
     }
 
@@ -243,6 +257,7 @@ final class GuardianDashboardService
                 ->limit(5)
                 ->get(['id', 'title', 'body', 'published_at']),
             'consultations' => collect(),
+            'meetings' => collect(),
         ];
     }
 }

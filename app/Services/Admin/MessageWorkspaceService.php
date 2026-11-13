@@ -27,6 +27,9 @@ final class MessageWorkspaceService
             )->orWhereHas(
                 'sender.children.enrolledClasses',
                 fn (Builder $classes) => $classes->whereIn('classrooms.id', $classroomIds)
+            )->orWhereHas(
+                'student.enrolledClasses',
+                fn (Builder $classes) => $classes->whereIn('classrooms.id', $classroomIds)
             );
         });
     }

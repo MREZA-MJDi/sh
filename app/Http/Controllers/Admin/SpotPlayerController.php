@@ -15,6 +15,7 @@ use App\Models\SpotPlayerSetting;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Integrations\IntegrationPreviewService;
 use App\Services\SpotPlayer\SpotPlayerService;
 use App\Services\SpotPlayer\SpotPlayerVideoService;
 use Illuminate\Http\RedirectResponse;
@@ -26,13 +27,15 @@ class SpotPlayerController extends Controller
 {
     public function index(
         SpotPlayerService $spotPlayer,
-        ClassroomWorkspaceService $workspace
+        ClassroomWorkspaceService $workspace,
+        IntegrationPreviewService $previewService
     ): View {
         $user = auth()->user();
         $teacherView = $workspace->isTeacher($user);
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
+        $preview = $previewService->spotPlayer();
         $settings = $teacherView ? null : SpotPlayerSetting::query()->first();
         $health = $teacherView ? null : $spotPlayer->health();
 
@@ -80,7 +83,7 @@ class SpotPlayerController extends Controller
 
         return view('admin.spotplayer.index', compact(
             'settings', 'health', 'videos', 'licenses', 'courses', 'classrooms',
-            'students', 'operations', 'teacherView'
+            'students', 'operations', 'teacherView', 'preview'
         ));
     }
 

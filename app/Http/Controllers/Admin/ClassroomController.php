@@ -10,15 +10,17 @@ use App\Models\Course;
 use App\Models\User;
 use App\Services\Admin\ClassroomService;
 use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Integrations\IntegrationPreviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ClassroomController extends Controller
 {
-    public function index(Request $request, ClassroomWorkspaceService $workspace): View
+    public function index(Request $request, ClassroomWorkspaceService $workspace, IntegrationPreviewService $previewService): View
     {
         $user = $request->user();
+        $skyroomPreview = $previewService->skyroom();
         $teacherView = $workspace->isTeacher($user);
 
         $classrooms = $workspace->queryFor($user)
@@ -47,7 +49,7 @@ class ClassroomController extends Controller
             }))
             ->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView'));
+        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView', 'skyroomPreview'));
     }
 
     public function store(StoreClassroomRequest $request, ClassroomService $classrooms): RedirectResponse

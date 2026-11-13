@@ -12,6 +12,18 @@
         @endcanany
     </div>
 
+    @unless($teacherView)
+        <section class="panel-card mb-4">
+            <div class="panel-card-title"><div><h3>پیش‌نمایش اتصال Skyroom</h3><p>نمونه گزارش جلسه و شرکت‌کنندگان؛ داده‌ها نمایشی‌اند و از Skyroom دریافت نشده‌اند.</p></div><span class="panel-badge panel-badge-warning">Demo Preview</span></div>
+            <div class="panel-form-grid panel-form-grid-3">
+                <div class="panel-field"><span class="panel-muted">کلاس نمونه</span><strong>{{ $skyroomPreview['class_title'] }}</strong><small>{{ $skyroomPreview['session_title'] }}</small></div>
+                <div class="panel-field"><span class="panel-muted">مدت جلسه</span><strong>{{ $skyroomPreview['duration_minutes'] }} دقیقه</strong></div>
+                <div class="panel-field"><span class="panel-muted">شرکت‌کنندگان نمونه</span><strong>{{ $skyroomPreview['attendees'] }} حاضر · {{ $skyroomPreview['late'] }} با تأخیر · {{ $skyroomPreview['absent'] }} غایب</strong></div>
+            </div>
+            <p class="panel-muted">{{ $skyroomPreview['notice'] }}</p>
+        </section>
+    @endunless
+
     <section class="panel-card">
         <div class="panel-card-title">
             <div><h3>فهرست کلاس‌ها</h3><p>لینک اسکای‌روم و برنامه زمانی هر کلاس</p></div>

@@ -7,6 +7,7 @@ on:
       - chore/resource-role-directories
       - feat/student-dashboard-frontend
       - feat/admin-ui-laravel-reference-20261110
+      - feat/clean-backend-parity-from-sheykhan-20261113
   pull_request:
     branches:
       - main

@@ -1,7 +1,7 @@
 @extends('layouts.panel')
 
-@section('page-title', 'مشاوره و جلسات اولیا')
-@section('page-description', 'بررسی درخواست‌ها، تعیین زمان جلسه و ثبت نتیجه پیگیری')
+@section('page-title', 'درخواست‌های مشاوره')
+@section('page-description', 'پیگیری درخواست‌های مشاوره؛ جلسات زمان‌بندی‌شده در کارتابل مستقل جلسات اولیا مدیریت می‌شوند.')
 
 @section('content')
     <section class="panel-card">

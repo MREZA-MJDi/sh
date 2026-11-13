@@ -4,12 +4,25 @@
 @section('page-description', 'مدیریت آزمون‌های مرتبط، نگاشت دانش‌آموز و همگام‌سازی نتایج')
 
 @section('content')
+        @if(! $health?->available)
+    <section class="panel-card mb-4">
+        <div class="panel-card-title"><div><h3>پیش‌نمایش آزمون و کارنامه Quiz24</h3><p>نمونه تجربه‌ای که پس از اتصال آزمون و دریافت نتیجه واقعی در همین بخش نمایش داده می‌شود.</p></div><span class="panel-badge panel-badge-warning">Demo Preview</span></div>
+        <div class="panel-form-grid panel-form-grid-3">
+            <div class="panel-field"><span class="panel-muted">آزمون نمونه</span><strong>{{ $preview['exam_title'] }}</strong></div>
+            <div class="panel-field"><span class="panel-muted">دانش‌آموز</span><strong>{{ $preview['student_name'] }}</strong></div>
+            <div class="panel-field"><span class="panel-muted">نمره نمونه</span><strong>{{ $preview['score'] }} از {{ $preview['max_score'] }}</strong></div>
+        </div>
+        <p class="panel-muted">پاسخ صحیح: {{ $preview['correct'] }} · پاسخ نادرست: {{ $preview['incorrect'] }}</p>
+        <div class="panel-alert">{{ $preview['notice'] }}</div>
+    </section>
+    @endif
+
     <section class="panel-card mb-4">
         <div class="panel-card-title">
             <div><h3>وضعیت وب‌سرویس Quiz24</h3><p>هسته داخلی آماده است اما قرارداد API و دسترسی واقعی هنوز تحویل نشده است.</p></div>
-            <span class="panel-badge panel-badge-warning">قرارداد API دریافت نشده</span>
+            <span class="panel-badge {{ $health->available ? 'panel-badge-success' : 'panel-badge-warning' }}">{{ $health->available ? 'اتصال سرویس فعال' : 'قرارداد API دریافت نشده' }}</span>
         </div>
-        <div class="panel-alert panel-alert-error">{{ $health->message }}</div>
+        <div class="panel-alert {{ $health->available ? '' : 'panel-alert-error' }}">{{ $health->message }}</div>
         <form method="POST" action="{{ route('admin.quiz24.sync-exams') }}">
             @csrf
             <button class="panel-btn panel-btn-secondary" type="submit">ثبت درخواست دریافت فهرست آزمون‌ها</button>

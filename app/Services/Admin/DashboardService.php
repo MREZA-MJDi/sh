@@ -9,6 +9,7 @@ use App\Models\Consultation;
 use App\Models\Course;
 use App\Models\HomeworkSubmission;
 use App\Models\Message;
+use App\Models\ParentMeeting;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
@@ -54,6 +55,7 @@ final class DashboardService
                     'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
                     ['present', 'late']
                 )
+                ->whereIn('status', ['present', 'late', 'absent'])
                 ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
                 ->groupBy('session_date')->get()->keyBy('attendance_day')
             : collect();
@@ -101,6 +103,13 @@ final class DashboardService
             ? Announcement::where('status', 'published')->latest('published_at')->limit(4)->get()
             : collect();
 
+        $upcomingParentMeetings = $user->hasPermissionTo('meetings.manage')
+            ? ParentMeeting::with(['guardian:id,name', 'student:id,name'])
+                ->whereIn('status', ['requested', 'proposed', 'accepted'])
+                ->orderByRaw('CASE WHEN scheduled_at IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('scheduled_at')->limit(5)->get()
+            : collect();
+
 
 
         $weeklyAttendance = $canSeeAttendance
@@ -117,7 +126,7 @@ final class DashboardService
 
         return compact(
             'stats', 'todayClasses', 'recentMessages', 'pendingConsultations',
-            'recentAnnouncements', 'weeklyAttendance'
+            'recentAnnouncements', 'weeklyAttendance', 'upcomingParentMeetings'
         );
     }
 }

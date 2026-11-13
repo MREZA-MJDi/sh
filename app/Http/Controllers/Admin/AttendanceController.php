@@ -22,17 +22,31 @@ class AttendanceController extends Controller
             ? $workspace->queryFor($request->user())->with('students')->findOrFail($request->integer('classroom_id'))
             : $classrooms->first();
 
+        $classroom?->loadMissing('students');
         $date = $request->date('date')?->toDateString() ?? today()->toDateString();
         $records = $classroom
-            ? Attendance::where('classroom_id', $classroom->id)->whereDate('session_date', $date)->get()->keyBy('student_id')
+            ? Attendance::with('classSession')->where('classroom_id', $classroom->id)->whereDate('session_date', $date)->get()->keyBy('student_id')
             : collect();
-        $history = Attendance::with(['student', 'classroom', 'marker'])
+        $measured = $records->filter(fn (Attendance $record): bool => $record->attended_minutes !== null);
+        $studentCount = $classroom?->students->count() ?? 0;
+        $attendedCount = $records->whereIn('status', ['present', 'late'])->count();
+        $countableRecords = $records->reject(fn (Attendance $record): bool => $record->status === 'excused')->count();
+        $summary = [
+            'students' => $studentCount,
+            'marked' => $records->count(),
+            'attended' => $attendedCount,
+            'attendance_rate' => $countableRecords > 0 ? round(($attendedCount / $countableRecords) * 100, 1) : null,
+            'measured_count' => $measured->count(),
+            'average_minutes' => $measured->isNotEmpty() ? (int) round($measured->avg('attended_minutes')) : null,
+        ];
+
+        $history = Attendance::with(['student', 'classroom', 'marker', 'classSession'])
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
             ->when($classroom, fn ($query) => $query->where('classroom_id', $classroom->id))
             ->whereDate('session_date', $date)
             ->latest()->paginate(20)->withQueryString();
 
-        return view('admin.attendance.index', compact('classrooms', 'classroom', 'date', 'records', 'history'));
+        return view('admin.attendance.index', compact('classrooms', 'classroom', 'date', 'records', 'history', 'summary'));
     }
 
     public function store(
