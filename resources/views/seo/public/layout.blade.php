@@ -53,8 +53,8 @@
 </head>
 <body>
     <header class="seo-header">
-        <a class="seo-brand" href="{{ route('seo.articles.index') }}">{{ $settings->site_name }}</a>
-        <nav><a href="{{ route('seo.articles.index') }}">مقاله‌ها</a><a href="{{ route('login') }}">ورود به سامانه</a></nav>
+        <a class="seo-brand" href="{{ route('home') }}">{{ $settings->site_name }}</a>
+        <nav><a href="{{ route('home') }}#courses">دوره‌ها</a><a href="{{ route('seo.articles.index') }}">مجله</a><a href="{{ route('login') }}">ورود به سامانه</a></nav>
     </header>
     <main class="seo-container">
         @yield('content')
