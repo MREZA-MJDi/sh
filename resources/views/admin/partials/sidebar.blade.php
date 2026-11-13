@@ -56,6 +56,11 @@
             <a href="{{ route('admin.announcements.index') }}" class="panel-nav-link {{ request()->routeIs('admin.announcements.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bell"/></svg></span><span>اطلاع‌رسانی</span></a>
         @endcanany
 
+        @can('seo.manage')
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">محتوا و بهینه‌سازی</button>
+            <a href="{{ route('admin.seo.index') }}" class="panel-nav-link {{ request()->routeIs('admin.seo.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>مدیریت سئو</span></a>
+        @endcan
+
         @can('integrations.manage')
             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">سرویس‌های خارجی</button>
             <a href="{{ route('admin.quiz24.index') }}" class="panel-nav-link {{ request()->routeIs('admin.quiz24.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>کوییز ۲۴</span></a>

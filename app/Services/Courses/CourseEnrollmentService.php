@@ -42,6 +42,14 @@ class CourseEnrollmentService
                     ->where('source', 'payment')
                     ->where('status', 'active')
                     ->update(['status' => 'suspended']);
+            } else {
+                // Restore previously granted payment access when the course is republished.
+                // Revoked enrollments remain revoked and are never reactivated by roster sync.
+                CourseEnrollment::query()
+                    ->where('course_id', $course->id)
+                    ->where('source', 'payment')
+                    ->where('status', 'suspended')
+                    ->update(['status' => 'active']);
             }
 
             $classroomStatus = match (true) {

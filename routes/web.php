@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\LookupController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
+use App\Http\Controllers\Admin\SeoDashboardController;
+use App\Http\Controllers\SeoPublicController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
@@ -32,6 +34,10 @@ use App\Http\Controllers\Portal\LearningResourceController as PortalLearningReso
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', DashboardRedirectController::class)->name('home');
+Route::get('/articles', [SeoPublicController::class, 'index'])->name('seo.articles.index');
+Route::get('/articles/{slug}', [SeoPublicController::class, 'show'])->name('seo.articles.show');
+Route::get('/sitemap.xml', [SeoPublicController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SeoPublicController::class, 'robots'])->name('seo.robots');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [SessionController::class, 'create'])->name('login');
@@ -59,6 +65,17 @@ Route::middleware(['auth', 'role:admin,teacher'])->prefix('admin')->name('admin.
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+
+    Route::get('/seo', [SeoDashboardController::class, 'index'])->middleware('permission:seo.manage')->name('seo.index');
+    Route::patch('/seo/settings', [SeoDashboardController::class, 'updateSettings'])->middleware('permission:seo.manage')->name('seo.settings.update');
+    Route::get('/seo/banners', [SeoDashboardController::class, 'banners'])->middleware('permission:seo.manage')->name('seo.banners.index');
+    Route::post('/seo/banners', [SeoDashboardController::class, 'storeBanner'])->middleware('permission:seo.manage')->name('seo.banners.store');
+    Route::patch('/seo/banners/{banner}', [SeoDashboardController::class, 'updateBanner'])->middleware('permission:seo.manage')->name('seo.banners.update');
+    Route::delete('/seo/banners/{banner}', [SeoDashboardController::class, 'destroyBanner'])->middleware('permission:seo.manage')->name('seo.banners.destroy');
+    Route::get('/seo/articles', [SeoDashboardController::class, 'articles'])->middleware('permission:seo.manage')->name('seo.articles.index');
+    Route::post('/seo/articles', [SeoDashboardController::class, 'storeArticle'])->middleware('permission:seo.manage')->name('seo.articles.store');
+    Route::patch('/seo/articles/{article}', [SeoDashboardController::class, 'updateArticle'])->middleware('permission:seo.manage')->name('seo.articles.update');
+    Route::delete('/seo/articles/{article}', [SeoDashboardController::class, 'destroyArticle'])->middleware('permission:seo.manage')->name('seo.articles.destroy');
 
     Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage', 'throttle:60,1'])->name('lookups.students');
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage,students.view.assigned')->name('students.index');

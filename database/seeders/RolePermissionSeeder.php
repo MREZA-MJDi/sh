@@ -79,6 +79,7 @@ class RolePermissionSeeder extends Seeder
             'videos.manage.assigned' => ['مدیریت ویدیوهای کلاس‌های خود', 'videos'],
             'integrations.manage' => ['مدیریت اتصال سرویس‌های خارجی', 'integrations'],
             'settings.manage' => ['مدیریت تنظیمات سامانه', 'settings'],
+            'seo.manage' => ['مدیریت سئو، بنرها و مقاله‌ها', 'seo'],
             'profile.update' => ['ویرایش پروفایل شخصی', 'profile'],
         ];
 

@@ -30,6 +30,12 @@ final class AcademicPortalContentSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->warn('داده‌های نمایشی فقط در محیط local و testing قابل ساخت هستند.');
+
+            return;
+        }
+
         DB::transaction(function (): void {
             $teacherRole = Role::query()->where('name', 'teacher')->first();
             $studentRole = Role::query()->where('name', 'student')->first();
