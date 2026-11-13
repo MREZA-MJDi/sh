@@ -35,7 +35,8 @@ use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', DashboardRedirectController::class)->name('home');
+Route::get('/', PublicHomeController::class)->name('home');
+Route::get('/dashboard', DashboardRedirectController::class)->middleware('auth')->name('dashboard.redirect');
 Route::get('/articles', [SeoPublicController::class, 'index'])->name('seo.articles.index');
 Route::get('/articles/{slug}', [SeoPublicController::class, 'show'])->name('seo.articles.show');
 Route::get('/sitemap.xml', [SeoPublicController::class, 'sitemap'])->name('seo.sitemap');
