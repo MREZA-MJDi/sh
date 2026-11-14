@@ -31,4 +31,4 @@ Schedule::call(function (): void {
                 }
             }
         });
-})->hourly()->withoutOverlapping();
+})->hourly()->name('prune-expired-video-upload-sessions')->withoutOverlapping();
