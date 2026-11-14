@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('class_session_join_logs', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('class_session_id')->constrained('class_sessions')->cascadeOnDelete();
+            $table->foreignId('class_session_id')->constrained('class_sessions')->restrictOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('clicked_at');
             $table->timestamps();

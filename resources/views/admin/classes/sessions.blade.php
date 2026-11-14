@@ -31,7 +31,7 @@
     </section>
 
     <section class="panel-card" data-tone="learning">
-        <div class="panel-card-title"><div><h3>فهرست جلسه‌ها</h3><p>جدیدترین جلسه بالاست. جلسه‌ای که حضور و غیابش ثبت شده حذف نمی‌شود؛ آن را لغو کنید.</p></div></div>
+        <div class="panel-card-title"><div><h3>فهرست جلسه‌ها</h3><p>جدیدترین جلسه بالاست. جلسه‌ای که حضور یا کلیک ورود دارد حذف نمی‌شود؛ آن را لغو کنید.</p></div></div>
         <div class="panel-table-wrap">
             <table class="panel-table">
                 <thead><tr><th>عنوان</th><th>نوع</th><th>زمان</th><th>وضعیت</th><th>حضور ثبت‌شده</th><th>لینک ورود</th>@if ($canManage)<th>عملیات</th>@endif</tr></thead>

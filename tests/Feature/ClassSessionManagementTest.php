@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class ClassSessionManagementTest extends TestCase
@@ -98,6 +99,35 @@ final class ClassSessionManagementTest extends TestCase
         $this->actingAs($teacher)->delete(route('admin.classes.sessions.destroy', $session->id))
             ->assertSessionHasErrors('session');
         $this->assertDatabaseHas('class_sessions', ['id' => $session->id]);
+    }
+
+
+    public function test_session_with_join_click_is_not_deleted_so_audit_log_is_preserved(): void
+    {
+        [$teacher, $classroom] = $this->teacherWithClassroom('join-log');
+        $student = User::factory()->create();
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه دارای کلیک ورود',
+            'session_type' => 'online',
+            'starts_at' => now()->subMinutes(5),
+            'ends_at' => now()->addMinutes(55),
+            'meeting_url' => 'https://meet.example.test/room',
+            'status' => 'scheduled',
+        ]);
+        DB::table('class_session_join_logs')->insert([
+            'class_session_id' => $session->id,
+            'user_id' => $student->id,
+            'clicked_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($teacher)->delete(route('admin.classes.sessions.destroy', $session->id))
+            ->assertSessionHasErrors('session');
+
+        $this->assertDatabaseHas('class_sessions', ['id' => $session->id]);
+        $this->assertDatabaseHas('class_session_join_logs', ['class_session_id' => $session->id]);
     }
 
     public function test_student_cannot_manage_sessions(): void

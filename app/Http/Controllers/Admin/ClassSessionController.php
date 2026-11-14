@@ -9,6 +9,7 @@ use App\Models\Classroom;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ClassSessionController extends Controller
@@ -79,8 +80,8 @@ class ClassSessionController extends Controller
 
         $session = $this->ownedSession($request, $classSession, $workspace);
 
-        if ($session->attendances()->exists()) {
-            return back()->withErrors(['session' => 'برای این جلسه حضور و غیاب ثبت شده و حذف نمی‌شود. به‌جای حذف، آن را «لغو شده» کنید.']);
+        if ($session->attendances()->exists() || DB::table('class_session_join_logs')->where('class_session_id', $session->id)->exists()) {
+            return back()->withErrors(['session' => 'برای این جلسه حضور یا کلیک ورود ثبت شده و حذف نمی‌شود. به‌جای حذف، آن را «لغو شده» کنید.']);
         }
 
         $session->delete();
