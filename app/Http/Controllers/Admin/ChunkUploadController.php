@@ -98,7 +98,7 @@ final class ChunkUploadController extends Controller
         $data = $request->validate([
             'upload_id' => ['required', 'uuid'],
             'index' => ['required', 'integer', 'min:0', 'max:1999'],
-            'chunk' => ['required', 'file', 'max:'.(((int) config('learning.chunk_mb')) + 1) * 1024],
+            'chunk' => ['required', 'file', 'max:'.((((int) config('learning.chunk_mb')) + 1) * 1024)],
         ]);
 
         $session = VideoUploadSession::query()
@@ -314,6 +314,7 @@ final class ChunkUploadController extends Controller
         if (filled($metadata['classroom_id'] ?? null)) {
             $workspace->queryFor($request->user())
                 ->where('course_id', $course->id)
+                ->where('status', 'active')
                 ->findOrFail((int) $metadata['classroom_id']);
         }
 

@@ -43,6 +43,7 @@ class StoreSpotPlayerVideoRequest extends FormRequest
                 && ! Classroom::query()
                     ->whereKey($this->integer('classroom_id'))
                     ->where('course_id', $course->id)
+                    ->where('status', 'active')
                     ->exists()) {
                 $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
             }

@@ -40,6 +40,7 @@ final class SpotPlayerVideoService
         if ($classroomId) {
             $this->workspace->queryFor($actor)
                 ->where('course_id', $course->id)
+                ->where('status', 'active')
                 ->findOrFail($classroomId);
         }
 
