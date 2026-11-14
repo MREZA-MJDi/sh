@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\CourseContentController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
 use App\Http\Controllers\SeoPublicController;
+use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
@@ -33,7 +35,15 @@ use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', DashboardRedirectController::class)->name('home');
+Route::get('/', [PublicSiteController::class, 'home'])->name('home');
+Route::get('/courses', [PublicSiteController::class, 'courses'])->name('public.courses.index');
+Route::get('/teachers', [PublicSiteController::class, 'teachers'])->name('public.teachers.index');
+Route::get('/contact', [PublicSiteController::class, 'contact'])->name('public.contact');
+Route::post('/contact', [PublicSiteController::class, 'storeContact'])->middleware('throttle:5,1')->name('public.contact.store');
+Route::get('/cart', [PublicSiteController::class, 'cart'])->name('public.cart');
+Route::post('/cart/{course}/add', [PublicSiteController::class, 'addToCart'])->name('public.cart.add');
+Route::delete('/cart/{course}', [PublicSiteController::class, 'removeFromCart'])->name('public.cart.remove');
+Route::get('/courses/{slug}', [PublicSiteController::class, 'course'])->name('public.courses.show');
 Route::get('/articles', [SeoPublicController::class, 'index'])->name('seo.articles.index');
 Route::get('/articles/{slug}', [SeoPublicController::class, 'show'])->name('seo.articles.show');
 Route::get('/sitemap.xml', [SeoPublicController::class, 'sitemap'])->name('seo.sitemap');
@@ -65,6 +75,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+
+    Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
 
     Route::get('/seo', [SeoDashboardController::class, 'index'])->middleware('permission:seo.manage')->name('seo.index');
     Route::patch('/seo/settings', [SeoDashboardController::class, 'updateSettings'])->middleware('permission:seo.manage')->name('seo.settings.update');

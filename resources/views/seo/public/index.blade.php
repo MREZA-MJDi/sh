@@ -4,7 +4,13 @@
 @section('og-type', 'website')
 
 @section('content')
-    <section class="seo-intro"><span>دانش و یادگیری</span><h1>مقاله‌ها و مطالب آموزشی</h1><p>{{ $settings->default_description }}</p></section>
+    <section class="seo-intro"><span>دانش و یادگیری</span><h1>مجله شیخان</h1><p>{{ $settings->default_description }}</p></section>
+    <form method="GET" action="{{ route('seo.articles.index') }}" class="ac-card" style="display:flex;gap:10px;flex-wrap:wrap;padding:16px;margin-bottom:22px">
+        <input class="ac-field" style="flex:1;min-width:200px;margin:0" type="search" name="q" value="{{ $search }}" placeholder="جستجوی عنوان یا خلاصه مقاله">
+        <select class="ac-field" style="width:auto;min-width:170px;margin:0" name="keyword"><option value="">همه موضوع‌ها</option>@foreach($keywords as $item)<option value="{{ $item }}" @selected($keyword===$item)>{{ $item }}</option>@endforeach</select>
+        <button class="ac-btn" type="submit">جستجو</button>
+        <a class="ac-btn ac-btn-outline" href="{{ route('seo.articles.index') }}">پاک‌کردن</a>
+    </form>
     @foreach($banners as $banner)
         <div class="seo-banner">
             @if($banner->target_url)<a href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>@endif

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
@@ -13,13 +14,23 @@ class SeoPublicController extends Controller
     public function index(): View
     {
         $settings = SeoSetting::current();
-        $articles = SeoArticle::published()->with('author')->latest('published_at')->paginate(12);
+        $keyword = trim((string) request()->query('keyword'));
+        $search = trim((string) request()->query('q'));
+        $articleQuery = SeoArticle::published()->with('author');
+        if ($keyword !== '') $articleQuery->whereJsonContains('keywords', $keyword);
+        if ($search !== '') $articleQuery->where(fn ($query) => $query
+            ->where('title', 'like', '%'.$search.'%')
+            ->orWhere('excerpt', 'like', '%'.$search.'%'));
+        $articles = $articleQuery->latest('published_at')->paginate(12)->withQueryString();
+        $keywords = SeoArticle::published()->pluck('keywords')->flatten()
+            ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+            ->unique()->sort()->values();
         $banners = SeoBanner::active()
             ->whereIn('placement', ['articles_top', 'sitewide'])
             ->orderBy('sort_order')
             ->get();
 
-        return view('seo.public.index', compact('settings', 'articles', 'banners'));
+        return view('seo.public.index', compact('settings', 'articles', 'banners', 'keywords', 'keyword', 'search'));
     }
 
     public function show(string $slug): View
@@ -43,9 +54,20 @@ class SeoPublicController extends Controller
         $articles = $settings->robots_index
             ? SeoArticle::published()->orderBy('published_at')->get(['slug', 'canonical_url', 'updated_at'])
             : collect();
+        $courses = $settings->robots_index
+            ? Course::query()->where('status', 'published')->orderBy('updated_at')->get(['slug', 'updated_at'])
+            : collect();
 
         $urls = collect();
         if ($settings->robots_index) {
+            $urls->push(['loc' => $baseUrl.'/', 'lastmod' => now()->toAtomString()]);
+            $urls->push(['loc' => $baseUrl.'/courses', 'lastmod' => now()->toAtomString()]);
+            $urls->push(['loc' => $baseUrl.'/teachers', 'lastmod' => now()->toAtomString()]);
+            $urls->push(['loc' => $baseUrl.'/contact', 'lastmod' => now()->toAtomString()]);
+            $urls = $urls->merge($courses->map(fn (Course $course): array => [
+                'loc' => $baseUrl.'/courses/'.rawurlencode($course->slug),
+                'lastmod' => $course->updated_at?->toAtomString(),
+            ]));
             $urls->push([
                 'loc' => $baseUrl.'/articles',
                 'lastmod' => now()->toAtomString(),
@@ -82,6 +104,7 @@ class SeoPublicController extends Controller
             'Disallow: /parent',
             'Disallow: /login',
             'Disallow: /register',
+            'Disallow: /cart',
         ];
 
         if ($settings->sitemap_enabled) {

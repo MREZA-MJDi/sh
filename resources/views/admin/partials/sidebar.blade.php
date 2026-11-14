@@ -52,6 +52,9 @@
             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
             <a href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>پیام‌ها</span></a>
         @endcanany
+        @can('messages.view.all')
+            <a href="{{ route('admin.contact-messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>فرم تماس سایت</span></a>
+        @endcan
         @canany(['announcements.manage', 'announcements.view'])
             <a href="{{ route('admin.announcements.index') }}" class="panel-nav-link {{ request()->routeIs('admin.announcements.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bell"/></svg></span><span>اطلاع‌رسانی</span></a>
         @endcanany

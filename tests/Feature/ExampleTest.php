@@ -2,12 +2,18 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    public function test_guest_is_redirected_to_the_shared_login_page(): void
+    use RefreshDatabase;
+
+    public function test_homepage_is_public(): void
     {
-        $this->get('/')->assertRedirect('/login');
+        $this->withoutVite()
+            ->get('/')
+            ->assertOk()
+            ->assertSee('مسیر یادگیری هوشمند');
     }
 }
