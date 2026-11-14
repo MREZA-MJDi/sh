@@ -5,4 +5,17 @@
 @if(session('status'))<div class="ac-alert">{{ session('status') }}</div>@endif
 @if($errors->any())<div class="ac-alert" style="background:#fee2e2;color:#b91c1c">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
 <form method="POST" action="{{ route('login.store') }}">@csrf<label for="email">ایمیل، موبایل یا شناسه حساب</label><input class="ac-field" id="email" name="email" type="text" value="{{ old('email') }}" autocomplete="username" required autofocus><label for="password">گذرواژه</label><input class="ac-field" id="password" name="password" type="password" autocomplete="current-password" required><label style="display:flex;align-items:center;gap:8px;font-weight:500"><input type="checkbox" name="remember" value="1" @checked(old('remember'))> مرا به خاطر بسپار</label><button class="ac-btn" style="width:100%;margin-top:16px" type="submit">ورود امن</button></form>
+@if (! empty($demoAccounts) && is_string($demoPassword) && $demoPassword !== '')
+<section style="margin-top:18px;padding:14px;border:1px solid var(--ac-line);border-radius:13px">
+    <h3 style="font-size:14px;margin:0 0 8px">حساب‌های آزمایشی</h3>
+    <div style="display:grid;gap:7px">
+        @foreach ($demoAccounts as $account)
+            <button type="button" data-demo-account data-demo-email="{{ $account['email'] }}" data-demo-password="{{ $demoPassword }}" style="display:flex;justify-content:space-between;gap:10px;padding:9px;border:1px solid var(--ac-line);border-radius:9px;background:var(--ac-bg);color:var(--ac-ink);font:inherit;cursor:pointer">
+                <strong>{{ $account['label'] }}</strong><small dir="ltr">{{ $account['email'] }}</small>
+            </button>
+        @endforeach
+    </div>
+    <p class="ac-muted" style="font-size:11px;margin:8px 0 0">این حساب‌ها فقط در محیط توسعه نمایش داده می‌شوند.</p>
+</section>
+@endif
 <div style="border-top:1px solid var(--ac-line);margin-top:20px;padding-top:16px;font-size:13px">حساب دانش‌آموزی نداری؟ <a class="ac-link" href="{{ route('register') }}">ثبت‌نام کن</a></div></div></section></main></body></html>
