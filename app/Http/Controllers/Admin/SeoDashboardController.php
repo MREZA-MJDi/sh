@@ -191,6 +191,7 @@ class SeoDashboardController extends Controller
     {
         $data = $request->validated();
         $data['created_by'] = $request->user()->id;
+        $data['sort_order'] = $data['sort_order'] ?? 0;
         SeoTestimonial::query()->create($data);
 
         return back()->with('success', 'نظر برای صفحه اصلی ثبت شد.');
@@ -198,7 +199,9 @@ class SeoDashboardController extends Controller
 
     public function updateTestimonial(SaveSeoTestimonialRequest $request, SeoTestimonial $testimonial): RedirectResponse
     {
-        $testimonial->update($request->validated());
+        $data = $request->validated();
+        $data['sort_order'] = $data['sort_order'] ?? $testimonial->sort_order;
+        $testimonial->update($data);
 
         return back()->with('success', 'نظر به‌روزرسانی شد.');
     }

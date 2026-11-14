@@ -27,7 +27,7 @@ final class PublicSiteController extends Controller
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
-            ->withCount('enrollments');
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
         $popularCourses = (clone $courseQuery)->orderByDesc('enrollments_count')->latest()->limit(6)->get();
