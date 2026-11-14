@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import './auth.css';
 @import './panels/role-dashboards.css';
+@source "../views";
+@source "../js";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -9,4 +11,11 @@
 
 @theme {
     --font-sans: 'Vazirmatn', Tahoma, ui-sans-serif, system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
 }
