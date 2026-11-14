@@ -3,7 +3,7 @@
 namespace App\\Http\\Controllers;
 
 use App\\Models\\ContactMessage;
-use App\\Models\\Course;
+use App\\Models\\Course;\nuse App\\Models\\CourseEnrollment;
 use App\\Models\\Lesson;
 use App\\Models\\SeoArticle;
 use App\\Models\\SeoBanner;
@@ -44,7 +44,7 @@ final class PublicSiteController extends Controller
             'teachers' => User::query()->where('is_active', true)->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))->count(),
             'lessons' => Lesson::query()->where('status', 'published')->whereHas('section', fn ($sections) => $sections
                 ->where('status', 'published')->whereHas('course', fn ($courses) => $courses->where('status', 'published')))->count(),
-            'enrollments' => (clone $courseQuery)->get()->sum('enrollments_count'),
+            'enrollments' => CourseEnrollment::query()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
         return view('public.home.index', compact('settings', 'banners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats'));
@@ -94,7 +94,7 @@ final class PublicSiteController extends Controller
                 ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
             ->withCount('enrollments')->firstOrFail();
 
-        $relatedCourses = Course::query()->where('status', 'published')->whereKeyNot($course->id)
+        $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
             ->with('teacher:id,name')->withCount('enrollments')->latest()->limit(3)->get();
 
