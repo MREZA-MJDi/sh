@@ -97,7 +97,11 @@ final class PublicSiteController extends Controller
 
         $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
-            ->with('teacher:id,name')->withCount('enrollments')->latest()->limit(3)->get();
+            ->with([
+                'teacher:id,name',
+                'sections' => fn ($sections) => $sections->where('status', 'published')
+                    ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
+            ])->withCount('enrollments')->latest()->limit(3)->get();
 
         return view('public.courses.show', compact('settings', 'course', 'relatedCourses'));
     }
