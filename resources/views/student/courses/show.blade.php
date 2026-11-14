@@ -40,6 +40,14 @@
             @else
                 <p class="mu">لایسنس فقط پس از تأیید اتصال سرویس و ثبت پاسخ معتبر SpotPlayer نمایش داده می‌شود؛ کلید آزمایشی یا ساختگی صادر نمی‌شود.</p>
             @endif
+            @if ((! $license || in_array($license->status, ['failed', 'revoked'], true)) && filled($course->spotplayer_course_id))
+                <form method="POST" action="{{ route('student.courses.spotplayer-license.store', $course) }}">
+                    @csrf
+                    <button class="btn s" type="submit">درخواست صدور / بررسی دوباره لایسنس</button>
+                </form>
+            @elseif (! filled($course->spotplayer_course_id))
+                <p class="mu">شناسه دوره در پنل SpotPlayer هنوز توسط مدیر ثبت نشده است.</p>
+            @endif
         </section>
     @endif
 

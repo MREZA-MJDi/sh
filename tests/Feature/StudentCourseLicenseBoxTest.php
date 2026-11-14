@@ -55,9 +55,59 @@ final class StudentCourseLicenseBoxTest extends TestCase
             ->assertSee('کلید آزمایشی یا ساختگی صادر نمی‌شود.');
     }
 
+    public function test_student_can_request_their_own_license_without_receiving_a_fake_active_key(): void
+    {
+        [$student, $course] = $this->enrolledStudentAndCourse();
+
+        $this->actingAs($student)
+            ->post(route('student.courses.spotplayer-license.store', $course))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $license = SpotPlayerLicense::query()
+            ->where('student_id', $student->id)
+            ->where('course_id', $course->id)
+            ->firstOrFail();
+
+        $this->assertSame('waiting_contract', $license->status);
+        $this->assertNull($license->license_key);
+        $this->assertDatabaseHas('integration_runs', [
+            'provider' => 'spotplayer',
+            'action' => 'issue_license',
+            'status' => 'waiting_contract',
+            'entity_id' => $license->id,
+        ]);
+    }
+
+    public function test_student_cannot_request_a_license_for_a_course_without_active_enrollment(): void
+    {
+        $student = User::factory()->create(['phone' => '09120000000']);
+        $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
+        $course = Course::query()->create([
+            'title' => 'دوره بدون ثبت‌نام',
+            'slug' => 'student-license-no-enrollment',
+            'type' => 'paid',
+            'price' => 100000,
+            'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => 'spot-course-no-enrollment',
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($student)
+            ->from(route('student.courses.index'))
+            ->post(route('student.courses.spotplayer-license.store', $course))
+            ->assertRedirect(route('student.courses.index'))
+            ->assertSessionHasErrors('spotplayer');
+
+        $this->assertDatabaseMissing('spot_player_licenses', [
+            'student_id' => $student->id,
+            'course_id' => $course->id,
+        ]);
+    }
+
     private function enrolledStudentAndCourse(): array
     {
-        $student = User::factory()->create();
+        $student = User::factory()->create(['phone' => '09120000000']);
         $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
         $course = Course::query()->create([
             'title' => 'دوره ویدیویی',
@@ -65,6 +115,7 @@ final class StudentCourseLicenseBoxTest extends TestCase
             'type' => 'paid',
             'price' => 100000,
             'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => 'spot-course-student-license',
             'status' => 'published',
         ]);
         CourseEnrollment::query()->create([

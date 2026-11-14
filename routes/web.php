@@ -38,6 +38,7 @@ use App\Http\Controllers\Student\EnrollFreeCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
 use App\Http\Controllers\Student\VideoController as StudentVideoController;
+use App\Http\Controllers\Student\SpotPlayerLicenseController as StudentSpotPlayerLicenseController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
@@ -121,9 +122,9 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/courses/{course}/teaser', [LearningAdminController::class, 'teaser'])->middleware('permission:courses.manage')->name('courses.teaser');
     Route::get('/courses/{course}/teaser/status', [LearningAdminController::class, 'teaserStatus'])->middleware('permission:courses.manage')->name('courses.teaser.status');
     Route::delete('/courses/{course}/teaser', [LearningAdminController::class, 'destroyTeaser'])->middleware('permission:courses.manage')->name('courses.teaser.destroy');
-    Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage', 'throttle:20,1'])->name('uploads.start');
-    Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage', 'throttle:300,1'])->name('uploads.chunk');
-    Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage', 'throttle:10,1'])->name('uploads.complete');
+    Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
+    Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
+    Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
 
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->middleware('permission:courses.manage')->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->middleware('permission:courses.manage')->name('courses.destroy');
@@ -230,6 +231,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
 
         Route::middleware('permission:lessons.view')->group(function (): void {
             Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+            Route::post('/courses/{course}/spotplayer-license', [StudentSpotPlayerLicenseController::class, 'store'])->middleware('throttle:3,1')->name('courses.spotplayer-license.store');
         Route::post('/courses/{course}/enroll-free', EnrollFreeCourseController::class)->middleware('throttle:10,1')->name('courses.enroll-free');
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
             Route::patch('/courses/{course}/lessons/{lesson}/progress', [StudentCourseController::class, 'updateProgress'])

@@ -1,4 +1,4 @@
-{{-- پارامترها: $target (teaser|lesson), $id, $maxMb --}}
+{{-- پارامترها: $target (teaser), $id, $maxMb --}}
 <div class="uploader" data-target="{{ $target }}" data-id="{{ $id }}" data-max="{{ $maxMb }}" style="display:grid;gap:6px;margin:8px 0">
     <input type="file" class="u-file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,.mp4,.mov,.mkv,.webm,.m4v">
     <button type="button" class="u-start btn btn-primary">شروع آپلود</button>
@@ -55,7 +55,7 @@
 
             try {
                 var start = new FormData();
-                start.append('target', box.dataset.target); start.append('target_id', box.dataset.id);
+                start.append('target', box.dataset.target); start.append('target_id', box.dataset.id); start.append('total', total);
                 var started = await post(START_URL, start);
                 id = started.upload_id;
                 for (var i = 0; i < total; i++) {

@@ -5,6 +5,7 @@ namespace App\Services\SpotPlayer;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Integrations\IntegrationOperationService;
+use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,82 @@ use Throwable;
 
 final class SpotPlayerVideoService
 {
-    public function __construct(private readonly IntegrationOperationService $operations) {}
+    public function __construct(
+        private readonly IntegrationOperationService $operations,
+        private readonly ClassroomWorkspaceService $workspace,
+    ) {}
+
+
+    /**
+     * Stages a file already assembled by the resumable uploader.
+     * The provider request remains pending until the official SpotPlayer contract is installed.
+     */
+    public function stageStoredFile(
+        array $data,
+        User $actor,
+        string $storagePath,
+        string $originalName,
+        string $mimeType,
+        int $size,
+    ): SpotPlayerVideo {
+        $course = $this->workspace->coursesQueryFor($actor)
+            ->where('delivery_type', 'spotplayer')
+            ->findOrFail((int) $data['course_id']);
+
+        $classroomId = filled($data['classroom_id'] ?? null) ? (int) $data['classroom_id'] : null;
+        if ($classroomId) {
+            $this->workspace->queryFor($actor)
+                ->where('course_id', $course->id)
+                ->findOrFail($classroomId);
+        }
+
+        abort_unless(Storage::disk('local')->exists($storagePath), 404);
+
+        $sha256 = hash_file('sha256', Storage::disk('local')->path($storagePath));
+        if (! is_string($sha256)) {
+            throw new RuntimeException('محاسبه checksum فایل ویدیو انجام نشد.');
+        }
+
+        return DB::transaction(function () use ($data, $actor, $course, $classroomId, $storagePath, $originalName, $mimeType, $size, $sha256): SpotPlayerVideo {
+            $video = SpotPlayerVideo::query()->create([
+                'title' => trim($data['title']),
+                'course_id' => $course->id,
+                'classroom_id' => $classroomId,
+                'external_id' => filled($data['external_id'] ?? null) ? trim($data['external_id']) : null,
+                'embed_url' => null,
+                'status' => 'waiting_contract',
+                'created_by' => $actor->id,
+                'file_path' => $storagePath,
+                'file_original_name' => mb_substr($originalName, 0, 255),
+                'file_mime_type' => $mimeType ?: 'application/octet-stream',
+                'file_size_bytes' => $size,
+                'file_sha256' => $sha256,
+                'staged_at' => now(),
+            ]);
+
+            $this->operations->waitForContract(
+                provider: 'spotplayer',
+                action: 'upload_video',
+                entity: $video,
+                safeRequestMeta: [
+                    'video_id' => $video->id,
+                    'local_course_id' => $video->course_id,
+                    'local_classroom_id' => $video->classroom_id,
+                    'storage_disk' => 'local',
+                    'storage_path' => $storagePath,
+                    'original_name' => $video->file_original_name,
+                    'mime_type' => $video->file_mime_type,
+                    'file_size_bytes' => $video->file_size_bytes,
+                    'sha256' => $video->file_sha256,
+                    'external_video_id_supplied' => filled($video->external_id),
+                    'upload_mode' => 'chunked',
+                ],
+                idempotencyKey: 'spotplayer:upload-video:'.$video->id.':'.$sha256,
+            );
+
+            return $video->refresh();
+        });
+    }
 
     public function stage(array $data, User $actor): SpotPlayerVideo
     {

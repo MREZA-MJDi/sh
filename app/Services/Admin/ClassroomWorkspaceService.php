@@ -23,7 +23,12 @@ final class ClassroomWorkspaceService
     public function coursesQueryFor(User $user): Builder
     {
         return Course::query()
-            ->when($this->isTeacher($user), fn (Builder $query) => $query->where('teacher_id', $user->id));
+            ->when($this->isTeacher($user), function (Builder $query) use ($user): void {
+                $query->where(function (Builder $scope) use ($user): void {
+                    $scope->where('teacher_id', $user->id)
+                        ->orWhereHas('classrooms', fn (Builder $classrooms) => $classrooms->where('teacher_id', $user->id));
+                });
+            });
     }
 
     public function owns(User $user, Classroom $classroom): bool
@@ -35,7 +40,9 @@ final class ClassroomWorkspaceService
 
     public function ownsCourse(User $user, Course $course): bool
     {
-        return ! $this->isTeacher($user) || $course->teacher_id === $user->id;
+        return ! $this->isTeacher($user)
+            || $course->teacher_id === $user->id
+            || $course->classrooms()->where('teacher_id', $user->id)->exists();
     }
 
     public function isTeacher(User $user): bool
