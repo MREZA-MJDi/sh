@@ -9,7 +9,7 @@
 @section('page-description', 'مدیریت حساب‌ها و ارتباط آن‌ها با کلاس‌ها و دوره‌های آکادمی')
 
 @section('content')
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="people">
         <div><h2>{{ $labels[$role] }}‌ها</h2><p>{{ number_format($users->total()) }} حساب ثبت‌شده</p></div>
         @can('users.manage')
             <button class="panel-btn" type="button" data-admin-drawer-open="user-create" data-drawer-title="{{ $role === 'teacher' ? 'ساخت مدرس' : 'ثبت '.$labels[$role] }}">
