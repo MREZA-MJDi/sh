@@ -3,32 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LessonProgress extends Model
 {
-    protected $fillable = [
-        'lesson_id', 'student_id', 'progress_percent',
-        'started_at', 'last_viewed_at', 'completed_at',
-    ];
+    protected $table = 'lesson_progress';
 
-    protected function casts(): array
-    {
-        return [
-            'progress_percent' => 'integer',
-            'started_at' => 'datetime',
-            'last_viewed_at' => 'datetime',
-            'completed_at' => 'datetime',
-        ];
-    }
+    protected $fillable = ['user_id', 'course_lesson_id', 'completed_at', 'last_position_seconds'];
 
-    public function lesson(): BelongsTo
-    {
-        return $this->belongsTo(Lesson::class);
-    }
-
-    public function student(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'student_id');
-    }
+    protected $casts = ['completed_at' => 'datetime'];
 }

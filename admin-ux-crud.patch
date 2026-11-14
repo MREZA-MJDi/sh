@@ -1,0 +1,789 @@
+From a7b2fdb141186c7722e7d56093c4dfc6c8e5a98a Mon Sep 17 00:00:00 2001
+From: Claude <claude@example.com>
+Date: Sat, 14 Nov 2026 18:03:41 +0000
+Subject: [PATCH 1/2] admin: apply tone colour system (sidebar, stats,
+ dashboard cards, page heads)
+
+---
+ .../views/admin/announcements/index.blade.php |  2 +-
+ resources/views/admin/classes/index.blade.php |  2 +-
+ .../views/admin/components/stat.blade.php     |  4 +--
+ resources/views/admin/courses/index.blade.php |  2 +-
+ .../views/admin/dashboard/index.blade.php     | 22 +++++++-------
+ resources/views/admin/exams/index.blade.php   |  2 +-
+ .../views/admin/homework/index.blade.php      |  2 +-
+ .../views/admin/partials/sidebar.blade.php    | 30 +++++++++----------
+ .../views/admin/resources/index.blade.php     |  2 +-
+ .../views/admin/spotplayer/index.blade.php    |  2 +-
+ resources/views/admin/users/index.blade.php   |  2 +-
+ 11 files changed, 36 insertions(+), 36 deletions(-)
+
+diff --git a/resources/views/admin/announcements/index.blade.php b/resources/views/admin/announcements/index.blade.php
+index c0b45d2..44892f7 100644
+--- a/resources/views/admin/announcements/index.blade.php
++++ b/resources/views/admin/announcements/index.blade.php
+@@ -4,7 +4,7 @@
+ @section('page-description', 'اطلاعیه‌های آکادمی و مخاطبان هر پیام')
+ 
+ @section('content')
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="talk">
+         <div><h2>اطلاعیه‌ها</h2><p>{{ $announcements->total() }} اطلاعیه ثبت‌شده</p></div>
+         @can('announcements.manage')
+             <button class="panel-btn" type="button" data-admin-drawer-open="announcement-create" data-drawer-title="اطلاعیه جدید">＋ اطلاعیه جدید</button>
+diff --git a/resources/views/admin/classes/index.blade.php b/resources/views/admin/classes/index.blade.php
+index 788521c..11a39d7 100644
+--- a/resources/views/admin/classes/index.blade.php
++++ b/resources/views/admin/classes/index.blade.php
+@@ -5,7 +5,7 @@
+ 
+ @section('content')
+     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="learning">
+         <div><h2>کلاس‌های آکادمی</h2><p>{{ $classrooms->total() }} کلاس ثبت‌شده</p></div>
+         @canany(['classes.manage', 'classes.manage.assigned'])
+             <button class="panel-btn" type="button" data-admin-drawer-open="class-create" data-drawer-title="کلاس جدید">＋ کلاس جدید</button>
+diff --git a/resources/views/admin/components/stat.blade.php b/resources/views/admin/components/stat.blade.php
+index 773b623..6e6c24f 100644
+--- a/resources/views/admin/components/stat.blade.php
++++ b/resources/views/admin/components/stat.blade.php
+@@ -1,5 +1,5 @@
+-@props(['label', 'value', 'note' => null, 'accent' => '#7b8cff', 'icon' => null])
+-<article {{ $attributes->class(['panel-card', 'panel-stat']) }} style="--stat-accent: {{ $accent }}">
++@props(['label', 'value', 'note' => null, 'accent' => '#7b8cff', 'icon' => null, 'tone' => null])
++<article {{ $attributes->class(['panel-card', 'panel-stat']) }} @if ($tone) data-tone="{{ $tone }}" @else style="--stat-accent: {{ $accent }}" @endif>
+     @if ($icon)<div class="panel-stat-symbol">{{ $icon }}</div>@endif
+     <span class="panel-stat-label">{{ $label }}</span>
+     <strong class="panel-stat-value">{{ $value }}</strong>
+diff --git a/resources/views/admin/courses/index.blade.php b/resources/views/admin/courses/index.blade.php
+index 4ee5b02..d8310b6 100644
+--- a/resources/views/admin/courses/index.blade.php
++++ b/resources/views/admin/courses/index.blade.php
+@@ -5,7 +5,7 @@
+ 
+ @section('content')
+     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="learning">
+         <div><h2>دوره‌های آموزشی</h2><p>{{ $courses->total() }} دوره در این فهرست</p></div>
+         @can('courses.manage')
+             <button class="panel-btn" type="button" data-admin-drawer-open="course-create" data-drawer-title="دوره جدید">＋ ساخت دوره</button>
+diff --git a/resources/views/admin/dashboard/index.blade.php b/resources/views/admin/dashboard/index.blade.php
+index 7139d06..830eaef 100644
+--- a/resources/views/admin/dashboard/index.blade.php
++++ b/resources/views/admin/dashboard/index.blade.php
+@@ -18,25 +18,25 @@
+ 
+     <section class="panel-grid panel-grid-4 mb-4">
+         @canany(['users.manage', 'students.view.assigned'])
+-            <x-admin::stat label="دانش‌آموزان فعال" :value="number_format($stats['students'])" note="در کلاس‌های قابل دسترس" accent="#5065d8" icon="♙"/>
++            <x-admin::stat label="دانش‌آموزان فعال" :value="number_format($stats['students'])" note="در کلاس‌های قابل دسترس" tone="people" icon="♙"/>
+         @endcanany
+         @can('users.manage')
+-            <x-admin::stat label="مدرسان فعال" :value="number_format($stats['teachers'])" note="حساب‌های فعال" accent="#0b9a89" icon="♟"/>
++            <x-admin::stat label="مدرسان فعال" :value="number_format($stats['teachers'])" note="حساب‌های فعال" tone="people" icon="♟"/>
+         @endcan
+         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
+-            <x-admin::stat label="کلاس‌های فعال" :value="number_format($stats['classes'])" note="کلاس‌های قابل دسترس" accent="#d18b11" icon="▣"/>
++            <x-admin::stat label="کلاس‌های فعال" :value="number_format($stats['classes'])" note="کلاس‌های قابل دسترس" tone="learning" icon="▣"/>
+         @endcanany
+         @canany(['courses.manage', 'courses.view.assigned'])
+-            <x-admin::stat label="دوره‌های منتشرشده" :value="number_format($stats['courses'])" note="دوره‌های قابل ارائه" accent="#d84b59" icon="▤"/>
++            <x-admin::stat label="دوره‌های منتشرشده" :value="number_format($stats['courses'])" note="دوره‌های قابل ارائه" tone="learning" icon="▤"/>
+         @endcanany
+         @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned', 'homework.grade'])
+-            <x-admin::stat label="تکالیف منتظر بررسی" :value="number_format($stats['pending_homework'])" note="ارسال‌های تحویل‌شده" accent="#7b55c7" icon="✎"/>
++            <x-admin::stat label="تکالیف منتظر بررسی" :value="number_format($stats['pending_homework'])" note="ارسال‌های تحویل‌شده" tone="work" icon="✎"/>
+         @endcanany
+     </section>
+ 
+     <section class="panel-grid panel-grid-2 mb-4">
+         @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+-            <article class="panel-card">
++            <article class="panel-card" data-tone="presence">
+                 <div class="panel-card-title">
+                     <div><h3>نرخ حضور در هفت روز گذشته</h3><p>بر اساس رکوردهای واقعی حضور و غیاب</p></div>
+                     <span class="panel-badge panel-badge-success">امروز {{ $stats['attendance_rate'] }}٪</span>
+@@ -50,7 +50,7 @@
+         @endcanany
+ 
+         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
+-            <article class="panel-card">
++            <article class="panel-card" data-tone="learning">
+                 <div class="panel-card-title">
+                     <div><h3>{{ $teacherView ? 'کلاس‌های من' : 'کلاس‌های فعال' }}</h3><p>کلاس‌های مجاز برای حساب شما</p></div>
+                     <a href="{{ route('admin.classes.index') }}" class="panel-btn panel-btn-secondary panel-btn-sm">همه کلاس‌ها</a>
+@@ -73,7 +73,7 @@
+ 
+     <section class="panel-grid panel-grid-3">
+         @canany(['messages.view.all', 'messages.view.assigned'])
+-            <article class="panel-card">
++            <article class="panel-card" data-tone="talk">
+                 <div class="panel-card-title"><h3>پیام‌های بی‌پاسخ</h3><a href="{{ route('admin.messages.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">مشاهده</a></div>
+                 <div class="panel-list">
+                     @forelse ($recentMessages as $message)
+@@ -86,7 +86,7 @@
+         @endcanany
+ 
+         @can('consultations.manage')
+-            <article class="panel-card">
++            <article class="panel-card" data-tone="talk">
+                 <div class="panel-card-title"><h3>درخواست‌های مشاوره</h3><a href="{{ route('admin.consultations.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">کارتابل</a></div>
+                 <div class="panel-list">
+                     @forelse ($pendingConsultations as $consultation)
+@@ -99,7 +99,7 @@
+         @endcan
+ 
+         @canany(['announcements.manage', 'announcements.view'])
+-            <article class="panel-card">
++            <article class="panel-card" data-tone="talk">
+                 <div class="panel-card-title"><h3>اطلاعیه‌های منتشرشده</h3><a href="{{ route('admin.announcements.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">مشاهده</a></div>
+                 <div class="panel-list">
+                     @forelse ($recentAnnouncements as $announcement)
+@@ -112,7 +112,7 @@
+         @endcanany
+     </section>
+ 
+-    <section class="panel-card mt-4">
++    <section class="panel-card mt-4" data-tone="system">
+         <div class="panel-card-title">
+             <div><h3>میانبرهای سریع</h3><p>ورود مستقیم به کارهای پرتکرار، بر اساس دسترسی حساب شما</p></div>
+         </div>
+diff --git a/resources/views/admin/exams/index.blade.php b/resources/views/admin/exams/index.blade.php
+index 41932d1..b7de520 100644
+--- a/resources/views/admin/exams/index.blade.php
++++ b/resources/views/admin/exams/index.blade.php
+@@ -5,7 +5,7 @@
+ 
+ @section('content')
+     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="learning">
+         <div><h2>آزمون‌ها و نتایج</h2><p>{{ number_format($exams->total()) }} آزمون در فهرست شما</p></div>
+         @canany(['exams.manage', 'exams.manage.assigned'])
+             <button class="panel-btn" type="button" data-admin-drawer-open="exam-create" data-drawer-title="آزمون جدید">＋ آزمون جدید</button>
+diff --git a/resources/views/admin/homework/index.blade.php b/resources/views/admin/homework/index.blade.php
+index b3e5f6f..e7dad67 100644
+--- a/resources/views/admin/homework/index.blade.php
++++ b/resources/views/admin/homework/index.blade.php
+@@ -4,7 +4,7 @@
+ @section('page-description', 'تعریف تکلیف، مشاهده تحویل‌ها و ثبت بازخورد')
+ 
+ @section('content')
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="work">
+         <div><h2>تکالیف و پاسخ‌ها</h2><p>عملیات روی کلاس‌های مجاز شما انجام می‌شود.</p></div>
+         @canany(['homework.manage.all', 'homework.manage.assigned'])
+             <button class="panel-btn" type="button" data-admin-drawer-open="homework-create" data-drawer-title="تکلیف جدید">＋ تکلیف جدید</button>
+diff --git a/resources/views/admin/partials/sidebar.blade.php b/resources/views/admin/partials/sidebar.blade.php
+index 142152b..1232a34 100644
+--- a/resources/views/admin/partials/sidebar.blade.php
++++ b/resources/views/admin/partials/sidebar.blade.php
+@@ -12,56 +12,56 @@
+ 
+         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
+             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">آموزش</button>
+-            <a href="{{ route('admin.classes.index') }}" class="panel-nav-link {{ request()->routeIs('admin.classes.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-classes"/></svg></span><span>کلاس‌ها و اسکای‌روم</span></a>
++            <a data-tone="learning" href="{{ route('admin.classes.index') }}" class="panel-nav-link {{ request()->routeIs('admin.classes.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-classes"/></svg></span><span>کلاس‌ها و اسکای‌روم</span></a>
+         @endcanany
+         @canany(['courses.manage', 'courses.view.assigned'])
+-            <a href="{{ route('admin.courses.index') }}" class="panel-nav-link {{ request()->routeIs('admin.courses.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-courses"/></svg></span><span>دوره‌ها</span></a>
++            <a data-tone="learning" href="{{ route('admin.courses.index') }}" class="panel-nav-link {{ request()->routeIs('admin.courses.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-courses"/></svg></span><span>دوره‌ها</span></a>
+         @endcanany
+         @canany(['integrations.manage', 'videos.manage.assigned'])
+-            <a href="{{ route('admin.spotplayer.index') }}" class="panel-nav-link {{ request()->routeIs('admin.spotplayer.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-lock"/></svg></span><span>ویدیوهای کلاس</span></a>
++            <a data-tone="learning" href="{{ route('admin.spotplayer.index') }}" class="panel-nav-link {{ request()->routeIs('admin.spotplayer.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-lock"/></svg></span><span>ویدیوهای کلاس</span></a>
+         @endcanany
+         @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+-            <a href="{{ route('admin.attendance.index') }}" class="panel-nav-link {{ request()->routeIs('admin.attendance.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-check"/></svg></span><span>حضور و غیاب</span></a>
++            <a data-tone="presence" href="{{ route('admin.attendance.index') }}" class="panel-nav-link {{ request()->routeIs('admin.attendance.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-check"/></svg></span><span>حضور و غیاب</span></a>
+         @endcanany
+         @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'])
+-            <a href="{{ route('admin.homework.index') }}" class="panel-nav-link {{ request()->routeIs('admin.homework.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-edit"/></svg></span><span>تکالیف</span></a>
++            <a data-tone="work" href="{{ route('admin.homework.index') }}" class="panel-nav-link {{ request()->routeIs('admin.homework.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-edit"/></svg></span><span>تکالیف</span></a>
+         @endcanany
+         @canany(['exams.manage', 'exams.manage.assigned'])
+-            <a href="{{ route('admin.exams.index') }}" class="panel-nav-link {{ request()->routeIs('admin.exams.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-exams"/></svg></span><span>آزمون‌ها</span></a>
++            <a data-tone="learning" href="{{ route('admin.exams.index') }}" class="panel-nav-link {{ request()->routeIs('admin.exams.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-exams"/></svg></span><span>آزمون‌ها</span></a>
+         @endcanany
+ 
+         @canany(['users.manage', 'students.view.assigned'])
+             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">کاربران</button>
+-            <a href="{{ route('admin.students.index') }}" class="panel-nav-link {{ request()->routeIs('admin.students.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-users"/></svg></span><span>دانش‌آموزان</span></a>
++            <a data-tone="people" href="{{ route('admin.students.index') }}" class="panel-nav-link {{ request()->routeIs('admin.students.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-users"/></svg></span><span>دانش‌آموزان</span></a>
+         @endcanany
+         @can('users.manage')
+-            <a href="{{ route('admin.teachers.index') }}" class="panel-nav-link {{ request()->routeIs('admin.teachers.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-user"/></svg></span><span>مدرسان</span></a>
+-            <a href="{{ route('admin.parents.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parents.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-parents"/></svg></span><span>اولیا</span></a>
++            <a data-tone="people" href="{{ route('admin.teachers.index') }}" class="panel-nav-link {{ request()->routeIs('admin.teachers.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-user"/></svg></span><span>مدرسان</span></a>
++            <a data-tone="people" href="{{ route('admin.parents.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parents.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-parents"/></svg></span><span>اولیا</span></a>
+         @endcan
+ 
+         @canany(['resources.manage', 'resources.manage.assigned'])
+             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">منابع و فروش</button>
+-            <a href="{{ route('admin.resources.index') }}" class="panel-nav-link {{ request()->routeIs('admin.resources.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bag"/></svg></span><span>منابع و فروشگاه</span></a>
++            <a data-tone="library" href="{{ route('admin.resources.index') }}" class="panel-nav-link {{ request()->routeIs('admin.resources.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bag"/></svg></span><span>منابع و فروشگاه</span></a>
+         @endcanany
+ 
+         @can('consultations.manage')
+             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
+-            <a href="{{ route('admin.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('admin.consultations.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>مشاوره و جلسات</span></a>
++            <a data-tone="talk" href="{{ route('admin.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('admin.consultations.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>مشاوره و جلسات</span></a>
+         @endcan
+         @canany(['messages.view.all', 'messages.view.assigned'])
+             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">ارتباطات</button>
+-            <a href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>پیام‌ها</span></a>
++            <a data-tone="talk" href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>پیام‌ها</span></a>
+         @endcanany
+         @can('messages.view.all')
+-            <a href="{{ route('admin.contact-messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>فرم تماس سایت</span></a>
++            <a data-tone="talk" href="{{ route('admin.contact-messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>فرم تماس سایت</span></a>
+         @endcan
+         @canany(['announcements.manage', 'announcements.view'])
+-            <a href="{{ route('admin.announcements.index') }}" class="panel-nav-link {{ request()->routeIs('admin.announcements.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bell"/></svg></span><span>اطلاع‌رسانی</span></a>
++            <a data-tone="talk" href="{{ route('admin.announcements.index') }}" class="panel-nav-link {{ request()->routeIs('admin.announcements.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bell"/></svg></span><span>اطلاع‌رسانی</span></a>
+         @endcanany
+ 
+         @can('seo.manage')
+             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">محتوا و بهینه‌سازی</button>
+-            <a href="{{ route('admin.seo.index') }}" class="panel-nav-link {{ request()->routeIs('admin.seo.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>مدیریت سئو</span></a>
++            <a data-tone="system" href="{{ route('admin.seo.index') }}" class="panel-nav-link {{ request()->routeIs('admin.seo.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>مدیریت سئو</span></a>
+         @endcan
+ 
+         @can('integrations.manage')
+diff --git a/resources/views/admin/resources/index.blade.php b/resources/views/admin/resources/index.blade.php
+index 8daa3b1..d76ffa2 100644
+--- a/resources/views/admin/resources/index.blade.php
++++ b/resources/views/admin/resources/index.blade.php
+@@ -5,7 +5,7 @@
+ 
+ @section('content')
+     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="library">
+         <div><h2>منابع آموزشی</h2><p>{{ $resources->total() }} فایل و منبع ثبت‌شده</p></div>
+         @canany(['resources.manage', 'resources.manage.assigned'])
+             <button class="panel-btn" type="button" data-admin-drawer-open="resource-create" data-drawer-title="افزودن منبع">＋ افزودن جزوه</button>
+diff --git a/resources/views/admin/spotplayer/index.blade.php b/resources/views/admin/spotplayer/index.blade.php
+index 691381d..7004a21 100644
+--- a/resources/views/admin/spotplayer/index.blade.php
++++ b/resources/views/admin/spotplayer/index.blade.php
+@@ -5,7 +5,7 @@
+ 
+ @section('content')
+     @if ($teacherView)
+-        <div class="panel-page-head">
++        <div class="panel-page-head" data-tone="learning">
+             <div><h2>ویدیوهای کلاس</h2><p>ویدیو فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شود.</p></div>
+             <button class="panel-btn" type="button" data-admin-drawer-open="video-create" data-drawer-title="ثبت ویدئوی کلاس">＋ ثبت ویدیو</button>
+         </div>
+diff --git a/resources/views/admin/users/index.blade.php b/resources/views/admin/users/index.blade.php
+index a0c343c..dd09d3e 100644
+--- a/resources/views/admin/users/index.blade.php
++++ b/resources/views/admin/users/index.blade.php
+@@ -9,7 +9,7 @@
+ @section('page-description', 'مدیریت حساب‌ها و ارتباط آن‌ها با کلاس‌ها و دوره‌های آکادمی')
+ 
+ @section('content')
+-    <div class="panel-page-head">
++    <div class="panel-page-head" data-tone="people">
+         <div><h2>{{ $labels[$role] }}‌ها</h2><p>{{ number_format($users->total()) }} حساب ثبت‌شده</p></div>
+         @can('users.manage')
+             <button class="panel-btn" type="button" data-admin-drawer-open="user-create" data-drawer-title="{{ $role === 'teacher' ? 'ساخت مدرس' : 'ثبت '.$labels[$role] }}">
+-- 
+2.43.0
+
+
+From 5759203edd77de3bf5d6d979bb63f97c32351648 Mon Sep 17 00:00:00 2001
+From: Claude <claude@example.com>
+Date: Sat, 14 Nov 2026 18:04:32 +0000
+Subject: [PATCH 2/2] admin: class session CRUD (list, create, edit, delete) +
+ attendance links to the day's session + tests
+
+---
+ .../Admin/ClassSessionController.php          |  94 +++++++++++++
+ .../Admin/SaveClassSessionRequest.php         |  37 +++++
+ app/Services/Admin/AttendanceService.php      |  10 ++
+ .../admin/classes/_session_fields.blade.php   |  19 +++
+ resources/views/admin/classes/index.blade.php |   2 +-
+ .../views/admin/classes/sessions.blade.php    |  86 ++++++++++++
+ routes/web.php                                |   5 +
+ tests/Feature/ClassSessionManagementTest.php  | 130 ++++++++++++++++++
+ 8 files changed, 382 insertions(+), 1 deletion(-)
+ create mode 100644 app/Http/Controllers/Admin/ClassSessionController.php
+ create mode 100644 app/Http/Requests/Admin/SaveClassSessionRequest.php
+ create mode 100644 resources/views/admin/classes/_session_fields.blade.php
+ create mode 100644 resources/views/admin/classes/sessions.blade.php
+ create mode 100644 tests/Feature/ClassSessionManagementTest.php
+
+diff --git a/app/Http/Controllers/Admin/ClassSessionController.php b/app/Http/Controllers/Admin/ClassSessionController.php
+new file mode 100644
+index 0000000..9a42b63
+--- /dev/null
++++ b/app/Http/Controllers/Admin/ClassSessionController.php
+@@ -0,0 +1,94 @@
++<?php
++
++namespace App\Http\Controllers\Admin;
++
++use App\Http\Controllers\Controller;
++use App\Http\Requests\Admin\SaveClassSessionRequest;
++use App\Models\ClassSession;
++use App\Models\Classroom;
++use App\Services\Admin\ClassroomWorkspaceService;
++use Illuminate\Http\RedirectResponse;
++use Illuminate\Http\Request;
++use Illuminate\View\View;
++
++class ClassSessionController extends Controller
++{
++    public function index(Request $request, int $classroom, ClassroomWorkspaceService $workspace): View
++    {
++        $classroom = $workspace->queryFor($request->user())->with(['course:id,title', 'teacher:id,name'])->findOrFail($classroom);
++
++        $sessions = ClassSession::query()
++            ->where('classroom_id', $classroom->id)
++            ->withCount('attendances')
++            ->orderByDesc('starts_at')
++            ->paginate(20)
++            ->withQueryString();
++
++        $nextSession = ClassSession::query()
++            ->where('classroom_id', $classroom->id)
++            ->where('status', 'scheduled')
++            ->where('starts_at', '>=', now())
++            ->orderBy('starts_at')
++            ->first();
++
++        return view('admin.classes.sessions', compact('classroom', 'sessions', 'nextSession'));
++    }
++
++    public function store(SaveClassSessionRequest $request, int $classroom, ClassroomWorkspaceService $workspace): RedirectResponse
++    {
++        $classroom = $workspace->queryFor($request->user())->findOrFail($classroom);
++        $data = $request->validated();
++
++        ClassSession::create([
++            ...$data,
++            // اگر لینک جلسه خالی بود، لینک اسکای‌روم خود کلاس استفاده می‌شود.
++            'meeting_url' => ($data['session_type'] === 'online')
++                ? ($data['meeting_url'] ?? $classroom->meeting_url)
++                : null,
++            'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
++            'classroom_id' => $classroom->id,
++            'created_by' => $request->user()->id,
++        ]);
++
++        return back()->with('success', 'جلسه جدید ثبت شد.');
++    }
++
++    public function update(SaveClassSessionRequest $request, int $classSession, ClassroomWorkspaceService $workspace): RedirectResponse
++    {
++        $session = $this->ownedSession($request, $classSession, $workspace);
++        $data = $request->validated();
++
++        $session->update([
++            ...$data,
++            'meeting_url' => $data['session_type'] === 'online' ? ($data['meeting_url'] ?? null) : null,
++            'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
++        ]);
++
++        return back()->with('success', 'جلسه به‌روزرسانی شد.');
++    }
++
++    public function destroy(Request $request, int $classSession, ClassroomWorkspaceService $workspace): RedirectResponse
++    {
++        abort_unless($request->user()?->hasAnyPermission(['classes.manage', 'classes.manage.assigned']), 403);
++
++        $session = $this->ownedSession($request, $classSession, $workspace);
++
++        if ($session->attendances()->exists()) {
++            return back()->withErrors(['session' => 'برای این جلسه حضور و غیاب ثبت شده و حذف نمی‌شود. به‌جای حذف، آن را «لغو شده» کنید.']);
++        }
++
++        $session->delete();
++
++        return back()->with('success', 'جلسه حذف شد.');
++    }
++
++    private function ownedSession(Request $request, int $id, ClassroomWorkspaceService $workspace): ClassSession
++    {
++        $session = ClassSession::query()->findOrFail($id);
++
++        // مدرس فقط جلسه‌های کلاس‌های خودش را می‌بیند؛ در غیر این صورت 404.
++        abort_unless($workspace->queryFor($request->user())->whereKey($session->classroom_id)->exists(), 404);
++
++        return $session;
++    }
++}
+diff --git a/app/Http/Requests/Admin/SaveClassSessionRequest.php b/app/Http/Requests/Admin/SaveClassSessionRequest.php
+new file mode 100644
+index 0000000..62d5b8c
+--- /dev/null
++++ b/app/Http/Requests/Admin/SaveClassSessionRequest.php
+@@ -0,0 +1,37 @@
++<?php
++
++namespace App\Http\Requests\Admin;
++
++use Illuminate\Foundation\Http\FormRequest;
++use Illuminate\Validation\Rule;
++
++class SaveClassSessionRequest extends FormRequest
++{
++    public function authorize(): bool
++    {
++        return $this->user()?->hasAnyPermission(['classes.manage', 'classes.manage.assigned']) ?? false;
++    }
++
++    public function rules(): array
++    {
++        return [
++            'title' => ['required', 'string', 'max:180'],
++            'session_type' => ['required', Rule::in(['online', 'onsite'])],
++            'starts_at' => ['required', 'date'],
++            'ends_at' => ['nullable', 'date', 'after:starts_at'],
++            'meeting_url' => ['nullable', 'url:http,https', 'max:2000'],
++            'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])],
++            'teacher_notes' => ['nullable', 'string', 'max:2000'],
++        ];
++    }
++
++    public function messages(): array
++    {
++        return [
++            'title.required' => 'عنوان جلسه را وارد کنید.',
++            'starts_at.required' => 'زمان شروع جلسه را مشخص کنید.',
++            'ends_at.after' => 'زمان پایان باید بعد از زمان شروع باشد.',
++            'meeting_url.url' => 'لینک جلسه باید با http یا https شروع شود.',
++        ];
++    }
++}
+diff --git a/app/Services/Admin/AttendanceService.php b/app/Services/Admin/AttendanceService.php
+index 25b9b57..43d2135 100644
+--- a/app/Services/Admin/AttendanceService.php
++++ b/app/Services/Admin/AttendanceService.php
+@@ -3,6 +3,7 @@
+ namespace App\Services\Admin;
+ 
+ use App\Models\Attendance;
++use App\Models\ClassSession;
+ use App\Models\Classroom;
+ use Illuminate\Support\Facades\DB;
+ 
+@@ -11,6 +12,14 @@ final class AttendanceService
+     public function record(Classroom $classroom, string $sessionDate, array $entries, int $markedBy): void
+     {
+         DB::transaction(function () use ($classroom, $sessionDate, $entries, $markedBy): void {
++            // اگر دقیقاً یک جلسه در همان روز ثبت شده باشد، حضور و غیاب به آن جلسه وصل می‌شود.
++            $sessionIds = ClassSession::query()
++                ->where('classroom_id', $classroom->id)
++                ->whereDate('starts_at', $sessionDate)
++                ->where('status', '!=', 'cancelled')
++                ->pluck('id');
++            $classSessionId = $sessionIds->count() === 1 ? $sessionIds->first() : null;
++
+             foreach ($entries as $studentId => $entry) {
+                 Attendance::updateOrCreate(
+                     [
+@@ -19,6 +28,7 @@ public function record(Classroom $classroom, string $sessionDate, array $entries
+                         'session_date' => $sessionDate,
+                     ],
+                     [
++                        'class_session_id' => $classSessionId,
+                         'status' => $entry['status'],
+                         'note' => $entry['note'] ?? null,
+                         'marked_by' => $markedBy,
+diff --git a/resources/views/admin/classes/_session_fields.blade.php b/resources/views/admin/classes/_session_fields.blade.php
+new file mode 100644
+index 0000000..4f07a90
+--- /dev/null
++++ b/resources/views/admin/classes/_session_fields.blade.php
+@@ -0,0 +1,19 @@
++@php($s = $session)
++<div class="panel-field"><label>عنوان جلسه</label><input class="panel-input" name="title" value="{{ $s?->title }}" required maxlength="180" placeholder="مثلاً جلسه پنجم: معادله درجه دو"></div>
++<div class="panel-field"><label>نوع جلسه</label>
++    <select class="panel-select" name="session_type" required>
++        <option value="online" @selected(($s?->session_type ?? 'online') === 'online')>آنلاین (اسکای‌روم)</option>
++        <option value="onsite" @selected($s?->session_type === 'onsite')>حضوری</option>
++    </select>
++</div>
++<div class="panel-field"><label>زمان شروع</label><input class="panel-input" type="datetime-local" name="starts_at" value="{{ $s?->starts_at?->format('Y-m-d\TH:i') }}" required></div>
++<div class="panel-field"><label>زمان پایان (اختیاری)</label><input class="panel-input" type="datetime-local" name="ends_at" value="{{ $s?->ends_at?->format('Y-m-d\TH:i') }}"></div>
++<div class="panel-field"><label>لینک ورود (فقط جلسه آنلاین)</label><input class="panel-input" type="url" name="meeting_url" value="{{ $s?->meeting_url }}" dir="ltr" placeholder="{{ $classroom->meeting_url ?: 'https://www.skyroom.online/ch/...' }}"><small class="panel-muted">اگر خالی بماند، لینک اسکای‌روم خود کلاس استفاده می‌شود.</small></div>
++<div class="panel-field"><label>وضعیت</label>
++    <select class="panel-select" name="status" required>
++        @foreach (['scheduled' => 'برگزار می‌شود', 'completed' => 'برگزار شد', 'cancelled' => 'لغو شد'] as $key => $label)
++            <option value="{{ $key }}" @selected(($s?->status ?? 'scheduled') === $key)>{{ $label }}</option>
++        @endforeach
++    </select>
++</div>
++<div class="panel-field"><label>یادداشت مدرس (اختیاری)</label><textarea class="panel-textarea" name="teacher_notes" rows="3" maxlength="2000">{{ $s?->teacher_notes }}</textarea></div>
+diff --git a/resources/views/admin/classes/index.blade.php b/resources/views/admin/classes/index.blade.php
+index 11a39d7..fe84f26 100644
+--- a/resources/views/admin/classes/index.blade.php
++++ b/resources/views/admin/classes/index.blade.php
+@@ -39,7 +39,7 @@
+                             @endif
+                         </td>
+                         @canany(['classes.manage', 'classes.manage.assigned'])
+-                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="class-edit-{{ $classroom->id }}" data-drawer-title="ویرایش کلاس">ویرایش</button></td>
++                            <td><div style="display:flex;gap:6px;flex-wrap:wrap"><a class="panel-btn panel-btn-sm" href="{{ route('admin.classes.sessions.index', $classroom) }}">جلسه‌ها</a><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="class-edit-{{ $classroom->id }}" data-drawer-title="ویرایش کلاس">ویرایش</button></div></td>
+                         @endcanany
+                     </tr>
+                     @canany(['classes.manage', 'classes.manage.assigned'])
+diff --git a/resources/views/admin/classes/sessions.blade.php b/resources/views/admin/classes/sessions.blade.php
+new file mode 100644
+index 0000000..35795d3
+--- /dev/null
++++ b/resources/views/admin/classes/sessions.blade.php
+@@ -0,0 +1,86 @@
++@extends('admin.layouts.app')
++
++@section('page-title', 'جلسه‌های ' . $classroom->name)
++@section('page-description', 'زمان‌بندی جلسه‌های زنده، لینک ورود اسکای‌روم و وضعیت هر جلسه')
++
++@php
++    $canManage = auth()->user()->hasAnyPermission(['classes.manage', 'classes.manage.assigned']);
++    $statusLabels = ['scheduled' => 'برگزار می‌شود', 'completed' => 'برگزار شد', 'cancelled' => 'لغو شد'];
++    $statusVariant = ['scheduled' => 'info', 'completed' => 'success', 'cancelled' => 'danger'];
++    $typeLabels = ['online' => 'آنلاین (اسکای‌روم)', 'onsite' => 'حضوری', 'legacy' => 'ثبت قدیمی'];
++@endphp
++
++@section('content')
++    <div class="panel-page-head" data-tone="learning">
++        <div>
++            <h2>جلسه‌های کلاس {{ $classroom->name }}</h2>
++            <p>{{ $classroom->course->title ?? 'بدون دوره' }} · مدرس: {{ $classroom->teacher->name ?? '—' }}</p>
++        </div>
++        <div style="display:flex;gap:8px;flex-wrap:wrap">
++            <a class="panel-btn panel-btn-secondary" href="{{ route('admin.classes.index') }}">← همه کلاس‌ها</a>
++            @if ($canManage)
++                <button class="panel-btn" type="button" data-admin-drawer-open="session-create" data-drawer-title="جلسه جدید">＋ جلسه جدید</button>
++            @endif
++        </div>
++    </div>
++
++    <section class="panel-grid panel-grid-3 mb-4">
++        <x-admin::stat label="کل جلسه‌ها" :value="number_format($sessions->total())" note="ثبت‌شده برای این کلاس" tone="learning" icon="▣"/>
++        <x-admin::stat label="جلسه بعدی" :value="$nextSession ? $nextSession->starts_at->format('Y/m/d H:i') : '—'" :note="$nextSession?->title ?? 'جلسه‌ی زمان‌بندی‌شده‌ای نیست'" tone="presence" icon="◷"/>
++        <x-admin::stat label="لینک اسکای‌روم کلاس" :value="$classroom->meeting_url ? 'ثبت شده' : 'ثبت نشده'" :note="$classroom->meeting_url ? 'برای جلسه‌های آنلاین پیش‌فرض است' : 'در ویرایش کلاس وارد کنید'" tone="system" icon="↗"/>
++    </section>
++
++    <section class="panel-card" data-tone="learning">
++        <div class="panel-card-title"><div><h3>فهرست جلسه‌ها</h3><p>جدیدترین جلسه بالاست. جلسه‌ای که حضور و غیابش ثبت شده حذف نمی‌شود؛ آن را لغو کنید.</p></div></div>
++        <div class="panel-table-wrap">
++            <table class="panel-table">
++                <thead><tr><th>عنوان</th><th>نوع</th><th>زمان</th><th>وضعیت</th><th>حضور ثبت‌شده</th><th>لینک ورود</th>@if ($canManage)<th>عملیات</th>@endif</tr></thead>
++                <tbody>
++                @forelse ($sessions as $session)
++                    <tr>
++                        <td><strong>{{ $session->title }}</strong></td>
++                        <td>{{ $typeLabels[$session->session_type] ?? $session->session_type }}</td>
++                        <td>{{ $session->starts_at->format('Y/m/d H:i') }}@if ($session->ends_at)<div class="panel-muted">تا {{ $session->ends_at->format('H:i') }}</div>@endif</td>
++                        <td><x-admin::badge :variant="$statusVariant[$session->status] ?? 'info'">{{ $statusLabels[$session->status] ?? $session->status }}</x-admin::badge></td>
++                        <td>{{ number_format($session->attendances_count) }} نفر</td>
++                        <td>
++                            @if ($session->meeting_url)
++                                <a href="{{ $session->meeting_url }}" target="_blank" rel="noopener noreferrer" dir="ltr">ورود ↗</a>
++                            @else
++                                <span class="panel-muted">—</span>
++                            @endif
++                        </td>
++                        @if ($canManage)
++                            <td>
++                                <div style="display:flex;gap:6px;flex-wrap:wrap">
++                                    <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="session-edit-{{ $session->id }}" data-drawer-title="ویرایش جلسه">ویرایش</button>
++                                    <form method="POST" action="{{ route('admin.classes.sessions.destroy', $session->id) }}" data-confirm="این جلسه حذف شود؟ این کار قابل بازگشت نیست.">
++                                        @csrf @method('DELETE')
++                                        <button class="panel-btn panel-btn-danger panel-btn-sm" type="submit">حذف</button>
++                                    </form>
++                                </div>
++                            </td>
++                        @endif
++                    </tr>
++                @empty
++                    <tr><td colspan="7" class="panel-empty">هنوز جلسه‌ای ثبت نشده است. با دکمه «جلسه جدید» اولین جلسه را بسازید.</td></tr>
++                @endforelse
++                </tbody>
++            </table>
++        </div>
++        <div class="panel-pagination"><span>{{ $sessions->count() }} از {{ $sessions->total() }} جلسه</span>{{ $sessions->links() }}</div>
++    </section>
++
++    @if ($canManage)
++        <x-admin::drawer-form id="session-create" title="جلسه جدید" :action="route('admin.classes.sessions.store', $classroom->id)" submit-label="ثبت جلسه">
++            @include('admin.classes._session_fields', ['session' => null, 'classroom' => $classroom])
++        </x-admin::drawer-form>
++
++        @foreach ($sessions as $session)
++            <x-admin::drawer-form :id="'session-edit-'.$session->id" title="ویرایش جلسه" :action="route('admin.classes.sessions.update', $session->id)" submit-label="ذخیره تغییرات">
++                @method('PATCH')
++                @include('admin.classes._session_fields', ['session' => $session, 'classroom' => $classroom])
++            </x-admin::drawer-form>
++        @endforeach
++    @endif
++@endsection
+diff --git a/routes/web.php b/routes/web.php
+index f6faf26..6af19e7 100644
+--- a/routes/web.php
++++ b/routes/web.php
+@@ -3,6 +3,7 @@
+ use App\Http\Controllers\Admin\AnnouncementController;
+ use App\Http\Controllers\Admin\AttendanceController;
+ use App\Http\Controllers\Admin\ClassroomController;
++use App\Http\Controllers\Admin\ClassSessionController;
+ use App\Http\Controllers\Admin\ContactMessageController;
+ use App\Http\Controllers\Admin\ConsultationController;
+ use App\Http\Controllers\Admin\CourseController;
+@@ -118,6 +119,10 @@
+     Route::post('/classes', [ClassroomController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.store');
+     Route::patch('/classes/{classroom}', [ClassroomController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.update');
+     Route::delete('/classes/{classroom}', [ClassroomController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.destroy');
++    Route::get('/classes/{classroom}/sessions', [ClassSessionController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.sessions.index');
++    Route::post('/classes/{classroom}/sessions', [ClassSessionController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.store');
++    Route::patch('/class-sessions/{classSession}', [ClassSessionController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.update');
++    Route::delete('/class-sessions/{classSession}', [ClassSessionController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.destroy');
+ 
+     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage.all,attendance.manage.assigned,attendance.view.assigned')->name('attendance.index');
+     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.store');
+diff --git a/tests/Feature/ClassSessionManagementTest.php b/tests/Feature/ClassSessionManagementTest.php
+new file mode 100644
+index 0000000..3228380
+--- /dev/null
++++ b/tests/Feature/ClassSessionManagementTest.php
+@@ -0,0 +1,130 @@
++<?php
++
++namespace Tests\Feature;
++
++use App\Models\Attendance;
++use App\Models\ClassSession;
++use App\Models\Classroom;
++use App\Models\Course;
++use App\Models\Role;
++use App\Models\User;
++use Database\Seeders\RolePermissionSeeder;
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Tests\TestCase;
++
++final class ClassSessionManagementTest extends TestCase
++{
++    use RefreshDatabase;
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++        $this->seed(RolePermissionSeeder::class);
++        $this->withoutVite();
++    }
++
++    public function test_teacher_creates_updates_and_deletes_a_session_for_own_classroom(): void
++    {
++        [$teacher, $classroom] = $this->teacherWithClassroom('mine');
++        $classroom->update(['meeting_url' => 'https://www.skyroom.online/ch/demo']);
++
++        $this->actingAs($teacher)->get(route('admin.classes.sessions.index', $classroom))->assertOk();
++
++        $this->actingAs($teacher)->post(route('admin.classes.sessions.store', $classroom), [
++            'title' => 'جلسه اول',
++            'session_type' => 'online',
++            'starts_at' => now()->addDay()->format('Y-m-d\TH:i'),
++            'status' => 'scheduled',
++        ])->assertRedirect();
++
++        $session = ClassSession::query()->where('classroom_id', $classroom->id)->firstOrFail();
++        $this->assertSame('https://www.skyroom.online/ch/demo', $session->meeting_url);
++
++        $this->actingAs($teacher)->patch(route('admin.classes.sessions.update', $session->id), [
++            'title' => 'جلسه اول (ویرایش)',
++            'session_type' => 'onsite',
++            'starts_at' => now()->addDays(2)->format('Y-m-d\TH:i'),
++            'status' => 'scheduled',
++        ])->assertRedirect();
++
++        $this->assertSame('جلسه اول (ویرایش)', $session->fresh()->title);
++        $this->assertNull($session->fresh()->meeting_url);
++
++        $this->actingAs($teacher)->delete(route('admin.classes.sessions.destroy', $session->id))->assertRedirect();
++        $this->assertDatabaseMissing('class_sessions', ['id' => $session->id]);
++    }
++
++    public function test_end_time_must_be_after_start_time(): void
++    {
++        [$teacher, $classroom] = $this->teacherWithClassroom('range');
++
++        $this->actingAs($teacher)->post(route('admin.classes.sessions.store', $classroom), [
++            'title' => 'جلسه نامعتبر',
++            'session_type' => 'online',
++            'starts_at' => now()->addDay()->format('Y-m-d\TH:i'),
++            'ends_at' => now()->format('Y-m-d\TH:i'),
++            'status' => 'scheduled',
++        ])->assertSessionHasErrors('ends_at');
++    }
++
++    public function test_teacher_cannot_touch_another_teachers_sessions(): void
++    {
++        [$teacher] = $this->teacherWithClassroom('a');
++        [, $otherClassroom] = $this->teacherWithClassroom('b');
++        $session = ClassSession::query()->create([
++            'classroom_id' => $otherClassroom->id, 'title' => 'جلسه دیگری', 'session_type' => 'online',
++            'starts_at' => now()->addDay(), 'status' => 'scheduled',
++        ]);
++
++        $this->actingAs($teacher)->get(route('admin.classes.sessions.index', $otherClassroom))->assertNotFound();
++        $this->actingAs($teacher)->delete(route('admin.classes.sessions.destroy', $session->id))->assertNotFound();
++        $this->assertDatabaseHas('class_sessions', ['id' => $session->id]);
++    }
++
++    public function test_session_with_attendance_is_not_deleted(): void
++    {
++        [$teacher, $classroom] = $this->teacherWithClassroom('att');
++        $student = User::factory()->create();
++        $session = ClassSession::query()->create([
++            'classroom_id' => $classroom->id, 'title' => 'جلسه با حضور', 'session_type' => 'online',
++            'starts_at' => now()->subDay(), 'status' => 'completed',
++        ]);
++        Attendance::query()->create([
++            'classroom_id' => $classroom->id, 'class_session_id' => $session->id, 'student_id' => $student->id,
++            'session_date' => now()->subDay()->toDateString(), 'status' => 'present', 'marked_by' => $teacher->id,
++        ]);
++
++        $this->actingAs($teacher)->delete(route('admin.classes.sessions.destroy', $session->id))
++            ->assertSessionHasErrors('session');
++        $this->assertDatabaseHas('class_sessions', ['id' => $session->id]);
++    }
++
++    public function test_student_cannot_manage_sessions(): void
++    {
++        [, $classroom] = $this->teacherWithClassroom('stu');
++        $student = User::factory()->create();
++        $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
++
++        $this->actingAs($student)->post(route('admin.classes.sessions.store', $classroom), [
++            'title' => 'x', 'session_type' => 'online', 'starts_at' => now()->addDay()->format('Y-m-d\TH:i'), 'status' => 'scheduled',
++        ])->assertForbidden();
++    }
++
++    /** @return array{0: User, 1: Classroom} */
++    private function teacherWithClassroom(string $key): array
++    {
++        $teacher = User::factory()->create();
++        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->firstOrFail());
++
++        $course = Course::query()->create([
++            'title' => 'دوره '.$key, 'slug' => 'session-mgmt-'.$key, 'teacher_id' => $teacher->id,
++            'type' => 'free', 'price' => 0, 'delivery_type' => 'onsite', 'status' => 'published',
++        ]);
++
++        $classroom = Classroom::query()->create([
++            'course_id' => $course->id, 'teacher_id' => $teacher->id, 'name' => 'کلاس '.$key, 'status' => 'active',
++        ]);
++
++        return [$teacher, $classroom];
++    }
++}
+-- 
+2.43.0
+
