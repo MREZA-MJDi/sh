@@ -81,7 +81,7 @@ class SeoPublicController extends Controller
             'Disallow: /teacher',
             'Disallow: /parent',
             'Disallow: /login',
-            'Disallow: /register',
+            'Disallow: /register',\n            'Disallow: /cart',
         ];
 
         if ($settings->sitemap_enabled) {
