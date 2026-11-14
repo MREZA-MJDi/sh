@@ -29,7 +29,8 @@
         <div class="ac-nav-actions">
             <a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید</a>
             @auth
-                <a class="ac-btn ac-btn-small" href="{{ route('home') }}">حساب من</a>
+                @php($dashboardUrl = auth()->user()->hasRole('student') ? route('student.dashboard') : (auth()->user()->hasRole('parent') ? route('guardian.dashboard') : route('admin.dashboard')))
+                <a class="ac-btn ac-btn-small" href="{{ $dashboardUrl }}">پنل من</a>
             @else
                 <a class="ac-login-link" href="{{ route('login') }}">ورود</a>
                 <a class="ac-btn ac-btn-small" href="{{ route('register') }}">ثبت‌نام</a>
