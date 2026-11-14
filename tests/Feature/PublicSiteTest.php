@@ -1,0 +1,155 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Course;
+use App\Models\CourseSection;
+use App\Models\Lesson;
+use App\Models\SeoArticle;
+use App\Models\SeoBanner;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class PublicSiteTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+        Storage::fake('public');
+    }
+
+    public function test_homepage_displays_only_published_courses_articles_and_active_home_banners(): void
+    {
+        Storage::disk('public')->put('seo/banners/home.jpg', 'image');
+
+        SeoBanner::create([
+            'title' => 'بنر صفحه اصلی',
+            'alt_text' => 'بنر آموزشی',
+            'image_path' => 'seo/banners/home.jpg',
+            'placement' => 'home_hero',
+            'sort_order' => 1,
+            'status' => 'active',
+        ]);
+
+        SeoBanner::create([
+            'title' => 'بنر غیرفعال',
+            'alt_text' => 'بنر غیرفعال',
+            'image_path' => 'seo/banners/home.jpg',
+            'placement' => 'home_hero',
+            'status' => 'inactive',
+        ]);
+
+        $published = Course::create([
+            'title' => 'دوره منتشرشده',
+            'slug' => 'published-course',
+            'description' => 'توضیح دوره',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        Course::create([
+            'title' => 'دوره پیش‌نویس',
+            'slug' => 'draft-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'draft',
+        ]);
+
+        $section = $published->sections()->create([
+            'title' => 'بخش منتشرشده',
+            'status' => 'published',
+        ]);
+
+        $section->lessons()->create([
+            'title' => 'درس منتشرشده',
+            'status' => 'published',
+        ]);
+
+        SeoArticle::create([
+            'title' => 'مقاله منتشرشده',
+            'slug' => 'published-article',
+            'body' => '<p>محتوای مقاله</p>',
+            'status' => 'published',
+            'published_at' => now()->subMinute(),
+        ]);
+
+        SeoArticle::create([
+            'title' => 'مقاله پیش‌نویس',
+            'slug' => 'draft-article',
+            'body' => '<p>پیش‌نویس</p>',
+            'status' => 'draft',
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('بنر صفحه اصلی')
+            ->assertDontSee('بنر غیرفعال')
+            ->assertSee('دوره منتشرشده')
+            ->assertDontSee('دوره پیش‌نویس')
+            ->assertSee('مقاله منتشرشده')
+            ->assertDontSee('مقاله پیش‌نویس');
+    }
+
+    public function test_public_course_page_exposes_only_published_sections_and_lessons(): void
+    {
+        $course = Course::create([
+            'title' => 'دوره عمومی',
+            'slug' => 'public-course',
+            'description' => 'معرفی دوره',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $publishedSection = $course->sections()->create([
+            'title' => 'سرفصل قابل مشاهده',
+            'status' => 'published',
+        ]);
+
+        $publishedSection->lessons()->create([
+            'title' => 'درس قابل مشاهده',
+            'status' => 'published',
+        ]);
+
+        $publishedSection->lessons()->create([
+            'title' => 'درس پیش‌نویس',
+            'status' => 'draft',
+        ]);
+
+        $course->sections()->create([
+            'title' => 'سرفصل پیش‌نویس',
+            'status' => 'draft',
+        ]);
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('دوره عمومی')
+            ->assertSee('سرفصل قابل مشاهده')
+            ->assertSee('درس قابل مشاهده')
+            ->assertDontSee('درس پیش‌نویس')
+            ->assertDontSee('سرفصل پیش‌نویس');
+    }
+
+    public function test_unpublished_course_is_not_publicly_resolvable(): void
+    {
+        $course = Course::create([
+            'title' => 'دوره مخفی',
+            'slug' => 'hidden-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'draft',
+        ]);
+
+        $this->get(route('public.courses.show', $course->slug))->assertNotFound();
+    }
+}
