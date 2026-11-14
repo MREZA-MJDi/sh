@@ -40,6 +40,7 @@ use App\Http\Controllers\Student\VideoController as StudentVideoController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
+use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
@@ -254,6 +255,10 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->group(function (): void {
         // Compatibility URL only: teachers use the exact same admin dashboard, layout and views.
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::middleware('permission:messages.view.assigned')->group(function (): void {
+            Route::get('/messages/create', [TeacherMessageController::class, 'create'])->name('messages.create');
+            Route::post('/messages', [TeacherMessageController::class, 'store'])->name('messages.store');
+        });
     });
 
 Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])

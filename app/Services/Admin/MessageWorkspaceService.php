@@ -35,7 +35,7 @@ final class MessageWorkspaceService
     {
         return $this->queryFor($user)
             ->whereKey($messageId)
-            ->with(['sender', 'replies.sender'])
+            ->with(['sender', 'recipient', 'student', 'replies.sender'])
             ->firstOrFail();
     }
 }
