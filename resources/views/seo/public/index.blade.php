@@ -2,7 +2,7 @@
 
 @section('title', 'مجله و مقالات آموزشی' . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
 @section('description', $settings->default_description ?? 'مجموعه مقالات آموزشی، روش‌های مطالعه، برنامه‌ریزی کنکور و تحلیل دروس در آکادمی شیخان')
-@section('canonical', route('seo.articles.index'))
+@section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
 @section('content')
     {{-- Header Banner --}}
@@ -10,7 +10,7 @@
         <div class="c">
             <div class="bc"><a href="{{ route('home') }}">خانه</a> ‹ مقالات</div>
             <h1>مجله شیخان</h1>
-            <p>نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی کنکور</p>
+            <p>{{ $settings->default_description ?: 'نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی کنکور' }}</p>
         </div>
     </div>
 

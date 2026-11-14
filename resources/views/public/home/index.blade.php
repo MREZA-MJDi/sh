@@ -200,10 +200,12 @@
                     ['فیزیک یازدهم و کنکور تخصصی', 'فیزیک', 'مهندس رضایی', '۲۴ جلسه', '۴٫۸', '۱٬۸۰۰', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', 'به‌زودی', '۷۹۰٬۰۰۰'],
                     ['شیمی جامع کنکور و تست‌های طلایی', 'شیمی', 'دکتر کریمی', '۳۰ جلسه', '۴٫۷', '۱٬۵۰۰', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', 'به‌زودی', '۶۹۰٬۰۰۰'],
                     ['زیست‌شناسی مفهومی و نهایی', 'زیست', 'دکتر نوری', '۴۲ جلسه', '۴٫۹', '۲٬۶۰۰', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', 'به‌زودی', '۸۵۰٬۰۰۰'],
+                    ['ریاضیات پایه و کنکور تجربی', 'ریاضی', 'دکتر احمدی', '۳۶ جلسه', '۴٫۸', '۲٬۱۰۰', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'به‌زودی', '۸۹۰٬۰۰۰'],
                 ];
+                $needed = max(0, 4 - $existingCount);
             @endphp
-            @for($i = 0; $i < (4 - $existingCount); $i++)
-                @php $ph = $placeholders[$i]; @endphp
+            @for($i = 0; $i < $needed; $i++)
+                @php $ph = $placeholders[$i % count($placeholders)]; @endphp
                 <article class="card cc">
                     <a class="th" href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}" style="background:{{ $ph[7] }}">
                         <svg class="i"><use href="#{{ $ph[6] }}"/></svg>
@@ -312,10 +314,12 @@
                     ['جمع‌بندی ریاضی و حسابان', 'دکتر احمدی', '۳٬۵۰۰ دانشجو', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)', '۱٬۲۹۰٬۰۰۰ ت'],
                     ['واژگان و ریدینگ زبان کنکور', 'خانم صادقی', '۱٬۹۰۰ دانشجو', 'lang', 'linear-gradient(135deg,#0891b2,#2563eb)', '۵۹۰٬۰۰۰ ت'],
                     ['شیمی دوازدهم جمع‌بندی', 'دکتر کریمی', '۲٬۴۰۰ دانشجو', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', '۷۹۰٬۰۰۰ ت'],
+                    ['هندسه و گسسته جامع کنکور', 'مهندس سهرابی', '۱٬۶۰۰ دانشجو', 'pen', 'linear-gradient(135deg,#059669,#047857)', '۶۹۰٬۰۰۰ ت'],
                 ];
+                $popNeeded = max(0, 6 - $popExisting);
             @endphp
-            @for($j = 0; $j < (6 - $popExisting); $j++)
-                @php $ps = $popSamples[$j]; @endphp
+            @for($j = 0; $j < $popNeeded; $j++)
+                @php $ps = $popSamples[$j % count($popSamples)]; @endphp
                 <a class="card pop" href="{{ route('public.courses.index') }}">
                     <span class="n">{{ $popExisting + $j + 1 }}</span>
                     <div class="th" style="background:{{ $ps[4] }}">
