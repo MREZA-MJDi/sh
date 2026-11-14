@@ -8,7 +8,7 @@
         @endif
         <div class="mt-8 flex flex-wrap gap-3">
             <x-ui.button :href="route('login')">ورود برای دسترسی آموزشی</x-ui.button>
-            <x-ui.button variant="outline" href="#curriculum">مشاهده سرفصل‌ها</x-ui.button>
+            @if(!empty($course['tracks']))<x-ui.button variant="outline" href="#curriculum">مشاهده سرفصل‌ها</x-ui.button>@endif
         </div>
     </div>
     <ol class="rounded-2xl bg-[#16202A] p-8 text-white">
