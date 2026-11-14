@@ -64,6 +64,21 @@ final class LearningResourceAccessService
         abort_unless(in_array($resource->visibility, ['public', 'authenticated'], true), 404);
     }
 
+    public function authorizePublicGuest(LearningResource $resource): void
+    {
+        abort_unless(
+            $resource->status === 'published'
+                && $resource->visibility === 'public'
+                && ! $resource->classroom_id
+                && ! $resource->course_id
+                && (! $resource->release_at || $resource->release_at->lte(now()))
+                && $resource->file_path
+                && $resource->is_free
+                && ($resource->downloadable || $resource->kind === 'pdf'),
+            404
+        );
+    }
+
     private function hasActiveCourseAccess(User $student, int $courseId): bool
     {
         return CourseEnrollment::query()

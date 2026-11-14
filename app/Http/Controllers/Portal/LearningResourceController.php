@@ -22,6 +22,7 @@ final class LearningResourceController extends Controller
         $access->authorizeDownload($student, $resource);
 
         abort_unless(Storage::disk('local')->exists($resource->file_path), 404);
+        abort_unless($resource->downloadable || $resource->kind === 'pdf', 404);
 
         $eventType = $resource->downloadable ? 'download' : 'view';
         LearningResourceAccessLog::query()->create([

@@ -167,6 +167,38 @@ class PortalLearningResourceAccessTest extends TestCase
         ]);
     }
 
+    public function test_public_unscoped_free_resource_is_available_to_guests_and_logged(): void
+    {
+        $resource = LearningResource::query()->create([
+            'title' => 'فایل عمومی',
+            'kind' => 'pdf',
+            'is_free' => true,
+            'price' => 0,
+            'visibility' => 'public',
+            'file_path' => 'private/resources/public-guide.pdf',
+            'status' => 'published',
+        ]);
+        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 public');
+
+        $this->get(route('public.resources.download', $resource))->assertOk();
+
+        $this->assertDatabaseHas('learning_resource_access_logs', [
+            'learning_resource_id' => $resource->id,
+            'user_id' => null,
+            'student_id' => null,
+            'event_type' => 'download',
+        ]);
+    }
+
+    public function test_public_visibility_does_not_bypass_course_or_class_membership(): void
+    {
+        [, , , $resource] = $this->makePublishedResourceForStudent();
+        $resource->update(['visibility' => 'public']);
+        Storage::disk('local')->put($resource->file_path, 'still scoped');
+
+        $this->get(route('public.resources.download', $resource))->assertNotFound();
+    }
+
     private function makePublishedResourceForStudent(): array
     {
         $teacher = User::factory()->create();

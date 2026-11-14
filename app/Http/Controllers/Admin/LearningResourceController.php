@@ -88,6 +88,7 @@ class LearningResourceController extends Controller
     {
         $this->authorizeResourceAccess($resource, $workspace);
         abort_unless($resource->file_path && Storage::disk('local')->exists($resource->file_path), 404);
+        abort_unless($resource->downloadable || $resource->kind === 'pdf', 404);
 
         LearningResourceAccessLog::query()->create([
             'learning_resource_id' => $resource->id,

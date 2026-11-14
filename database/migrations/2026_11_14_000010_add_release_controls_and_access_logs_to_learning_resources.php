@@ -22,7 +22,7 @@ return new class extends Migration {
         Schema::create('learning_resource_access_logs', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('learning_resource_id')->constrained('learning_resources')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('student_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('event_type', 20);
             $table->string('ip_address', 45)->nullable();
