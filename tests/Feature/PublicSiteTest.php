@@ -185,7 +185,7 @@ class PublicSiteTest extends TestCase
 
     public function test_public_teacher_directory_only_lists_active_teacher_accounts(): void
     {
-        $role = Role::create(['name' => 'teacher', 'label' => 'مدرس']);
+        $role = Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
 
         $teacher = User::create([
             'name' => 'مدرس فعال',
