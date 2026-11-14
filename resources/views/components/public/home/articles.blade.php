@@ -3,7 +3,14 @@
 @if($articles->isNotEmpty())
 <section class="bg-white py-16 md:py-20" aria-labelledby="home-articles-title">
     <div class="mx-auto max-w-7xl px-5">
-        <x-kit.layout.section-heading eyebrow="دانش و یادگیری" title="تازه‌ترین مقاله‌ها" description="مطالب آموزشی و نکته‌های کاربردی آکادمی." :href="route('seo.articles.index')" link-label="همه مقاله‌ها" />
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <span class="text-sm font-bold text-[#0E7C66]">دانش و یادگیری</span>
+                <h2 id="home-articles-title" class="mt-2 text-3xl font-black text-[#16202A]">تازه‌ترین مقاله‌ها</h2>
+                <p class="mt-3 text-sm leading-7 text-[#4A5560]">مطالب آموزشی و نکته‌های کاربردی آکادمی.</p>
+            </div>
+            <a href="{{ route('seo.articles.index') }}" class="font-bold text-[#0E7C66] transition hover:text-[#0B6553]">همه مقاله‌ها ←</a>
+        </div>
         <div class="mt-9 grid gap-6 md:grid-cols-3">
             @foreach($articles as $article)
                 <article class="overflow-hidden rounded-2xl border border-[#D9E0E4] bg-white transition hover:-translate-y-1 hover:shadow-lg">
