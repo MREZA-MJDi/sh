@@ -34,6 +34,7 @@ final class ClassSessionManagementTest extends TestCase
             'title' => 'جلسه اول',
             'session_type' => 'online',
             'starts_at' => now()->addDay()->format('Y-m-d\TH:i'),
+            'ends_at' => now()->addDay()->addHours(2)->format('Y-m-d\\TH:i'),
             'status' => 'scheduled',
         ])->assertRedirect();
 

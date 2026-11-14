@@ -193,48 +193,7 @@
                 <x-public.academy.course-card :course="$course" />
             @endforeach
 
-            @endphp
-                @php $ph = $placeholders[$i % count($placeholders)]; @endphp
-                <article class="card cc">
-                    <a class="th" href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}" style="background:{{ $ph[7] }}">
-                        <svg class="i"><use href="#{{ $ph[6] }}"/></svg>
-                        <span class="bd">{{ $ph[8] }}</span>
-                    </a>
-                    <div class="cb">
-                        <h3>
-                            <a href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}">
-                                {{ $ph[0] }}
-                            </a>
-                        </h3>
-                        <small style="color:var(--mute);margin-bottom:8px;display:block">
-                            مدرس: {{ $ph[2] }}
-                        </small>
-                        <div class="mt">
-                            <span>
-                                <svg class="i"><use href="#clock"/></svg>
-                                {{ $ph[3] }}
-                            </span>
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                                {{ $ph[4] }}
-                            </span>
-                            <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ $ph[5] }}
-                            </span>
-                        </div>
-                        <div class="pr">
-                            <div>
-                                <b>{{ $ph[9] }}</b>
-                                <small>تومان</small>
-                            </div>
-                            <a class="btn s o" style="color:var(--pri)" href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}">
-                                اطلاعات
-                            </a>
-                        </div>
-                    </div>
-                </article>
-            @endfor
+
         </div>
     </div>
 </section>
@@ -294,36 +253,7 @@
                 </a>
             @endforeach
 
-            @endphp
-                @php $ps = $popSamples[$j % count($popSamples)]; @endphp
-                <a class="card pop" href="{{ route('public.courses.index') }}">
-                    <span class="n">{{ $popExisting + $j + 1 }}</span>
-                    <div class="th" style="background:{{ $ps[4] }}">
-                        <svg class="i"><use href="#{{ $ps[3] }}"/></svg>
-                    </div>
-                    <div style="flex:1">
-                        <h3>{{ $ps[0] }}</h3>
-                        <div class="mt" style="margin-bottom:4px">
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                                ۴٫۸
-                            </span>
-                            <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ $ps[2] }}
-                            </span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-                            <span style="font-size:13px;color:var(--mute)">
-                                {{ $ps[1] }}
-                            </span>
-                            <span style="font-weight:700;color:var(--pri);font-size:14px">
-                                {{ $ps[5] }}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            @endfor
+
         </div>
     </div>
 </section>
