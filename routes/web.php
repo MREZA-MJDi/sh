@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
 use App\Http\Controllers\SeoPublicController;
+use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
@@ -33,7 +34,9 @@ use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', DashboardRedirectController::class)->name('home');
+Route::get('/', [PublicSiteController::class, 'home'])->name('home');
+Route::get('/courses', [PublicSiteController::class, 'courses'])->name('public.courses.index');
+Route::get('/courses/{slug}', [PublicSiteController::class, 'course'])->name('public.courses.show');
 Route::get('/articles', [SeoPublicController::class, 'index'])->name('seo.articles.index');
 Route::get('/articles/{slug}', [SeoPublicController::class, 'show'])->name('seo.articles.show');
 Route::get('/sitemap.xml', [SeoPublicController::class, 'sitemap'])->name('seo.sitemap');
