@@ -44,7 +44,13 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('attendances');
-        Schema::dropIfExists('class_sessions');
+        // These tables may have been created by the earlier classroom-based migrations.
+        // Drop only the alternate schema created by this migration itself.
+        if (Schema::hasTable('attendances') && Schema::hasColumn('attendances', 'user_id') && ! Schema::hasColumn('attendances', 'student_id')) {
+            Schema::dropIfExists('attendances');
+        }
+        if (Schema::hasTable('class_sessions') && Schema::hasColumn('class_sessions', 'course_id') && ! Schema::hasColumn('class_sessions', 'classroom_id')) {
+            Schema::dropIfExists('class_sessions');
+        }
     }
 };

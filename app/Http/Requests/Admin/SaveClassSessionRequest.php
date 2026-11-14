@@ -31,6 +31,7 @@ class SaveClassSessionRequest extends FormRequest
             'title.required' => 'عنوان جلسه را وارد کنید.',
             'starts_at.required' => 'زمان شروع جلسه را مشخص کنید.',
             'ends_at.after' => 'زمان پایان باید بعد از زمان شروع باشد.',
+            'ends_at.required_if' => 'زمان پایان برای جلسه آنلاین الزامی است.',
             'meeting_url.url' => 'لینک جلسه باید با http یا https شروع شود.',
         ];
     }

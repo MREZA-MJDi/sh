@@ -7,7 +7,7 @@
     </select>
 </div>
 <div class="panel-field"><label>زمان شروع</label><input class="panel-input" type="datetime-local" name="starts_at" value="{{ $s?->starts_at?->format('Y-m-d\TH:i') }}" required></div>
-<div class="panel-field"><label>زمان پایان (اختیاری)</label><input class="panel-input" type="datetime-local" name="ends_at" value="{{ $s?->ends_at?->format('Y-m-d\TH:i') }}"></div>
+<div class="panel-field"><label>زمان پایان (برای جلسه آنلاین الزامی)</label><input class="panel-input" type="datetime-local" name="ends_at" value="{{ $s?->ends_at?->format('Y-m-d\TH:i') }}"></div>
 <div class="panel-field"><label>لینک ورود (فقط جلسه آنلاین)</label><input class="panel-input" type="url" name="meeting_url" value="{{ $s?->meeting_url }}" dir="ltr" placeholder="{{ $classroom->meeting_url ?: 'https://www.skyroom.online/ch/...' }}"><small class="panel-muted">اگر خالی بماند، لینک اسکای‌روم خود کلاس استفاده می‌شود.</small></div>
 <div class="panel-field"><label>وضعیت</label>
     <select class="panel-select" name="status" required>

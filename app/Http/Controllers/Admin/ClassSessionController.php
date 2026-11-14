@@ -38,13 +38,15 @@ class ClassSessionController extends Controller
     {
         $classroom = $workspace->queryFor($request->user())->findOrFail($classroom);
         $data = $request->validated();
+        $meetingUrl = $data['session_type'] === 'online' ? ($data['meeting_url'] ?? $classroom->meeting_url) : null;
+        if ($data['session_type'] === 'online' && blank($meetingUrl)) {
+            return back()->withInput()->withErrors(['meeting_url' => 'برای جلسه آنلاین، لینک جلسه یا لینک پیش‌فرض کلاس را ثبت کنید.']);
+        }
 
         ClassSession::create([
             ...$data,
             // اگر لینک جلسه خالی بود، لینک اسکای‌روم خود کلاس استفاده می‌شود.
-            'meeting_url' => ($data['session_type'] === 'online')
-                ? ($data['meeting_url'] ?? $classroom->meeting_url)
-                : null,
+            'meeting_url' => $meetingUrl,
             'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
             'classroom_id' => $classroom->id,
             'created_by' => $request->user()->id,
@@ -57,10 +59,14 @@ class ClassSessionController extends Controller
     {
         $session = $this->ownedSession($request, $classSession, $workspace);
         $data = $request->validated();
+        $meetingUrl = $data['session_type'] === 'online' ? ($data['meeting_url'] ?? $session->classroom?->meeting_url) : null;
+        if ($data['session_type'] === 'online' && blank($meetingUrl)) {
+            return back()->withInput()->withErrors(['meeting_url' => 'برای جلسه آنلاین، لینک جلسه یا لینک پیش‌فرض کلاس را ثبت کنید.']);
+        }
 
         $session->update([
             ...$data,
-            'meeting_url' => $data['session_type'] === 'online' ? ($data['meeting_url'] ?? null) : null,
+            'meeting_url' => $meetingUrl,
             'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
         ]);
 
