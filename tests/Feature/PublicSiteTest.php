@@ -139,6 +139,34 @@ class PublicSiteTest extends TestCase
             ->assertDontSee('سرفصل پیش‌نویس');
     }
 
+
+    public function test_public_course_listing_uses_published_courses_only(): void
+    {
+        Course::create([
+            'title' => 'دوره قابل مشاهده',
+            'slug' => 'visible-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        Course::create([
+            'title' => 'دوره غیرقابل مشاهده',
+            'slug' => 'not-visible-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'draft',
+        ]);
+
+        $this->get(route('public.courses.index'))
+            ->assertOk()
+            ->assertSee('دوره قابل مشاهده')
+            ->assertDontSee('دوره غیرقابل مشاهده')
+            ->assertSee(route('public.courses.show', 'visible-course'));
+    }
+
     public function test_unpublished_course_is_not_publicly_resolvable(): void
     {
         $course = Course::create([
