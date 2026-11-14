@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\CourseLesson;
 use App\Models\CourseLicense;
 use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
 
 class LearningAdminController extends Controller

@@ -7,6 +7,7 @@ use App\Models\CourseEnrollment;
 use App\Models\IntegrationRun;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -86,6 +87,15 @@ class CourseService
             throw ValidationException::withMessages([
                 'course' => 'این دوره دارای کلاس، ثبت‌نام یا محتوای آموزشی است؛ برای حفظ سوابق آن را بایگانی کنید.',
             ]);
+        }
+
+        foreach ([$course->teaser_path, $course->teaser_poster_path] as $path) {
+            if ($path) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+        if ($course->teaser_original_path) {
+            Storage::disk('local')->delete($course->teaser_original_path);
         }
 
         $course->delete();

@@ -4,33 +4,85 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\Learning\ProcessTeaserVideo;
-use App\Jobs\Learning\SendLessonVideoToProvider;
 use App\Models\Course;
-use App\Models\CourseLesson;
+use App\Models\VideoUploadSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-/**
- * آپلود تکه‌تکه (chunked): مرورگر فایل را ۵ مگابایتی می‌فرستد، پس نه محدودیت PHP/Nginx
- * اذیت می‌کند و نه قطع شدن شبکه کل آپلود را خراب می‌کند (هر تکه ۳ بار تلاش می‌شود).
- */
-class ChunkUploadController extends Controller
+final class ChunkUploadController extends Controller
 {
     private const EXTENSIONS = ['mp4', 'mov', 'mkv', 'webm', 'm4v'];
+
+    public function start(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'target' => ['required', 'in:teaser'],
+            'target_id' => ['required', 'integer', 'exists:courses,id'],
+        ]);
+
+        $course = Course::query()->findOrFail($data['target_id']);
+        abort_unless($request->user()->hasPermissionTo('courses.manage'), 403);
+
+        if ($course->teaser_status === 'processing') {
+            return $this->fail('تیزر قبلی هنوز در حال پردازش است؛ پس از پایان دوباره تلاش کنید.', 409);
+        }
+
+        $session = VideoUploadSession::query()->create([
+            'upload_id' => (string) Str::uuid(),
+            'user_id' => $request->user()->id,
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'status' => 'uploading',
+            'bytes_uploaded' => 0,
+            'expires_at' => now()->addHours(2),
+        ]);
+
+        return response()->json(['ok' => true, 'upload_id' => $session->upload_id]);
+    }
 
     public function chunk(Request $request): JsonResponse
     {
         $data = $request->validate([
             'upload_id' => ['required', 'uuid'],
             'index' => ['required', 'integer', 'min:0', 'max:2000'],
-            'chunk' => ['required', 'file', 'max:' . ((int) config('learning.chunk_mb') + 1) * 1024],
+            'chunk' => ['required', 'file', 'max:' . (((int) config('learning.chunk_mb')) + 1) * 1024],
         ]);
 
-        $request->file('chunk')->storeAs("chunks/{$data['upload_id']}", "{$data['index']}.part", 'local');
+        $disk = Storage::disk('local');
+        $path = "chunks/{$data['upload_id']}/{$data['index']}.part";
+        $file = $request->file('chunk');
+        $maxBytes = (int) config('learning.max_teaser_mb') * 1024 * 1024;
 
-        return response()->json(['ok' => true]);
+        $session = DB::transaction(function () use ($request, $data, $disk, $path, $file, $maxBytes) {
+            $session = VideoUploadSession::query()
+                ->where('upload_id', $data['upload_id'])
+                ->where('user_id', $request->user()->id)
+                ->where('target', 'teaser')
+                ->where('status', 'uploading')
+                ->where('expires_at', '>', now())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $oldChunkBytes = $disk->exists($path) ? $disk->size($path) : 0;
+            $newBytes = $session->bytes_uploaded - $oldChunkBytes + $file->getSize();
+            if ($newBytes > $maxBytes) {
+                abort(422, 'حجم فایل از سقف مجاز بیشتر است.');
+            }
+
+            $stored = $file->storeAs(dirname($path), basename($path), 'local');
+            if (! $stored) {
+                abort(500, 'ذخیره تکه آپلود ناموفق بود.');
+            }
+
+            $session->update(['bytes_uploaded' => $newBytes]);
+
+            return $session;
+        });
+
+        return response()->json(['ok' => true, 'bytes_uploaded' => $session->bytes_uploaded]);
     }
 
     public function complete(Request $request): JsonResponse
@@ -39,70 +91,81 @@ class ChunkUploadController extends Controller
             'upload_id' => ['required', 'uuid'],
             'total' => ['required', 'integer', 'min:1', 'max:2000'],
             'filename' => ['required', 'string', 'max:255'],
-            'target' => ['required', 'in:teaser,lesson'],
-            'target_id' => ['required', 'integer'],
         ]);
 
-        $ext = strtolower(pathinfo($data['filename'], PATHINFO_EXTENSION));
-        if (! in_array($ext, self::EXTENSIONS, true)) {
+        $session = VideoUploadSession::query()
+            ->where('upload_id', $data['upload_id'])
+            ->where('user_id', $request->user()->id)
+            ->where('target', 'teaser')
+            ->where('status', 'uploading')
+            ->where('expires_at', '>', now())
+            ->firstOrFail();
+
+        $course = Course::query()->findOrFail($session->target_id);
+        abort_unless($request->user()->hasPermissionTo('courses.manage'), 403);
+
+        $extension = strtolower(pathinfo($data['filename'], PATHINFO_EXTENSION));
+        if (! in_array($extension, self::EXTENSIONS, true)) {
             return $this->fail('فرمت فایل مجاز نیست (mp4, mov, mkv, webm).');
         }
 
         $disk = Storage::disk('local');
-        $chunkDir = "chunks/{$data['upload_id']}";
-
-        for ($i = 0; $i < $data['total']; $i++) {
-            if (! $disk->exists("{$chunkDir}/{$i}.part")) {
-                return $this->fail("تکه {$i} ناقص است؛ دوباره آپلود کن.");
+        $chunkDirectory = "chunks/{$session->upload_id}";
+        for ($index = 0; $index < $data['total']; $index++) {
+            if (! $disk->exists("{$chunkDirectory}/{$index}.part")) {
+                return $this->fail("تکه {$index} ناقص است؛ دوباره آپلود کن.");
             }
         }
 
+        $destination = 'uploads/' . Str::uuid() . ".{$extension}";
         $disk->makeDirectory('uploads');
-        $dest = 'uploads/' . Str::uuid() . ".{$ext}";
-        $out = fopen($disk->path($dest), 'wb');
-        for ($i = 0; $i < $data['total']; $i++) {
-            $in = fopen($disk->path("{$chunkDir}/{$i}.part"), 'rb');
-            stream_copy_to_stream($in, $out);
-            fclose($in);
-        }
-        fclose($out);
-        $disk->deleteDirectory($chunkDir);
-
-        $maxMb = $data['target'] === 'teaser' ? config('learning.max_teaser_mb') : config('learning.max_lesson_mb');
-        $abs = $disk->path($dest);
-
-        if (filesize($abs) > $maxMb * 1024 * 1024) {
-            $disk->delete($dest);
-            return $this->fail("حجم فایل بیشتر از {$maxMb} مگابایت است.");
+        $output = fopen($disk->path($destination), 'wb');
+        if (! is_resource($output)) {
+            return $this->fail('ساخت فایل نهایی آپلود ناموفق بود.', 500);
         }
 
-        $mime = function_exists('mime_content_type') ? (string) mime_content_type($abs) : 'video/';
+        for ($index = 0; $index < $data['total']; $index++) {
+            $input = fopen($disk->path("{$chunkDirectory}/{$index}.part"), 'rb');
+            if (! is_resource($input)) {
+                fclose($output);
+                $disk->delete($destination);
+                return $this->fail("خواندن تکه {$index} ناموفق بود.", 500);
+            }
+            stream_copy_to_stream($input, $output);
+            fclose($input);
+        }
+        fclose($output);
+
+        $actualBytes = filesize($disk->path($destination));
+        $maxBytes = (int) config('learning.max_teaser_mb') * 1024 * 1024;
+        if ($actualBytes > $maxBytes || $actualBytes !== $session->bytes_uploaded) {
+            $disk->delete($destination);
+            return $this->fail('اندازه فایل نهایی با تکه‌های دریافت‌شده سازگار نیست یا از سقف مجاز بیشتر است.');
+        }
+
+        $mime = function_exists('mime_content_type') ? (string) mime_content_type($disk->path($destination)) : 'application/octet-stream';
         if (! str_starts_with($mime, 'video/') && $mime !== 'application/octet-stream') {
-            $disk->delete($dest);
+            $disk->delete($destination);
             return $this->fail('فایل ویدیو معتبر نیست.');
         }
 
-        if ($data['target'] === 'teaser') {
-            $course = Course::findOrFail($data['target_id']);
-            if ($course->teaser_original_path) {
-                $disk->delete($course->teaser_original_path);
-            }
-            $course->update(['teaser_original_path' => $dest, 'teaser_status' => 'processing', 'teaser_error' => null]);
-            ProcessTeaserVideo::dispatch($course->id)->afterCommit();
-        } else {
-            $lesson = CourseLesson::findOrFail($data['target_id']);
-            if ($lesson->video_upload_path) {
-                $disk->delete($lesson->video_upload_path);
-            }
-            $lesson->update(['video_upload_path' => $dest, 'video_status' => 'sending', 'video_error' => null]);
-            SendLessonVideoToProvider::dispatch($lesson->id)->afterCommit();
+        if ($course->teaser_original_path) {
+            $disk->delete($course->teaser_original_path);
         }
 
-        return response()->json(['ok' => true]);
+        DB::transaction(function () use ($course, $session, $destination): void {
+            $course->update(['teaser_original_path' => $destination, 'teaser_status' => 'processing', 'teaser_error' => null]);
+            $session->update(['status' => 'completed', 'completed_at' => now()]);
+            ProcessTeaserVideo::dispatch($course->id)->afterCommit();
+        });
+
+        $disk->deleteDirectory($chunkDirectory);
+
+        return response()->json(['ok' => true, 'status' => 'processing']);
     }
 
-    private function fail(string $message): JsonResponse
+    private function fail(string $message, int $status = 422): JsonResponse
     {
-        return response()->json(['message' => $message], 422);
+        return response()->json(['message' => $message], $status);
     }
 }

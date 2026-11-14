@@ -12,6 +12,7 @@
     var CHUNK = {{ (int) config('learning.chunk_mb') }} * 1024 * 1024;
     var TOKEN = @json(csrf_token());
     var CHUNK_URL = @json(route('admin.uploads.chunk'));
+    var START_URL = @json(route('admin.uploads.start'));
     var DONE_URL = @json(route('admin.uploads.complete'));
 
     function uuid() {
@@ -50,9 +51,13 @@
             if (f.size > Number(box.dataset.max) * 1024 * 1024) { msg.textContent = 'حجم فایل بیشتر از ' + box.dataset.max + ' مگابایت است.'; return; }
 
             btn.disabled = true; bar.hidden = false; bar.value = 0;
-            var id = uuid(), total = Math.ceil(f.size / CHUNK);
+            var id = null, total = Math.ceil(f.size / CHUNK);
 
             try {
+                var start = new FormData();
+                start.append('target', box.dataset.target); start.append('target_id', box.dataset.id);
+                var started = await post(START_URL, start);
+                id = started.upload_id;
                 for (var i = 0; i < total; i++) {
                     var fd = new FormData();
                     fd.append('upload_id', id); fd.append('index', i);
@@ -63,7 +68,6 @@
                 }
                 var done = new FormData();
                 done.append('upload_id', id); done.append('total', total); done.append('filename', f.name);
-                done.append('target', box.dataset.target); done.append('target_id', box.dataset.id);
                 await post(DONE_URL, done);
                 msg.textContent = 'آپلود کامل شد؛ پردازش در صف است.';
                 setTimeout(function () { location.reload(); }, 1500);

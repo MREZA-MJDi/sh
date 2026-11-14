@@ -39,7 +39,7 @@
                             <td><a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.content', $course) }}">مدیریت درس‌ها</a></td>
                         @endcanany
                         @can('courses.manage')
-                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button></td>
+                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button> <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.teaser', $course) }}">مدیریت تیزر</a></td>
                         @endcan
                     </tr>
                     @can('courses.manage')

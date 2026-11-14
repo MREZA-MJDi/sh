@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Course extends Model
 {
@@ -12,11 +13,22 @@ class Course extends Model
         'title', 'slug', 'description', 'subject', 'grade', 'teacher_id',
         'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
         'integration_status', 'integration_note',
+        'teaser_original_path', 'teaser_path', 'teaser_poster_path', 'teaser_status', 'teaser_error',
     ];
 
     protected function casts(): array
     {
         return ['price' => 'integer'];
+    }
+
+    public function getTeaserUrlAttribute(): ?string
+    {
+        return $this->teaser_path ? Storage::disk('public')->url($this->teaser_path) : null;
+    }
+
+    public function getTeaserPosterUrlAttribute(): ?string
+    {
+        return $this->teaser_poster_path ? Storage::disk('public')->url($this->teaser_poster_path) : null;
     }
 
     public function teacher(): BelongsTo
