@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReviewHomeworkSubmissionRequest;
 use App\Http\Requests\Admin\StoreHomeworkRequest;
+use App\Http\Requests\Admin\UpdateHomeworkRequest;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Services\Admin\ClassroomWorkspaceService;
@@ -64,6 +65,44 @@ class HomeworkController extends Controller
         $homework->create($data, (int) $request->user()->id);
 
         return back()->with('success', 'تکلیف با موفقیت ثبت شد.');
+    }
+
+
+    public function update(
+        UpdateHomeworkRequest $request,
+        Homework $homework,
+        HomeworkService $service,
+        ClassroomWorkspaceService $workspace
+    ): RedirectResponse {
+        abort_unless($workspace->queryFor($request->user())->whereKey($homework->classroom_id)->exists(), 403);
+
+        $data = $request->validated();
+        $workspace->queryFor($request->user())->findOrFail($data['classroom_id']);
+
+        if ($homework->submissions()->exists() && (int) $data['classroom_id'] !== (int) $homework->classroom_id) {
+            return back()->withInput()->withErrors(['classroom_id' => 'پس از دریافت پاسخ دانش‌آموز، انتقال تکلیف به کلاس دیگر مجاز نیست.']);
+        }
+
+        $service->update($homework, $data);
+
+        return back()->with('success', 'تکلیف به‌روزرسانی شد.');
+    }
+
+    public function destroy(Homework $homework, ClassroomWorkspaceService $workspace): RedirectResponse
+    {
+        abort_unless($workspace->queryFor(auth()->user())->whereKey($homework->classroom_id)->exists(), 403);
+
+        if ($homework->submissions()->exists()) {
+            return back()->withErrors(['homework' => 'این تکلیف پاسخ ثبت‌شده دارد؛ برای حفظ سوابق دانش‌آموزان حذف نمی‌شود.']);
+        }
+
+        if ($homework->attachment_path) {
+            Storage::disk('local')->delete($homework->attachment_path);
+        }
+
+        $homework->delete();
+
+        return back()->with('success', 'تکلیف حذف شد.');
     }
 
     public function review(

@@ -134,6 +134,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/homework', [HomeworkController::class, 'index'])->middleware('permission:homework.manage.all,homework.manage.assigned,homework.view.assigned')->name('homework.index');
     Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.store');
+    Route::patch('/homework/{homework}', [HomeworkController::class, 'update'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.update');
+    Route::delete('/homework/{homework}', [HomeworkController::class, 'destroy'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.destroy');
     Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
     Route::get('/homework/{homework}/attachment', [HomeworkController::class, 'downloadAttachment'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework.attachment');
 

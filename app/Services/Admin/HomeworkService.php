@@ -34,6 +34,42 @@ final class HomeworkService
         }
     }
 
+
+    public function update(Homework $homework, array $data): Homework
+    {
+        $oldPath = $homework->attachment_path;
+        $newPath = null;
+
+        if (($data['attachment'] ?? null) instanceof UploadedFile) {
+            $newPath = $data['attachment']->store('private/homework', 'local');
+        }
+
+        $removeAttachment = filter_var($data['remove_attachment'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $attachmentPath = $newPath ?? ($removeAttachment ? null : $oldPath);
+
+        try {
+            DB::transaction(fn () => $homework->update([
+                'classroom_id' => $data['classroom_id'],
+                'title' => $data['title'],
+                'instructions' => $data['instructions'] ?? null,
+                'due_at' => $data['due_at'] ?? null,
+                'attachment_path' => $attachmentPath,
+                'status' => $data['status'],
+            ]));
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+            throw $exception;
+        }
+
+        if ($oldPath && $oldPath !== $attachmentPath) {
+            Storage::disk('local')->delete($oldPath);
+        }
+
+        return $homework->refresh();
+    }
+
     public function review(HomeworkSubmission $submission, array $data, int $reviewedBy): HomeworkSubmission
     {
         $submission->update([

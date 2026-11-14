@@ -21,7 +21,7 @@
         <div class="panel-card-title"><div><h3>تکالیف ثبت‌شده</h3><p>فهرست تکالیف کلاس‌های قابل دسترس</p></div></div>
         <div class="panel-table-wrap">
             <table class="panel-table" data-searchable-table>
-                <thead><tr><th>عنوان</th><th>کلاس</th><th>مهلت تحویل</th><th>پاسخ</th><th>در انتظار بررسی</th><th>وضعیت</th><th>پیوست</th></tr></thead>
+                <thead><tr><th>عنوان</th><th>کلاس</th><th>مهلت تحویل</th><th>پاسخ</th><th>در انتظار بررسی</th><th>وضعیت</th><th>پیوست</th>@canany(['homework.manage.all', 'homework.manage.assigned'])<th>عملیات</th>@endcanany</tr></thead>
                 <tbody>
                 @forelse ($homeworks as $homework)
                     <tr>
@@ -32,9 +32,29 @@
                         <td><x-admin::badge variant="warning">{{ number_format($homework->pending_submissions_count) }}</x-admin.badge></td>
                         <td><x-admin::badge :variant="$homework->status === 'published' ? 'success' : 'warning'">{{ $homework->status === 'published' ? 'منتشرشده' : 'پیش‌نویس' }}</x-admin.badge></td>
                         <td>@if ($homework->attachment_path)<a href="{{ route('admin.homework.attachment', $homework) }}">دریافت فایل</a>@else—@endif</td>
+                        @canany(['homework.manage.all', 'homework.manage.assigned'])
+                            <td class="panel-table-actions">
+                                <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="homework-edit-{{ $homework->id }}" data-drawer-title="ویرایش تکلیف">ویرایش</button>
+                                <form method="POST" action="{{ route('admin.homework.destroy', $homework) }}" data-confirm="تکلیف حذف شود؟ پاسخ‌های ثبت‌شده مانع حذف هستند.">@csrf @method('DELETE')<button class="panel-btn panel-btn-danger panel-btn-sm" type="submit">حذف</button></form>
+                            </td>
+                        @endcanany
                     </tr>
+                    @canany(['homework.manage.all', 'homework.manage.assigned'])
+                        <x-admin::drawer-form :id="'homework-edit-'.$homework->id" title="ویرایش تکلیف" :action="route('admin.homework.update', $homework)" submit-label="ذخیره تغییرات" enctype="multipart/form-data">
+                            @method('PATCH')
+                            <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $homework->title }}" required maxlength="180"></div>
+                            <div class="panel-field"><label>کلاس</label><select class="panel-select" name="classroom_id" required>@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected($homework->classroom_id === $classroom->id)>{{ $classroom->name }}</option>@endforeach</select></div>
+                            <div class="panel-field"><label>مهلت تحویل</label><input class="panel-input" type="datetime-local" name="due_at" value="{{ $homework->due_at?->format('Y-m-d\\TH:i') }}"></div>
+                            <div class="panel-field"><label>دستورالعمل</label><textarea class="panel-textarea" name="instructions" data-rich-text maxlength="40000">{{ $homework->instructions }}</textarea></div>
+                            @if($homework->attachment_path)
+                                <div class="panel-field"><label>پیوست فعلی</label><a href="{{ route('admin.homework.attachment', $homework) }}">دریافت فایل فعلی</a><label><input type="checkbox" name="remove_attachment" value="1"> حذف پیوست فعلی</label></div>
+                            @endif
+                            <div class="panel-field"><label>جایگزینی پیوست</label><input class="panel-input" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"></div>
+                            <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="published" @selected($homework->status === 'published')>منتشرشده</option><option value="draft" @selected($homework->status === 'draft')>پیش‌نویس</option></select></div>
+                        </x-admin.drawer-form>
+                    @endcanany
                 @empty
-                    <tr><td colspan="7" class="panel-empty">تکلیفی برای نمایش وجود ندارد.</td></tr>
+                    <tr><td colspan="8" class="panel-empty">تکلیفی برای نمایش وجود ندارد.</td></tr>
                 @endforelse
                 </tbody>
             </table>
