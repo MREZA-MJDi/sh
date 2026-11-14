@@ -1,34 +1,15 @@
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#16202A">
-    <title>{{ $course->title }}{{ $settings->title_separator }}{{ $settings->site_name }}</title>
-    <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags($course->description ?: $course->title), 155) }}">
-    <meta name="robots" content="{{ $settings->robots_index ? 'index' : 'noindex' }},{{ $settings->robots_follow ? 'follow' : 'nofollow' }}">
-    <link rel="canonical" href="{{ route('public.courses.show', $course->slug) }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="min-h-screen bg-white font-sans text-[#16202A]">
-<x-public.layout.navbar />
-<main>
-    <div class="mx-auto max-w-6xl px-5 pt-8">
-        <a href="{{ route('public.courses.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-[#0E7C66] transition hover:text-[#0B6553]">← بازگشت به همه دوره‌ها</a>
-    </div>
-
-    <x-sections.hero :course="$landingCourse" />
-    @if(count($curriculum))
-        <x-sections.curriculum :curriculum="$curriculum" />
-    @endif
-    @if($instructor)
-        <x-sections.instructor :instructor="$instructor" />
-    @endif
-    <x-sections.pricing :course="$landingCourse" />
-</main>
-<x-public.layout.footer />
-</body>
-</html>
+@extends('public.layouts.academy')
+@section('title',$course->title.$settings->title_separator.$settings->site_name)
+@section('description',\Illuminate\Support\Str::limit(strip_tags($course->description ?: $course->title),155))
+@section('canonical',route('public.courses.show',$course->slug))
+@section('content')
+<header class="ac-course-detail-head"><div class="ac-wrap"><div style="font-size:13px;color:#9fb0d8"><a href="{{ route('home') }}">خانه</a> ‹ <a href="{{ route('public.courses.index') }}">دوره‌ها</a> ‹ {{ $course->title }}</div><span class="ac-pill" style="margin-top:10px">{{ $course->subject ?: 'دوره آموزشی' }}</span><h1>{{ $course->title }}</h1><p style="max-width:750px;color:#cbd5f1">{{ $course->description }}</p><div class="ac-meta" style="color:#cbd5f1">@if($course->teacher)<span>مدرس: {{ $course->teacher->name }}</span>@endif<span>{{ $course->sections->sum(fn($section)=>$section->lessons->count()) }} درس منتشرشده</span><span>{{ number_format($course->enrollments_count) }} ثبت‌نام</span></div></div></header>
+<div class="ac-wrap ac-detail-grid"><div>
+<section class="ac-card ac-block"><h2>در این دوره چه یاد می‌گیری؟</h2>@if($course->description)<p style="white-space:pre-line">{{ $course->description }}</p>@else<p class="ac-muted">توضیحات تکمیلی این دوره هنوز ثبت نشده است.</p>@endif</section>
+<section class="ac-card ac-block"><h2>سرفصل‌ها <small class="ac-muted" style="font-size:13px;font-weight:400">{{ $course->sections->count() }} فصل · {{ $course->sections->sum(fn($section)=>$section->lessons->count()) }} درس</small></h2>
+@forelse($course->sections as $section)<details class="ac-section-row" @if($loop->first) open @endif><summary>{{ $section->title }} <span class="ac-muted" style="font-size:12px">· {{ $section->lessons->count() }} درس</span></summary>@if($section->description)<p class="ac-muted">{{ $section->description }}</p>@endif@forelse($section->lessons as $lesson)<div class="ac-lesson">▶ {{ $lesson->title }} @if($lesson->duration_minutes)<span style="float:left">{{ $lesson->duration_minutes }} دقیقه</span>@endif</div>@empty<div class="ac-lesson">درس منتشرشده‌ای در این فصل وجود ندارد.</div>@endforelse</details>@empty<div class="ac-empty">سرفصل منتشرشده‌ای برای این دوره ثبت نشده است.</div>@endforelse
+</section>
+@if($course->teacher)<section class="ac-card ac-block"><h2>مدرس دوره</h2><div style="display:flex;align-items:center;gap:16px"><div class="ac-avatar" style="margin:0">{{ mb_substr($course->teacher->name,0,1) }}</div><div><b>{{ $course->teacher->name }}</b><div class="ac-muted">{{ $course->teacher->subject ?: 'مدرس دوره' }}</div>@if($course->teacher->profile_note)<p class="ac-muted">{{ $course->teacher->profile_note }}</p>@endif</div></div></section>@endif
+</div><aside class="ac-card ac-sticky"><span class="ac-pill {{ $course->type==='paid'?'ac-pill-orange':'' }}">{{ $course->type==='paid'?'دوره پولی':'دوره رایگان' }}</span><div style="font-size:27px;font-weight:800;margin:10px 0">{{ $course->type==='paid'?number_format((int)$course->price).' تومان':'رایگان' }}</div><form method="POST" action="{{ route('public.cart.add',$course) }}">@csrf<button class="ac-btn" type="submit" style="width:100%">افزودن به سبد خرید</button></form><a class="ac-btn ac-btn-outline" href="{{ route('login') }}" style="width:100%;margin-top:10px">ورود به حساب کاربری</a><ul class="ac-list" style="margin-top:18px"><li><span>فصل‌های منتشرشده</span><b>{{ $course->sections->count() }}</b></li><li><span>درس‌های منتشرشده</span><b>{{ $course->sections->sum(fn($section)=>$section->lessons->count()) }}</b></li><li><span>نوع برگزاری</span><b>{{ $course->delivery_type==='online'?'آنلاین':'حضوری' }}</b></li></ul><p class="ac-muted" style="font-size:12px">پرداخت آنلاین تا زمان اتصال درگاه پرداخت در دسترس نیست.</p></aside></div>
+@if($relatedCourses->isNotEmpty())<section class="ac-section ac-section-white"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">پیشنهاد برای تو</span><h2>دوره‌های مرتبط</h2></div></div><div class="ac-grid ac-grid-3">@foreach($relatedCourses as $related)<x-public.academy.course-card :course="$related" />@endforeach</div></div></section>@endif
+@endsection
