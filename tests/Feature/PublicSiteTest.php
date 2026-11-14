@@ -90,6 +90,9 @@ class PublicSiteTest extends TestCase
             'status' => 'draft',
         ]);
 
+        $homeView = app(\App\Http\Controllers\PublicSiteController::class)->home();
+        $this->assertTrue($homeView->getData()['courses']->contains('title', 'دوره منتشرشده'));
+
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('بنر صفحه اصلی')

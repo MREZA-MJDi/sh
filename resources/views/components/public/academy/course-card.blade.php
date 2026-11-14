@@ -41,10 +41,6 @@
                 <svg class="i"><use href="#clock"/></svg>
                 {{ $lessonsCount > 0 ? $lessonsCount . ' جلسه' : 'جامع' }}
             </span>
-            <span style="color:#f59e0b">
-                <svg class="i"><use href="#star"/></svg>
-                ۴٫۸
-            </span>
             <span>
                 <svg class="i"><use href="#user"/></svg>
                 {{ number_format($course->enrollments_count ?? 0) }} دانشجو
