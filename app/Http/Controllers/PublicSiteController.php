@@ -11,6 +11,7 @@ use App\Models\SeoBanner;
 use App\Models\SeoSetting;
 use App\Models\SeoTestimonial;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -88,14 +89,18 @@ final class PublicSiteController extends Controller
         return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades'));
     }
 
-    public function course(string $slug): View
+    public function course(Request $request, string $slug, CourseEnrollmentService $enrollments): View
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note'), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
-            ->withCount('enrollments')->firstOrFail();
+            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->firstOrFail();
+
+        $hasCourseAccess = $request->user()?->hasRole('student') && $request->user()->is_active
+            ? $enrollments->hasActiveAccess($request->user(), $course)
+            : false;
 
         $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
@@ -103,9 +108,9 @@ final class PublicSiteController extends Controller
                 'teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name'),
                 'sections' => fn ($sections) => $sections->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
-            ])->withCount('enrollments')->latest()->limit(3)->get();
+            ])->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'relatedCourses'));
+        return view('public.courses.show', compact('settings', 'course', 'relatedCourses', 'hasCourseAccess'));
     }
 
     public function teachers(Request $request): View

@@ -26,10 +26,6 @@
             <p>{{ \Illuminate\Support\Str::limit(strip_tags($course->description), 200) }}</p>
         @endif
         <div class="mt">
-            <span style="color:#fbbf24">
-                <svg class="i"><use href="#star"/></svg>
-                ۴٫۸ (رضایت دانش‌آموزان)
-            </span>
             <span>
                 <svg class="i"><use href="#user"/></svg>
                 {{ number_format($course->enrollments_count ?? 0) }} دانش‌آموز
@@ -236,25 +232,6 @@
                 </div>
             @endif
 
-            {{-- بخش ۴: نظرات و رضایت دانش‌آموزان --}}
-            <div class="card blk" id="c4">
-                <h2>نظرات و رضایت دانش‌آموزان</h2>
-                <div class="rv">
-                    <span style="width:24px;font-weight:700">۵</span>
-                    <div class="qbar"><i style="width:84%"></i></div>
-                    <span style="width:40px;text-align:left;color:var(--mute);font-size:13px">۸۴٪</span>
-                </div>
-                <div class="rv">
-                    <span style="width:24px;font-weight:700">۴</span>
-                    <div class="qbar"><i style="width:12%"></i></div>
-                    <span style="width:40px;text-align:left;color:var(--mute);font-size:13px">۱۲٪</span>
-                </div>
-                <div class="rv">
-                    <span style="width:24px;font-weight:700">۳</span>
-                    <div class="qbar"><i style="width:4%"></i></div>
-                    <span style="width:40px;text-align:left;color:var(--mute);font-size:13px">۴٪</span>
-                </div>
-            </div>
         </div>
 
         {{-- سایدبار استیکی قیمت و ثبت‌نام --}}
@@ -272,23 +249,24 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('public.cart.add', $course) }}">
-                @csrf
-                <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">
-                    {{ $course->type === 'paid' ? 'ثبت‌نام در دوره' : 'شروع رایگان دوره' }}
-                </button>
-            </form>
-
-            @guest
-                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">
-                    ورود به حساب کاربری
-                </a>
-            @endguest
+            @if ($hasCourseAccess)
+                <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
+            @elseif (auth()->check() && auth()->user()->hasRole('student') && $course->type === 'free')
+                <form method="POST" action="{{ route('student.courses.enroll-free', $course) }}">
+                    @csrf
+                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام رایگان</button>
+                </form>
+            @elseif ($course->type === 'paid')
+                <form method="POST" action="{{ route('public.cart.add', $course) }}">
+                    @csrf
+                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام در دوره</button>
+                </form>
+            @else
+                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">برای ثبت‌نام رایگان وارد شوید</a>
+            @endif
 
             <p style="font-size:13px;color:var(--mute);margin:14px 0 0;text-align:center;line-height:1.7">
-                پس از ثبت‌نام، دوره بلافاصله در 
-                <a href="{{ route('student.dashboard') }}" style="color:var(--pri);font-weight:700">پنل دانش‌آموز</a> 
-                فعال می‌شود.
+                دسترسی دوره بر اساس وضعیت ثبت‌نام و تأیید پرداخت مدیریت می‌شود.
             </p>
 
             <ul>

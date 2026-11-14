@@ -152,6 +152,53 @@ class CourseEnrollmentService
         }, 3);
     }
 
+
+    public function enrollFreeCourse(User $student, Course $course): CourseEnrollment
+    {
+        if (! $student->hasRole('student') || ! $student->is_active) {
+            throw ValidationException::withMessages(['student' => 'فقط دانش‌آموز فعال می‌تواند در دوره ثبت‌نام کند.']);
+        }
+
+        if ($course->status !== 'published' || $course->type !== 'free') {
+            throw ValidationException::withMessages(['course' => 'ثبت‌نام مستقیم فقط برای دوره رایگان منتشرشده فعال است.']);
+        }
+
+        return DB::transaction(function () use ($student, $course): CourseEnrollment {
+            $enrollment = CourseEnrollment::query()
+                ->where('course_id', $course->id)
+                ->where('student_id', $student->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($enrollment && $enrollment->status === 'active'
+                && (! $enrollment->expires_at || $enrollment->expires_at->isFuture())) {
+                return $enrollment;
+            }
+
+            if ($enrollment?->source === 'payment') {
+                throw ValidationException::withMessages(['course' => 'وضعیت ثبت‌نام پرداختی این دوره باید توسط پشتیبانی بررسی شود.']);
+            }
+
+            if (! $enrollment) {
+                $enrollment = new CourseEnrollment([
+                    'course_id' => $course->id,
+                    'student_id' => $student->id,
+                ]);
+            }
+
+            $enrollment->fill([
+                'source' => 'free',
+                'status' => 'active',
+                'granted_by' => null,
+                'source_reference' => 'free-course:'.$course->id,
+                'granted_at' => now(),
+                'expires_at' => null,
+            ])->save();
+
+            return $enrollment->refresh();
+        }, 3);
+    }
+
     public function hasActiveAccess(User $student, Course $course): bool
     {
         if ($course->status !== 'published') {

@@ -29,6 +29,7 @@ use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultation
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\JoinClassSessionController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\EnrollFreeCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
 use App\Http\Controllers\Student\VideoController as StudentVideoController;
@@ -211,6 +212,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
 
         Route::middleware('permission:lessons.view')->group(function (): void {
             Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+        Route::post('/courses/{course}/enroll-free', EnrollFreeCourseController::class)->middleware('throttle:10,1')->name('courses.enroll-free');
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
             Route::patch('/courses/{course}/lessons/{lesson}/progress', [StudentCourseController::class, 'updateProgress'])
                 ->middleware('permission:lessons.progress')->name('courses.lessons.progress');
