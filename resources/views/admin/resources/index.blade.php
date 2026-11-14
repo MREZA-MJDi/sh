@@ -5,7 +5,7 @@
 
 @section('content')
     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="library">
         <div><h2>منابع آموزشی</h2><p>{{ $resources->total() }} فایل و منبع ثبت‌شده</p></div>
         @canany(['resources.manage', 'resources.manage.assigned'])
             <button class="panel-btn" type="button" data-admin-drawer-open="resource-create" data-drawer-title="افزودن منبع">＋ افزودن جزوه</button>

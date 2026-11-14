@@ -5,7 +5,7 @@
 
 @section('content')
     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="learning">
         <div><h2>دوره‌های آموزشی</h2><p>{{ $courses->total() }} دوره در این فهرست</p></div>
         @can('courses.manage')
             <button class="panel-btn" type="button" data-admin-drawer-open="course-create" data-drawer-title="دوره جدید">＋ ساخت دوره</button>

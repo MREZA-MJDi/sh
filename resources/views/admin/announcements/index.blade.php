@@ -4,7 +4,7 @@
 @section('page-description', 'اطلاعیه‌های آکادمی و مخاطبان هر پیام')
 
 @section('content')
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="talk">
         <div><h2>اطلاعیه‌ها</h2><p>{{ $announcements->total() }} اطلاعیه ثبت‌شده</p></div>
         @can('announcements.manage')
             <button class="panel-btn" type="button" data-admin-drawer-open="announcement-create" data-drawer-title="اطلاعیه جدید">＋ اطلاعیه جدید</button>

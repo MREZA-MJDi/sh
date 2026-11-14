@@ -4,7 +4,7 @@
 @section('page-description', 'تعریف تکلیف، مشاهده تحویل‌ها و ثبت بازخورد')
 
 @section('content')
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="work">
         <div><h2>تکالیف و پاسخ‌ها</h2><p>عملیات روی کلاس‌های مجاز شما انجام می‌شود.</p></div>
         @canany(['homework.manage.all', 'homework.manage.assigned'])
             <button class="panel-btn" type="button" data-admin-drawer-open="homework-create" data-drawer-title="تکلیف جدید">＋ تکلیف جدید</button>

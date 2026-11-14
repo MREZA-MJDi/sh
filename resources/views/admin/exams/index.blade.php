@@ -5,7 +5,7 @@
 
 @section('content')
     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="learning">
         <div><h2>آزمون‌ها و نتایج</h2><p>{{ number_format($exams->total()) }} آزمون در فهرست شما</p></div>
         @canany(['exams.manage', 'exams.manage.assigned'])
             <button class="panel-btn" type="button" data-admin-drawer-open="exam-create" data-drawer-title="آزمون جدید">＋ آزمون جدید</button>

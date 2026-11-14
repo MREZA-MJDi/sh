@@ -5,7 +5,7 @@
 
 @section('content')
     @if ($teacherView)
-        <div class="panel-page-head">
+        <div class="panel-page-head" data-tone="learning">
             <div><h2>ویدیوهای کلاس</h2><p>ویدیو فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شود.</p></div>
             <button class="panel-btn" type="button" data-admin-drawer-open="video-create" data-drawer-title="ثبت ویدئوی کلاس">＋ ثبت ویدیو</button>
         </div>
