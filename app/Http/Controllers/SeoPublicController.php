@@ -14,13 +14,23 @@ class SeoPublicController extends Controller
     public function index(): View
     {
         $settings = SeoSetting::current();
-        $articles = SeoArticle::published()->with('author')->latest('published_at')->paginate(12);
+        $keyword = trim((string) request()->query('keyword'));
+        $search = trim((string) request()->query('q'));
+        $articleQuery = SeoArticle::published()->with('author');
+        if ($keyword !== '') $articleQuery->whereJsonContains('keywords', $keyword);
+        if ($search !== '') $articleQuery->where(fn ($query) => $query
+            ->where('title', 'like', '%'.$search.'%')
+            ->orWhere('excerpt', 'like', '%'.$search.'%'));
+        $articles = $articleQuery->latest('published_at')->paginate(12)->withQueryString();
+        $keywords = SeoArticle::published()->pluck('keywords')->flatten()
+            ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+            ->unique()->sort()->values();
         $banners = SeoBanner::active()
             ->whereIn('placement', ['articles_top', 'sitewide'])
             ->orderBy('sort_order')
             ->get();
 
-        return view('seo.public.index', compact('settings', 'articles', 'banners'));
+        return view('seo.public.index', compact('settings', 'articles', 'banners', 'keywords', 'keyword', 'search'));
     }
 
     public function show(string $slug): View
