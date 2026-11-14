@@ -27,6 +27,7 @@ use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\JoinClassSessionController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
@@ -183,6 +184,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/class-sessions/{classSession}/join', JoinClassSessionController::class)->middleware('throttle:20,1')->name('class-sessions.join');
 
         Route::middleware('permission:exams.view.own')->group(function (): void {
             Route::get('/exams', [StudentExamController::class, 'index'])->name('exams.index');

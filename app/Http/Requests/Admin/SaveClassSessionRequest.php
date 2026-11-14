@@ -18,7 +18,7 @@ class SaveClassSessionRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'session_type' => ['required', Rule::in(['online', 'onsite'])],
             'starts_at' => ['required', 'date'],
-            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'ends_at' => ['nullable', 'date', 'after:starts_at', 'required_if:session_type,online'],
             'meeting_url' => ['nullable', 'url:http,https', 'max:2000'],
             'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])],
             'teacher_notes' => ['nullable', 'string', 'max:2000'],

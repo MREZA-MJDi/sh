@@ -175,6 +175,35 @@
                         <div class="empty">هنوز کلاسی برای این حساب ثبت نشده است.</div>
                     @endforelse
                 </div>
+
+                <div class="student-session-list" aria-label="جلسه‌های آنلاین">
+                    @forelse ($upcoming_sessions as $session)
+                        @php
+                            $sessionJoinUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+                            $sessionJoinable = $session->starts_at->lte(now()->addMinutes(15))
+                                && $session->ends_at?->gte(now())
+                                && filled($sessionJoinUrl);
+                        @endphp
+                        <article class="student-class-item">
+                            <span class="student-class-item__icon"><x-icon name="video"/></span>
+                            <div class="student-class-item__body">
+                                <h3>{{ $session->title }}</h3>
+                                <p>{{ $session->classroom?->name ?? 'کلاس آموزشی' }}</p>
+                                <span class="mu">شروع: {{ $session->starts_at->format('Y/m/d H:i') }} · پایان: {{ $session->ends_at->format('H:i') }}</span>
+                            </div>
+                            @if ($sessionJoinable)
+                                <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">
+                                    @csrf
+                                    <button class="btn s" type="submit">ورود به کلاس</button>
+                                </form>
+                            @else
+                                <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? '۱۵ دقیقه مانده فعال می‌شود' : 'لینک ورود ثبت نشده' }}</span>
+                            @endif
+                        </article>
+                    @empty
+                        <p class="mu">جلسه آنلاین فعالی برای کلاس‌های شما زمان‌بندی نشده است.</p>
+                    @endforelse
+                </div>
             </section>
         @endcan
 

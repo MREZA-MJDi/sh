@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
@@ -24,6 +25,17 @@ final class StudentDashboardService
             ->with(['course:id,title,subject,grade', 'teacher:id,name'])
             ->orderBy('classrooms.name')
             ->limit(6)
+            ->get();
+
+        $upcomingSessions = ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'scheduled')
+            ->where('session_type', 'online')
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '>=', now())
+            ->with('classroom:id,name,meeting_url')
+            ->orderBy('starts_at')
+            ->limit(10)
             ->get();
 
         $homeworkQuery = Homework::query()
@@ -119,6 +131,7 @@ final class StudentDashboardService
 
         return [
             'classrooms' => $classrooms,
+            'upcoming_sessions' => $upcomingSessions,
             'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,
