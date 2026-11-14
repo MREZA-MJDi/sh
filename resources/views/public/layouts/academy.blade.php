@@ -27,7 +27,7 @@
             <a href="{{ route('public.contact') }}">تماس با ما</a>
         </nav>
         <div class="ac-nav-actions">
-            <a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید</a>
+            <a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید <span class="ac-cart-count">{{ count(session('public_cart', [])) }}</span></a>
             @auth
                 @php($dashboardUrl = auth()->user()->hasRole('student') ? route('student.dashboard') : (auth()->user()->hasRole('parent') ? route('guardian.dashboard') : route('admin.dashboard')))
                 <a class="ac-btn ac-btn-small" href="{{ $dashboardUrl }}">پنل من</a>
