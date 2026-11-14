@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\Role;
+use App\Models\User;
 use App\Models\CourseSection;
 use App\Models\Lesson;
 use App\Models\SeoArticle;
