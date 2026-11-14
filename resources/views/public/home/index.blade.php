@@ -1,28 +1,29 @@
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#16202A">
-    <title>{{ $settings->default_title }}{{ $settings->title_separator }}{{ $settings->site_name }}</title>
-    <meta name="description" content="{{ $settings->default_description }}">
-    <meta name="robots" content="{{ $settings->robots_index ? 'index' : 'noindex' }},{{ $settings->robots_follow ? 'follow' : 'nofollow' }}">
-    <link rel="canonical" href="{{ rtrim($settings->canonical_base_url ?: url('/'), '/') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="min-h-screen bg-[#F7F9F8] font-sans text-[#16202A]">
-    <x-public.layout.navbar />
-
-    <main>
-        <x-public.home.hero :banners="$banners" />
-        <x-public.home.courses :courses="$courses" />
-        <x-public.home.articles :articles="$articles" />
-        <x-public.home.cta />
-    </main>
-
-    <x-public.layout.footer />
-</body>
-</html>
+@extends('public.layouts.academy')
+@section('title', $settings->site_name.' | آموزش آنلاین')
+@section('content')
+@if($banners->isNotEmpty())
+<section class="ac-hero"><div class="ac-wrap"><div class="ac-banner-track" aria-label="بنرهای صفحه اصلی">
+@foreach($banners as $banner)
+<article class="ac-banner">
+@if($banner->target_url)<a href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>@endif
+<img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" @if($loop->first) fetchpriority="high" @else loading="lazy" @endif>
+<div class="ac-banner-caption"><h1>{{ $banner->title }}</h1></div>
+@if($banner->target_url)</a>@endif
+</article>
+@endforeach
+</div></div></section>
+@else
+<section class="ac-hero"><div class="ac-wrap ac-hero-grid"><div><span class="ac-eyebrow">مسیر یادگیری هوشمند</span><h1>مهارتی یاد بگیر که برایت <span style="color:#5eead4">آینده</span> می‌سازد</h1><p>دوره‌های آموزشی ساختارمند را انتخاب کن، قدم‌به‌قدم یاد بگیر و پیشرفتت را دنبال کن.</p><div class="ac-hero-actions"><a class="ac-btn" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها ←</a><a class="ac-btn ac-btn-outline" href="#quiz">پیدا کردن مسیر من</a></div></div><div class="ac-hero-visual"><span class="ac-float one">✎</span><span class="ac-float two">✓</span></div></div></section>
+@endif
+<section class="ac-section ac-section-white" id="quiz"><div class="ac-wrap" style="display:grid;grid-template-columns:1fr 1.1fr;gap:25px;align-items:center"><div><span class="ac-eyebrow">کوییز کوتاه مسیر یادگیری</span><h2 style="font-size:30px;line-height:1.5">کدام درس برای تو مناسب‌تر است؟</h2><p class="ac-muted">درس مورد علاقه‌ات را انتخاب کن تا دوره‌های مرتبط را ببینی.</p></div><form class="ac-card ac-form-card" method="GET" action="{{ route('public.courses.index') }}"><label for="quiz-subject">موضوع مورد علاقه</label><select class="ac-field" id="quiz-subject" name="subject" required><option value="">انتخاب درس</option>@foreach($categories as $category)<option value="{{ $category }}">{{ $category }}</option>@endforeach</select><button class="ac-btn" type="submit">نمایش مسیرهای مرتبط</button></form></div></section>
+<section class="ac-section"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">دسته‌بندی‌ها</span><h2>موضوع مورد علاقه‌ات را انتخاب کن</h2></div></div><div class="ac-grid ac-grid-4">@forelse($categories as $category)<a class="ac-card ac-category" href="{{ route('public.courses.index', ['subject' => $category]) }}"><span class="ac-category-icon">✦</span><b>{{ $category }}</b><div class="ac-muted" style="font-size:12px;margin-top:5px">مشاهده دوره‌ها</div></a>@empty<div class="ac-empty">با انتشار دوره، دسته‌بندی‌ها در این بخش نمایش داده می‌شوند.</div>@endforelse</div></div></section>
+<section class="ac-stats"><div class="ac-wrap ac-grid ac-grid-4"><div class="ac-stat"><b>{{ number_format($stats['courses']) }}</b><span>دوره منتشرشده</span></div><div class="ac-stat"><b>{{ number_format($stats['lessons']) }}</b><span>درس منتشرشده</span></div><div class="ac-stat"><b>{{ number_format($stats['teachers']) }}</b><span>مدرس فعال</span></div><div class="ac-stat"><b>{{ number_format($stats['enrollments']) }}</b><span>ثبت‌نام در دوره‌ها</span></div></div></section>
+<section class="ac-section"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">جدیدترین‌ها</span><h2>دوره‌های تازه</h2><p>آخرین دوره‌هایی که در آکادمی منتشر شده‌اند.</p></div><a class="ac-link" href="{{ route('public.courses.index') }}">مشاهده همه ←</a></div><div class="ac-grid ac-grid-3">@forelse($courses as $course)<x-public.academy.course-card :course="$course" />@empty<div class="ac-empty">هنوز دوره‌ای منتشر نشده است.</div>@endforelse</div></div></section>
+<section class="ac-section ac-section-white"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">انتخاب دانشجوها</span><h2>پرطرفدارترین دوره‌ها</h2></div></div><div class="ac-grid ac-grid-3">@forelse($popularCourses as $course)<x-public.academy.course-card :course="$course" />@empty<div class="ac-empty">دوره‌ای برای نمایش وجود ندارد.</div>@endforelse</div></div></section>
+<section class="ac-section"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">مسیر یادگیری</span><h2>چهار قدم تا تسلط</h2></div></div><div class="ac-grid ac-grid-4">@foreach([['انتخاب مسیر','موضوع و دوره متناسب با نیازت را انتخاب کن.'],['یادگیری مرحله‌ای','محتوا را طبق سرفصل‌های دوره دنبال کن.'],['تمرین و تکرار','آموخته‌هایت را در طول مسیر تثبیت کن.'],['پیگیری پیشرفت','از پنل کاربری مسیر یادگیری‌ات را ادامه بده.']] as $i => $step)<article class="ac-card ac-steps"><span class="ac-step-number">{{ $i+1 }}</span><h3>{{ $step[0] }}</h3><p>{{ $step[1] }}</p></article>@endforeach</div></div></section>
+@if($teachers->isNotEmpty())<section class="ac-section ac-section-white"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">مدرسان</span><h2>با مدرس‌های شیخان آشنا شو</h2></div><a class="ac-link" href="{{ route('public.teachers.index') }}">همه مدرسان ←</a></div><div class="ac-grid ac-grid-4">@foreach($teachers as $teacher)<article class="ac-card ac-teacher"><div class="ac-avatar">{{ mb_substr($teacher->name,0,1) }}</div><h3>{{ $teacher->name }}</h3><span class="ac-pill">{{ $teacher->subject ?: 'مدرس' }}</span><p class="ac-muted" style="font-size:12px">{{ $teacher->published_courses_count }} دوره منتشرشده</p></article>@endforeach</div></div></section>@endif
+<section class="ac-section"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">چرا شیخان؟</span><h2>آموزشی برای یادگیری پیوسته</h2></div></div><div class="ac-why">@foreach([['محتوای ساختارمند','سرفصل‌ها و درس‌ها به شکل مرحله‌ای در دسترس هستند.'],['مدرس مشخص','اطلاعات مدرس دوره در صفحه جزئیات نمایش داده می‌شود.'],['دسترسی حساب کاربری','دوره‌ها و امکانات آموزشی از طریق حساب کاربری پیگیری می‌شوند.'],['محتوای به‌روز','دوره‌ها و مقاله‌های منتشرشده در سایت نمایش داده می‌شوند.'],['مسیر شفاف','از فهرست دوره‌ها تا سرفصل‌ها، اطلاعات را پیش از انتخاب ببین.'],['پشتیبانی','برای راهنمایی و پرسش، از فرم تماس استفاده کن.']] as $item)<div class="ac-why-item"><b>{{ $item[0] }}</b><p>{{ $item[1] }}</p></div>@endforeach</div></div></section>
+@if($articles->isNotEmpty())<section class="ac-section ac-section-white"><div class="ac-wrap"><div class="ac-section-head"><div><span class="ac-eyebrow">مجله شیخان</span><h2>تازه‌ترین مقالات آموزشی</h2></div><a class="ac-link" href="{{ route('seo.articles.index') }}">همه مقالات ←</a></div><div class="ac-grid ac-grid-3">@foreach($articles as $article)<article class="ac-card">@if($article->featured_image_path)<a href="{{ route('seo.articles.show',$article->slug) }}"><img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;aspect-ratio:16/9;object-fit:cover" loading="lazy"></a>@endif<div style="padding:18px"><time class="ac-muted" style="font-size:12px">{{ $article->published_at->format('Y/m/d') }}</time><h3 style="font-size:17px;line-height:1.7"><a href="{{ route('seo.articles.show',$article->slug) }}">{{ $article->title }}</a></h3><p class="ac-muted" style="font-size:13px">{{ $article->excerpt }}</p></div></article>@endforeach</div></div></section>@endif
+<section class="ac-section"><div class="ac-wrap"><div class="ac-faq"><div><span class="ac-eyebrow">سؤالات متداول</span><h2 style="font-size:28px">قبل از شروع، این‌ها را بدان</h2><p class="ac-muted">برای راهنمایی بیشتر با تیم شیخان در تماس باش.</p><a class="ac-btn" href="{{ route('public.contact') }}">تماس با پشتیبانی</a></div><div>@foreach([['چطور در دوره‌ها ثبت‌نام کنم؟','برای شروع، وارد حساب کاربری شو و اطلاعات دوره را در صفحه جزئیات بررسی کن.'],['چطور سرفصل‌های یک دوره را ببینم؟','در صفحه هر دوره، فصل‌ها و درس‌های منتشرشده نمایش داده می‌شوند.'],['چطور با مدرس‌ها آشنا شوم؟','از صفحه مدرسان می‌توانی مدرس‌های فعال و دوره‌های منتشرشده آن‌ها را ببینی.'],['اگر سؤالی داشتم چه کنم؟','از فرم تماس با ما پیام بفرست تا تیم شیخان پیگیری کند.']] as $faq)<details><summary>{{ $faq[0] }}</summary><p>{{ $faq[1] }}</p></details>@endforeach</div></div></div></section>
+<section class="ac-section ac-section-white"><div class="ac-wrap"><div class="ac-cta"><h2>یادگیری را از همین‌جا شروع کن</h2><p>دوره‌های منتشرشده را بررسی کن و مسیر مناسب خودت را انتخاب کن.</p><a class="ac-btn" style="background:white;color:var(--ac-navy)!important" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها ←</a></div></div></section>
+@endsection
