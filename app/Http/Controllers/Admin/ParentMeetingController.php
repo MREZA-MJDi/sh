@@ -62,6 +62,8 @@ final class ParentMeetingController extends Controller
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);
 
+        abort_unless(! $workspace->isTeacher($request->user()) || ! empty($data['classroom_id']), 422, 'مدرس باید کلاس مرتبط با جلسه را انتخاب کند.');
+
         $classroom = null;
         if (! empty($data['classroom_id'])) {
             $classroom = $workspace->queryFor($request->user())
@@ -102,6 +104,8 @@ final class ParentMeetingController extends Controller
 
     public function updateStatus(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
     {
+        abort_unless(! $workspace->isTeacher($request->user()), 403);
+
         $record = ParentMeeting::query()
             ->when($workspace->isTeacher($request->user()), fn (Builder $query) => $query->whereIn(
                 'classroom_id',
