@@ -117,7 +117,7 @@ class UserController extends Controller
 
     public function updateStatus(UpdateUserStatusRequest $request, User $user): RedirectResponse
     {
-        abort_if($user->hasRole('admin'), 403, 'وضعیت مدیر سامانه از این بخش قابل تغییر نیست.');
+        abort_if($user->hasRole('admin') || ($user->hasRole('seo') && ! $request->user()->hasRole('seo')), 403, 'وضعیت این حساب کاربری از این بخش قابل تغییر نیست.');
 
         $user->update($request->validated());
 

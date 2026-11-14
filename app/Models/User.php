@@ -99,6 +99,10 @@ class User extends Authenticatable
 
     public function hasPermissionTo(string $permission): bool
     {
+        if ($permission === 'seo.manage') {
+            return $this->hasRole('seo');
+        }
+
         $this->loadMissing('roles.permissions');
 
         if ($this->getRelation('roles')->contains(fn (Role $role): bool => $role->name === 'admin')) {
