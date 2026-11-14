@@ -26,6 +26,7 @@
                         <td><x-admin::badge :variant="$announcement->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$announcement->status] ?? $announcement->status }}</x-admin.badge></td>
                         @can('announcements.manage')
                             <td class="panel-table-actions">
+                                <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="announcement-edit-{{ $announcement->id }}" data-drawer-title="ویرایش اطلاعیه">ویرایش</button>
                                 <form method="POST" action="{{ route('admin.announcements.status', $announcement) }}" class="panel-inline-form">
                                     @csrf @method('PATCH')
                                     <select class="panel-select" name="status" aria-label="وضعیت اطلاعیه">@foreach (['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($announcement->status === $key)>{{ $label }}</option>@endforeach</select>
@@ -35,6 +36,15 @@
                             </td>
                         @endcan
                     </tr>
+                    @can('announcements.manage')
+                        <x-admin::drawer-form :id="'announcement-edit-'.$announcement->id" title="ویرایش اطلاعیه" :action="route('admin.announcements.update', $announcement)" submit-label="ذخیره تغییرات">
+                            @method('PATCH')
+                            <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $announcement->title }}" required maxlength="180"></div>
+                            <div class="panel-field"><label>مخاطبان</label><select class="panel-select" name="audience">@foreach (['all'=>'همه کاربران','students'=>'دانش‌آموزان','parents'=>'اولیا','teachers'=>'مدرسان'] as $key=>$label)<option value="{{ $key }}" @selected($announcement->audience === $key)>{{ $label }}</option>@endforeach</select></div>
+                            <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="draft" @selected($announcement->status === 'draft')>پیش‌نویس</option><option value="published" @selected($announcement->status === 'published')>منتشرشده</option><option value="archived" @selected($announcement->status === 'archived')>بایگانی</option></select></div>
+                            <div class="panel-field"><label>متن اطلاعیه</label><textarea class="panel-textarea" name="body" data-rich-text required maxlength="30000">{{ $announcement->body }}</textarea></div>
+                        </x-admin.drawer-form>
+                    @endcan
                 @empty
                     <tr><td colspan="6" class="panel-empty">اطلاعیه‌ای برای نمایش وجود ندارد.</td></tr>
                 @endforelse
