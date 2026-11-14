@@ -23,7 +23,7 @@ final class PublicSiteController extends Controller
             ->orderBy('sort_order')->orderBy('id')->get();
 
         $courseQuery = Course::query()->where('status', 'published')
-            ->with(['teacher:id,name', 'sections' => fn ($query) => $query
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
             ->withCount('enrollments');
@@ -55,7 +55,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $query = Course::query()->where('status', 'published')
-            ->with(['teacher:id,name', 'sections' => fn ($sections) => $sections
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
             ->withCount('enrollments');
@@ -90,7 +90,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
-            ->with(['teacher:id,name,subject', 'sections' => fn ($sections) => $sections
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject'), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
             ->withCount('enrollments')->firstOrFail();
@@ -98,7 +98,7 @@ final class PublicSiteController extends Controller
         $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
             ->with([
-                'teacher:id,name',
+                'teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name'),
                 'sections' => fn ($sections) => $sections->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount('enrollments')->latest()->limit(3)->get();
@@ -156,7 +156,7 @@ final class PublicSiteController extends Controller
     {
         $ids = collect($request->session()->get('public_cart', []))->filter(fn ($id) => is_numeric($id))->unique()->values();
         $courses = Course::query()->where('status', 'published')->whereIn('id', $ids)
-            ->with('teacher:id,name')->get();
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name')])->get();
         $request->session()->put('public_cart', $courses->modelKeys());
 
         return view('public.cart', ['settings' => SeoSetting::current(), 'courses' => $courses]);
