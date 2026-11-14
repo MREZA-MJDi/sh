@@ -67,6 +67,61 @@ final class UserManagementService
         });
     }
 
+
+    public function updateStudent(User $student, array $data, User $actor): User
+    {
+        if (! $student->hasRole('student') || $student->hasRole('admin')) {
+            throw ValidationException::withMessages(['student' => 'حساب انتخاب‌شده دانش‌آموز قابل ویرایش نیست.']);
+        }
+
+        return DB::transaction(function () use ($student, $data, $actor): User {
+            $student->fill([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+                'external_student_id' => $data['external_student_id'] ?? null,
+                'grade' => $data['grade'],
+            ]);
+
+            if (filled($data['password'] ?? null)) {
+                $student->password = $data['password'];
+            }
+
+            $student->save();
+            $student->enrolledClasses()->syncWithPivotValues($data['classroom_ids'] ?? [], ['assigned_by' => $actor->id]);
+
+            foreach ($student->enrolledClasses()->with('course')->get() as $classroom) {
+                $this->enrollments->syncClassroomRoster($classroom);
+            }
+
+            return $student->refresh();
+        });
+    }
+
+    public function updateParent(User $parent, array $data): User
+    {
+        if (! $parent->hasRole('parent') || $parent->hasRole('admin')) {
+            throw ValidationException::withMessages(['parent' => 'حساب انتخاب‌شده ولی قابل ویرایش نیست.']);
+        }
+
+        return DB::transaction(function () use ($parent, $data): User {
+            $parent->fill([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+            ]);
+
+            if (filled($data['password'] ?? null)) {
+                $parent->password = $data['password'];
+            }
+
+            $parent->save();
+            $parent->children()->sync($data['child_ids'] ?? []);
+
+            return $parent->refresh();
+        });
+    }
+
     public function updateTeacher(User $teacher, array $data, User $actor): User
     {
         if (! $teacher->hasRole('teacher') || $teacher->hasRole('admin')) {

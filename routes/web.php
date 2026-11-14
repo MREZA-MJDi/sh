@@ -99,11 +99,13 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage', 'throttle:60,1'])->name('lookups.students');
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage,students.view.assigned')->name('students.index');
     Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.store');
+    Route::patch('/students/{student}', [UserController::class, 'updateStudent'])->middleware('permission:users.manage')->name('students.update');
     Route::get('/teachers', [UserController::class, 'index'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.index');
     Route::post('/teachers', [UserController::class, 'store'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.store');
     Route::patch('/teachers/{teacher}', [UserController::class, 'updateTeacher'])->middleware('permission:users.manage')->name('teachers.update');
     Route::get('/parents', [UserController::class, 'index'])->defaults('role', 'parent')->middleware('permission:users.manage')->name('parents.index');
     Route::post('/parents', [UserController::class, 'store'])->defaults('role', 'parent')->middleware('permission:users.manage')->name('parents.store');
+    Route::patch('/parents/{parent}', [UserController::class, 'updateParent'])->middleware('permission:users.manage')->name('parents.update');
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->middleware('permission:users.manage')->name('users.status');
 
     Route::get('/courses', [CourseController::class, 'index'])->middleware('permission:courses.manage,courses.view.assigned')->name('courses.index');

@@ -72,14 +72,19 @@
                                 @if ($role === 'student')
                                     {{ $user->grade ?: '—' }}
                                     @if ($user->external_student_id)<div class="panel-muted" dir="ltr">Quiz24: {{ $user->external_student_id }}</div>@endif
-                                    <div class="panel-muted">{{ $user->enrolledClasses()->count() }} کلاس</div>
+                                    <div class="panel-muted">{{ $user->enrolledClasses->count() }} کلاس</div>
                                 @else
-                                    {{ $user->children()->count() }} فرزند متصل
+                                    {{ $user->children->count() }} فرزند متصل
                                 @endif
                             </td>
                             <td><x-admin::badge :variant="$user->is_active ? 'success' : 'danger'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
                             @can('users.manage')
                                 <td>
+                                    @if ($role === 'student')
+                                        <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="student-edit-{{ $user->id }}" data-drawer-title="ویرایش دانش‌آموز">ویرایش</button>
+                                    @else
+                                        <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="parent-edit-{{ $user->id }}" data-drawer-title="ویرایش ولی">ویرایش</button>
+                                    @endif
                                     <form method="POST" action="{{ route('admin.users.status', $user) }}" class="panel-inline-form">
                                         @csrf @method('PATCH')
                                         <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
@@ -91,6 +96,51 @@
                             @endcan
                         @endif
                     </tr>
+
+                    @if ($role === 'student')
+                        @can('users.manage')
+                            <x-admin::drawer-form :id="'student-edit-'.$user->id" title="ویرایش دانش‌آموز" :action="route('admin.students.update', $user)" submit-label="ذخیره اطلاعات">
+                                @method('PATCH')
+                                <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ $user->name }}" required maxlength="160"></div>
+                                <div class="panel-field"><label>ایمیل ورود</label><input class="panel-input" type="email" name="email" value="{{ $user->email }}" required maxlength="190" dir="ltr"></div>
+                                <div class="panel-field"><label>شماره تماس</label><input class="panel-input" name="phone" value="{{ $user->phone }}" maxlength="30" dir="ltr"></div>
+                                <div class="panel-field"><label>پایه تحصیلی</label><select class="panel-select" name="grade" required>@foreach (['دهم','یازدهم','دوازدهم','فارغ‌التحصیل'] as $grade)<option value="{{ $grade }}" @selected($user->grade === $grade)>{{ $grade }}</option>@endforeach</select></div>
+                                <div class="panel-field"><label>شناسه دانش‌آموز در Quiz24</label><input class="panel-input" name="external_student_id" value="{{ $user->external_student_id }}" maxlength="120" dir="ltr"></div>
+                                <div class="panel-field"><label>کلاس‌های فعال</label><select class="panel-select" name="classroom_ids[]" multiple size="6">@foreach ($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected($user->enrolledClasses->contains('id', $classroom->id))>{{ $classroom->name }}</option>@endforeach</select></div>
+                                <div class="panel-field"><label>گذرواژه جدید (اختیاری)</label><input class="panel-input" type="password" name="password" minlength="12" autocomplete="new-password"><span class="panel-muted">برای حفظ گذرواژه فعلی خالی بگذارید.</span></div>
+                                <div class="panel-field"><label>تکرار گذرواژه جدید</label><input class="panel-input" type="password" name="password_confirmation" minlength="12" autocomplete="new-password"></div>
+                            </x-admin.drawer-form>
+                        @endcan
+                    @elseif ($role === 'parent')
+                        @can('users.manage')
+                            <x-admin::drawer-form :id="'parent-edit-'.$user->id" title="ویرایش ولی" :action="route('admin.parents.update', $user)" submit-label="ذخیره اطلاعات">
+                                @method('PATCH')
+                                <div class="panel-field"><label>نام و نام خانوادگی</label><input class="panel-input" name="name" value="{{ $user->name }}" required maxlength="160"></div>
+                                <div class="panel-field"><label>ایمیل ورود</label><input class="panel-input" type="email" name="email" value="{{ $user->email }}" required maxlength="190" dir="ltr"></div>
+                                <div class="panel-field"><label>شماره تماس</label><input class="panel-input" name="phone" value="{{ $user->phone }}" maxlength="30" dir="ltr"></div>
+                                <div class="panel-field">
+                                    <label>اتصال به دانش‌آموزان</label>
+                                    <div class="panel-remote-lookup" data-remote-lookup data-lookup-url="{{ route('admin.lookups.students') }}" data-lookup-name="child_ids[]">
+                                        <input class="panel-input" type="search" data-lookup-input minlength="2" maxlength="80" autocomplete="off" placeholder="جستجوی دانش‌آموز">
+                                        <div class="panel-lookup-results" data-lookup-results role="listbox" aria-label="نتایج جستجوی دانش‌آموزان"></div>
+                                        <div class="panel-lookup-selected" data-lookup-selected aria-live="polite">
+                                            @foreach ($user->children as $child)
+                                                <span class="panel-lookup-chip">
+                                                    <input type="hidden" name="child_ids[]" value="{{ $child->id }}" data-lookup-value="{{ $child->id }}">
+                                                    <span>{{ $child->name }}</span>
+                                                    <button type="button" data-lookup-remove aria-label="حذف دانش‌آموز">×</button>
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                        <small class="panel-muted">برای اتصال یا حذف فرزند از جستجو استفاده کنید.</small>
+                                        <div class="panel-muted" data-lookup-status role="status"></div>
+                                    </div>
+                                </div>
+                                <div class="panel-field"><label>گذرواژه جدید (اختیاری)</label><input class="panel-input" type="password" name="password" minlength="12" autocomplete="new-password"><span class="panel-muted">برای حفظ گذرواژه فعلی خالی بگذارید.</span></div>
+                                <div class="panel-field"><label>تکرار گذرواژه جدید</label><input class="panel-input" type="password" name="password_confirmation" minlength="12" autocomplete="new-password"></div>
+                            </x-admin.drawer-form>
+                        @endcan
+                    @endif
 
                     @if ($role === 'teacher')
                         @can('users.manage')
