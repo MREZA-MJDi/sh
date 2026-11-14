@@ -20,7 +20,7 @@
     @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#16202A">
+    <meta name="theme-color" content="#0b1b3a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
@@ -58,7 +58,14 @@
         <nav class="ac-nav-links" aria-label="ناوبری اصلی" data-menu>
             <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.courses.index') }}">دوره‌ها</a><a href="{{ route('public.teachers.index') }}">مدرسان</a><a href="{{ route('seo.articles.index') }}">مقالات</a><a href="{{ route('public.contact') }}">تماس با ما</a>
         </nav>
-        <div class="ac-nav-actions"><a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید</a><a class="ac-login-link" href="{{ route('login') }}">ورود</a><a class="ac-btn ac-btn-small" href="{{ route('register') }}">ثبت‌نام</a></div>
+        <div class="ac-nav-actions"><a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید</a>
+            @auth
+                @php($dashboardUrl = auth()->user()->hasRole('student') ? route('student.dashboard') : (auth()->user()->hasRole('parent') ? route('guardian.dashboard') : route('admin.dashboard')))
+                <a class="ac-btn ac-btn-small" href="{{ $dashboardUrl }}">پنل من</a>
+            @else
+                <a class="ac-login-link" href="{{ route('login') }}">ورود</a><a class="ac-btn ac-btn-small" href="{{ route('register') }}">ثبت‌نام</a>
+            @endauth
+        </div>
     </div></header>
     <main class="seo-container">@yield('content')</main>
     <footer class="ac-footer"><div class="ac-wrap ac-footer-grid"><div><a class="ac-brand ac-brand-light" href="{{ route('home') }}"><span class="ac-brand-mark">ش</span><span>{{ $settings->site_name }}</span></a><p>محتوای آموزشی و مقاله‌های منتشرشده آکادمی شیخان.</p></div><div><h3>دسترسی سریع</h3><a href="{{ route('public.courses.index') }}">دوره‌ها</a><a href="{{ route('public.teachers.index') }}">مدرسان</a><a href="{{ route('seo.articles.index') }}">مقالات</a></div><div><h3>پشتیبانی</h3><a href="{{ route('public.contact') }}">تماس با ما</a>@if($settings->sitemap_enabled)<a href="{{ route('seo.sitemap') }}">نقشه سایت</a>@endif</div></div><div class="ac-wrap ac-copyright">© {{ now()->year }} {{ $settings->site_name }}</div></footer>
