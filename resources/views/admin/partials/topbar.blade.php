@@ -1,7 +1,7 @@
 @php
     $roleSwitcherItems = [
         ['role' => 'admin', 'label' => 'مدیر', 'description' => 'مدیریت کامل آکادمی', 'route' => 'admin.dashboard', 'symbol' => 'shield'],
-        ['role' => 'teacher', 'label' => 'مدرس', 'description' => 'کلاس‌ها، دوره‌ها و دانش‌آموزان', 'route' => 'admin.dashboard', 'symbol' => 'board'],
+        ['role' => 'teacher', 'label' => 'مدرس', 'description' => 'کلاس‌ها، دوره‌ها و دانش‌آموزان', 'route' => 'teacher.dashboard', 'symbol' => 'board'],
         ['role' => 'student', 'label' => 'دانش‌آموز', 'description' => 'دوره‌ها، تکالیف و آزمون‌ها', 'route' => 'student.dashboard', 'symbol' => 'cap'],
         ['role' => 'parent', 'label' => 'ولی دانش‌آموز', 'description' => 'پیگیری وضعیت آموزشی فرزند', 'route' => 'guardian.dashboard', 'symbol' => 'family'],
     ];
