@@ -32,7 +32,7 @@ final class StudentClassSessionJoinTest extends TestCase
     public function test_student_can_join_from_fifteen_minutes_before_start_and_click_is_logged(): void
     {
         [$student, $classroom] = $this->studentWithClassroom();
-        $session = $this->session($classroom, now()->addMinutes(15), now()->addHour());
+        $session = $this->makeSession($classroom, now()->addMinutes(15), now()->addHour());
 
         $this->actingAs($student)
             ->post(route('student.class-sessions.join', $session))
@@ -47,7 +47,7 @@ final class StudentClassSessionJoinTest extends TestCase
     public function test_student_cannot_join_earlier_than_fifteen_minutes_before_start(): void
     {
         [$student, $classroom] = $this->studentWithClassroom();
-        $session = $this->session($classroom, now()->addMinutes(16), now()->addHour());
+        $session = $this->makeSession($classroom, now()->addMinutes(16), now()->addHour());
 
         $this->actingAs($student)
             ->from(route('student.dashboard'))
@@ -61,7 +61,7 @@ final class StudentClassSessionJoinTest extends TestCase
     public function test_student_cannot_join_after_session_end(): void
     {
         [$student, $classroom] = $this->studentWithClassroom();
-        $session = $this->session($classroom, now()->subHour(), now()->subMinute());
+        $session = $this->makeSession($classroom, now()->subHour(), now()->subMinute());
 
         $this->actingAs($student)
             ->from(route('student.dashboard'))
@@ -75,7 +75,7 @@ final class StudentClassSessionJoinTest extends TestCase
     public function test_non_member_cannot_join_another_classroom_session(): void
     {
         [$student, $classroom] = $this->studentWithClassroom(false);
-        $session = $this->session($classroom, now()->addMinutes(5), now()->addHour());
+        $session = $this->makeSession($classroom, now()->addMinutes(5), now()->addHour());
 
         $this->actingAs($student)
             ->post(route('student.class-sessions.join', $session))
@@ -102,7 +102,7 @@ final class StudentClassSessionJoinTest extends TestCase
         return [$student, $classroom];
     }
 
-    private function session(Classroom $classroom, Carbon $startsAt, Carbon $endsAt): ClassSession
+    private function makeSession(Classroom $classroom, Carbon $startsAt, Carbon $endsAt): ClassSession
     {
         return ClassSession::query()->create([
             'classroom_id' => $classroom->id,
