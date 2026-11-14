@@ -35,6 +35,7 @@ final class CourseTeaserUploadTest extends TestCase
         $start = $this->actingAs($admin)->post(route('admin.uploads.start'), [
             'target' => 'teaser',
             'target_id' => $course->id,
+            'total' => 1,
         ])->assertOk()->assertJsonPath('ok', true);
 
         $uploadId = $start->json('upload_id');
@@ -66,6 +67,7 @@ final class CourseTeaserUploadTest extends TestCase
         $this->actingAs($teacher)->post(route('admin.uploads.start'), [
             'target' => 'teaser',
             'target_id' => $course->id,
+            'total' => 1,
         ])->assertForbidden();
 
         $this->assertDatabaseCount('video_upload_sessions', 0);
