@@ -8,11 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ClassSession extends Model
 {
-    protected $fillable = ['course_id', 'title', 'starts_at', 'ends_at'];
-
+    protected $fillable = ['classroom_id', 'title', 'session_type', 'starts_at', 'ends_at', 'meeting_provider', 'meeting_url', 'status', 'teacher_notes', 'created_by'];
     protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime'];
 
-    public function course(): BelongsTo { return $this->belongsTo(Course::class); }
-
-    public function attendances(): HasMany { return $this->hasMany(Attendance::class); }
+    public function classroom(): BelongsTo { return $this->belongsTo(Classroom::class); }
+    public function attendances(): HasMany { return $this->hasMany(Attendance::class, 'class_session_id'); }
 }

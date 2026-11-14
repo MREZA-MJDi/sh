@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\ClassSessionController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
@@ -118,6 +119,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/classes', [ClassroomController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.store');
     Route::patch('/classes/{classroom}', [ClassroomController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.update');
     Route::delete('/classes/{classroom}', [ClassroomController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.destroy');
+    Route::get('/classes/{classroom}/sessions', [ClassSessionController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.sessions.index');
+    Route::post('/classes/{classroom}/sessions', [ClassSessionController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.store');
+    Route::patch('/class-sessions/{classSession}', [ClassSessionController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.update');
+    Route::delete('/class-sessions/{classSession}', [ClassSessionController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.destroy');
 
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage.all,attendance.manage.assigned,attendance.view.assigned')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.store');

@@ -7,9 +7,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
 {
-    protected $fillable = ['class_session_id', 'user_id', 'status', 'minutes_present', 'source'];
+    protected $fillable = ['classroom_id', 'class_session_id', 'student_id', 'session_date', 'status', 'joined_at', 'note', 'marked_by'];
 
+    protected function casts(): array
+    {
+        return ['session_date' => 'date', 'joined_at' => 'datetime'];
+    }
+
+    public function classroom(): BelongsTo { return $this->belongsTo(Classroom::class); }
+    public function student(): BelongsTo { return $this->belongsTo(User::class, 'student_id'); }
+    public function marker(): BelongsTo { return $this->belongsTo(User::class, 'marked_by'); }
     public function session(): BelongsTo { return $this->belongsTo(ClassSession::class, 'class_session_id'); }
-
-    public function user(): BelongsTo { return $this->belongsTo(User::class); }
 }
