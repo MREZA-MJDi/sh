@@ -1,5 +1,6 @@
 @extends('public.layouts.academy')
 @section('title','سبد خرید'.$settings->title_separator.$settings->site_name)
+@section('robots','noindex,nofollow')
 @section('content')
 <header class="ac-page-head"><div class="ac-wrap"><div style="font-size:13px;color:#9fb0d8"><a href="{{ route('home') }}">خانه</a> ‹ سبد خرید</div><h1>سبد خرید</h1><p>دوره‌هایی که برای بررسی انتخاب کرده‌ای.</p></div></header>
 <div class="ac-wrap ac-layout" style="grid-template-columns:1fr 330px"><div>@forelse($courses as $course)<article class="ac-card" style="display:flex;align-items:center;gap:16px;padding:16px;margin-bottom:13px"><div class="ac-category-icon" style="margin:0;flex:none">✦</div><div style="flex:1"><b>{{ $course->title }}</b><div class="ac-muted" style="font-size:12px">{{ $course->teacher?->name }}</div></div><b>{{ $course->type==='paid'?number_format((int)$course->price).' تومان':'رایگان' }}</b><form method="POST" action="{{ route('public.cart.remove',$course) }}">@csrf @method('DELETE')<button type="submit" style="border:0;background:none;color:#dc2626;cursor:pointer;font:inherit">حذف</button></form></article>@empty<div class="ac-empty">سبد خریدت خالی است. <a class="ac-link" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها</a></div>@endforelse</div>
