@@ -77,6 +77,73 @@ final class MessagingWorkflowTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_teacher_inbox_only_contains_threads_for_students_in_assigned_active_classes(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $otherTeacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $otherStudent = $this->userWithRole('student');
+        $parent = $this->userWithRole('parent');
+
+        $course = \\App\\Models\\Course::query()->create([
+            'title' => 'علوم', 'slug' => 'science-message-scope', 'status' => 'published',
+            'type' => 'free', 'price' => 0,
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id, 'teacher_id' => $teacher->id,
+            'name' => 'کلاس تحت مسئولیت', 'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $otherCourse = \\App\\Models\\Course::query()->create([
+            'title' => 'فیزیک', 'slug' => 'physics-message-scope', 'status' => 'published',
+            'type' => 'free', 'price' => 0,
+        ]);
+        $otherClassroom = Classroom::query()->create([
+            'course_id' => $otherCourse->id, 'teacher_id' => $otherTeacher->id,
+            'name' => 'کلاس مدرس دیگر', 'status' => 'active',
+        ]);
+        $otherClassroom->students()->attach($otherStudent->id);
+
+        Message::query()->create([
+            'sender_id' => $parent->id, 'recipient_id' => $teacher->id, 'student_id' => $student->id,
+            'subject' => 'پیام کلاس خود', 'body' => 'مجاز', 'status' => 'open',
+        ]);
+        Message::query()->create([
+            'sender_id' => $parent->id, 'recipient_id' => $teacher->id, 'student_id' => $otherStudent->id,
+            'subject' => 'پیام کلاس دیگر', 'body' => 'غیرمجاز', 'status' => 'open',
+        ]);
+
+        $this->actingAs($teacher)->get(route('admin.messages.index'))
+            ->assertOk()
+            ->assertSee('پیام کلاس خود')
+            ->assertDontSee('پیام کلاس دیگر');
+    }
+
+    public function test_teacher_cannot_send_a_message_to_a_guardian_not_linked_to_the_selected_student(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $unlinkedGuardian = $this->userWithRole('parent');
+        $course = \\App\\Models\\Course::query()->create([
+            'title' => 'زیست', 'slug' => 'biology-message-link', 'status' => 'published',
+            'type' => 'free', 'price' => 0,
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id, 'teacher_id' => $teacher->id,
+            'name' => 'کلاس زیست', 'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $this->actingAs($teacher)->post(route('teacher.messages.store'), [
+            'target' => "parent:{$classroom->id}:{$student->id}:{$unlinkedGuardian->id}",
+            'subject' => 'پیام غیرمجاز',
+            'body' => 'این پیام نباید ثبت شود.',
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('messages', ['recipient_id' => $unlinkedGuardian->id]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
