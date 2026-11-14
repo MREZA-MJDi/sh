@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
@@ -43,9 +44,20 @@ class SeoPublicController extends Controller
         $articles = $settings->robots_index
             ? SeoArticle::published()->orderBy('published_at')->get(['slug', 'canonical_url', 'updated_at'])
             : collect();
+        $courses = $settings->robots_index
+            ? Course::query()->where('status', 'published')->orderBy('updated_at')->get(['slug', 'updated_at'])
+            : collect();
 
         $urls = collect();
         if ($settings->robots_index) {
+            $urls->push(['loc' => $baseUrl.'/', 'lastmod' => now()->toAtomString()]);
+            $urls->push(['loc' => $baseUrl.'/courses', 'lastmod' => now()->toAtomString()]);
+            $urls->push(['loc' => $baseUrl.'/teachers', 'lastmod' => now()->toAtomString()]);
+            $urls->push(['loc' => $baseUrl.'/contact', 'lastmod' => now()->toAtomString()]);
+            $urls = $urls->merge($courses->map(fn (Course $course): array => [
+                'loc' => $baseUrl.'/courses/'.rawurlencode($course->slug),
+                'lastmod' => $course->updated_at?->toAtomString(),
+            ]));
             $urls->push([
                 'loc' => $baseUrl.'/articles',
                 'lastmod' => now()->toAtomString(),
@@ -81,7 +93,8 @@ class SeoPublicController extends Controller
             'Disallow: /teacher',
             'Disallow: /parent',
             'Disallow: /login',
-            'Disallow: /register',\n            'Disallow: /cart',
+            'Disallow: /register',
+            'Disallow: /cart',
         ];
 
         if ($settings->sitemap_enabled) {
