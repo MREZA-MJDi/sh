@@ -409,6 +409,24 @@
     </div>
 </section>
 
+{{-- نظرهای تأییدشده از پنل سئو --}}
+@if($testimonials->isNotEmpty())
+<section style="padding:64px 0">
+    <div class="c">
+        <div class="sh"><div><span class="eyebrow">نظرهای ثبت‌شده</span><h2>تجربه دانش‌آموزان</h2></div></div>
+        <div class="g3">
+            @foreach($testimonials as $testimonial)
+                <article class="card ts">
+                    <div class="stars" aria-label="{{ $testimonial->rating }} از ۵ ستاره">{{ str_repeat('★', $testimonial->rating) }}{{ str_repeat('☆', 5 - $testimonial->rating) }}</div>
+                    <p>«{{ $testimonial->quote }}»</p>
+                    <div class="who"><div class="av">{{ mb_substr($testimonial->name, 0, 1) }}</div><div><b>{{ $testimonial->name }}</b>@if($testimonial->role)<small style="color:var(--mute);display:block">{{ $testimonial->role }}</small>@endif</div></div>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- مدرسان شیخان --}}
 @if($teachers->isNotEmpty())
 <section style="background:var(--sf);padding:64px 0">

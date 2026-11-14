@@ -18,6 +18,7 @@
         <div class="seo-admin-hero-actions">
             <a class="panel-btn" href="{{ route('admin.seo.articles.index') }}">مدیریت مقاله‌ها</a>
             <a class="panel-btn panel-btn-secondary" href="{{ route('admin.seo.banners.index') }}">مدیریت بنرها</a>
+            <a class="panel-btn panel-btn-secondary" href="{{ route('admin.seo.testimonials.index') }}">مدیریت نظرها</a>
             <a class="panel-btn panel-btn-secondary" href="{{ route('seo.articles.index') }}" target="_blank" rel="noopener">مشاهده خروجی عمومی</a>
         </div>
     </header>
