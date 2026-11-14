@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 final class MessageWorkspaceService
 {
@@ -18,17 +19,19 @@ final class MessageWorkspaceService
 
         $classroomIds = app(ClassroomWorkspaceService::class)
             ->queryFor($user)
+            ->where('classrooms.status', 'active')
             ->select('classrooms.id');
 
-        return $query->where(function (Builder $scope) use ($classroomIds): void {
-            $scope->whereHas(
-                'sender.enrolledClasses',
-                fn (Builder $classes) => $classes->whereIn('classrooms.id', $classroomIds)
-            )->orWhereHas(
-                'sender.children.enrolledClasses',
-                fn (Builder $classes) => $classes->whereIn('classrooms.id', $classroomIds)
-            );
-        });
+        $studentIds = DB::table('classroom_student')
+            ->whereIn('classroom_id', $classroomIds)
+            ->select('student_id');
+
+        return $query
+            ->whereIn('student_id', $studentIds)
+            ->where(function (Builder $participants) use ($user): void {
+                $participants->where('sender_id', $user->id)
+                    ->orWhere('recipient_id', $user->id);
+            });
     }
 
     public function findVisible(User $user, int $messageId): Message
