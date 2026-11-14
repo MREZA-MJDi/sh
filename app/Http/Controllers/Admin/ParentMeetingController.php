@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Models\ParentMeeting;
 use App\Models\User;
+use App\Notifications\ParentMeetingNotification;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -84,7 +86,7 @@ final class ParentMeetingController extends Controller
             ->firstOrFail();
 
         $isTeacher = $workspace->isTeacher($request->user());
-        ParentMeeting::query()->create([
+        $meeting = ParentMeeting::query()->create([
             'classroom_id' => $classroom?->id,
             'course_id' => $classroom?->course_id,
             'student_id' => $student->id,
@@ -96,6 +98,10 @@ final class ParentMeetingController extends Controller
             'ends_at' => $data['ends_at'] ?? null,
             'status' => $isTeacher ? 'proposed' : 'scheduled',
         ]);
+
+        $guardian->notify(new ParentMeetingNotification($meeting, $isTeacher
+            ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی فرزند پیشنهاد جلسه ثبت کرده است.'
+            : 'جلسه‌ای برای شما و فرزندتان زمان‌بندی شده است.'));
 
         return back()->with('success', $isTeacher
             ? 'پیشنهاد جلسه برای بررسی مدیر ثبت شد.'
@@ -135,6 +141,9 @@ final class ParentMeetingController extends Controller
             'responded_by' => $request->user()->id,
             'responded_at' => now(),
         ]);
+
+        $record->loadMissing('guardian');
+        $record->guardian?->notify(new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.'));
 
         return back()->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }

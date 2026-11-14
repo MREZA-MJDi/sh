@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Guardian;
 use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Models\ParentMeeting;
+use App\Models\User;
+use App\Notifications\ParentMeetingNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Notification;
 
 final class ParentMeetingController extends Controller
 {
@@ -66,7 +69,7 @@ final class ParentMeetingController extends Controller
                 ->firstOrFail();
         }
 
-        ParentMeeting::query()->create([
+        $meeting = ParentMeeting::query()->create([
             'classroom_id' => $classroom?->id,
             'course_id' => $classroom?->course_id,
             'student_id' => $student->id,
@@ -76,6 +79,10 @@ final class ParentMeetingController extends Controller
             'preferred_at' => $data['preferred_at'] ?? null,
             'status' => 'requested',
         ]);
+
+        $admins = User::query()->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))->get();
+        Notification::send($admins, new ParentMeetingNotification($meeting, 'درخواست جدید جلسه از طرف ولی ثبت شد.'));
 
         return redirect()->route('guardian.meetings.index')->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
     }
