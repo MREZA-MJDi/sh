@@ -133,7 +133,44 @@
         <div class="g4">
             {{-- دوره‌های واقعی دیتابیس --}}
             @foreach($courses as $course)
-                <x-public.academy.course-card :course="$course" />
+                <article class="card cc">
+                    @php
+                        $courseGradients = [
+                            'ریاضی' => ['linear-gradient(135deg,#2563eb,#7c3aed)', 'chart'],
+                            'فیزیک' => ['linear-gradient(135deg,#0d9488,#0f766e)', 'rocket'],
+                            'شیمی' => ['linear-gradient(135deg,#f97316,#db2777)', 'pen'],
+                            'زیست' => ['linear-gradient(135deg,#16a34a,#0d9488)', 'user'],
+                            'زبان' => ['linear-gradient(135deg,#0891b2,#2563eb)', 'lang'],
+                            'ادبیات' => ['linear-gradient(135deg,#7c3aed,#db2777)', 'pen'],
+                        ];
+                        $courseStyle = $courseGradients[$course->subject ?? ''] ?? ['linear-gradient(135deg,#0d9488,#1e3a8a)', 'cap'];
+                        $courseLessonsCount = (int) $course->sections->sum('lessons_count');
+                    @endphp
+                    <a class="th" href="{{ route('public.courses.show', $course->slug) }}" style="background:{{ $courseStyle[0] }}" aria-label="مشاهده {{ $course->title }}">
+                        <svg class="i"><use href="#{{ $courseStyle[1] }}"/></svg>
+                        <span class="bd {{ $course->type === 'free' ? 'bd-free' : '' }}">{{ $course->type === 'free' ? 'رایگان' : ($course->grade ? 'پایه '.$course->grade : ($course->subject ?: 'ویژه')) }}</span>
+                    </a>
+                    <div class="cb">
+                        <h3><a href="{{ route('public.courses.show', $course->slug) }}">{{ $course->title }}</a></h3>
+                        @if($course->teacher)
+                            <small style="color:var(--mute);margin-bottom:8px;display:block">مدرس: {{ $course->teacher->name }}</small>
+                        @endif
+                        <div class="mt">
+                            <span><svg class="i"><use href="#clock"/></svg>{{ $courseLessonsCount > 0 ? $courseLessonsCount.' درس' : 'دوره آموزشی' }}</span>
+                            <span><svg class="i"><use href="#user"/></svg>{{ number_format($course->enrollments_count ?? 0) }} ثبت‌نام فعال</span>
+                        </div>
+                        <div class="pr">
+                            <div>
+                                @if($course->type === 'free')
+                                    <b style="color:var(--pri)">رایگان</b>
+                                @else
+                                    <b>{{ number_format((int) $course->price) }}</b><small>تومان</small>
+                                @endif
+                            </div>
+                            <a class="btn s" href="{{ route('public.courses.show', $course->slug) }}">مشاهده</a>
+                        </div>
+                    </div>
+                </article>
             @endforeach
 
 
