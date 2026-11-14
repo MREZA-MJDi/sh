@@ -11,7 +11,7 @@
         @if($course->description)<p class="ac-muted" style="font-size:13px;line-height:1.9">{{ \Illuminate\Support\Str::limit(strip_tags($course->description),105) }}</p>@endif
         <div class="ac-meta" style="margin-bottom:13px">
             @if($course->teacher)<span>{{ $course->teacher->name }}</span>@endif
-            <span>{{ $course->sections->sum(fn($section) => $section->lessons_count ?? $section->lessons->count()) }} درس</span>
+            <span>{{ $course->sections->sum('lessons_count') }} درس</span>
             @if(isset($course->enrollments_count))<span>{{ number_format($course->enrollments_count) }} ثبت‌نام</span>@endif
         </div>
         <div class="ac-price"><b>{{ $course->type === 'paid' ? number_format((int)$course->price).' تومان' : 'رایگان' }}</b><a class="ac-link" href="{{ route('public.courses.show', $course->slug) }}">جزئیات دوره ←</a></div>
