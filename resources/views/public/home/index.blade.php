@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#172554">
+    <meta name="theme-color" content="#16202A">
     <title>{{ $settings->default_title }}{{ $settings->title_separator }}{{ $settings->site_name }}</title>
     <meta name="description" content="{{ $settings->default_description }}">
     <meta name="robots" content="{{ $settings->robots_index ? 'index' : 'noindex' }},{{ $settings->robots_follow ? 'follow' : 'nofollow' }}">
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+<body class="min-h-screen bg-[#F7F9F8] font-sans text-[#16202A]">
     <x-public.layout.navbar />
 
     <main>
