@@ -85,7 +85,7 @@ final class MessagingWorkflowTest extends TestCase
         $otherStudent = $this->userWithRole('student');
         $parent = $this->userWithRole('parent');
 
-        $course = \\App\\Models\\Course::query()->create([
+        $course = \App\Models\Course::query()->create([
             'title' => 'علوم', 'slug' => 'science-message-scope', 'status' => 'published',
             'type' => 'free', 'price' => 0,
         ]);
@@ -95,7 +95,7 @@ final class MessagingWorkflowTest extends TestCase
         ]);
         $classroom->students()->attach($student->id);
 
-        $otherCourse = \\App\\Models\\Course::query()->create([
+        $otherCourse = \App\Models\Course::query()->create([
             'title' => 'فیزیک', 'slug' => 'physics-message-scope', 'status' => 'published',
             'type' => 'free', 'price' => 0,
         ]);
@@ -125,7 +125,7 @@ final class MessagingWorkflowTest extends TestCase
         $teacher = $this->userWithRole('teacher');
         $student = $this->userWithRole('student');
         $unlinkedGuardian = $this->userWithRole('parent');
-        $course = \\App\\Models\\Course::query()->create([
+        $course = \App\Models\Course::query()->create([
             'title' => 'زیست', 'slug' => 'biology-message-link', 'status' => 'published',
             'type' => 'free', 'price' => 0,
         ]);

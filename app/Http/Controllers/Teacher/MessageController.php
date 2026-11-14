@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Models\Message;
-use App\Models\User;
 use App\Notifications\MessageActivityNotification;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,7 +35,7 @@ final class MessageController extends Controller
     public function store(Request $request, ClassroomWorkspaceService $workspace): RedirectResponse
     {
         $data = $request->validate([
-            'target' => ['required', 'string', 'regex:/^(student|parent):\d+:\d+(?::\d+)?$/'],
+            'target' => ['required', 'string', 'regex:/^(student:\d+:\d+|parent:\d+:\d+:\d+)$/'],
             'subject' => ['required', 'string', 'min:3', 'max:190'],
             'body' => ['required', 'string', 'min:5', 'max:30000'],
         ]);
