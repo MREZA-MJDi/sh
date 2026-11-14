@@ -45,7 +45,7 @@ final class PublicSiteController extends Controller
             'teachers' => User::query()->where('is_active', true)->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))->count(),
             'lessons' => Lesson::query()->where('status', 'published')->whereHas('section', fn ($sections) => $sections
                 ->where('status', 'published')->whereHas('course', fn ($courses) => $courses->where('status', 'published')))->count(),
-            'enrollments' => CourseEnrollment::query()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
+            'enrollments' => CourseEnrollment::query()->where('status', 'active')->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
         return view('public.home.index', compact('settings', 'banners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats'));

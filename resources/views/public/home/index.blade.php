@@ -156,19 +156,19 @@
     <div class="c">
         <div class="g">
             <div>
-                <b>+{{ number_format(max($stats['enrollments'], 1200)) }}</b>
-                <span>دانشجوی فعال</span>
+                <b>{{ number_format($stats['enrollments']) }}</b>
+                <span>ثبت‌نام فعال</span>
             </div>
             <div>
-                <b>+{{ number_format(max($stats['lessons'], 150)) }}</b>
-                <span>جلسه آموزشی</span>
+                <b>{{ number_format($stats['lessons']) }}</b>
+                <span>درس منتشرشده</span>
             </div>
             <div>
-                <b>{{ number_format(max($stats['teachers'], 8)) }}</b>
+                <b>{{ number_format($stats['teachers']) }}</b>
                 <span>مدرس متخصص</span>
             </div>
             <div>
-                <b>{{ number_format(max($stats['courses'], 1)) }}</b>
+                <b>{{ number_format($stats['courses']) }}</b>
                 <span>دوره منتشرشده</span>
             </div>
         </div>
@@ -193,18 +193,7 @@
                 <x-public.academy.course-card :course="$course" />
             @endforeach
 
-            {{-- در صورت کم بودن دوره‌های دیتابیس، نمایش دوره‌های مبدا با اندازه استاندارد و بدون کشیدگی --}}
-            @php
-                $existingCount = $courses->count();
-                $placeholders = [
-                    ['فیزیک یازدهم و کنکور تخصصی', 'فیزیک', 'مهندس رضایی', '۲۴ جلسه', '۴٫۸', '۱٬۸۰۰', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', 'به‌زودی', '۷۹۰٬۰۰۰'],
-                    ['شیمی جامع کنکور و تست‌های طلایی', 'شیمی', 'دکتر کریمی', '۳۰ جلسه', '۴٫۷', '۱٬۵۰۰', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', 'به‌زودی', '۶۹۰٬۰۰۰'],
-                    ['زیست‌شناسی مفهومی و نهایی', 'زیست', 'دکتر نوری', '۴۲ جلسه', '۴٫۹', '۲٬۶۰۰', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', 'به‌زودی', '۸۵۰٬۰۰۰'],
-                    ['ریاضیات پایه و کنکور تجربی', 'ریاضی', 'دکتر احمدی', '۳۶ جلسه', '۴٫۸', '۲٬۱۰۰', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'به‌زودی', '۸۹۰٬۰۰۰'],
-                ];
-                $needed = max(0, 4 - $existingCount);
             @endphp
-            @for($i = 0; $i < $needed; $i++)
                 @php $ph = $placeholders[$i % count($placeholders)]; @endphp
                 <article class="card cc">
                     <a class="th" href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}" style="background:{{ $ph[7] }}">
@@ -305,20 +294,7 @@
                 </a>
             @endforeach
 
-            {{-- تکمیل دوره‌های پرطرفدار مبدا تا ۶ آیتم با ابعاد ثابت --}}
-            @php
-                $popExisting = $popularCourses->count();
-                $popSamples = [
-                    ['فیزیک دوازدهم نهایی و تست', 'مهندس رضایی', '۲٬۱۰۰ دانشجو', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', '۸۵۰٬۰۰۰ ت'],
-                    ['زیست‌شناسی جامع کنکور', 'دکتر نوری', '۳٬۲۰۰ دانشجو', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', '۱٬۱۹۰٬۰۰۰ ت'],
-                    ['جمع‌بندی ریاضی و حسابان', 'دکتر احمدی', '۳٬۵۰۰ دانشجو', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)', '۱٬۲۹۰٬۰۰۰ ت'],
-                    ['واژگان و ریدینگ زبان کنکور', 'خانم صادقی', '۱٬۹۰۰ دانشجو', 'lang', 'linear-gradient(135deg,#0891b2,#2563eb)', '۵۹۰٬۰۰۰ ت'],
-                    ['شیمی دوازدهم جمع‌بندی', 'دکتر کریمی', '۲٬۴۰۰ دانشجو', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', '۷۹۰٬۰۰۰ ت'],
-                    ['هندسه و گسسته جامع کنکور', 'مهندس سهرابی', '۱٬۶۰۰ دانشجو', 'pen', 'linear-gradient(135deg,#059669,#047857)', '۶۹۰٬۰۰۰ ت'],
-                ];
-                $popNeeded = max(0, 6 - $popExisting);
             @endphp
-            @for($j = 0; $j < $popNeeded; $j++)
                 @php $ps = $popSamples[$j % count($popSamples)]; @endphp
                 <a class="card pop" href="{{ route('public.courses.index') }}">
                     <span class="n">{{ $popExisting + $j + 1 }}</span>
@@ -429,54 +405,6 @@
                 <p>نظارت بر کاربران، انتشار دوره‌ها، گزارش‌های مالی و پشتیبانی.</p>
                 <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
             </a>
-        </div>
-    </div>
-</section>
-
-{{-- نظرات دانش‌آموزان --}}
-<section style="padding:64px 0">
-    <div class="c">
-        <div class="sh">
-            <div>
-                <span class="eyebrow">نظرات</span>
-                <h2>دانشجوها چه می‌گویند؟</h2>
-                <p>تجربه واقعی دانش‌آموزان از دوره‌ها و آزمون‌های شیخان</p>
-            </div>
-        </div>
-        <div class="g3">
-            <div class="card ts">
-                <div class="stars">★★★★★</div>
-                <p>«ساختار فصل‌ها و پشتیبانی مستقیم استاد دقیقاً همان چیزی بود که برای درس ریاضی لازم داشتم؛ تراز نهایی‌ام خیلی رشد کرد.»</p>
-                <div class="who">
-                    <div class="av" style="background:linear-gradient(135deg,#0d9488,#0f766e)">س</div>
-                    <div>
-                        <b>سارا احمدی</b>
-                        <small style="color:var(--mute);display:block">دانش‌آموز پایه دوازدهم</small>
-                    </div>
-                </div>
-            </div>
-            <div class="card ts">
-                <div class="stars">★★★★★</div>
-                <p>«کوییزها و آزمون‌های مرحله‌ای باعث شد نقاط ضعفم را قبل از امتحانات پیدا کنم. پنل کاربری هم کار با ویدیوها را خیلی راحت کرده.»</p>
-                <div class="who">
-                    <div class="av" style="background:linear-gradient(135deg,#f97316,#db2777)">ع</div>
-                    <div>
-                        <b>علی رضایی</b>
-                        <small style="color:var(--mute);display:block">داوطلب کنکور تجربی</small>
-                    </div>
-                </div>
-            </div>
-            <div class="card ts">
-                <div class="stars">★★★★★</div>
-                <p>«پاسخگویی مدرسان به سوالات سریع و دقیق است. گزارش‌های پنل والدین هم به ما کمک کرد پیگیر وضعیت درسی فرزندمان باشیم.»</p>
-                <div class="who">
-                    <div class="av" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">م</div>
-                    <div>
-                        <b>مریم کاظمی</b>
-                        <small style="color:var(--mute);display:block">ولی دانش‌آموز</small>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
