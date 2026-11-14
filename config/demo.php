@@ -21,6 +21,12 @@ return [
             'role' => 'admin',
         ],
         [
+            'name' => 'کارشناس سئو آزمایشی',
+            'label' => 'پنل سئو و محتوا',
+            'email' => 'seo@sh.local',
+            'role' => 'seo',
+        ],
+        [
             'name' => 'مدرس آزمایشی',
             'label' => 'پنل مدرس',
             'email' => 'teacher@sh.local',

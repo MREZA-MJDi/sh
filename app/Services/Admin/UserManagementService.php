@@ -18,6 +18,10 @@ final class UserManagementService
 
     public function create(array $data, string $role, User $actor): User
     {
+        if ($role === 'seo' && ! $actor->hasRole('seo')) {
+            throw ValidationException::withMessages(['role' => 'مدیریت اجازه تخصیص یا تغییر دسترسی سئو را ندارد.']);
+        }
+
         return DB::transaction(function () use ($data, $role, $actor): User {
             $user = User::create([
                 'name' => $data['name'],

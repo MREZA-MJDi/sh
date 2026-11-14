@@ -1,12 +1,12 @@
 <aside class="panel-sidebar admin-sidebar" data-panel-sidebar aria-label="منوی اصلی">
-    <a class="panel-brand" href="{{ route('admin.dashboard') }}">
+    <a class="panel-brand" href="{{ $adminUser && $adminUser->hasRole('seo') && ! $adminUser->hasPermissionTo('dashboard.view') ? route('admin.seo.index') : route('admin.dashboard') }}">
         <span class="panel-brand-mark">ش</span>
-        <span class="panel-brand-copy"><strong>آکادمی شیخان</strong><small>پنل مدیریت و آموزش</small></span>
+        <span class="panel-brand-copy"><strong>آکادمی شیخان</strong><small>{{ $adminUser && $adminUser->hasRole('seo') && ! $adminUser->hasRole('admin') ? 'پنل سئو و محتوا' : 'پنل مدیریت و آموزش' }}</small></span>
     </a>
     <button type="button" class="panel-sidebar-collapse" data-admin-sidebar-mini-toggle aria-label="جمع یا باز کردن نوار کناری" title="جمع یا باز کردن منو">⇔</button>
     <nav class="panel-nav" aria-label="منوی اصلی">
-        <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">عمومی</button>
         @can('dashboard.view')
+            <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">عمومی</button>
             <a href="{{ route('admin.dashboard') }}" class="panel-nav-link {{ request()->routeIs('admin.dashboard') || request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-home"/></svg></span><span>داشبورد</span></a>
         @endcan
 

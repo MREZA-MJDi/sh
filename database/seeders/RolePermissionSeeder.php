@@ -14,6 +14,7 @@ class RolePermissionSeeder extends Seeder
     {
         $roles = [
             'admin' => ['label' => 'مدیر سامانه', 'description' => 'دسترسی کامل مدیریتی به سامانه'],
+            'seo' => ['label' => 'کارشناس سئو', 'description' => 'مدیریت اختصاصی سئو، مقاله‌ها و بنرهای سامانه'],
             'teacher' => ['label' => 'معلم', 'description' => 'مدیریت کلاس‌ها و دوره‌های تخصیص‌یافته'],
             'student' => ['label' => 'دانش‌آموز', 'description' => 'دسترسی به اطلاعات و خدمات آموزشی شخصی'],
             'parent' => ['label' => 'ولی دانش‌آموز', 'description' => 'پیگیری وضعیت آموزشی فرزندان متصل‌شده'],
@@ -96,8 +97,11 @@ class RolePermissionSeeder extends Seeder
             $roleModels[$name] = Role::updateOrCreate(['name' => $name], $data);
         }
 
+        $adminPermissions = array_values(array_diff(array_keys($catalogue), ['seo.manage']));
+
         $assignments = [
-            'admin' => array_keys($catalogue),
+            'admin' => $adminPermissions,
+            'seo' => ['seo.manage'],
             'teacher' => [
                 'dashboard.view', 'students.view.assigned', 'classes.view.assigned',
                 'courses.view.assigned', 'courses.content.manage.assigned', 'classes.manage.assigned', 'exams.manage.assigned',
@@ -139,6 +143,22 @@ class RolePermissionSeeder extends Seeder
             );
 
             $admin->roles()->syncWithoutDetaching([$roleModels['admin']->id]);
+        }
+
+        $seoEmail = env('SHIKHAN_SEO_EMAIL');
+        $seoPassword = env('SHIKHAN_SEO_PASSWORD');
+
+        if (is_string($seoEmail) && $seoEmail !== '' && is_string($seoPassword) && strlen($seoPassword) >= 12) {
+            $seo = User::query()->updateOrCreate(
+                ['email' => $seoEmail],
+                [
+                    'name' => env('SHIKHAN_SEO_NAME', 'کارشناس سئو'),
+                    'password' => Hash::make($seoPassword),
+                    'is_active' => true,
+                ]
+            );
+
+            $seo->roles()->syncWithoutDetaching([$roleModels['seo']->id]);
         }
     }
 }
