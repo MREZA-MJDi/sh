@@ -36,8 +36,11 @@ class UpdateParentRequest extends FormRequest
             }
             $ids = $this->input('child_ids', []);
             if ($ids !== []) {
-                $valid = User::query()->whereIn('id', $ids)->where('is_active', true)
-                    ->whereHas('roles', fn ($query) => $query->where('name', 'student'))->count();
+                $existingChildIds = $parent->children()->pluck('users.id')->all();
+                $valid = User::query()->whereIn('id', $ids)
+                    ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                    ->where(fn ($query) => $query->where('is_active', true)->orWhereIn('id', $existingChildIds))
+                    ->count();
                 if ($valid !== count($ids)) {
                     $validator->errors()->add('child_ids', 'فقط حساب‌های فعال دارای نقش دانش‌آموز قابل اتصال هستند.');
                 }

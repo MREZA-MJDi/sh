@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
@@ -88,10 +89,15 @@ final class UserManagementService
             }
 
             $student->save();
+            $affectedCourseIds = $student->enrolledClasses()->whereNotNull('course_id')->pluck('course_id');
             $student->enrolledClasses()->syncWithPivotValues($data['classroom_ids'] ?? [], ['assigned_by' => $actor->id]);
+            $affectedCourseIds = $affectedCourseIds
+                ->merge($student->enrolledClasses()->whereNotNull('course_id')->pluck('course_id'))
+                ->unique()
+                ->values();
 
-            foreach ($student->enrolledClasses()->with('course')->get() as $classroom) {
-                $this->enrollments->syncClassroomRoster($classroom);
+            foreach (Course::query()->whereIn('id', $affectedCourseIds)->get() as $course) {
+                $this->enrollments->syncCourseRoster($course);
             }
 
             return $student->refresh();

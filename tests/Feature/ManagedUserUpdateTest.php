@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
+use App\Models\Course;
+use App\Services\Courses\CourseEnrollmentService;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -54,6 +56,46 @@ final class ManagedUserUpdateTest extends TestCase
 
         $this->assertDatabaseHas('users', ['id' => $parent->id, 'name' => 'ولی اصلاح‌شده']);
         $this->assertTrue($parent->fresh()->children()->whereKey($child->id)->exists());
+    }
+
+
+    public function test_removing_last_classroom_membership_revokes_roster_based_free_course_access(): void
+    {
+        $admin = $this->admin();
+        $student = $this->userWithRole('student');
+        $course = Course::query()->create([
+            'title' => 'دوره رایگان آزمایشی',
+            'slug' => 'free-course-roster-test',
+            'type' => 'free',
+            'price' => 0,
+            'status' => 'published',
+        ]);
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $admin->id,
+            'course_id' => $course->id,
+            'name' => 'کلاس دوره رایگان',
+            'status' => 'active',
+        ]);
+        $student->enrolledClasses()->attach($classroom->id, ['assigned_by' => $admin->id]);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)->patch(route('admin.students.update', $student), [
+            'name' => $student->name,
+            'email' => $student->email,
+            'grade' => 'دوازدهم',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'status' => 'revoked',
+        ]);
     }
 
     private function admin(): User
