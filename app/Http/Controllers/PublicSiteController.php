@@ -90,7 +90,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject'), 'sections' => fn ($sections) => $sections
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note'), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
             ->withCount('enrollments')->firstOrFail();
@@ -131,6 +131,34 @@ final class PublicSiteController extends Controller
             ->distinct()->orderBy('subject')->pluck('subject');
 
         return view('public.teachers.index', compact('settings', 'teachers', 'subjects'));
+    }
+
+    public function teacher(User $teacher): View
+    {
+        abort_unless($teacher->is_active && $teacher->hasRole('teacher'), 404);
+
+        $settings = SeoSetting::current();
+
+        $courses = Course::query()
+            ->where('teacher_id', $teacher->id)
+            ->where('status', 'published')
+            ->with([
+                'teacher' => fn ($query) => $query->where('is_active', true)->select('id', 'name', 'subject'),
+                'sections' => fn ($sections) => $sections
+                    ->where('status', 'published')
+                    ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
+            ])
+            ->withCount('enrollments')
+            ->latest()
+            ->get();
+
+        $stats = [
+            'courses_count' => $courses->count(),
+            'lessons_count' => $courses->sum(fn ($course) => (int) $course->sections->sum('lessons_count')),
+            'enrollments_count' => (int) $courses->sum('enrollments_count'),
+        ];
+
+        return view('public.teachers.show', compact('settings', 'teacher', 'courses', 'stats'));
     }
 
     public function contact(): View

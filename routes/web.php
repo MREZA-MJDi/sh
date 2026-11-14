@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
 Route::get('/courses', [PublicSiteController::class, 'courses'])->name('public.courses.index');
 Route::get('/teachers', [PublicSiteController::class, 'teachers'])->name('public.teachers.index');
+Route::get('/teachers/{teacher}', [PublicSiteController::class, 'teacher'])->name('public.teachers.show');
 Route::get('/contact', [PublicSiteController::class, 'contact'])->name('public.contact');
 Route::post('/contact', [PublicSiteController::class, 'storeContact'])->middleware('throttle:5,1')->name('public.contact.store');
 Route::get('/cart', [PublicSiteController::class, 'cart'])->name('public.cart');

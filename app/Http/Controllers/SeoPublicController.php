@@ -42,7 +42,20 @@ class SeoPublicController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('seo.public.show', compact('settings', 'article', 'banners'));
+        $relatedArticles = SeoArticle::published()
+            ->where('id', '!=', $article->id)
+            ->latest('published_at')
+            ->take(4)
+            ->get();
+
+        $relatedCourses = Course::query()
+            ->where('status', 'published')
+            ->with('teacher')
+            ->inRandomOrder()
+            ->take(2)
+            ->get();
+
+        return view('seo.public.show', compact('settings', 'article', 'banners', 'relatedArticles', 'relatedCourses'));
     }
 
     public function sitemap(): Response

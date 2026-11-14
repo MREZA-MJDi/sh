@@ -40,6 +40,7 @@ final class UpdateTeacherAccessRequest extends FormRequest
             'phone' => ['required', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($teacher?->id)],
             'email' => ['nullable', 'email:rfc', 'max:190', Rule::unique('users', 'email')->ignore($teacher?->id)],
             'subject' => ['required', 'string', 'max:100'],
+            'profile_note' => ['nullable', 'string', 'max:5000'],
             'status' => ['required', Rule::in(['active', 'pending'])],
             'password' => ['nullable', 'string', 'min:12', 'confirmed'],
             'course_ids' => ['nullable', 'array', 'max:100'],

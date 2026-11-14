@@ -1,37 +1,131 @@
-@extends('seo.public.layout')
+@extends('public.layouts.academy')
 
-@section('seo-title', 'مقاله‌ها')
-@section('og-type', 'website')
+@section('title', 'مجله و مقالات آموزشی' . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
+@section('description', $settings->default_description ?? 'مجموعه مقالات آموزشی، روش‌های مطالعه، برنامه‌ریزی کنکور و تحلیل دروس در آکادمی شیخان')
+@section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
 @section('content')
-    <section class="seo-intro"><span>دانش و یادگیری</span><h1>مجله شیخان</h1><p>{{ $settings->default_description }}</p></section>
-    <form method="GET" action="{{ route('seo.articles.index') }}" class="ac-card" style="display:flex;gap:10px;flex-wrap:wrap;padding:16px;margin-bottom:22px">
-        <input class="ac-field" style="flex:1;min-width:200px;margin:0" type="search" name="q" value="{{ $search }}" placeholder="جستجوی عنوان یا خلاصه مقاله">
-        <select class="ac-field" style="width:auto;min-width:170px;margin:0" name="keyword"><option value="">همه موضوع‌ها</option>@foreach($keywords as $item)<option value="{{ $item }}" @selected($keyword===$item)>{{ $item }}</option>@endforeach</select>
-        <button class="ac-btn" type="submit">جستجو</button>
-        <a class="ac-btn ac-btn-outline" href="{{ route('seo.articles.index') }}">پاک‌کردن</a>
-    </form>
-    @foreach($banners as $banner)
-        <div class="seo-banner">
-            @if($banner->target_url)<a href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>@endif
-                <img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" loading="lazy">
-            @if($banner->target_url)</a>@endif
+    {{-- Header Banner --}}
+    <div class="pgh">
+        <div class="c">
+            <div class="bc"><a href="{{ route('home') }}">خانه</a> ‹ مقالات</div>
+            <h1>مجله شیخان</h1>
+            <p>{{ $settings->default_description ?: 'نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی کنکور' }}</p>
         </div>
-    @endforeach
-    <section class="seo-article-grid">
-        @forelse($articles as $article)
-            <article class="seo-article-card">
-                @if($article->featured_image_path)<a href="{{ route('seo.articles.show', $article->slug) }}"><img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" loading="lazy"></a>@endif
-                <div class="seo-article-card-body">
-                    <time datetime="{{ $article->published_at->toAtomString() }}">{{ $article->published_at->format('Y/m/d') }}</time>
-                    <h2><a href="{{ route('seo.articles.show', $article->slug) }}">{{ $article->title }}</a></h2>
-                    <p>{{ $article->excerpt }}</p>
-                    <a class="seo-read-more" href="{{ route('seo.articles.show', $article->slug) }}">ادامه مطلب</a>
+    </div>
+
+    <div class="c" style="padding-top:32px;padding-bottom:48px">
+        {{-- Search & Topic Chips --}}
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+            <div class="chips" style="margin:0">
+                <a class="chip {{ empty($keyword) ? 'on' : '' }}" href="{{ route('seo.articles.index') }}">همه</a>
+                @foreach($keywords as $item)
+                    <a class="chip {{ $keyword === $item ? 'on' : '' }}" href="{{ route('seo.articles.index', ['keyword' => $item]) }}">{{ $item }}</a>
+                @endforeach
+            </div>
+
+            <form method="GET" action="{{ route('seo.articles.index') }}" style="display:flex;gap:8px;max-width:320px;width:100%">
+                @if($keyword)<input type="hidden" name="keyword" value="{{ $keyword }}">@endif
+                <input class="inp" style="margin:0;padding:8px 14px;font-size:13px" type="search" name="q" value="{{ $search }}" placeholder="جستجو در مقالات...">
+                <button class="btn s" type="submit" style="padding:8px 14px">جستجو</button>
+            </form>
+        </div>
+
+        {{-- Banners if any --}}
+        @if(isset($banners) && $banners->isNotEmpty())
+            <div style="margin-bottom:24px">
+                @foreach($banners as $banner)
+                    <div style="border-radius:14px;overflow:hidden;margin-bottom:12px">
+                        @if($banner->target_url)<a href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>@endif
+                            <img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" style="width:100%;height:auto;display:block" loading="lazy">
+                        @if($banner->target_url)</a>@endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        @php
+            $featured = $articles->first();
+            $rest = $articles->slice(1);
+        @endphp
+
+        @if($featured && empty($search) && $articles->currentPage() === 1)
+            {{-- Featured Article --}}
+            <a class="card feat" href="{{ route('seo.articles.show', $featured->slug) }}">
+                <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
+                    @if($featured->featured_image_path)
+                        <img src="{{ Storage::disk('public')->url($featured->featured_image_path) }}" alt="{{ $featured->title }}" loading="lazy">
+                    @else
+                        <svg class="i"><use href="#pen"/></svg>
+                    @endif
                 </div>
-            </article>
-        @empty
-            <div class="seo-empty">هنوز مقاله عمومی منتشر نشده است.</div>
-        @endforelse
-    </section>
-    {{ $articles->links() }}
+                <div class="cb">
+                    <span class="bd">{{ !empty($featured->keywords) ? $featured->keywords[0] : 'مقاله برگزیده' }}</span>
+                    <h2>{{ $featured->title }}</h2>
+                    <p>{{ $featured->excerpt }}</p>
+                    <div class="mt" style="margin-bottom:16px">
+                        <span><svg class="i" style="width:14px;height:14px;vertical-align:middle;margin-left:4px"><use href="#clock"/></svg>{{ $featured->published_at ? $featured->published_at->format('Y/m/d') : '' }}</span>
+                        <span>نویسنده: {{ $featured->author->name ?? 'شیخان' }}</span>
+                    </div>
+                    <div><span class="btn s">ادامه مطلب</span></div>
+                </div>
+            </a>
+        @endif
+
+        {{-- Article Cards Grid --}}
+        <div class="g g3">
+            @php $articlesToLoop = ($featured && empty($search) && $articles->currentPage() === 1) ? $rest : $articles; @endphp
+            @forelse($articlesToLoop as $index => $article)
+                @php
+                    $gradients = [
+                        'linear-gradient(135deg,#0d9488,#0f766e)',
+                        'linear-gradient(135deg,#2563eb,#1d4ed8)',
+                        'linear-gradient(135deg,#f97316,#ea580c)',
+                        'linear-gradient(135deg,#7c3aed,#6d28d9)',
+                        'linear-gradient(135deg,#059669,#047857)',
+                        'linear-gradient(135deg,#d97706,#b45309)'
+                    ];
+                    $bgGrad = $gradients[$index % count($gradients)];
+                @endphp
+                <a class="card cc" href="{{ route('seo.articles.show', $article->slug) }}">
+                    <div class="th" style="background:{{ $bgGrad }}">
+                        @if($article->featured_image_path)
+                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->title }}" loading="lazy">
+                        @else
+                            <svg class="i"><use href="#pen"/></svg>
+                        @endif
+                        <span class="bd">{{ !empty($article->keywords) ? $article->keywords[0] : 'آموزشی' }}</span>
+                    </div>
+                    <div class="cb">
+                        <h3>{{ $article->title }}</h3>
+                        <p style="font-size:13px;color:var(--mute);line-height:1.7;margin:0 0 12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ $article->excerpt }}</p>
+                        <div class="mt">
+                            <span><svg class="i" style="width:13px;height:13px;vertical-align:middle;margin-left:3px"><use href="#clock"/></svg>{{ $article->published_at ? $article->published_at->format('Y/m/d') : '' }}</span>
+                            <span>{{ $article->author->name ?? 'شیخان' }}</span>
+                        </div>
+                    </div>
+                </a>
+            @empty
+                <div class="card" style="grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--mute)">
+                    <p style="font-size: 16px; margin-bottom: 12px">مقاله‌ای با این مشخصات یافت نشد.</p>
+                    <a class="btn s" href="{{ route('seo.articles.index') }}">مشاهده همه مقالات</a>
+                </div>
+            @endforelse
+        </div>
+
+        {{-- Pagination --}}
+        <div style="margin-top:36px">
+            {{ $articles->links() }}
+        </div>
+
+        {{-- Newsletter CTA Box --}}
+        <div class="cta" style="margin-top:48px">
+            <h2>خبرنامه تحصیلی شیخان</h2>
+            <p>هفته‌ای یک ایمیل با گزیده مهم‌ترین روش‌های مطالعه، بودجه‌بندی آزمون‌ها و جزوات اساتید برتر.</p>
+            <div style="max-width:440px;margin:auto;display:flex;gap:8px">
+                <input class="inp" style="margin:0" placeholder="ایمیل خود را وارد کنید...">
+                <button type="button" class="btn w" onclick="alert('ایمیل شما با موفقیت در خبرنامه شیخان ثبت شد.')">عضویت</button>
+            </div>
+        </div>
+    </div>
 @endsection
