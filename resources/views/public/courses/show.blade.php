@@ -7,7 +7,23 @@
 <div class="ac-wrap ac-detail-grid"><div>
 <section class="ac-card ac-block"><h2>در این دوره چه یاد می‌گیری؟</h2>@if($course->description)<p style="white-space:pre-line">{{ $course->description }}</p>@else<p class="ac-muted">توضیحات تکمیلی این دوره هنوز ثبت نشده است.</p>@endif</section>
 <section class="ac-card ac-block"><h2>سرفصل‌ها <small class="ac-muted" style="font-size:13px;font-weight:400">{{ $course->sections->count() }} فصل · {{ $course->sections->sum(fn($section)=>$section->lessons->count()) }} درس</small></h2>
-@forelse($course->sections as $section)<details class="ac-section-row" @if($loop->first) open @endif><summary>{{ $section->title }} <span class="ac-muted" style="font-size:12px">· {{ $section->lessons->count() }} درس</span></summary>@if($section->description)<p class="ac-muted">{{ $section->description }}</p>@endif@forelse($section->lessons as $lesson)<div class="ac-lesson">▶ {{ $lesson->title }} @if($lesson->duration_minutes)<span style="float:left">{{ $lesson->duration_minutes }} دقیقه</span>@endif</div>@empty<div class="ac-lesson">درس منتشرشده‌ای در این فصل وجود ندارد.</div>@endforelse</details>@empty<div class="ac-empty">سرفصل منتشرشده‌ای برای این دوره ثبت نشده است.</div>@endforelse
+@if($course->sections->isNotEmpty())
+@foreach($course->sections as $section)
+<details class="ac-section-row" @if($loop->first) open @endif>
+    <summary>{{ $section->title }} <span class="ac-muted" style="font-size:12px">· {{ $section->lessons->count() }} درس</span></summary>
+    @if($section->description)<p class="ac-muted">{{ $section->description }}</p>@endif
+    @if($section->lessons->isNotEmpty())
+        @foreach($section->lessons as $lesson)
+            <div class="ac-lesson">▶ {{ $lesson->title }} @if($lesson->duration_minutes)<span style="float:left">{{ $lesson->duration_minutes }} دقیقه</span>@endif</div>
+        @endforeach
+    @else
+        <div class="ac-lesson">درس منتشرشده‌ای در این فصل وجود ندارد.</div>
+    @endif
+</details>
+@endforeach
+@else
+<div class="ac-empty">سرفصل منتشرشده‌ای برای این دوره ثبت نشده است.</div>
+@endif
 </section>
 @if($course->teacher)<section class="ac-card ac-block"><h2>مدرس دوره</h2><div style="display:flex;align-items:center;gap:16px"><div class="ac-avatar" style="margin:0">{{ mb_substr($course->teacher->name,0,1) }}</div><div><b>{{ $course->teacher->name }}</b><div class="ac-muted">{{ $course->teacher->subject ?: 'مدرس دوره' }}</div></div></div></section>@endif
 </div><aside class="ac-card ac-sticky"><span class="ac-pill {{ $course->type==='paid'?'ac-pill-orange':'' }}">{{ $course->type==='paid'?'دوره پولی':'دوره رایگان' }}</span><div style="font-size:27px;font-weight:800;margin:10px 0">{{ $course->type==='paid'?number_format((int)$course->price).' تومان':'رایگان' }}</div><form method="POST" action="{{ route('public.cart.add',$course) }}">@csrf<button class="ac-btn" type="submit" style="width:100%">افزودن به سبد خرید</button></form><a class="ac-btn ac-btn-outline" href="{{ route('login') }}" style="width:100%;margin-top:10px">ورود به حساب کاربری</a><ul class="ac-list" style="margin-top:18px"><li><span>فصل‌های منتشرشده</span><b>{{ $course->sections->count() }}</b></li><li><span>درس‌های منتشرشده</span><b>{{ $course->sections->sum(fn($section)=>$section->lessons->count()) }}</b></li><li><span>نوع برگزاری</span><b>{{ $course->delivery_type==='online'?'آنلاین':'حضوری' }}</b></li></ul><p class="ac-muted" style="font-size:12px">پرداخت آنلاین تا زمان اتصال درگاه پرداخت در دسترس نیست.</p></aside></div>
