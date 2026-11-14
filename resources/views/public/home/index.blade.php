@@ -1,6 +1,7 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
+@if($banners->isNotEmpty())
 <header class="hero" id="homeHero">
     <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
         <svg class="i"><use href="#arrr"/></svg>
@@ -39,64 +40,11 @@
                 </div>
             </div>
         @endforeach
-    @else
-        <!-- اسلاید ۱: مسیر هوشمند -->
-        <div class="sl on" style="--a:#0d9488;--b:#1e40af">
-            <div>
-                <span class="bd">مسیر یادگیری هوشمند</span>
-                <h1>مهارتی یاد بگیر که برایت <span style="color:var(--pri2)">آینده</span> می‌سازد</h1>
-                <p>دوره‌های ساختارمند با اساتید مجرب، آزمون‌های گام‌به‌گام و دسترسی پیوسته به جلسات آموزشی.</p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-                    <a class="btn" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها <svg class="i"><use href="#arrl"/></svg></a>
-                    <a class="btn o" href="#quiz">پیدا کردن مسیر من</a>
-                </div>
-            </div>
-            <div class="vis">
-                <i class="m"><svg class="i"><use href="#cap"/></svg></i>
-                <i class="t1"><svg class="i"><use href="#code"/></svg></i>
-                <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
-            </div>
-        </div>
-
-        <!-- اسلاید ۲: تمرین و آزمون -->
-        <div class="sl" style="--a:#f97316;--b:#7c3aed">
-            <div>
-                <span class="bd">تمرین و تست‌محور</span>
-                <h1>هر فصل، یک مهارت واقعی برای موفقیتت</h1>
-                <p>به‌جای تماشای صرف، تمرین کن، آزمون بده و رشد درسی و تحصیلی‌ات را گام‌به‌گام بساز.</p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-                    <a class="btn" href="{{ route('public.courses.index') }}">شروع یادگیری <svg class="i"><use href="#arrl"/></svg></a>
-                    <a class="btn o" href="{{ route('public.courses.index', ['grade' => 'کنکور']) }}">دوره‌های کنکور</a>
-                </div>
-            </div>
-            <div class="vis">
-                <i class="m"><svg class="i"><use href="#rocket"/></svg></i>
-                <i class="t1"><svg class="i"><use href="#award"/></svg></i>
-                <i class="t2"><svg class="i"><use href="#pen"/></svg></i>
-            </div>
-        </div>
-
-        <!-- اسلاید ۳: همراهی مدرسان -->
-        <div class="sl" style="--a:#2563eb;--b:#0d9488">
-            <div>
-                <span class="bd">پشتیبانی و همراهی</span>
-                <h1>مدرس کنارت است، نه فقط پشت ویدیو</h1>
-                <p>سؤال بپرس، رفع اشکال کن و با نظارت مستمر اساتید مسیرت را تا رسیدن به نتیجه ادامه بده.</p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-                    <a class="btn" href="{{ route('public.teachers.index') }}">آشنایی با مدرسان <svg class="i"><use href="#arrl"/></svg></a>
-                    <a class="btn o" href="{{ route('public.contact') }}">مشاوره رایگان</a>
-                </div>
-            </div>
-            <div class="vis">
-                <i class="m"><svg class="i"><use href="#user"/></svg></i>
-                <i class="t1"><svg class="i"><use href="#help"/></svg></i>
-                <i class="t2"><svg class="i"><use href="#star"/></svg></i>
-            </div>
-        </div>
     @endif
 
     <div class="dots" id="heroDots"></div>
 </header>
+@endif
 <section id="quiz" style="background:var(--sf);padding:64px 0">
     <div class="c">
         <div class="qz">
@@ -124,28 +72,23 @@
         </div>
         <div class="g6">
             @php
-                $mainCategories = [
-                    ['ریاضی', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)'],
-                    ['فیزیک', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)'],
-                    ['شیمی', 'pen', 'linear-gradient(135deg,#f97316,#db2777)'],
-                    ['زیست', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)'],
-                    ['زبان', 'lang', 'linear-gradient(135deg,#0891b2,#2563eb)'],
-                    ['ادبیات', 'brief', 'linear-gradient(135deg,#7c3aed,#db2777)'],
+                $categoryStyles = [
+                    'ریاضی' => ['chart', 'linear-gradient(135deg,#2563eb,#7c3aed)'],
+                    'فیزیک' => ['rocket', 'linear-gradient(135deg,#0d9488,#0f766e)'],
+                    'شیمی' => ['pen', 'linear-gradient(135deg,#f97316,#db2777)'],
+                    'زیست' => ['user', 'linear-gradient(135deg,#16a34a,#0d9488)'],
+                    'زبان' => ['lang', 'linear-gradient(135deg,#0891b2,#2563eb)'],
+                    'ادبیات' => ['brief', 'linear-gradient(135deg,#7c3aed,#db2777)'],
                 ];
             @endphp
-            @foreach($mainCategories as $catItem)
-                @php
-                    $catName = $catItem[0];
-                    $catIcon = $catItem[1];
-                    $catGrad = $catItem[2];
-                    $hasCourse = $categories->contains($catName);
-                @endphp
+            @foreach($categories as $catName)
+                @php($categoryStyle = $categoryStyles[$catName] ?? ['cap', 'linear-gradient(135deg,#0d9488,#1e3a8a)'])
                 <a class="card cat" href="{{ route('public.courses.index', ['subject' => $catName]) }}">
-                    <div class="ic" style="background:{{ $catGrad }}">
-                        <svg class="i"><use href="#{{ $catIcon }}"/></svg>
+                    <div class="ic" style="background:{{ $categoryStyle[1] }}">
+                        <svg class="i"><use href="#{{ $categoryStyle[0] }}"/></svg>
                     </div>
                     <b>{{ $catName }}</b>
-                    <small>{{ $hasCourse ? '۱ دوره فعال' : 'دوره‌ها' }}</small>
+                    <small>مشاهده دوره‌ها</small>
                 </a>
             @endforeach
         </div>
@@ -234,7 +177,6 @@
                         <div class="mt" style="margin-bottom:4px">
                             <span style="color:#f59e0b">
                                 <svg class="i"><use href="#star"/></svg>
-                                ۴٫۹
                             </span>
                             <span>
                                 <svg class="i"><use href="#user"/></svg>
@@ -382,7 +324,6 @@
                     <div class="mt">
                         <span style="color:#f59e0b">
                             <svg class="i"><use href="#star"/></svg>
-                            ۴٫۹
                         </span>
                         <span>
                             <svg class="i"><use href="#cam"/></svg>
