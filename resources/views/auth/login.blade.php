@@ -18,4 +18,12 @@
     <p class="ac-muted" style="font-size:11px;margin:8px 0 0">این حساب‌ها فقط در محیط توسعه نمایش داده می‌شوند.</p>
 </section>
 @endif
-<div style="border-top:1px solid var(--ac-line);margin-top:20px;padding-top:16px;font-size:13px">حساب دانش‌آموزی نداری؟ <a class="ac-link" href="{{ route('register') }}">ثبت‌نام کن</a></div></div></section></main></body></html>
+<div style="border-top:1px solid var(--ac-line);margin-top:20px;padding-top:16px;font-size:13px">حساب دانش‌آموزی نداری؟ <a class="ac-link" href="{{ route('register') }}">ثبت‌نام کن</a></div></div></section></main><script>
+document.querySelectorAll('[data-demo-account]').forEach((button) => {
+    button.addEventListener('click', () => {
+        document.getElementById('email').value = button.dataset.demoEmail || '';
+        document.getElementById('password').value = button.dataset.demoPassword || '';
+        document.getElementById('password').focus();
+    });
+});
+</script></body></html>
