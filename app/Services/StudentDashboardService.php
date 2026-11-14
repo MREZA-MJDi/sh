@@ -95,8 +95,9 @@ final class StudentDashboardService
             ->get();
 
         $resourceQuery = LearningResource::query()
-            ->whereIn('visibility', ['enrolled', 'authenticated'])
+            ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
             ->where('status', 'published')
+            ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
                         ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function (Builder $classScoped) use ($classroomIds, $courseIds): void {
                     $classScoped->whereNotNull('classroom_id')
@@ -111,6 +112,9 @@ final class StudentDashboardService
                         });
                 })->orWhere(function (Builder $courseOnly) use ($courseIds): void {
                     $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                })->orWhere(function (Builder $unscoped): void {
+                    $unscoped->whereNull('classroom_id')->whereNull('course_id')
+                        ->whereIn('visibility', ['public', 'authenticated']);
                 });
             });
 
@@ -118,7 +122,7 @@ final class StudentDashboardService
             ->with(['course:id,title', 'classroom:id,name'])
             ->latest()
             ->limit(5)
-            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
+            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'downloadable', 'created_at']);
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6);
 

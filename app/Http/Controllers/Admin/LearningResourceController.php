@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLearningResourceRequest;
 use App\Http\Requests\Admin\UpdateLearningResourceRequest;
 use App\Models\LearningResource;
+use App\Models\LearningResourceAccessLog;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\LearningResourceService;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class LearningResourceController extends Controller
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
-        $resourcesQuery = LearningResource::query()->with(['course', 'classroom', 'uploader']);
+        $resourcesQuery = LearningResource::query()->with(['course', 'classroom', 'uploader'])->withCount('accessLogs');
 
         if ($teacherView) {
             $resourcesQuery->where(function ($scope) use ($classroomIds, $courseIds): void {
@@ -87,6 +88,21 @@ class LearningResourceController extends Controller
     {
         $this->authorizeResourceAccess($resource, $workspace);
         abort_unless($resource->file_path && Storage::disk('local')->exists($resource->file_path), 404);
+
+        LearningResourceAccessLog::query()->create([
+            'learning_resource_id' => $resource->id,
+            'user_id' => auth()->id(),
+            'student_id' => null,
+            'event_type' => $resource->downloadable ? 'download' : 'view',
+            'ip_address' => request()->ip(),
+            'user_agent' => substr((string) request()->userAgent(), 0, 2000),
+            'accessed_at' => now(),
+        ]);
+
+        if (! $resource->downloadable) {
+            abort_unless($resource->kind === 'pdf', 404);
+            return Storage::disk('local')->response($resource->file_path, basename($resource->file_path), ['X-Content-Type-Options' => 'nosniff'], 'inline');
+        }
 
         return Storage::disk('local')->download($resource->file_path);
     }
