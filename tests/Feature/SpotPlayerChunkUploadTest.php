@@ -107,6 +107,43 @@ final class SpotPlayerChunkUploadTest extends TestCase
         ])->assertNotFound();
     }
 
+    public function test_upload_session_cannot_be_reused_by_another_teacher(): void
+    {
+        $owner = $this->userWithRole('teacher');
+        $otherTeacher = $this->userWithRole('teacher');
+        $course = Course::query()->create([
+            'title' => 'دوره مالک نشست',
+            'slug' => 'spotplayer-upload-session-owner',
+            'teacher_id' => $owner->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'spotplayer',
+            'spotplayer_course_id' => 'spot-course-session-owner',
+            'status' => 'published',
+        ]);
+
+        $start = $this->actingAs($owner)->postJson(route('admin.uploads.start'), [
+            'target' => 'spotplayer_video',
+            'target_id' => $course->id,
+            'total' => 1,
+            'title' => 'جلسه خصوصی',
+        ])->assertOk();
+
+        $uploadId = $start->json('upload_id');
+
+        $this->actingAs($otherTeacher)->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId,
+            'index' => 0,
+            'chunk' => UploadedFile::fake()->createWithContent('part', str_repeat("\0", 64)),
+        ])->assertNotFound();
+
+        $this->actingAs($otherTeacher)->postJson(route('admin.uploads.complete'), [
+            'upload_id' => $uploadId,
+            'total' => 1,
+            'filename' => 'private.mp4',
+        ])->assertNotFound();
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

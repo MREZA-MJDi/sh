@@ -58,9 +58,11 @@ final class StudentCourseLicenseBoxTest extends TestCase
     public function test_student_can_request_their_own_license_without_receiving_a_fake_active_key(): void
     {
         [$student, $course] = $this->enrolledStudentAndCourse();
+        $otherStudent = User::factory()->create();
+        $otherStudent->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
 
         $this->actingAs($student)
-            ->post(route('student.courses.spotplayer-license.store', $course))
+            ->post(route('student.courses.spotplayer-license.store', $course), ['student_id' => $otherStudent->id])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
@@ -71,6 +73,10 @@ final class StudentCourseLicenseBoxTest extends TestCase
 
         $this->assertSame('waiting_contract', $license->status);
         $this->assertNull($license->license_key);
+        $this->assertDatabaseMissing('spot_player_licenses', [
+            'student_id' => $otherStudent->id,
+            'course_id' => $course->id,
+        ]);
         $this->assertDatabaseHas('integration_runs', [
             'provider' => 'spotplayer',
             'action' => 'issue_license',
