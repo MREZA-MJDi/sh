@@ -1,17 +1,18 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\ContactMessage;
-use App\\Models\\Course;\nuse App\\Models\\CourseEnrollment;
-use App\\Models\\Lesson;
-use App\\Models\\SeoArticle;
-use App\\Models\\SeoBanner;
-use App\\Models\\SeoSetting;
-use App\\Models\\User;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\View\\View;
+use App\Models\ContactMessage;
+use App\Models\Course;
+use App\Models\CourseEnrollment;
+use App\Models\Lesson;
+use App\Models\SeoArticle;
+use App\Models\SeoBanner;
+use App\Models\SeoSetting;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 final class PublicSiteController extends Controller
 {
