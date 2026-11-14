@@ -102,16 +102,31 @@ final class PublicSiteController extends Controller
         return view('public.courses.show', compact('settings', 'course', 'relatedCourses'));
     }
 
-    public function teachers(): View
+    public function teachers(Request $request): View
     {
         $settings = SeoSetting::current();
-        $teachers = User::query()->where('is_active', true)
-            ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
+        $query = User::query()->where('is_active', true)
+            ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'));
+
+        if ($search = trim((string) $request->query('q'))) {
+            $query->where(fn ($builder) => $builder->where('name', 'like', '%'.$search.'%')
+                ->orWhere('subject', 'like', '%'.$search.'%'));
+        }
+        if ($subject = $request->query('subject')) {
+            $query->where('subject', $subject);
+        }
+
+        $teachers = $query
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
             ->with(['assignedCourses' => fn ($courses) => $courses->where('status', 'published')->select('id', 'teacher_id', 'title', 'slug')])
-            ->orderBy('name')->paginate(12);
+            ->orderBy('name')->paginate(12)->withQueryString();
 
-        return view('public.teachers.index', compact('settings', 'teachers'));
+        $subjects = User::query()->where('is_active', true)
+            ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
+            ->whereNotNull('subject')->where('subject', '<>', '')
+            ->distinct()->orderBy('subject')->pluck('subject');
+
+        return view('public.teachers.index', compact('settings', 'teachers', 'subjects'));
     }
 
     public function contact(): View
