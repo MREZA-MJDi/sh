@@ -283,4 +283,117 @@ class PublicSiteTest extends TestCase
             ->assertDontSee('فیزیک منتشرشده');
     }
 
+    public function test_public_teacher_profile_displays_teacher_info_and_published_courses(): void
+    {
+        $role = Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
+
+        $teacher = User::create([
+            'name' => 'استاد محمدی',
+            'email' => 'mohammadi@example.test',
+            'password' => 'password-password',
+            'is_active' => true,
+            'subject' => 'ریاضیات کنکور',
+            'profile_note' => 'مدرس باسابقه کنکور با ۱۰ سال سابقه تدریس تخصصی.',
+        ]);
+        $teacher->roles()->attach($role);
+
+        $publishedCourse = Course::create([
+            'title' => 'حسابان پیشرفته',
+            'slug' => 'hesaban-pishrafte',
+            'subject' => 'ریاضیات کنکور',
+            'teacher_id' => $teacher->id,
+            'type' => 'paid',
+            'price' => 500000,
+            'delivery_type' => 'online',
+            'status' => 'published',
+        ]);
+
+        $section = $publishedCourse->sections()->create([
+            'title' => 'فصل اول',
+            'status' => 'published',
+        ]);
+        $section->lessons()->create([
+            'title' => 'درس اول',
+            'status' => 'published',
+        ]);
+
+        $draftCourse = Course::create([
+            'title' => 'هندسه پیش‌نویس',
+            'slug' => 'hendese-draft',
+            'subject' => 'ریاضیات کنکور',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'online',
+            'status' => 'draft',
+        ]);
+
+        $response = $this->get(route('public.teachers.show', $teacher));
+
+        $response->assertOk()
+            ->assertSee('استاد محمدی')
+            ->assertSee('ریاضیات کنکور')
+            ->assertSee('مدرس باسابقه کنکور با ۱۰ سال سابقه تدریس تخصصی.')
+            ->assertSee('حسابان پیشرفته')
+            ->assertDontSee('هندسه پیش‌نویس');
+    }
+
+    public function test_public_teacher_profile_returns_404_for_inactive_teacher_or_non_teacher(): void
+    {
+        $teacherRole = Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
+        $studentRole = Role::firstOrCreate(['name' => 'student'], ['label' => 'دانش‌آموز']);
+
+        $inactiveTeacher = User::create([
+            'name' => 'مدرس غیرفعال',
+            'email' => 'inactive-prof@example.test',
+            'password' => 'password-password',
+            'is_active' => false,
+            'subject' => 'فیزیک',
+        ]);
+        $inactiveTeacher->roles()->attach($teacherRole);
+
+        $student = User::create([
+            'name' => 'دانش‌آموز ساده',
+            'email' => 'student-prof@example.test',
+            'password' => 'password-password',
+            'is_active' => true,
+        ]);
+        $student->roles()->attach($studentRole);
+
+        $this->get(route('public.teachers.show', $inactiveTeacher))->assertNotFound();
+        $this->get(route('public.teachers.show', $student))->assertNotFound();
+    }
+
+    public function test_course_detail_links_to_teacher_public_profile(): void
+    {
+        $role = Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
+
+        $teacher = User::create([
+            'name' => 'دکتر سمیعی',
+            'email' => 'samiei@example.test',
+            'password' => 'password-password',
+            'is_active' => true,
+            'subject' => 'زیست‌شناسی',
+            'profile_note' => 'دکترای ژنتیک و مدرس دوره‌های زیست.',
+        ]);
+        $teacher->roles()->attach($role);
+
+        $course = Course::create([
+            'title' => 'زیست جامع کنکور',
+            'slug' => 'zist-jame',
+            'subject' => 'زیست‌شناسی',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'online',
+            'status' => 'published',
+        ]);
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('دکتر سمیعی')
+            ->assertSee(route('public.teachers.show', $teacher))
+            ->assertSee('دکترای ژنتیک و مدرس دوره‌های زیست.');
+    }
+
 }
