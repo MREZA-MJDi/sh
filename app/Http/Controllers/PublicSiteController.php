@@ -67,7 +67,7 @@ final class PublicSiteController extends Controller
             ->where('status', 'published')
             ->where('slug', $slug)
             ->with([
-                'teacher:id,name',
+                'teacher:id,name,subject',
                 'sections' => fn ($query) => $query
                     ->where('status', 'published')
                     ->with(['lessons' => fn ($lessons) => $lessons
@@ -77,6 +77,39 @@ final class PublicSiteController extends Controller
             ])
             ->firstOrFail();
 
-        return view('public.courses.show', compact('settings', 'course'));
+        $landingCourse = [
+            'title' => $course->title,
+            'subtitle' => $course->description,
+            'price' => $course->type === 'paid'
+                ? number_format((int) $course->price).' تومان'
+                : 'رایگان',
+            'tracks' => $course->sections
+                ->map(fn ($section) => [
+                    'name' => $section->title,
+                    'lessons' => $section->lessons->count(),
+                ])
+                ->all(),
+        ];
+
+        $curriculum = $course->sections
+            ->map(fn ($section) => [
+                'title' => $section->title,
+                'lessons' => $section->lessons->pluck('title')->all(),
+            ])
+            ->all();
+
+        $instructor = $course->teacher ? [
+            'name' => $course->teacher->name,
+            'role' => $course->teacher->subject ?: 'مدرس دوره',
+            'bio' => null,
+        ] : null;
+
+        return view('public.courses.show', compact(
+            'settings',
+            'course',
+            'landingCourse',
+            'curriculum',
+            'instructor',
+        ));
     }
 }
