@@ -143,7 +143,11 @@
                 <div class="trk">
                     <div class="th t-b"><x-icon name="cal"/></div>
                     <div><b>{{ $record->classroom?->name ?? 'کلاس' }}</b><span class="mu">{{ \App\Support\PersianDate::format($record->session_date, 'l، d F Y') }}</span></div>
-                    @if($record->status === 'present')<span class="tag">حاضر</span>@elseif($record->status === 'late')<span class="tag w">با تأخیر</span>@else<span class="tag r">غایب</span>@endif
+                    <div>
+                        @if($record->status === 'present')<span class="tag">حاضر</span>@elseif($record->status === 'late')<span class="tag w">با تأخیر</span>@else<span class="tag r">غایب</span>@endif
+                        @if($record->attended_minutes !== null)<span class="mu">{{ $faNumber($record->attended_minutes) }} دقیقه حضور</span>@endif
+                        @if($record->late_minutes !== null && $record->late_minutes > 0)<span class="mu">{{ $faNumber($record->late_minutes) }} دقیقه تأخیر</span>@endif
+                    </div>
                 </div>
             @empty
                 <div class="empty">رکورد حضور و غیابی ثبت نشده است.</div>

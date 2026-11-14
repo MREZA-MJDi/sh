@@ -72,7 +72,7 @@ final class StudentDashboardService
             ->count();
 
         $attendance = (clone $attendanceQuery)
-            ->with('classroom:id,name')
+            ->with(['classroom:id,name', 'session:id,starts_at,ends_at'])
             ->latest('session_date')
             ->limit(6)
             ->get();
