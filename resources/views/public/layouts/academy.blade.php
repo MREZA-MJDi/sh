@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b1b3a">
-    <title>@yield('title', $settings->default_title . $settings->title_separator . $settings->site_name)</title>
-    <meta name="description" content="@yield('description', $settings->default_description)">
-    <meta name="robots" content="@yield('robots', ($settings->robots_index ? 'index' : 'noindex').','.($settings->robots_follow ? 'follow' : 'nofollow'))">
+    <title>@yield('title', ($settings->default_title ?? 'شیخان') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'پلتفرم آموزش آنلاین'))</title>
+    <meta name="description" content="@yield('description', $settings->default_description ?? '')">
+    <meta name="robots" content="@yield('robots', (($settings->robots_index ?? true) ? 'index' : 'noindex').','.($settings->robots_follow ?? true ? 'follow' : 'nofollow'))">
     <link rel="canonical" href="@yield('canonical', url()->current())">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,45 +15,105 @@
     @stack('head')
 </head>
 <body class="academy">
-<header class="academy-nav">
-    <div class="ac-wrap ac-nav-row">
-        <a class="ac-brand" href="{{ route('home') }}"><span class="ac-brand-mark">ش</span><span>{{ $settings->site_name }}</span></a>
-        <button class="ac-menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" data-menu-toggle>☰</button>
-        <nav class="ac-nav-links" aria-label="ناوبری اصلی" data-menu>
-            <a href="{{ route('home') }}">خانه</a>
-            <a href="{{ route('public.courses.index') }}">دوره‌ها</a>
-            <a href="{{ route('public.teachers.index') }}">مدرسان</a>
-            <a href="{{ route('seo.articles.index') }}">مقالات</a>
-            <a href="{{ route('public.contact') }}">تماس با ما</a>
-        </nav>
-        <div class="ac-nav-actions">
-            <a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید <span class="ac-cart-count">{{ count(session('public_cart', [])) }}</span></a>
-            @auth
-                @php($dashboardUrl = auth()->user()->hasRole('student') ? route('student.dashboard') : (auth()->user()->hasRole('parent') ? route('guardian.dashboard') : route('admin.dashboard')))
-                <a class="ac-btn ac-btn-small" href="{{ $dashboardUrl }}">پنل من</a>
-            @else
-                <a class="ac-login-link" href="{{ route('login') }}">ورود</a>
-                <a class="ac-btn ac-btn-small" href="{{ route('register') }}">ثبت‌نام</a>
-            @endauth
+@include('public.partials.sprite')
+
+@include('public.partials.header')
+
+@if(session('status'))
+    <div class="c" style="margin-top:16px"><div class="ac-alert" role="status">{{ session('status') }}</div></div>
+@endif
+
+<main>
+    @yield('content')
+</main>
+
+<footer>
+    <div class="c">
+        <div class="g-footer">
+            <div>
+                <a class="logo" href="{{ route('home') }}" style="color:#fff;margin-bottom:12px">
+                    <svg class="i"><use href="#cap"/></svg>
+                    <span>{{ $settings->site_name ?? 'شیخان' }}</span>
+                </a>
+                <p>آموزشگاه شیخان؛ آموزش اصولی و ساختارمند همراه با نظارت و پیگیری مستمر اساتید تا نتیجه مطلوب.</p>
+            </div>
+            <div>
+                <h4>دوره‌ها</h4>
+                <a href="{{ route('public.courses.index', ['subject' => 'ریاضی']) }}">ریاضیات</a>
+                <a href="{{ route('public.courses.index', ['subject' => 'فیزیک']) }}">فیزیک</a>
+                <a href="{{ route('public.courses.index', ['subject' => 'شیمی']) }}">شیمی</a>
+                <a href="{{ route('public.courses.index', ['subject' => 'زیست']) }}">زیست‌شناسی</a>
+                <a href="{{ route('public.courses.index') }}">همه دوره‌ها</a>
+            </div>
+            <div>
+                <h4>دسترسی سریع</h4>
+                <a href="{{ route('home') }}">صفحه اصلی</a>
+                <a href="{{ route('public.courses.index') }}">آرشیو دوره‌ها</a>
+                <a href="{{ route('public.teachers.index') }}">مدرسان شیخان</a>
+                <a href="{{ route('seo.articles.index') }}">مجله مقالات</a>
+            </div>
+            <div>
+                <h4>پنل‌های کاربری</h4>
+                <a href="{{ route('student.dashboard') }}">پنل دانش‌آموز</a>
+                <a href="{{ route('teacher.dashboard') }}">پنل مدرس</a>
+                <a href="{{ route('guardian.dashboard') }}">پنل والدین</a>
+                <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+            </div>
+            <div>
+                <h4>پشتیبانی و ارتباط</h4>
+                <a href="{{ route('public.contact') }}">مشاوره و تماس</a>
+                <a href="{{ route('login') }}">ورود به حساب</a>
+                <a href="{{ route('register') }}">ثبت‌نام جدید</a>
+                <a href="{{ route('public.cart') }}">سبد خرید</a>
+            </div>
         </div>
+        <div class="cp">© {{ now()->year }} {{ $settings->site_name ?? 'شیخان' }} · تمامی حقوق محفوظ است.</div>
     </div>
-</header>
-@if(session('status'))<div class="ac-wrap"><div class="ac-alert" role="status">{{ session('status') }}</div></div>@endif
-<main>@yield('content')</main>
-<footer class="ac-footer">
-    <div class="ac-wrap ac-footer-grid">
-        <div><a class="ac-brand ac-brand-light" href="{{ route('home') }}"><span class="ac-brand-mark">ش</span><span>{{ $settings->site_name }}</span></a><p>آموزش اصولی، مسیر روشن و دسترسی به محتوای آموزشی منتشرشده.</p></div>
-        <div><h3>دسترسی سریع</h3><a href="{{ route('public.courses.index') }}">دوره‌ها</a><a href="{{ route('public.teachers.index') }}">مدرسان</a><a href="{{ route('seo.articles.index') }}">مقالات</a></div>
-        <div><h3>پشتیبانی</h3><a href="{{ route('public.contact') }}">تماس با ما</a><a href="{{ route('login') }}">ورود</a><a href="{{ route('register') }}">ثبت‌نام</a></div>
-    </div>
-    <div class="ac-wrap ac-copyright">© {{ now()->year }} {{ $settings->site_name }} · تمامی حقوق محفوظ است.</div>
 </footer>
+
 @stack('scripts')
 <script>
-document.querySelector('[data-menu-toggle]')?.addEventListener('click', function () {
-    const menu = document.querySelector('[data-menu]');
-    const open = menu.classList.toggle('is-open');
-    this.setAttribute('aria-expanded', open ? 'true' : 'false');
+document.addEventListener('DOMContentLoaded', function () {
+    const burgerBtn = document.getElementById('bg');
+    const linksNav = document.getElementById('lk');
+    const searchBtn = document.getElementById('sb');
+    const searchBar = document.getElementById('sbar');
+    const searchInput = document.getElementById('hq');
+    const panelBtn = document.getElementById('pb');
+    const panelMenu = document.getElementById('pm');
+
+    if (burgerBtn && linksNav) {
+        burgerBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            linksNav.classList.toggle('open');
+        });
+    }
+
+    if (searchBtn && searchBar) {
+        searchBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            searchBar.classList.toggle('on');
+            if (searchBar.classList.contains('on') && searchInput) {
+                searchInput.focus();
+            }
+        });
+    }
+
+    if (panelBtn && panelMenu) {
+        panelBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            panelMenu.classList.toggle('on');
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        if (panelMenu && !panelMenu.contains(e.target) && e.target !== panelBtn) {
+            panelMenu.classList.remove('on');
+        }
+        if (linksNav && !linksNav.contains(e.target) && e.target !== burgerBtn) {
+            linksNav.classList.remove('open');
+        }
+    });
 });
 </script>
 </body>

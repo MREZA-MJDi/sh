@@ -31,6 +31,7 @@ final class UserManagementService
                 'password' => $data['password'],
                 'grade' => $role === 'student' ? ($data['grade'] ?? null) : null,
                 'subject' => in_array($role, ['teacher'], true) ? ($data['subject'] ?? null) : null,
+                'profile_note' => in_array($role, ['teacher'], true) ? ($data['profile_note'] ?? null) : null,
                 'is_active' => $role === 'teacher' ? (($data['status'] ?? 'active') === 'active') : true,
                 'permissions_customized' => false,
             ]);
@@ -78,6 +79,7 @@ final class UserManagementService
                 'phone' => $data['phone'],
                 'email' => $data['email'] ?? null,
                 'subject' => $data['subject'],
+                'profile_note' => $data['profile_note'] ?? null,
                 'is_active' => $data['status'] === 'active',
             ]);
 

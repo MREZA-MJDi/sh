@@ -64,6 +64,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'string', 'min:12', 'confirmed'],
             'grade' => [$role === 'student' ? 'required' : 'nullable', 'string', 'max:50'],
             'subject' => [$isTeacher ? 'required' : 'prohibited', 'string', 'max:100'],
+            'profile_note' => ['nullable', 'string', 'max:5000'],
             'status' => [$isTeacher ? 'required' : 'prohibited', Rule::in(['active', 'pending'])],
             'classroom_ids' => [$role === 'student' ? 'nullable' : 'prohibited', 'array', 'max:100'],
             'classroom_ids.*' => ['integer', 'distinct', 'exists:classrooms,id'],

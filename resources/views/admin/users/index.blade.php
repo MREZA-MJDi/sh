@@ -101,6 +101,7 @@
                                 <div class="panel-field"><label>موبایل (نام کاربری)</label><input class="panel-input" name="phone" value="{{ $user->phone }}" required maxlength="30" dir="ltr" inputmode="tel"></div>
                                 <div class="panel-field"><label>ایمیل (اختیاری)</label><input class="panel-input" type="email" name="email" value="{{ $user->email }}" maxlength="190" dir="ltr"></div>
                                 <div class="panel-field"><label>درس</label><input class="panel-input" name="subject" value="{{ $user->subject }}" maxlength="100" required></div>
+                                <div class="panel-field"><label>معرفی / بیوگرافی مدرس (پروفایل عمومی)</label><textarea class="panel-textarea" name="profile_note" rows="3" maxlength="5000" placeholder="توضیح کوتاه درباره سوابق، تخصص و رزومه مدرس">{{ $user->profile_note }}</textarea></div>
                                 <div class="panel-field"><label>وضعیت مدرس</label><select class="panel-select" name="status"><option value="active" @selected($user->is_active)>فعال</option><option value="pending" @selected(! $user->is_active)>در انتظار تأیید</option></select></div>
 
                                 <div class="panel-field"><label>دوره‌های تخصیص‌یافته</label>
@@ -149,6 +150,7 @@
                 <div class="panel-field"><label>موبایل (نام کاربری)</label><input class="panel-input" name="phone" value="{{ old('phone') }}" required maxlength="30" dir="ltr" inputmode="tel" placeholder="09xxxxxxxxx"></div>
                 <div class="panel-field"><label>ایمیل (اختیاری)</label><input class="panel-input" type="email" name="email" value="{{ old('email') }}" maxlength="190" dir="ltr"></div>
                 <div class="panel-field"><label>درس</label><input class="panel-input" name="subject" value="{{ old('subject') }}" maxlength="100" required placeholder="مثلاً ریاضی"></div>
+                <div class="panel-field"><label>معرفی / بیوگرافی مدرس (پروفایل عمومی)</label><textarea class="panel-textarea" name="profile_note" rows="3" maxlength="5000" placeholder="توضیح کوتاه درباره سوابق، تخصص و رزومه مدرس">{{ old('profile_note') }}</textarea></div>
                 <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="active">فعال</option><option value="pending">در انتظار تأیید</option></select></div>
                 <div class="panel-field"><label>گذرواژه اولیه</label><input class="panel-input" type="password" name="password" minlength="12" required autocomplete="new-password"></div>
                 <div class="panel-field"><label>تکرار گذرواژه</label><input class="panel-input" type="password" name="password_confirmation" minlength="12" required autocomplete="new-password"></div>
