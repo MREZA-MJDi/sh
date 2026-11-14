@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0b1b3a">
     <title>@yield('title', $settings->default_title . $settings->title_separator . $settings->site_name)</title>
     <meta name="description" content="@yield('description', $settings->default_description)">
-    <meta name="robots" content="{{ $settings->robots_index ? 'index' : 'noindex' }},{{ $settings->robots_follow ? 'follow' : 'nofollow' }}">
+    <meta name="robots" content="@yield('robots', ($settings->robots_index ? 'index' : 'noindex').','.($settings->robots_follow ? 'follow' : 'nofollow'))">
     <link rel="canonical" href="@yield('canonical', url()->current())">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
