@@ -34,7 +34,7 @@ final class PublicSiteController extends Controller
         $teachers = User::query()->where('is_active', true)
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
-            ->orderBy('name')->limit(8)->get(['id', 'name', 'subject', 'profile_note']);
+            ->orderBy('name')->limit(8)->get(['id', 'name', 'subject']);
 
         $articles = SeoArticle::published()->latest('published_at')->limit(3)->get();
         $categories = Course::query()->where('status', 'published')->whereNotNull('subject')
@@ -90,7 +90,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
-            ->with(['teacher:id,name,subject,profile_note', 'sections' => fn ($sections) => $sections
+            ->with(['teacher:id,name,subject', 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
             ->withCount('enrollments')->firstOrFail();
