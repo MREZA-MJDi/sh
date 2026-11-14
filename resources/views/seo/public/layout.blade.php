@@ -20,7 +20,7 @@
     @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#172554">
+    <meta name="theme-color" content="#16202A">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
@@ -53,12 +53,17 @@
 </head>
 <body>
     <header class="seo-header">
-        <a class="seo-brand" href="{{ route('seo.articles.index') }}">{{ $settings->site_name }}</a>
-        <nav><a href="{{ route('seo.articles.index') }}">مقاله‌ها</a><a href="{{ route('login') }}">ورود به سامانه</a></nav>
+        <a class="seo-brand" href="{{ route('home') }}">{{ $settings->site_name }}</a>
+        <nav aria-label="ناوبری اصلی">
+            <a href="{{ route('home') }}">خانه</a>
+            <a href="{{ route('public.courses.index') }}">دوره‌ها</a>
+            <a href="{{ route('seo.articles.index') }}">مقاله‌ها</a>
+            <a href="{{ route('login') }}">ورود</a>
+        </nav>
     </header>
     <main class="seo-container">
         @yield('content')
     </main>
-    <footer class="seo-footer"><span>© {{ now()->year }} {{ $settings->site_name }}</span>@if($settings->sitemap_enabled)<a href="{{ route('seo.sitemap') }}">نقشه سایت</a>@endif</footer>
+    <footer class="seo-footer"><span>© {{ now()->year }} {{ $settings->site_name }}</span><span class="seo-footer-links"><a href="{{ route('public.courses.index') }}">دوره‌ها</a>@if($settings->sitemap_enabled)<a href="{{ route('seo.sitemap') }}">نقشه سایت</a>@endif</span></footer>
 </body>
 </html>
