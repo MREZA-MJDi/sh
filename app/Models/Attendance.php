@@ -79,6 +79,6 @@ class Attendance extends Model
 
         $seconds = $this->joined_at->getTimestamp() - $this->session->starts_at->getTimestamp();
 
-        return $seconds > 0 ? intdiv($seconds, 60) : 0;
+        return $seconds > 0 ? (int) ceil($seconds / 60) : 0;
     }
 }

@@ -39,7 +39,7 @@ final class AttendanceService
                     ]);
                 }
 
-                if ($entry['status'] === 'absent') {
+                if (in_array($entry['status'], ['absent', 'excused'], true)) {
                     $joinedAt = null;
                     $attendedMinutes = null;
                 }

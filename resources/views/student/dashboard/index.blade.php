@@ -337,6 +337,7 @@
                                     <td>
                                         @if ($record->status === 'present')<span class="tag">حاضر</span>
                                         @elseif ($record->status === 'late')<span class="tag w">با تأخیر</span>
+                                        @elseif ($record->status === 'excused')<span class="tag">موجه</span>
                                         @else<span class="tag r">غایب</span>@endif
                                     </td>
                                     <td>

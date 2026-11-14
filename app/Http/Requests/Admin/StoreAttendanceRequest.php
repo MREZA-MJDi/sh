@@ -84,10 +84,6 @@ class StoreAttendanceRequest extends FormRequest
                     $validator->errors()->add("attendance.{$studentId}.joined_at", 'زمان ورود نمی‌تواند بعد از پایان جلسه باشد.');
                 }
 
-                if ($status === 'absent' && ($joinedAt || ($attendedMinutes ?? 0) > 0)) {
-                    $validator->errors()->add("attendance.{$studentId}.status", 'برای دانش‌آموز غایب، زمان ورود یا مدت حضور ثبت نکنید.');
-                }
-
                 if ($session->ends_at && $attendedMinutes !== null) {
                     $scheduled = max(0, intdiv($session->ends_at->getTimestamp() - $session->starts_at->getTimestamp(), 60));
                     if ($attendedMinutes > $scheduled) {
