@@ -7,6 +7,7 @@ on:
       - chore/resource-role-directories
       - feat/student-dashboard-frontend
       - feat/admin-ui-laravel-reference-20261110
+      - feature/admin-ux-crud
   pull_request:
     branches:
       - main
