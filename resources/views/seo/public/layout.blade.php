@@ -48,22 +48,20 @@
     @if($seoDescription !== '')<meta name="twitter:description" content="{{ $seoDescription }}">@endif
     @if($settings->twitter_handle)<meta name="twitter:site" content="{{ '@'.ltrim($settings->twitter_handle, '@') }}">@endif
     <script type="application/ld+json">{!! json_encode($organizationData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
-    @vite(['resources/css/seo/public.css'])
+    @vite(['resources/css/app.css', 'resources/css/public-academy.css', 'resources/css/seo/public.css', 'resources/js/app.js'])
     @stack('head')
 </head>
-<body>
-    <header class="seo-header">
-        <a class="seo-brand" href="{{ route('home') }}">{{ $settings->site_name }}</a>
-        <nav aria-label="ناوبری اصلی">
-            <a href="{{ route('home') }}">خانه</a>
-            <a href="{{ route('public.courses.index') }}">دوره‌ها</a>
-            <a href="{{ route('seo.articles.index') }}">مقاله‌ها</a>
-            <a href="{{ route('login') }}">ورود</a>
+<body class="academy">
+    <header class="academy-nav"><div class="ac-wrap ac-nav-row">
+        <a class="ac-brand" href="{{ route('home') }}"><span class="ac-brand-mark">ش</span><span>{{ $settings->site_name }}</span></a>
+        <button class="ac-menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false" data-menu-toggle>☰</button>
+        <nav class="ac-nav-links" aria-label="ناوبری اصلی" data-menu>
+            <a href="{{ route('home') }}">خانه</a><a href="{{ route('public.courses.index') }}">دوره‌ها</a><a href="{{ route('public.teachers.index') }}">مدرسان</a><a href="{{ route('seo.articles.index') }}">مقالات</a><a href="{{ route('public.contact') }}">تماس با ما</a>
         </nav>
-    </header>
-    <main class="seo-container">
-        @yield('content')
-    </main>
-    <footer class="seo-footer"><span>© {{ now()->year }} {{ $settings->site_name }}</span><span class="seo-footer-links"><a href="{{ route('public.courses.index') }}">دوره‌ها</a>@if($settings->sitemap_enabled)<a href="{{ route('seo.sitemap') }}">نقشه سایت</a>@endif</span></footer>
+        <div class="ac-nav-actions"><a class="ac-cart-link" href="{{ route('public.cart') }}">سبد خرید</a><a class="ac-login-link" href="{{ route('login') }}">ورود</a><a class="ac-btn ac-btn-small" href="{{ route('register') }}">ثبت‌نام</a></div>
+    </div></header>
+    <main class="seo-container">@yield('content')</main>
+    <footer class="ac-footer"><div class="ac-wrap ac-footer-grid"><div><a class="ac-brand ac-brand-light" href="{{ route('home') }}"><span class="ac-brand-mark">ش</span><span>{{ $settings->site_name }}</span></a><p>محتوای آموزشی و مقاله‌های منتشرشده آکادمی شیخان.</p></div><div><h3>دسترسی سریع</h3><a href="{{ route('public.courses.index') }}">دوره‌ها</a><a href="{{ route('public.teachers.index') }}">مدرسان</a><a href="{{ route('seo.articles.index') }}">مقالات</a></div><div><h3>پشتیبانی</h3><a href="{{ route('public.contact') }}">تماس با ما</a>@if($settings->sitemap_enabled)<a href="{{ route('seo.sitemap') }}">نقشه سایت</a>@endif</div></div><div class="ac-wrap ac-copyright">© {{ now()->year }} {{ $settings->site_name }}</div></footer>
+    <script>document.querySelector('[data-menu-toggle]')?.addEventListener('click',function(){const m=document.querySelector('[data-menu]');const o=m.classList.toggle('is-open');this.setAttribute('aria-expanded',o?'true':'false')});</script>
 </body>
 </html>
