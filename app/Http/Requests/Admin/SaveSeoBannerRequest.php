@@ -19,7 +19,7 @@ class SaveSeoBannerRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'alt_text' => ['required', 'string', 'max:180'],
             'image' => [$this->isMethod('post') ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'placement' => ['required', Rule::in(['articles_top', 'articles_sidebar', 'sitewide'])],
+            'placement' => ['required', Rule::in(['home_hero', 'articles_top', 'articles_sidebar', 'sitewide'])],
             'target_url' => ['nullable', 'string', 'max:2048'],
             'open_in_new_tab' => ['sometimes', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:100000'],
