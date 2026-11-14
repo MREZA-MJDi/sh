@@ -13,6 +13,7 @@
         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
             <button type="button" class="panel-nav-heading" data-admin-nav-group-toggle aria-expanded="false">آموزش</button>
             <a data-tone="learning" href="{{ route('admin.classes.index') }}" class="panel-nav-link {{ request()->routeIs('admin.classes.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-classes"/></svg></span><span>کلاس‌ها و اسکای‌روم</span></a>
+            <a data-tone="people" href="{{ route('admin.parent-meetings.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parent-meetings.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-parents"/></svg></span><span>جلسات والدین</span></a>
         @endcanany
         @canany(['courses.manage', 'courses.view.assigned'])
             <a data-tone="learning" href="{{ route('admin.courses.index') }}" class="panel-nav-link {{ request()->routeIs('admin.courses.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-courses"/></svg></span><span>دوره‌ها</span></a>

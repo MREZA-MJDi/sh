@@ -27,6 +27,7 @@
 
         <h6>ارتباط با آکادمی</h6>
         <a href="{{ route('guardian.consultations.index') }}"><x-icon name="phone"/> درخواست مشاوره</a>
+        <a href="{{ route('guardian.meetings.index') }}"><x-icon name="cal"/> جلسات با آموزشگاه</a>
         <a href="{{ route('guardian.messages.index') }}"><x-icon name="msg"/> پیام‌ها</a>
 
         <h6>اطلاع‌رسانی</h6>
@@ -36,7 +37,7 @@
     <div class="prem">
         <h4>پیگیری آموزش فرزند</h4>
         <p>گزارش کلاس‌ها، تکالیف و نتایج فرزند متصل به حساب را مشاهده کنید.</p>
-        <a class="btn s" href="{{ route('guardian.consultations.create') }}">درخواست جلسه</a>
+        <a class="btn s" href="{{ route('guardian.meetings.index') }}">درخواست جلسه با آموزشگاه</a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button class="logout" type="submit">خروج از حساب</button>

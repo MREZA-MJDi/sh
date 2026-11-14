@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
 use App\Http\Controllers\Admin\LookupController;
 use App\Http\Controllers\Admin\MessageController;
+use App\Http\Controllers\Admin\ParentMeetingController as AdminParentMeetingController;
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
+use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\JoinClassSessionController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
@@ -140,6 +142,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/classes/{classroom}/sessions', [ClassSessionController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.store');
     Route::patch('/class-sessions/{classSession}', [ClassSessionController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.update');
     Route::delete('/class-sessions/{classSession}', [ClassSessionController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.destroy');
+
+    Route::get('/parent-meetings', [AdminParentMeetingController::class, 'index'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.index');
+    Route::post('/parent-meetings', [AdminParentMeetingController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.store');
+    Route::patch('/parent-meetings/{meeting}/status', [AdminParentMeetingController::class, 'updateStatus'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.status');
 
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage.all,attendance.manage.assigned,attendance.view.assigned')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.store');
@@ -255,6 +261,8 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
+        Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
     });
 
