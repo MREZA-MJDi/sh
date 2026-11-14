@@ -1,5 +1,6 @@
 import '../rich-text.js';
 import './persian-date.js';
+import './role-switcher.js';
 
 const body = document.body;
 const sidebar = document.querySelector('[data-panel-sidebar]');
