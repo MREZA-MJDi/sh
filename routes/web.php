@@ -88,6 +88,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/seo/banners/{banner}', [SeoDashboardController::class, 'updateBanner'])->middleware('permission:seo.manage')->name('seo.banners.update');
     Route::delete('/seo/banners/{banner}', [SeoDashboardController::class, 'destroyBanner'])->middleware('permission:seo.manage')->name('seo.banners.destroy');
     Route::get('/seo/articles', [SeoDashboardController::class, 'articles'])->middleware('permission:seo.manage')->name('seo.articles.index');
+    Route::get('/seo/testimonials', [SeoDashboardController::class, 'testimonials'])->middleware('permission:seo.manage')->name('seo.testimonials.index');
+    Route::post('/seo/testimonials', [SeoDashboardController::class, 'storeTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.store');
+    Route::patch('/seo/testimonials/{testimonial}', [SeoDashboardController::class, 'updateTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.update');
+    Route::delete('/seo/testimonials/{testimonial}', [SeoDashboardController::class, 'destroyTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.destroy');
     Route::post('/seo/articles', [SeoDashboardController::class, 'storeArticle'])->middleware('permission:seo.manage')->name('seo.articles.store');
     Route::patch('/seo/articles/{article}', [SeoDashboardController::class, 'updateArticle'])->middleware('permission:seo.manage')->name('seo.articles.update');
     Route::delete('/seo/articles/{article}', [SeoDashboardController::class, 'destroyArticle'])->middleware('permission:seo.manage')->name('seo.articles.destroy');
