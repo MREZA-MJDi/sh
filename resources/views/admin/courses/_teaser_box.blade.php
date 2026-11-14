@@ -1,5 +1,5 @@
 {{-- جایگزین بخش «ویدیوی تیزر» در curriculum.blade.php --}}
-@php($statusLabels = ['none' => 'بدون تیزر', 'processing' => 'در حال پردازش…', 'ready' => 'آماده', 'failed' => 'ناموفق'])
+@php($statusLabels = ['none' => 'بدون تیزر', 'uploading' => 'در حال آپلود…', 'processing' => 'در حال پردازش…', 'ready' => 'آماده', 'failed' => 'ناموفق'])
 <section class="card" style="margin-bottom:24px;padding:16px">
     <h2>ویدیوی تیزر (عمومی)</h2>
     <p>عمومی است و از SpotPlayer عبور نمی‌کند. فایل خام آپلود می‌شود، در صف به MP4 فشرده ۷۲۰p تبدیل می‌شود و پوستر ساخته می‌شود.

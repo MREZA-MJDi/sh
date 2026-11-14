@@ -8,6 +8,7 @@ use App\Jobs\Learning\SendLessonVideoToProvider;
 use App\Models\Course;
 use App\Models\CourseLesson;
 use App\Models\CourseLicense;
+use App\Models\VideoUploadSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
@@ -21,6 +22,16 @@ class LearningAdminController extends Controller
 
     public function destroyTeaser(Course $course)
     {
+        if ($course->teaser_status === 'processing') {
+            return back()->withErrors(['teaser' => 'تا پایان پردازش، حذف تیزر مجاز نیست.']);
+        }
+
+        VideoUploadSession::query()->where('target', 'teaser')->where('target_id', $course->id)
+            ->where('status', 'uploading')->get()->each(function (VideoUploadSession $session): void {
+                Storage::disk('local')->deleteDirectory('chunks/'.$session->upload_id);
+                $session->update(['status' => 'cancelled']);
+            });
+
         foreach (['teaser_path', 'teaser_poster_path'] as $col) {
             if ($course->{$col}) {
                 Storage::disk('public')->delete($course->{$col});

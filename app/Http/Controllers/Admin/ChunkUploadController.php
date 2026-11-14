@@ -30,6 +30,15 @@ final class ChunkUploadController extends Controller
             return $this->fail('تیزر قبلی هنوز در حال پردازش است؛ پس از پایان دوباره تلاش کنید.', 409);
         }
 
+        $activeUpload = VideoUploadSession::query()
+            ->where('target', 'teaser')->where('target_id', $course->id)
+            ->where('status', 'uploading')->where('expires_at', '>', now())->exists();
+        if ($activeUpload) {
+            return $this->fail('برای این دوره یک آپلود فعال وجود دارد؛ ابتدا همان را کامل یا منقضی کنید.', 409);
+        }
+
+        $course->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
+
         $session = VideoUploadSession::query()->create([
             'upload_id' => (string) Str::uuid(),
             'user_id' => $request->user()->id,
