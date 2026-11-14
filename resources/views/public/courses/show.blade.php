@@ -261,8 +261,13 @@
                     @csrf
                     <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام در دوره</button>
                 </form>
-            @else
+                @guest
+                    <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">ورود به حساب کاربری</a>
+                @endguest
+            @elseif (auth()->guest())
                 <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">برای ثبت‌نام رایگان وارد شوید</a>
+            @else
+                <p class="mu" style="text-align:center">ثبت‌نام رایگان فقط از حساب فعال دانش‌آموز انجام می‌شود.</p>
             @endif
 
             <p style="font-size:13px;color:var(--mute);margin:14px 0 0;text-align:center;line-height:1.7">
@@ -276,7 +281,7 @@
                 </li>
                 <li>
                     <svg class="i"><use href="#inf"/></svg>
-                    <span>دسترسی همیشگی به تمام سرفصل‌ها</span>
+                    <span>دسترسی به سرفصل‌های منتشرشده بر اساس وضعیت ثبت‌نام</span>
                 </li>
                 <li>
                     <svg class="i"><use href="#help"/></svg>
