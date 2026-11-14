@@ -72,7 +72,7 @@
                         <td>{{ $meeting->starts_at?->format('Y/m/d H:i') ?? ($meeting->preferred_at?->format('Y/m/d H:i') ?? 'تعیین نشده') }}</td>
                         <td>{{ $labels[$meeting->status] ?? $meeting->status }}</td>
                         <td>
-                            @if (!$terminal)
+                            @if (!$terminal && auth()->user()->hasRole('admin'))
                                 <form method="POST" action="{{ route('admin.parent-meetings.status', $meeting->id) }}" class="panel-inline-form">
                                     @csrf @method('PATCH')
                                     <select name="status" required>
@@ -91,7 +91,7 @@
                                     <button class="panel-btn panel-btn-secondary panel-btn-sm" type="submit">ثبت</button>
                                 </form>
                             @else
-                                <span class="panel-muted">بسته‌شده</span>
+                                <span class="panel-muted">{{ $terminal ? 'بسته‌شده' : 'در انتظار اقدام مدیر' }}</span>
                             @endif
                         </td>
                     </tr>

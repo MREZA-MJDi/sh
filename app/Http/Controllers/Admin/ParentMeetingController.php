@@ -110,7 +110,7 @@ final class ParentMeetingController extends Controller
 
     public function updateStatus(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
     {
-        abort_unless(! $workspace->isTeacher($request->user()), 403);
+        abort_unless($request->user()->hasRole('admin'), 403);
 
         $record = ParentMeeting::query()
             ->when($workspace->isTeacher($request->user()), fn (Builder $query) => $query->whereIn(
