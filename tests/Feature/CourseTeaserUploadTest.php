@@ -71,6 +71,23 @@ final class CourseTeaserUploadTest extends TestCase
         $this->assertDatabaseCount('video_upload_sessions', 0);
     }
 
+
+    public function test_ready_teaser_is_rendered_as_a_real_public_video_player(): void
+    {
+        $course = $this->course();
+        Storage::disk('public')->put('teasers/ready-preview.mp4', 'fake-video-content');
+        $course->update([
+            'teaser_path' => 'teasers/ready-preview.mp4',
+            'teaser_status' => 'ready',
+        ]);
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('<video', false)
+            ->assertSee('video/mp4')
+            ->assertSee('teasers/ready-preview.mp4');
+    }
+
     private function admin(): User
     {
         $admin = User::factory()->create();
