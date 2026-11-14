@@ -23,15 +23,17 @@ return new class extends Migration {
         $course('teaser_status', fn ($t) => $t->string('teaser_status', 20)->default('none'));      // none|processing|ready|failed
         $course('teaser_error', fn ($t) => $t->text('teaser_error')->nullable());
 
-        // ستون‌های درس
-        $lesson = function (string $col, callable $def) {
-            if (! Schema::hasColumn('course_lessons', $col)) {
-                Schema::table('course_lessons', fn (Blueprint $t) => $def($t));
-            }
-        };
-        $lesson('video_status', fn ($t) => $t->string('video_status', 20)->default('none')); // none|sending|waiting_contract|ready|failed
-        $lesson('video_error', fn ($t) => $t->text('video_error')->nullable());
-        $lesson('video_upload_path', fn ($t) => $t->string('video_upload_path')->nullable());
+        // این شاخه هنوز جدول course_lessons را در schema اصلی ندارد؛ به جدول lessons دست نمی‌زنیم.
+        if (Schema::hasTable('course_lessons')) {
+            $lesson = function (string $col, callable $def) {
+                if (! Schema::hasColumn('course_lessons', $col)) {
+                    Schema::table('course_lessons', fn (Blueprint $t) => $def($t));
+                }
+            };
+            $lesson('video_status', fn ($t) => $t->string('video_status', 20)->default('none'));
+            $lesson('video_error', fn ($t) => $t->text('video_error')->nullable());
+            $lesson('video_upload_path', fn ($t) => $t->string('video_upload_path')->nullable());
+        }
 
         if (! Schema::hasTable('enrollments')) {
             Schema::create('enrollments', function (Blueprint $t) {
@@ -64,7 +66,7 @@ return new class extends Migration {
             });
         }
 
-        if (! Schema::hasTable('lesson_progress')) {
+        if (Schema::hasTable('course_lessons') && ! Schema::hasTable('lesson_progress')) {
             Schema::create('lesson_progress', function (Blueprint $t) {
                 $t->id();
                 $t->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -79,8 +81,13 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('lesson_progress');
-        Schema::dropIfExists('course_licenses');
+        // Do not drop the legacy lesson_progress table (lesson_id/student_id).
+        if (Schema::hasTable('lesson_progress') && Schema::hasColumn('lesson_progress', 'course_lesson_id') && Schema::hasColumn('lesson_progress', 'user_id')) {
+            Schema::dropIfExists('lesson_progress');
+        }
+        if (Schema::hasTable('course_licenses') && Schema::hasColumn('course_licenses', 'enrollment_id') && Schema::hasColumn('course_licenses', 'license_key')) {
+            Schema::dropIfExists('course_licenses');
+        }
         // enrollments عمداً حذف نمی‌شود (ممکن است داده واقعی داشته باشد)
     }
 };
