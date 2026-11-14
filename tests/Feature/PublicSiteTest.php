@@ -180,4 +180,105 @@ class PublicSiteTest extends TestCase
 
         $this->get(route('public.courses.show', $course->slug))->assertNotFound();
     }
+
+    public function test_public_teacher_directory_only_lists_active_teacher_accounts(): void
+    {
+        $role = Role::create(['name' => 'teacher', 'label' => 'مدرس']);
+
+        $teacher = User::create([
+            'name' => 'مدرس فعال',
+            'email' => 'teacher-public@example.test',
+            'password' => 'password-password',
+            'is_active' => true,
+            'subject' => 'ریاضی',
+        ]);
+        $teacher->roles()->attach($role);
+
+        $inactiveTeacher = User::create([
+            'name' => 'مدرس غیرفعال',
+            'email' => 'teacher-inactive@example.test',
+            'password' => 'password-password',
+            'is_active' => false,
+        ]);
+        $inactiveTeacher->roles()->attach($role);
+
+        $this->get(route('public.teachers.index'))
+            ->assertOk()
+            ->assertSee('مدرس فعال')
+            ->assertDontSee('مدرس غیرفعال');
+    }
+
+    public function test_public_contact_form_persists_a_message_for_the_admin_inbox(): void
+    {
+        $this->post(route('public.contact.store'), [
+            'name' => 'کاربر آزمایشی',
+            'contact' => 'user@example.test',
+            'topic' => 'پشتیبانی دوره',
+            'body' => 'برای انتخاب دوره راهنمایی می‌خواهم.',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('contact_messages', [
+            'name' => 'کاربر آزمایشی',
+            'contact' => 'user@example.test',
+            'topic' => 'پشتیبانی دوره',
+            'body' => 'برای انتخاب دوره راهنمایی می‌خواهم.',
+        ]);
+    }
+
+    public function test_public_cart_keeps_only_published_courses_in_the_session(): void
+    {
+        $published = Course::create([
+            'title' => 'دوره سبد خرید',
+            'slug' => 'cart-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $draft = Course::create([
+            'title' => 'دوره پیش‌نویس سبد',
+            'slug' => 'draft-cart-course',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'draft',
+        ]);
+
+        $this->post(route('public.cart.add', $published))->assertRedirect(route('public.cart'));
+        $this->get(route('public.cart'))->assertOk()->assertSee('دوره سبد خرید')->assertDontSee('دوره پیش‌نویس سبد');
+
+        $this->post(route('public.cart.add', $draft))->assertNotFound();
+    }
+
+    public function test_public_course_filters_apply_only_to_published_courses(): void
+    {
+        Course::create([
+            'title' => 'ریاضی منتشرشده',
+            'slug' => 'published-math-filter',
+            'subject' => 'ریاضی',
+            'grade' => '12',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        Course::create([
+            'title' => 'فیزیک منتشرشده',
+            'slug' => 'published-physics-filter',
+            'subject' => 'فیزیک',
+            'grade' => '12',
+            'type' => 'paid',
+            'price' => 1000,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $this->get(route('public.courses.index', ['subject' => 'ریاضی']))
+            ->assertOk()
+            ->assertSee('ریاضی منتشرشده')
+            ->assertDontSee('فیزیک منتشرشده');
+    }
+
 }
