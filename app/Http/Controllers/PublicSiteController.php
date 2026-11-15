@@ -190,7 +190,7 @@ final class PublicSiteController extends Controller
     public function cart(Request $request): View
     {
         $ids = collect($request->session()->get('public_cart', []))->filter(fn ($id) => is_numeric($id))->unique()->values();
-        $courses = Course::query()->where('status', 'published')->whereIn('id', $ids)
+        $courses = Course::query()->where('status', 'published')->where('type', 'paid')->whereIn('id', $ids)
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name')])->get();
         $request->session()->put('public_cart', $courses->modelKeys());
 
@@ -199,7 +199,7 @@ final class PublicSiteController extends Controller
 
     public function addToCart(Request $request, Course $course): RedirectResponse
     {
-        abort_unless($course->status === 'published', 404);
+        abort_unless($course->status === 'published' && $course->type === 'paid', 404);
         $ids = collect($request->session()->get('public_cart', []))->push($course->id)->unique()->values()->all();
         $request->session()->put('public_cart', $ids);
 
