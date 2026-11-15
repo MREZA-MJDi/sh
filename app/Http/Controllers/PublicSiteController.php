@@ -22,7 +22,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $banners = SeoBanner::query()->active()->where('placement', 'home_hero')
-            ->orderBy('sort_order')->orderBy('id')->get();
+            ->orderBy('sort_order')->orderBy('id')->limit(8)->get();
 
         $courseQuery = Course::query()->where('status', 'published')
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
@@ -209,7 +209,8 @@ final class PublicSiteController extends Controller
     {
         $ids = collect($request->session()->get('public_cart', []))->filter(fn ($id) => is_numeric($id))->unique()->values();
         $courses = Course::query()->where('status', 'published')->where('type', 'paid')->whereIn('id', $ids)
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name')])->get();
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name')])
+            ->orderBy('title')->limit(50)->get();
         $request->session()->put('public_cart', $courses->modelKeys());
 
         return view('public.cart', ['settings' => SeoSetting::current(), 'courses' => $courses]);
