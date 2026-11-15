@@ -448,4 +448,33 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->assertSee('برای هماهنگی برنامه کلاس و منابع آموزشی درخواست جلسه دارم.');
     }
 
+    public function test_teacher_can_send_an_internal_message_that_appears_in_admin_inbox(): void
+    {
+        $teacher = $this->teacherWithPermissions(['messages.view.assigned']);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.messages.store'), [
+                'target' => 'admin',
+                'subject' => 'درخواست هماهنگی برنامه آموزشی',
+                'body' => 'برای هماهنگی برنامه آموزشی کلاس‌ها نیاز به بررسی مدیریت دارم.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('messages', [
+            'sender_id' => $teacher->id,
+            'recipient_id' => $admin->id,
+            'student_id' => null,
+            'parent_id' => null,
+            'subject' => 'درخواست هماهنگی برنامه آموزشی',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.messages.index'))
+            ->assertOk()
+            ->assertSee('درخواست هماهنگی برنامه آموزشی')
+            ->assertSee('برای هماهنگی برنامه آموزشی کلاس‌ها نیاز به بررسی مدیریت دارم.');
+    }
+
 }
