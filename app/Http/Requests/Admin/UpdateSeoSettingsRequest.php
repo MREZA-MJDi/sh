@@ -71,6 +71,7 @@ class UpdateSeoSettingsRequest extends FormRequest
     {
         return [function ($validator): void {
             foreach ((array) $this->input('footer_links', []) as $index => $link) {
+                if (! is_array($link)) continue;
                 $label = trim((string) ($link['label'] ?? ''));
                 $url = trim((string) ($link['url'] ?? ''));
                 if ($label === '' && $url === '') continue;
