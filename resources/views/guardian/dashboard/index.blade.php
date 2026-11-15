@@ -30,7 +30,7 @@
         <div style="flex:1;min-width:180px">
             <h2 style="margin:0">سلام، {{ auth()->user()->name }}!</h2>
             @if($selected_child)
-                <p style="color:var(--mu);margin:4px 0 0">گزارش آموزشی {{ $selected_child->name }}@if($selected_child->grade) · پایه {{ $selected_child->grade }}@endif</p>
+                <p style="color:var(--mu);margin:4px 0 0">وضعیت آموزشی {{ $selected_child->name }}@if($selected_child->grade) · پایه {{ $selected_child->grade }}@endif</p>
             @else
                 <p style="color:var(--mu);margin:4px 0 0">هنوز دانش‌آموز فعالی به این حساب متصل نشده است.</p>
             @endif
