@@ -99,7 +99,7 @@
                 {{-- Cover Image or Gradient --}}
                 @if($article->featured_image_path)
                     <div class="th">
-                        <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" loading="lazy">
+                        <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="object-position: {{ $article->image_position ?? '50% 50%' }}" loading="lazy">
                     </div>
                 @else
                     <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
