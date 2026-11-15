@@ -112,6 +112,9 @@
                     @if(!empty($settings->social_links['linkedin']))
                         <a href="{{ $settings->social_links['linkedin'] }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style="color:#0A66C2"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5.2 3.5a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4ZM3.4 9.5H7v11H3.4v-11Zm5.8 0h3.4V11h.1c.5-.9 1.6-1.9 3.4-1.9 3.6 0 4.3 2.3 4.3 5.3v6.1h-3.6v-5.4c0-1.3 0-3-1.9-3s-2.2 1.4-2.2 2.9v5.5H9.2v-11Z"/></svg></a>
                     @endif
+                    @if(!empty($settings->social_links['x']))
+                        <a href="{{ $settings->social_links['x'] }}" target="_blank" rel="noopener noreferrer" aria-label="X" style="color:#fff"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.5 22H2.3l7.3-8.4L1.8 2h6.5l4.5 6.8L18.9 2Zm-1.1 18h1.7L7.3 3.9H5.5L17.8 20Z"/></svg></a>
+                    @endif
                     @if(!empty($settings->social_links['youtube']))
                         <a href="{{ $settings->social_links['youtube'] }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube" style="color:#FF0033"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.1a3 3 0 0 0-2.1-2.1C19 4.5 12 4.5 12 4.5s-7 0-8.9.5A3 3 0 0 0 1 7.1 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.9A3 3 0 0 0 3.1 19c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.9 31 31 0 0 0-.5-4.9ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg></a>
                     @endif
