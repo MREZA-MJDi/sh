@@ -37,6 +37,16 @@ class UpdateSeoSettingsRequest extends FormRequest
             'footer_links' => ['nullable', 'array', 'max:8'],
             'footer_links.*.label' => ['nullable', 'string', 'max:80'],
             'footer_links.*.url' => ['nullable', 'string', 'max:2048'],
+            'home_sections' => ['nullable', 'array'],
+            'home_sections.*' => ['nullable'],
+            'home_sections.steps' => ['nullable', 'array', 'max:4'],
+            'home_sections.steps.*.title' => ['nullable', 'string', 'max:180'],
+            'home_sections.steps.*.body' => ['nullable', 'string', 'max:500'],
+            'home_sections.faq_items' => ['nullable', 'array', 'max:8'],
+            'home_sections.faq_items.*.question' => ['nullable', 'string', 'max:240'],
+            'home_sections.faq_items.*.answer' => ['nullable', 'string', 'max:1200'],
+            'home_sections.stats_labels' => ['nullable', 'array', 'size:4'],
+            'home_sections.stats_labels.*' => ['required', 'string', 'max:80'],
         ];
     }
 
