@@ -48,31 +48,45 @@
     scrim?.addEventListener('click', closeMenu);
     side?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
 
-    const navLinks = [...document.querySelectorAll('[data-nav-link][href^="#"]')];
-    const targets = navLinks.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
-    if ('IntersectionObserver' in window && targets.length) {
-        const observer = new IntersectionObserver((entries) => {
-            const visible = entries.filter((entry) => entry.isIntersecting)
-                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-            if (!visible) return;
-            navLinks.forEach((link) => {
-                const active = link.getAttribute('href') === '#' + visible.target.id;
-                link.classList.toggle('on', active);
-                if (active) link.setAttribute('aria-current', 'page');
-                else link.removeAttribute('aria-current');
-            });
-        }, { rootMargin: '-18% 0px -62% 0px', threshold: [0, .2, .5] });
-        targets.forEach((target) => observer.observe(target));
-    }
+    const navLinks = [...document.querySelectorAll('[data-nav-link][data-page]')];
+    const pageSections = [...document.querySelectorAll('[data-page-section]')];
+    const groups = [...document.querySelectorAll('#main .g')];
 
-    search?.addEventListener('input', () => {
-        const term = search.value.trim().toLocaleLowerCase('fa');
-        const sections = [...document.querySelectorAll('#main section[id], #main article[id]')];
-        sections.forEach((section) => {
+    const applyPage = () => {
+        const page = root.dataset.parentPage || 'home';
+        const term = search?.value.trim().toLocaleLowerCase('fa') || '';
+        pageSections.forEach((section) => {
+            const belongs = section.dataset.pageSection.split(/\\s+/).includes(page);
             const matches = !term || section.textContent.toLocaleLowerCase('fa').includes(term);
-            section.hidden = !matches;
+            section.hidden = !belongs || !matches;
+        });
+        groups.forEach((group) => {
+            if (group.hasAttribute('data-page-section')) return;
+            const pageChildren = [...group.children].filter((child) => child.hasAttribute('data-page-section'));
+            if (pageChildren.length) group.hidden = pageChildren.every((child) => child.hidden);
+        });
+        navLinks.forEach((link) => {
+            const active = link.dataset.page === page;
+            link.classList.toggle('on', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    };
+
+    navLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            root.dataset.parentPage = link.dataset.page;
+            if (search) search.value = '';
+            applyPage();
+            closeMenu();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
+
+    search?.addEventListener('input', applyPage);
+    root.dataset.parentPage = 'home';
+    applyPage();
 
     if (root.dataset.theme === 'dark') themeButton?.setAttribute('aria-pressed', 'true');
 })();
