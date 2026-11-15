@@ -130,6 +130,28 @@
             <div class="panel-field"><label>توضیح مراحل یادگیری</label><textarea class="panel-textarea" name="home_sections[steps_description]" maxlength="500">{{ old('home_sections.steps_description', $homeContent['steps_description'] ?? '') }}</textarea></div>
             <div class="panel-field"><label>عنوان پنل‌های اختصاصی</label><input class="panel-input" name="home_sections[panels_title]" value="{{ old('home_sections.panels_title', $homeContent['panels_title'] ?? '') }}" maxlength="180"></div>
             <div class="panel-field"><label>توضیح پنل‌های اختصاصی</label><textarea class="panel-textarea" name="home_sections[panels_description]" maxlength="500">{{ old('home_sections.panels_description', $homeContent['panels_description'] ?? '') }}</textarea></div>
+        <div class="seo-admin-section-head"><div><h3>کارت‌های نقش‌ها</h3><p>متن چهار کارت معرفی پنل‌ها در صفحه عمومی.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label>عنوان کارت {{ $i + 1 }}</label><input class="panel-input" name="home_sections[panel_cards][{{ $i }}][title]" value="{{ old("home_sections.panel_cards.$i.title", $homeContent['panel_cards'][$i]['title'] ?? '') }}" maxlength="180"></div>
+                <div class="panel-field"><label>توضیح کارت {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[panel_cards][{{ $i }}][body]" maxlength="500">{{ old("home_sections.panel_cards.$i.body", $homeContent['panel_cards'][$i]['body'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
+        <div class="seo-admin-section-head"><div><h3>بخش مزیت‌های آکادمی</h3><p>عنوان، توضیح، دکمه‌ها و شش کارت مزیت از این بخش کنترل می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label>برچسب مزیت‌ها</label><input class="panel-input" name="home_sections[benefits_eyebrow]" value="{{ old('home_sections.benefits_eyebrow', $homeContent['benefits_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>عنوان مزیت‌ها</label><input class="panel-input" name="home_sections[benefits_title]" value="{{ old('home_sections.benefits_title', $homeContent['benefits_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح مزیت‌ها</label><textarea class="panel-textarea" name="home_sections[benefits_description]" maxlength="500">{{ old('home_sections.benefits_description', $homeContent['benefits_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه دوره‌ها</label><input class="panel-input" name="home_sections[benefits_primary_label]" value="{{ old('home_sections.benefits_primary_label', $homeContent['benefits_primary_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>متن دکمه مشاوره</label><input class="panel-input" name="home_sections[benefits_secondary_label]" value="{{ old('home_sections.benefits_secondary_label', $homeContent['benefits_secondary_label'] ?? '') }}" maxlength="80"></div>
+        </div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 6; $i++)
+                <div class="panel-field"><label>عنوان مزیت {{ $i + 1 }}</label><input class="panel-input" name="home_sections[benefits][{{ $i }}][title]" value="{{ old("home_sections.benefits.$i.title", $homeContent['benefits'][$i]['title'] ?? '') }}" maxlength="180"></div>
+                <div class="panel-field"><label>توضیح مزیت {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[benefits][{{ $i }}][body]" maxlength="500">{{ old("home_sections.benefits.$i.body", $homeContent['benefits'][$i]['body'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
+
             <div class="panel-field"><label>عنوان نظرهای دانش‌آموزان</label><input class="panel-input" name="home_sections[testimonials_title]" value="{{ old('home_sections.testimonials_title', $homeContent['testimonials_title'] ?? '') }}" maxlength="180"></div>
             <div class="panel-field"><label>برچسب نظرهای دانش‌آموزان</label><input class="panel-input" name="home_sections[testimonials_eyebrow]" value="{{ old('home_sections.testimonials_eyebrow', $homeContent['testimonials_eyebrow'] ?? '') }}" maxlength="120"></div>
             <div class="panel-field"><label>عنوان مقاله‌های صفحه اصلی</label><input class="panel-input" name="home_sections[articles_title]" value="{{ old('home_sections.articles_title', $homeContent['articles_title'] ?? '') }}" maxlength="180"></div>
