@@ -83,6 +83,8 @@ class SeoSetting extends Model
             'articles_eyebrow' => 'از مجله شیخان',
             'articles_title' => 'تازه‌ترین مقاله‌ها',
             'articles_description' => 'مطالب آموزشی و نکته‌های کاربردی آکادمی.',
+            'blog_page_title' => 'مجله شیخان',
+            'blog_page_description' => 'نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی آکادمی.',
             'cta_title' => 'اولین جلسه را رایگان ببین',
             'cta_body' => 'بدون نیاز به ثبت کارت بانکی و بدون تعهد، تدریس اساتید شیخان را بررسی کن.',
             'cta_label' => 'شروع یادگیری',
