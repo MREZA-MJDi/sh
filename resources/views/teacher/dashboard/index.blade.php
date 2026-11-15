@@ -152,7 +152,7 @@
             <a class="admin-quick-action" href="{{ route('admin.resources.index') }}"><span class="admin-quick-action-icon">▧</span><span>منابع آموزشی</span></a>
         @endcan
         @can('videos.manage.assigned')
-            <a class="admin-quick-action" href="{{ route('admin.videos.index') }}"><span class="admin-quick-action-icon">▶</span><span>ویدیوهای آموزشی</span></a>
+            <a class="admin-quick-action" href="{{ route('admin.spotplayer.index') }}"><span class="admin-quick-action-icon">▶</span><span>ویدیوهای آموزشی</span></a>
         @endcan
     </section>
 </div>
