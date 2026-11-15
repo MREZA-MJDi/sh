@@ -40,7 +40,7 @@ class SeoDashboardController extends Controller
         $data = $request->validated();
         $oldPaths = [];
 
-        foreach (['default_og_image' => 'default_og_image_path', 'organization_logo' => 'organization_logo_path'] as $input => $column) {
+        foreach (['default_og_image' => 'default_og_image_path', 'organization_logo' => 'organization_logo_path', 'trust_badge' => 'trust_badge_path'] as $input => $column) {
             if ($request->hasFile($input)) {
                 $oldPaths[] = $settings->{$column};
                 $data[$column] = $request->file($input)->store('seo/settings', 'public');
@@ -59,6 +59,13 @@ class SeoDashboardController extends Controller
         if (array_key_exists('social_links', $data)) {
             $data['social_links'] = array_filter($data['social_links'] ?? [], fn ($url) => filled($url));
         }
+        if (array_key_exists('footer_links', $data)) {
+            $data['footer_links'] = collect($data['footer_links'] ?? [])
+                ->map(fn (array $link): array => ['label' => trim((string) ($link['label'] ?? '')), 'url' => trim((string) ($link['url'] ?? ''))])
+                ->filter(fn (array $link): bool => $link['label'] !== '' && $link['url'] !== '')
+                ->values()->all();
+        }
+        unset($data['trust_badge']);
 
         $data['robots_index'] = $request->boolean('robots_index');
         $data['robots_follow'] = $request->boolean('robots_follow');
