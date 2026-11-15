@@ -15,7 +15,7 @@ body.teacher-workspace .teacher-dashboard__eyebrow{font-size:12px;font-weight:80
 body.teacher-workspace .teacher-dashboard__hero-actions{display:flex;gap:8px;flex-wrap:wrap}
 body.teacher-workspace .teacher-dashboard__stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}
 body.teacher-workspace .teacher-dashboard__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-body.teacher-workspace .teacher-dashboard__metric{font-size:38px;font-weight:900;color:var(--sh-primary);line-height:1.2;margin:16px 0 6px}
+body.teacher-workspace .teacher-dashboard__metric{font-size:38px;font-weight:900;color:var(--adm-primary);line-height:1.2;margin:16px 0 6px}
 body.teacher-workspace .teacher-dashboard__actions{display:flex;gap:10px;flex-wrap:wrap;padding:4px 0 12px}
 body.teacher-workspace .teacher-dashboard__actions .admin-quick-action{flex:1 1 180px}
 @media(max-width:900px){body.teacher-workspace .teacher-dashboard__grid{grid-template-columns:1fr}body.teacher-workspace .teacher-dashboard__hero{align-items:flex-start;flex-direction:column}}
