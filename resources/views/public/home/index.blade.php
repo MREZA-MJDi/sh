@@ -409,6 +409,7 @@
     </div>
 </section>
 
+@if($articles->isNotEmpty())
 {{-- مجله شیخان (مقالات سئو) --}}
 <section style="background:var(--sf);padding:64px 0">
     <div class="c">
@@ -423,7 +424,6 @@
             </a>
         </div>
         <div class="g3">
-            @if($articles->isNotEmpty())
                 @foreach($articles as $article)
                     <article class="card cc">
                         @if($article->featured_image_path)
@@ -435,8 +435,7 @@
                                 <svg class="i"><use href="#pen"/></svg>
                                 <span class="bd bd-article">مقاله</span>
                             </a>
-                        @endif
-                        <div class="cb">
+                                    <div class="cb">
                             <h3>
                                 <a href="{{ route('seo.articles.show', $article->slug) }}">
                                     {{ $article->title }}
@@ -461,6 +460,7 @@
         </div>
     </div>
 </section>
+@endif
 
 {{-- بنر اقدام به ثبت‌نام (CTA) --}}
 <section style="padding:64px 0">
