@@ -69,6 +69,10 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->assertDontSee('مدیریت کاربران');
 
         $this->actingAs($teacher)
+            ->get(route('admin.dashboard'))
+            ->assertRedirect(route('teacher.dashboard'));
+
+        $this->actingAs($teacher)
             ->get(route('admin.exams.index'))
             ->assertForbidden();
 
