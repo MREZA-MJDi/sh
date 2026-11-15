@@ -252,39 +252,20 @@
                 <p>{{ $homeContent['panels_description'] }}</p>
             </div>
         </div>
+        @php($panelRoutes = [route('student.dashboard'), route('teacher.dashboard'), route('guardian.dashboard'), route('admin.dashboard')])
+        @php($panelIcons = ['cap', 'pen', 'user', 'chart'])
+        @php($panelColors = ['linear-gradient(135deg,#0d9488,#0f766e)', 'linear-gradient(135deg,#f97316,#db2777)', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)'])
         <div class="g4">
-            <a class="card pn" href="{{ route('student.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-                    <svg class="i"><use href="#cap"/></svg>
-                </div>
-                <h3>پنل دانش‌آموز</h3>
-                <p>دوره‌ها، تکالیف، آزمون‌های آنلاین و پیگیری رشد تحصیلی.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
-            <a class="card pn" href="{{ route('teacher.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                    <svg class="i"><use href="#pen"/></svg>
-                </div>
-                <h3>پنل مدرس</h3>
-                <p>مدیریت دوره‌ها، ثبت نمرات، پاسخ به سؤالات و بررسی تکالیف.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
-            <a class="card pn" href="{{ route('guardian.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                    <svg class="i"><use href="#user"/></svg>
-                </div>
-                <h3>پنل والدین</h3>
-                <p>گزارش پیشرفت درسی، ثبت حضور و غیاب و وضعیت تحصیلی فرزند.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
-            <a class="card pn" href="{{ route('admin.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#0891b2,#2563eb)">
-                    <svg class="i"><use href="#chart"/></svg>
-                </div>
-                <h3>پنل مدیریت</h3>
-                <p>نظارت بر کاربران، انتشار دوره‌ها، گزارش‌های مالی و پشتیبانی.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
+            @foreach($homeContent['panel_cards'] as $index => $panelCard)
+                <a class="card pn" href="{{ $panelRoutes[$index] ?? route('home') }}">
+                    <div class="ic" style="background:{{ $panelColors[$index] ?? $panelColors[0] }}">
+                        <svg class="i"><use href="#{{ $panelIcons[$index] ?? 'cap' }}"/></svg>
+                    </div>
+                    <h3>{{ $panelCard['title'] ?? '' }}</h3>
+                    <p>{{ $panelCard['body'] ?? '' }}</p>
+                    <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
+                </a>
+            @endforeach
         </div>
     </div>
 </section>
@@ -348,62 +329,31 @@
 </section>
 @endif
 
-{{-- چرا شیخان؟ --}}
+{{-- مزیت‌های آکادمی؛ متن و کارت‌ها از تنظیمات سئو --}}
 <section style="padding:64px 0">
     <div class="c">
         <div class="why">
             <div>
-                <span class="eyebrow">چرا شیخان؟</span>
-                <h2>آموزشی که تا رسیدن به نتیجه کنارت می‌ماند</h2>
-                <p>در آموزشگاه شیخان فقط ویدیو نمی‌بینی؛ تمرین می‌کنی، بازخورد می‌گیری و رشدت را قدم‌به‌قدم می‌بینی.</p>
+                <span class="eyebrow">{{ $homeContent['benefits_eyebrow'] }}</span>
+                <h2>{{ $homeContent['benefits_title'] }}</h2>
+                <p>{{ $homeContent['benefits_description'] }}</p>
                 <div style="display:flex;gap:12px;flex-wrap:wrap">
-                    <a class="btn" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها</a>
-                    <a class="btn o" style="color:var(--pri)" href="{{ route('public.contact') }}">مشاوره رایگان</a>
+                    <a class="btn" href="{{ route('public.courses.index') }}">{{ $homeContent['benefits_primary_label'] }}</a>
+                    <a class="btn o" style="color:var(--pri)" href="{{ route('public.contact') }}">{{ $homeContent['benefits_secondary_label'] }}</a>
                 </div>
             </div>
+            @php($benefitIcons = ['award', 'cam', 'chart', 'user', 'pen', 'help'])
+            @php($benefitColors = ['linear-gradient(135deg,#0d9488,#0f766e)', 'linear-gradient(135deg,#f97316,#db2777)', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)', 'linear-gradient(135deg,#7c3aed,#db2777)', 'linear-gradient(135deg,#16a34a,#0d9488)'])
             <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-                        <svg class="i"><use href="#award"/></svg>
+                @foreach($homeContent['benefits'] as $index => $benefit)
+                    <div class="card wf">
+                        <div class="ic" style="background:{{ $benefitColors[$index] ?? $benefitColors[0] }}">
+                            <svg class="i"><use href="#{{ $benefitIcons[$index] ?? 'cap' }}"/></svg>
+                        </div>
+                        <h3>{{ $benefit['title'] ?? '' }}</h3>
+                        <p>{{ $benefit['body'] ?? '' }}</p>
                     </div>
-                    <h3>مدرسان منتخب</h3>
-                    <p>مدرس‌های باسابقه و بررسی‌شده برای هر درس و پایه.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                        <svg class="i"><use href="#cam"/></svg>
-                    </div>
-                    <h3>دسترسی همیشگی</h3>
-                    <p>جلسه‌ها را هر زمان و هر چندبار که خواستی آنلاین ببین.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                        <svg class="i"><use href="#chart"/></svg>
-                    </div>
-                    <h3>پیگیری رشد تحصیلی</h3>
-                    <p>نمودار پیشرفت و آزمون‌ها در پنل اختصاصی دانشجو.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#0891b2,#2563eb)">
-                        <svg class="i"><use href="#user"/></svg>
-                    </div>
-                    <h3>گزارش برای والدین</h3>
-                    <p>پیشرفت، آزمون‌ها و حضور فرزند در پنل والدین.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#7c3aed,#db2777)">
-                        <svg class="i"><use href="#pen"/></svg>
-                    </div>
-                    <h3>آزمون و تمرین</h3>
-                    <p>تمرین منظم با سنجش دقیق و بازخورد مستقیم مدرس.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#16a34a,#0d9488)">
-                        <svg class="i"><use href="#help"/></svg>
-                    </div>
-                    <h3>پشتیبانی سریع</h3>
-                    <p>پاسخ سؤال‌های درسی‌ات در سریع‌ترین زمان ممکن.</p>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
