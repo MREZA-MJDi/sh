@@ -30,7 +30,7 @@
                                 مشاهده دوره‌ها <svg class="i"><use href="#arrl"/></svg>
                             </a>
                         @endif
-                        <a class="btn o" href="#quiz">پیدا کردن مسیر من</a>
+                        <a class="btn o" href="{{ route('public.contact') }}">درخواست راهنمایی</a>
                     </div>
                 </div>
                 <div class="vis" style="position:relative;z-index:2">
