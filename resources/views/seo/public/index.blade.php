@@ -118,14 +118,6 @@
             {{ $articles->links() }}
         </div>
 
-        {{-- Newsletter CTA Box --}}
-        <div class="cta" style="margin-top:48px">
-            <h2>خبرنامه تحصیلی شیخان</h2>
-            <p>هفته‌ای یک ایمیل با گزیده مهم‌ترین روش‌های مطالعه، بودجه‌بندی آزمون‌ها و جزوات اساتید برتر.</p>
-            <div style="max-width:440px;margin:auto;display:flex;gap:8px">
-                <input class="inp" style="margin:0" placeholder="ایمیل خود را وارد کنید...">
-                <button type="button" class="btn w" onclick="alert('ایمیل شما با موفقیت در خبرنامه شیخان ثبت شد.')">عضویت</button>
-            </div>
-        </div>
+
     </div>
 @endsection
