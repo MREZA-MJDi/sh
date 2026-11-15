@@ -71,7 +71,7 @@
                             <form method="POST" action="{{ route('admin.seo.banners.update', $banner) }}" enctype="multipart/form-data">
                                 @csrf @method('PATCH')
                                 <div class="panel-form-grid">
-                                    <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $banner->title }}" required maxlength="180"></div>
+                                    <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $banner->title }}" required maxlength="180" data-image-title></div>
                                     <div class="panel-field"><label>متن جایگزین</label><input class="panel-input" name="alt_text" value="{{ $banner->alt_text }}" required maxlength="180"></div>
                                     <div class="panel-field"><label>تصویر جدید (اختیاری)</label><input class="panel-input" type="file" name="image" accept="image/jpeg,image/png,image/webp" data-image-file><input type="hidden" name="image_position" value="{{ $banner->image_position ?? '50% 50%' }}" data-image-position><div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}"><span class="panel-muted">تصویر فعلی · {{ $banner->image_position ?? '50% 50%' }}</span></div></div>
                                     <div class="panel-field"><label>محل نمایش</label><select class="panel-select" name="placement" data-image-placement>@foreach(['home_hero'=>'اسلایدر صفحه اصلی','articles_top'=>'بالای فهرست مقاله‌ها','articles_sidebar'=>'کنار مقاله','sitewide'=>'عمومی در بخش مقاله‌ها'] as $key=>$label)<option value="{{ $key }}" @selected($banner->placement === $key)>{{ $label }}</option>@endforeach</select></div>
@@ -82,6 +82,15 @@
                                     <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach(['draft'=>'پیش‌نویس','active'=>'فعال','inactive'=>'غیرفعال'] as $key=>$label)<option value="{{ $key }}" @selected($banner->status === $key)>{{ $label }}</option>@endforeach</select></div>
                                 </div>
                                 <label class="seo-admin-check"><input type="checkbox" name="open_in_new_tab" value="1" @checked($banner->open_in_new_tab)><span>بازکردن لینک در زبانه جدید</span></label>
+                                <div class="seo-admin-live-preview" data-seo-image-preview data-preview-kind="banner">
+                                    <div class="seo-admin-section-head"><div><h3>پیش‌نمایش محل انتشار</h3><p>قاب واقعی جایگاه انتخاب‌شده؛ برای تغییر نقطه‌ی برش تصویر را بکش.</p></div></div>
+                                    <div class="seo-admin-preview-hero" data-preview-hero>
+                                        <img data-preview-image src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}">
+                                        <div class="seo-admin-preview-hero-copy"><span>ویژه دانش‌آموزان شیخان</span><h2 data-preview-title>{{ $banner->title }}</h2><p>آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای منتشرشده.</p><span class="seo-admin-preview-cta">مشاهده اطلاعات</span></div>
+                                    </div>
+                                    <div class="seo-admin-preview-article-banner" data-preview-article-banner hidden><img data-preview-article-image src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}"><span data-preview-article-title>{{ $banner->title }}</span></div>
+                                    <p class="seo-admin-field-hint" data-preview-dimensions>پیش‌نمایش مطابق محل نمایش انتخاب‌شده</p>
+                                </div>
                                 <button class="panel-btn" type="submit">ذخیره تغییرات</button>
                             </form>
                             <form method="POST" action="{{ route('admin.seo.banners.destroy', $banner) }}" data-confirm="این بنر و فایل تصویر آن حذف شود؟">@csrf @method('DELETE')<button class="panel-btn panel-btn-danger panel-btn-sm" type="submit">حذف بنر و تصویر</button></form>
