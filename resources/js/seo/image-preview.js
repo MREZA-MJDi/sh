@@ -53,17 +53,18 @@ document.addEventListener('DOMContentLoaded', () => {
         placement?.addEventListener('change', syncPlacement);
         titleFields?.forEach((field) => field.addEventListener('input', syncTitle));
         excerptField?.addEventListener('input', syncExcerpt);
-        const stage = root.querySelector('[data-preview-hero], .seo-admin-blog-image, [data-preview-article-banner]');
-        if (stage) {
+        const stages = [hero, articleBanner, root.querySelector('.seo-admin-blog-image')].filter(Boolean);
+        stages.forEach((stage) => {
             let dragging = false;
             const updateFromPointer = (event) => {
                 const rect = stage.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
                 const x = Math.max(0, Math.min(100, Math.round(((event.clientX - rect.left) / rect.width) * 100)));
                 const y = Math.max(0, Math.min(100, Math.round(((event.clientY - rect.top) / rect.height) * 100)));
                 setPosition(x + '% ' + y + '%');
             };
             stage.addEventListener('pointerdown', (event) => {
-                if (!image?.src && !articleImage?.src) return;
+                if (stage.hidden || (!image?.src && !articleImage?.src)) return;
                 dragging = true;
                 stage.setPointerCapture?.(event.pointerId);
                 updateFromPointer(event);
@@ -71,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stage.addEventListener('pointermove', (event) => { if (dragging) updateFromPointer(event); });
             stage.addEventListener('pointerup', () => { dragging = false; });
             stage.addEventListener('pointercancel', () => { dragging = false; });
-        }
+        });
         setPosition(positionInput?.value || '50% 50%');
         syncTitle();
         syncExcerpt();
