@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/admin/app.js',
                 'resources/css/student/app.css',
                 'resources/css/parent/app.css',
+                'resources/css/teacher/app.css',
                 'resources/css/seo/public.css',
                 'resources/css/admin/seo.css',
                 'resources/js/student/app.js',
