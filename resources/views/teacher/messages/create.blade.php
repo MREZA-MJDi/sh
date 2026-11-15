@@ -5,7 +5,7 @@
 
 @section('content')
     <section class="panel-card" data-tone="talk">
-        <div class="panel-card-title"><div><h3>پیام جدید</h3><p>فقط دانش‌آموزان کلاس‌های فعال شما و اولیای متصل به همان دانش‌آموز قابل انتخاب هستند.</p></div></div>
+        <div class="panel-card-title"><div><h3>پیام جدید</h3><p>می‌توانید پیام را مستقیم به مدیریت آکادمی یا به دانش‌آموزان و اولیای کلاس‌های فعال خود ارسال کنید.</p></div></div>
         @if ($classrooms->isEmpty())
             <div class="panel-empty">کلاس فعالی برای پیام به دانش‌آموز یا ولی در دسترس نیست؛ می‌توانید به مدیریت آکادمی پیام بدهید.</div>
         @endif
