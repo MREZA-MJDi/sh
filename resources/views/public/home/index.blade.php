@@ -45,23 +45,6 @@
     <div class="dots" id="heroDots"></div>
 </header>
 @endif
-<section id="quiz" style="background:var(--sf);padding:64px 0">
-    <div class="c">
-        <div class="qz">
-            <div>
-                <span class="eyebrow">کوییز ۳۰ ثانیه‌ای</span>
-                <h2 style="font-size:32px;line-height:1.5;margin:8px 0;font-weight:800">کدام مسیر برای تو مناسب‌تر است؟</h2>
-                <p style="color:var(--mute);line-height:1.8">به سه سؤال کوتاه پاسخ بده تا دوره و مسیر آموزشی متناسب با پایه و نیازت را ببینی.</p>
-            </div>
-            <div class="card qbox">
-                <div class="qbar"><i id="qb"></i></div>
-                <small id="qc" style="color:var(--mute);display:block;margin-bottom:6px;font-size:13px"></small>
-                <p id="qt" style="font-weight:700;font-size:18px;margin:8px 0 12px;color:var(--ink)"></p>
-                <div id="qo"></div>
-            </div>
-        </div>
-    </div>
-</section>
 <section style="padding:64px 0">
     <div class="c">
         <div class="sh">
@@ -486,49 +469,6 @@
                         </div>
                     </article>
                 @endforeach
-            @else
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
-                        <svg class="i"><use href="#pen"/></svg>
-                        <span class="bd">روش مطالعه</span>
-                    </div>
-                    <div class="cb">
-                        <h3>چطور برای کنکور برنامه مطالعاتی واقعی بنویسیم؟</h3>
-                        <div class="mt"><span>۱۴ آبان</span><span>۸ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            برنامه‌ای که در روزهای سخت هم قابل اجرا باشد، از برنامه‌ای که فقط روی کاغذ عالی است بهتر است.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                        <svg class="i"><use href="#chart"/></svg>
-                        <span class="bd">کنکور</span>
-                    </div>
-                    <div class="cb">
-                        <h3>ریاضی کنکور را از کجا و با چه مباحثی شروع کنیم؟</h3>
-                        <div class="mt"><span>۱۰ آبان</span><span>۶ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            بررسی زنجیره پیش‌نیازهای ریاضیات و بودجه‌بندی تست‌های پرامتیاز در آزمون سراسری.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                        <svg class="i"><use href="#clock"/></svg>
-                        <span class="bd">سلامت و تمرکز</span>
-                    </div>
-                    <div class="cb">
-                        <h3>خواب شب امتحان و راه‌های افزایش بازدهی حافظه</h3>
-                        <div class="mt"><span>۷ آبان</span><span>۵ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            روش‌های کاربردی برای کاهش استرس، تثبیت مطالب در حافظه بلندمدت و استراحت هدفمند.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
             @endif
         </div>
     </div>
@@ -644,116 +584,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     startAutoplay();
 
-    // Quiz Interactive Logic
-    (function () {
-        const qb = document.getElementById('qb');
-        const qc = document.getElementById('qc');
-        const qt = document.getElementById('qt');
-        const qo = document.getElementById('qo');
-        if (!qb || !qc || !qt || !qo) return;
-
-        const baseCoursesUrl = "{{ route('public.courses.index') }}";
-
-        const questions = [
-            {
-                title: "پایه یا مقطع تحصیلی‌ات چیست؟",
-                options: [
-                    { label: "پایه دهم", grade: "دهم" },
-                    { label: "پایه یازدهم", grade: "یازدهم" },
-                    { label: "پایه دوازدهم", grade: "دوازدهم" },
-                    { label: "پایه سیزدهم (کنکور)", grade: "کنکور" }
-                ]
-            },
-            {
-                title: "بیشتر در چه درسی نیاز به تقویت داری؟",
-                options: [
-                    { label: "ریاضی و حسابان", subject: "ریاضی" },
-                    { label: "فیزیک تخصصی", subject: "فیزیک" },
-                    { label: "شیمی و زیست‌شناسی", subject: "شیمی" },
-                    { label: "زبان انگلیسی و عمومی", subject: "زبان" }
-                ]
-            },
-            {
-                title: "هدف اصلی‌ات از شرکت در دوره چیست؟",
-                options: [
-                    { label: "تسلط بر تست‌زنی و رتبه برتر کنکور", goal: "test" },
-                    { label: "نمره ۲۰ امتحان نهایی و تشریحی", goal: "final" },
-                    { label: "یادگیری مفهومی و حل مسئله از صفر", goal: "concept" },
-                    { label: "جمع‌بندی سریع و مرور شب امتحان", goal: "review" }
-                ]
-            }
-        ];
-
-        let currentStep = 0;
-        let userAnswers = {};
-
-        function renderQuiz() {
-            const progress = (currentStep / questions.length) * 100;
-            qb.style.width = progress + "%";
-
-            if (currentStep >= questions.length) {
-                qc.textContent = "";
-                qt.textContent = "";
-
-                const subject = userAnswers.subject || "ریاضی";
-                const grade = userAnswers.grade || "کنکور";
-                const targetUrl = `${baseCoursesUrl}?subject=${encodeURIComponent(subject)}&grade=${encodeURIComponent(grade)}`;
-
-                qo.innerHTML = `
-                    <div class="res">
-                        <div class="big">
-                            <svg class="i" style="width:34px;height:34px"><use href="#award"/></svg>
-                        </div>
-                        <b style="font-size:18px;display:block;margin-bottom:6px">مسیر پیشنهادی تو آماده است!</b>
-                        <p style="color:var(--mute);margin:4px 0 16px;font-size:15px">
-                            دوره تخصصی <strong>${subject}</strong> ویژه <strong>${grade}</strong>
-                        </p>
-                        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-                            <a class="btn" href="${targetUrl}">
-                                مشاهده دوره‌های مرتبط <svg class="i"><use href="#arrl"/></svg>
-                            </a>
-                            <button class="btn o s" style="color:var(--pri)" type="button" id="qaBtn">
-                                شروع دوباره
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('qaBtn')?.addEventListener('click', function () {
-                    currentStep = 0;
-                    userAnswers = {};
-                    renderQuiz();
-                });
-                return;
-            }
-
-            const q = questions[currentStep];
-            qc.textContent = `سؤال ${currentStep + 1} از ${questions.length}`;
-            qt.textContent = q.title;
-
-            const letters = ["الف", "ب", "ج", "د"];
-            qo.innerHTML = q.options.map((opt, i) => `
-                <button class="opt" type="button" data-idx="${i}">
-                    <b>${letters[i] || (i + 1)}</b>
-                    <span>${opt.label}</span>
-                </button>
-            `).join('');
-
-            qo.querySelectorAll('.opt').forEach((btn, idx) => {
-                btn.addEventListener('click', function () {
-                    const selectedOpt = q.options[idx];
-                    if (selectedOpt.grade) userAnswers.grade = selectedOpt.grade;
-                    if (selectedOpt.subject) userAnswers.subject = selectedOpt.subject;
-                    if (selectedOpt.goal) userAnswers.goal = selectedOpt.goal;
-
-                    currentStep++;
-                    renderQuiz();
-                });
-            });
-        }
-
-        renderQuiz();
-    })();
 });
 </script>
 @endpush
