@@ -27,6 +27,11 @@
                 <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-edit"/></svg></span><span>تکالیف و بررسی</span>
             </a>
         @endcanany
+        @can('consultations.create')
+            <a data-tone="talk" href="{{ route('teacher.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('teacher.consultations.*') ? 'is-active' : '' }}">
+                <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>درخواست مشاوره</span>
+            </a>
+        @endcan
         @canany(['messages.view.assigned', 'messages.reply'])
             <a data-tone="talk" href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}">
                 <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>کارتابل پیام‌ها</span>
