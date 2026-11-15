@@ -440,7 +440,7 @@
                     <article class="card cc">
                         @if($article->featured_image_path)
                             <a class="th" href="{{ route('seo.articles.show', $article->slug) }}">
-                                <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;height:100%;object-fit:cover">
+                                <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;height:100%;object-fit:cover;object-position: {{ $article->image_position ?? '50% 50%' }}">
                             </a>
                         @else
                             <a class="th" href="{{ route('seo.articles.show', $article->slug) }}" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
