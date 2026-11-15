@@ -1,7 +1,7 @@
 @extends('public.layouts.academy')
 
-@section('title', 'مجله و مقالات آموزشی' . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
-@section('description', $settings->default_description ?? 'مجموعه مقالات آموزشی، روش‌های مطالعه، برنامه‌ریزی کنکور و تحلیل دروس در آکادمی شیخان')
+@section('title', ($settings->home_sections['blog_page_title'] ?? 'مجله شیخان') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
+@section('description', $settings->home_sections['blog_page_description'] ?? $settings->default_description ?? '')
 @section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
 @section('content')
@@ -9,8 +9,8 @@
     <div class="pgh">
         <div class="c">
             <div class="bc"><a href="{{ route('home') }}">خانه</a> ‹ مقالات</div>
-            <h1>مجله شیخان</h1>
-            <p>{{ $settings->default_description ?: 'نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی کنکور' }}</p>
+            <h1>{{ $settings->home_sections['blog_page_title'] ?? 'مجله شیخان' }}</h1>
+            <p>{{ $settings->home_sections['blog_page_description'] ?? $settings->default_description }}</p>
         </div>
     </div>
 
