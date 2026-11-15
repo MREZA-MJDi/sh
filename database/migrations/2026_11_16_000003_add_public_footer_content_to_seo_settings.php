@@ -19,6 +19,17 @@ return new class extends Migration
                 $table->string('trust_badge_path')->nullable();
             }
         });
+        if (Schema::hasTable('seo_settings')) {
+            DB::table('seo_settings')->whereNull('footer_links')->update([
+                'footer_description' => 'آکادمی شیخان؛ آموزش هدفمند و همراهی مستمر در مسیر یادگیری.',
+                'footer_links' => json_encode([
+                    ['label' => 'دوره‌ها', 'url' => '/courses'],
+                    ['label' => 'مدرسان', 'url' => '/teachers'],
+                    ['label' => 'مقالات', 'url' => '/articles'],
+                    ['label' => 'تماس با ما', 'url' => '/contact'],
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ]);
+        }
     }
 
     public function down(): void
