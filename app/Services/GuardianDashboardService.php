@@ -11,6 +11,7 @@ use App\Models\ExamResult;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\LearningResource;
+use App\Models\Message;
 use App\Models\ParentMeeting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -66,6 +67,32 @@ final class GuardianDashboardService
             ->latest('created_at')
             ->limit(8)
             ->get();
+
+        $homeworkTrend = (clone $homeworkQuery)
+            ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->with(['submissions' => fn (Builder $query) => $query
+                ->where('student_id', $student->id)
+                ->orderByDesc('submitted_at')
+                ->select(['id', 'homework_id', 'submitted_at'])])
+            ->get(['id', 'classroom_id', 'title', 'created_at', 'due_at'])
+            ->groupBy(fn (Homework $homework) => $homework->created_at->format('Y-m'))
+            ->map(function (Collection $items): array {
+                $counts = ['on_time' => 0, 'late' => 0, 'missing' => 0];
+                foreach ($items as $homework) {
+                    $submission = $homework->submissions->first();
+                    if ($submission) {
+                        if ($homework->due_at && $submission->submitted_at && $submission->submitted_at->gt($homework->due_at)) {
+                            $counts['late']++;
+                        } else {
+                            $counts['on_time']++;
+                        }
+                    } elseif ($homework->due_at && $homework->due_at->isPast()) {
+                        $counts['missing']++;
+                    }
+                }
+
+                return $counts;
+            });
 
         $reviewedHomework = HomeworkSubmission::query()
             ->where('student_id', $student->id)
@@ -192,6 +219,17 @@ final class GuardianDashboardService
             ->limit(5)
             ->get();
 
+        $messages = Message::query()
+            ->whereNull('parent_id')
+            ->where('student_id', $student->id)
+            ->where(fn (Builder $participants) => $participants
+                ->where('sender_id', $guardian->id)
+                ->orWhere('recipient_id', $guardian->id))
+            ->with(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return [
             'children' => $children,
             'selected_child' => $selectedChild,
@@ -199,6 +237,7 @@ final class GuardianDashboardService
             'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,
+            'homework_trend' => $homeworkTrend,
             'reviewed_homework' => $reviewedHomework,
             'pending_homework_count' => (clone $homeworkQuery)->whereDoesntHave(
                 'submissions',
@@ -218,6 +257,7 @@ final class GuardianDashboardService
             'announcements' => $announcements,
             'consultations' => $consultations,
             'meetings' => $meetings,
+            'messages' => $messages,
         ];
     }
 
@@ -265,6 +305,7 @@ final class GuardianDashboardService
             'course_progress' => collect(),
             'classroom_count' => 0,
             'homeworks' => collect(),
+            'homework_trend' => collect(),
             'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
             'attendance' => collect(),
@@ -284,6 +325,7 @@ final class GuardianDashboardService
                 ->get(['id', 'title', 'body', 'published_at']),
             'consultations' => collect(),
             'meetings' => collect(),
+            'messages' => collect(),
         ];
     }
 }
