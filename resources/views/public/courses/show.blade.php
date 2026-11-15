@@ -6,7 +6,6 @@
 
 @section('content')
 @php
-    $totalLessons = (int) $course->sections->sum(fn($section) => $section->lessons->count());
     $teacher = $course->teacher;
 @endphp
 
@@ -45,7 +44,7 @@
 <div class="stab">
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
-        <a href="#c2">سرفصل‌ها ({{ $course->sections->count() }} فصل)</a>
+        <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
@@ -133,9 +132,9 @@
                     </div>
                 </div>
 
-                @if($course->sections->isNotEmpty())
+                @if($sections->isNotEmpty())
                     <div class="sec-list">
-                        @foreach($course->sections as $index => $section)
+                        @foreach($sections as $index => $section)
                             @php
                                 $sectionLessons = $section->lessons ?? collect();
                                 $sectionDuration = $sectionLessons->sum('duration_minutes');
@@ -152,7 +151,7 @@
                                         </div>
                                     </div>
                                     <div class="sec-meta-wrap">
-                                        <span class="sec-count">{{ $sectionLessons->count() }} جلسه</span>
+                                        <span class="sec-count">{{ $section->published_lessons_count }} جلسه</span>
                                         @if($sectionDuration > 0)
                                             <span class="sec-duration">{{ $sectionDuration }} دقیقه</span>
                                         @endif
@@ -209,6 +208,9 @@
                             </details>
                         @endforeach
                     </div>
+                    @if ($sections->hasPages())
+                        <div class="course-curriculum-pagination">{{ $sections->links() }}</div>
+                    @endif
                 @else
                     <div class="curriculum-empty">
                         <svg class="i" style="width:36px;height:36px;color:var(--mute);margin-bottom:8px"><use href="#brief"/></svg>
