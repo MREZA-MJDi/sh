@@ -259,6 +259,10 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->group(function (): void {
         // Compatibility URL only: teachers use the exact same admin dashboard, layout and views.
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::middleware('permission:consultations.create')->group(function (): void {
+            Route::get('/consultations', [TeacherConsultationController::class, 'index'])->name('consultations.index');
+            Route::post('/consultations', [TeacherConsultationController::class, 'store'])->middleware('throttle:5,1')->name('consultations.store');
+        });
         Route::middleware('permission:messages.view.assigned')->group(function (): void {
             Route::get('/messages/create', [TeacherMessageController::class, 'create'])->name('messages.create');
             Route::post('/messages', [TeacherMessageController::class, 'store'])->name('messages.store');
