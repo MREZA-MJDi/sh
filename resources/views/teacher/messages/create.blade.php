@@ -1,19 +1,20 @@
 @extends('layouts.panel')
 
 @section('page-title', 'ارسال پیام')
-@section('page-description', 'ارسال پیام مستقیم به دانش‌آموز یا ولیِ دانش‌آموزان کلاس‌های تحت مسئولیت شما')
+@section('page-description', 'ارسال پیام به مدیریت آکادمی، دانش‌آموز یا ولیِ دانش‌آموزان کلاس‌های شما')
 
 @section('content')
     <section class="panel-card" data-tone="talk">
         <div class="panel-card-title"><div><h3>پیام جدید</h3><p>فقط دانش‌آموزان کلاس‌های فعال شما و اولیای متصل به همان دانش‌آموز قابل انتخاب هستند.</p></div></div>
         @if ($classrooms->isEmpty())
-            <div class="panel-empty">کلاس فعالی برای ارسال پیام در دسترس نیست.</div>
-        @else
+            <div class="panel-empty">کلاس فعالی برای پیام به دانش‌آموز یا ولی در دسترس نیست؛ می‌توانید به مدیریت آکادمی پیام بدهید.</div>
+        @endif
             <form method="POST" action="{{ route('teacher.messages.store') }}" class="panel-form-grid">
                 @csrf
                 <label class="full">گیرنده
                     <select name="target" required>
-                        <option value="">انتخاب دانش‌آموز یا ولی</option>
+                        <option value="">انتخاب مخاطب</option>
+                        <option value="admin" @selected(old('target') === 'admin')>مدیریت آکادمی (کارتابل ادمین)</option>
                         @foreach ($classrooms as $classroom)
                             @foreach ($classroom->students as $student)
                                 <optgroup label="{{ $classroom->name }} · {{ $student->name }}">
@@ -34,6 +35,5 @@
                 </label>
                 <div class="full"><button class="panel-btn" type="submit">ارسال پیام</button><a class="panel-btn panel-btn-secondary" href="{{ route('admin.messages.index') }}">بازگشت به کارتابل</a></div>
             </form>
-        @endif
     </section>
 @endsection
