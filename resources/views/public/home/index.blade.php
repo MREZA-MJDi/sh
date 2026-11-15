@@ -14,7 +14,7 @@
         @foreach($banners as $index => $banner)
             <div class="sl {{ $index === 0 ? 'on' : '' }}" style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}">
                 @if($banner->image_path)
-                    <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text ?: $banner->title }}">
+                    <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
                 @endif
                 <div style="position:relative;z-index:2">
                     <span class="bd">ویژه دانش‌آموزان شیخان</span>
