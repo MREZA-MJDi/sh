@@ -54,7 +54,7 @@
             <a class="card feat" href="{{ route('seo.articles.show', $featured->slug) }}">
                 <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
                     @if($featured->featured_image_path)
-                        <img src="{{ Storage::disk('public')->url($featured->featured_image_path) }}" alt="{{ $featured->title }}" loading="lazy">
+                        <img src="{{ Storage::disk('public')->url($featured->featured_image_path) }}" alt="{{ $featured->image_alt ?: $featured->title }}" style="object-position: {{ $featured->image_position ?? '50% 50%' }}" loading="lazy">
                     @else
                         <svg class="i"><use href="#pen"/></svg>
                     @endif
@@ -90,7 +90,7 @@
                 <a class="card cc" href="{{ route('seo.articles.show', $article->slug) }}">
                     <div class="th" style="background:{{ $bgGrad }}">
                         @if($article->featured_image_path)
-                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->title }}" loading="lazy">
+                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="object-position: {{ $article->image_position ?? '50% 50%' }}" loading="lazy">
                         @else
                             <svg class="i"><use href="#pen"/></svg>
                         @endif
