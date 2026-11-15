@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SeoBanner extends Model
 {
     protected $fillable = [
-        'created_by', 'title', 'alt_text', 'image_path', 'placement', 'target_url',
+        'created_by', 'title', 'alt_text', 'image_path', 'image_position', 'placement', 'target_url',
         'open_in_new_tab', 'sort_order', 'starts_at', 'ends_at', 'status',
     ];
 
