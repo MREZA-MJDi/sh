@@ -27,29 +27,19 @@
                 <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-edit"/></svg></span><span>تکالیف و بررسی</span>
             </a>
         @endcanany
-        @can('consultations.create')
-            <a data-tone="talk" href="{{ route('teacher.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('teacher.consultations.*') ? 'is-active' : '' }}">
-                <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>درخواست مشاوره</span>
-            </a>
-        @endcan
+
         @canany(['messages.view.assigned', 'messages.reply'])
             <a data-tone="talk" href="{{ route('admin.messages.index') }}" class="panel-nav-link {{ request()->routeIs('admin.messages.*') ? 'is-active' : '' }}">
                 <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-msg"/></svg></span><span>کارتابل پیام‌ها</span>
             </a>
-            <a data-tone="talk" href="{{ route('teacher.messages.create') }}" class="panel-nav-link {{ request()->routeIs('teacher.messages.create') ? 'is-active' : '' }}">
-                <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-edit"/></svg></span><span>ارسال پیام</span>
-            </a>
+
         @endcanany
         @canany(['classes.manage.assigned', 'classes.view.assigned'])
             <a data-tone="people" href="{{ route('admin.parent-meetings.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parent-meetings.*') ? 'is-active' : '' }}">
                 <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-parents"/></svg></span><span>جلسات اولیا</span>
             </a>
         @endcanany
-        @canany(['resources.manage.assigned'])
-            <a data-tone="library" href="{{ route('admin.resources.index') }}" class="panel-nav-link {{ request()->routeIs('admin.resources.*') ? 'is-active' : '' }}">
-                <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-bag"/></svg></span><span>منابع آموزشی</span>
-            </a>
-        @endcanany
+
     </nav>
     <div class="panel-sidebar-footer">
         <div class="panel-user panel-user-sidebar">
