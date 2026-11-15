@@ -51,8 +51,11 @@ class SeoPublicController extends Controller
         $relatedCourses = Course::query()
             ->where('status', 'published')
             ->select(['id', 'title', 'slug', 'teacher_id', 'type', 'price', 'subject', 'grade', 'description'])
-            ->with('teacher:id,name')
-            ->withCount('sections')
+            ->with([
+                'teacher:id,name',
+                'sections' => fn ($sections) => $sections->where('status', 'published')
+                    ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
+            ])
             ->latest('updated_at')->limit(2)
             ->get();
 
