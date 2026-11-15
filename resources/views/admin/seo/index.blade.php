@@ -154,6 +154,36 @@
 
             <div class="panel-field"><label>عنوان نظرهای دانش‌آموزان</label><input class="panel-input" name="home_sections[testimonials_title]" value="{{ old('home_sections.testimonials_title', $homeContent['testimonials_title'] ?? '') }}" maxlength="180"></div>
             <div class="panel-field"><label>برچسب نظرهای دانش‌آموزان</label><input class="panel-input" name="home_sections[testimonials_eyebrow]" value="{{ old('home_sections.testimonials_eyebrow', $homeContent['testimonials_eyebrow'] ?? '') }}" maxlength="120"></div>
+        <div class="seo-admin-section-head"><div><h3>محتوای صفحات عمومی</h3><p>تیتر و توضیحات صفحات دوره‌ها، مدرسان، تماس و سبد خرید از این بخش مدیریت می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label>عنوان صفحه دوره‌ها</label><input class="panel-input" name="home_sections[courses_page_title]" value="{{ old('home_sections.courses_page_title', $homeContent['courses_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه دوره‌ها</label><textarea class="panel-textarea" name="home_sections[courses_page_description]" maxlength="500">{{ old('home_sections.courses_page_description', $homeContent['courses_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان صفحه مدرسان</label><input class="panel-input" name="home_sections[teachers_page_title]" value="{{ old('home_sections.teachers_page_title', $homeContent['teachers_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه مدرسان</label><textarea class="panel-textarea" name="home_sections[teachers_page_description]" maxlength="500">{{ old('home_sections.teachers_page_description', $homeContent['teachers_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان دعوت به همکاری مدرس</label><input class="panel-input" name="home_sections[teachers_cta_title]" value="{{ old('home_sections.teachers_cta_title', $homeContent['teachers_cta_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح دعوت به همکاری مدرس</label><textarea class="panel-textarea" name="home_sections[teachers_cta_body]" maxlength="500">{{ old('home_sections.teachers_cta_body', $homeContent['teachers_cta_body'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه همکاری مدرس</label><input class="panel-input" name="home_sections[teachers_cta_label]" value="{{ old('home_sections.teachers_cta_label', $homeContent['teachers_cta_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>عنوان صفحه تماس</label><input class="panel-input" name="home_sections[contact_page_title]" value="{{ old('home_sections.contact_page_title', $homeContent['contact_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه تماس</label><textarea class="panel-textarea" name="home_sections[contact_page_description]" maxlength="500">{{ old('home_sections.contact_page_description', $homeContent['contact_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان کارت پشتیبانی</label><input class="panel-input" name="home_sections[contact_support_title]" value="{{ old('home_sections.contact_support_title', $homeContent['contact_support_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>متن کارت پشتیبانی</label><textarea class="panel-textarea" name="home_sections[contact_support_body]" maxlength="500">{{ old('home_sections.contact_support_body', $homeContent['contact_support_body'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان FAQ تماس</label><input class="panel-input" name="home_sections[contact_faq_title]" value="{{ old('home_sections.contact_faq_title', $homeContent['contact_faq_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>عنوان صفحه سبد خرید</label><input class="panel-input" name="home_sections[cart_page_title]" value="{{ old('home_sections.cart_page_title', $homeContent['cart_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه سبد خرید</label><textarea class="panel-textarea" name="home_sections[cart_page_description]" maxlength="500">{{ old('home_sections.cart_page_description', $homeContent['cart_page_description'] ?? '') }}</textarea></div>
+        </div>
+        <div class="seo-admin-section-head"><div><h3>موضوع‌های فرم تماس</h3><p>گزینه‌های انتخاب موضوع پیام از دیتابیس خوانده می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label>موضوع {{ $i + 1 }}</label><input class="panel-input" name="home_sections[contact_topics][{{ $i }}]" value="{{ old("home_sections.contact_topics.$i", $homeContent['contact_topics'][$i] ?? '') }}" maxlength="80"></div>
+            @endfor
+        </div>
+        <div class="seo-admin-section-head"><div><h3>سؤالات متداول صفحه تماس</h3><p>سؤال‌ها و پاسخ‌ها از همین پنل کنترل می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 2; $i++)
+                <div class="panel-field"><label>سؤال {{ $i + 1 }}</label><input class="panel-input" name="home_sections[contact_faq_items][{{ $i }}][question]" value="{{ old("home_sections.contact_faq_items.$i.question", $homeContent['contact_faq_items'][$i]['question'] ?? '') }}" maxlength="240"></div>
+                <div class="panel-field"><label>پاسخ {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[contact_faq_items][{{ $i }}][answer]" maxlength="1200">{{ old("home_sections.contact_faq_items.$i.answer", $homeContent['contact_faq_items'][$i]['answer'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
             <div class="panel-field"><label>عنوان صفحه آرشیو بلاگ</label><input class="panel-input" name="home_sections[blog_page_title]" value="{{ old('home_sections.blog_page_title', $homeContent['blog_page_title'] ?? '') }}" maxlength="180"></div>
             <div class="panel-field"><label>توضیح صفحه آرشیو بلاگ</label><textarea class="panel-textarea" name="home_sections[blog_page_description]" maxlength="500">{{ old('home_sections.blog_page_description', $homeContent['blog_page_description'] ?? '') }}</textarea></div>
             <div class="panel-field"><label>عنوان مقاله‌های صفحه اصلی</label><input class="panel-input" name="home_sections[articles_title]" value="{{ old('home_sections.articles_title', $homeContent['articles_title'] ?? '') }}" maxlength="180"></div>
