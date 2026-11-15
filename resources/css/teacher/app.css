@@ -1,0 +1,8 @@
+/* Teacher workspace skin. Shared admin components keep their existing scale and behavior. */
+body.teacher-workspace .teacher-sidebar .panel-nav{gap:6px}
+body.teacher-workspace .teacher-sidebar .panel-nav-link{min-height:44px}
+body.teacher-workspace .teacher-sidebar .panel-nav-link.is-active{font-weight:800}
+body.teacher-workspace .teacher-sidebar .teacher-logout{width:100%;border:0;background:transparent;text-align:right;cursor:pointer}
+body.teacher-workspace .teacher-sidebar .panel-sidebar-footer{margin-top:auto}
+body.teacher-workspace .admin-content{max-width:1440px;margin-inline:auto}
+@media(max-width:900px){body.teacher-workspace .teacher-sidebar .panel-nav{padding-bottom:16px}}
