@@ -93,10 +93,28 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note'), 'sections' => fn ($sections) => $sections
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note')])
+            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])
+            ->firstOrFail();
+
+        // The public curriculum is a preview, not an unbounded dump of every
+        // lesson. Keep sections and per-section lesson previews paginated/bounded.
+        $sections = $course->sections()
+            ->where('status', 'published')
+            ->withCount(['lessons as published_lessons_count' => fn ($lessons) => $lessons->where('status', 'published')])
+            ->with(['lessons' => fn ($lessons) => $lessons
                 ->where('status', 'published')
-                ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
-            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->firstOrFail();
+                ->orderBy('sort_order')->orderBy('id')->limit(20)])
+            ->orderBy('sort_order')->orderBy('id')
+            ->paginate(8, ['*'], 'sections_page')
+            ->withQueryString();
+
+        $totalLessons = Lesson::query()
+            ->where('status', 'published')
+            ->whereHas('section', fn ($section) => $section
+                ->where('course_id', $course->id)
+                ->where('status', 'published'))
+            ->count();
 
         $hasCourseAccess = $request->user()?->hasRole('student') && $request->user()->is_active
             ? $enrollments->hasActiveAccess($request->user(), $course)
@@ -110,7 +128,7 @@ final class PublicSiteController extends Controller
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'relatedCourses', 'hasCourseAccess'));
+        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess'));
     }
 
     public function teachers(Request $request): View
