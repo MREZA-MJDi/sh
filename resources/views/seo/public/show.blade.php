@@ -136,32 +136,7 @@
                     </div>
                 </div>
 
-                {{-- Comments Section --}}
-                <div class="cmt-sec" id="comments">
-                    <h3>دیدگاه‌ها</h3>
-                    <div class="cmt-box">
-                        <textarea class="inp" id="cmt-text" rows="3" placeholder="دیدگاه خود را بنویسید…"></textarea>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-                            <small style="color:var(--mute)">دیدگاه شما پس از بررسی نمایش داده خواهد شد.</small>
-                            <button type="button" class="btn s" id="cmt-submit">ارسال دیدگاه</button>
-                        </div>
-                        <div id="cmt-msg" style="display:none;margin-top:12px;padding:12px 16px;background:var(--soft);color:var(--pri);border-radius:10px;font-size:14px;font-weight:600">
-                            دیدگاه شما با موفقیت ثبت شد و پس از بررسی منتشر خواهد شد.
-                        </div>
-                    </div>
 
-                    {{-- Sample approved comment to demonstrate look and feel --}}
-                    <div class="cmt-item">
-                        <div class="av">س</div>
-                        <div class="cb">
-                            <div>
-                                <b>سارا احمدی</b>
-                                <time>۲ روز پیش</time>
-                            </div>
-                            <p>نکات مربوط به زمان شناور و ایستگاه‌های مرور فاصله‌دار فوق‌العاده کاربردی بود. ممنون از آموزشگاه شیخان.</p>
-                        </div>
-                    </div>
-                </div>
             </article>
 
             {{-- Sidebar Aside --}}
@@ -241,19 +216,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const cmtSubmit = document.getElementById('cmt-submit');
-    const cmtText = document.getElementById('cmt-text');
-    const cmtMsg = document.getElementById('cmt-msg');
-    if (cmtSubmit && cmtText && cmtMsg) {
-        cmtSubmit.addEventListener('click', function () {
-            if (!cmtText.value.trim()) {
-                cmtText.focus();
-                return;
-            }
-            cmtMsg.style.display = 'block';
-            cmtText.value = '';
-        });
-    }
 
     // Smooth scroll for TOC links
     document.querySelectorAll('.toc-nav a[href^="#"]').forEach(anchor => {
