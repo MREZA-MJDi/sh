@@ -3,6 +3,7 @@
 @section('title', ($article->meta_title ?: $article->title) . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
 @section('description', $article->meta_description ?: $article->excerpt ?: $settings->default_description)
 @section('canonical', $article->canonical_url ?: route('seo.articles.show', $article->slug))
+@section('keywords', implode(', ', $article->keywords ?? []))
 
 @push('head')
     <meta property="og:type" content="article">
@@ -12,7 +13,6 @@
     <meta property="article:published_time" content="{{ $article->published_at ? $article->published_at->toAtomString() : now()->toAtomString() }}">
     <meta property="article:modified_time" content="{{ $article->updated_at ? $article->updated_at->toAtomString() : now()->toAtomString() }}">
     @if($article->author)<meta name="author" content="{{ $article->author->name }}">@endif
-    @if($article->keywords)<meta name="keywords" content="{{ implode(', ', $article->keywords) }}">@endif
     @php
         $articleImage = $article->og_image_path ?: $article->featured_image_path;
         $imageUrl = $articleImage ? Storage::disk('public')->url($articleImage) : ($settings->default_og_image_path ? Storage::disk('public')->url($settings->default_og_image_path) : null);
