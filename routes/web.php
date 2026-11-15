@@ -43,6 +43,7 @@ use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomework
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
+use App\Http\Controllers\Teacher\ConsultationController as TeacherConsultationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
