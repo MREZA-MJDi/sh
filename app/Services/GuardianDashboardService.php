@@ -70,7 +70,7 @@ final class GuardianDashboardService
 
         $homeworkTrend = (clone $homeworkQuery)
             ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
-            ->with(['submissions' => fn (Builder $query) => $query
+            ->with(['submissions' => fn ($query) => $query
                 ->where('student_id', $student->id)
                 ->orderByDesc('submitted_at')
                 ->select(['id', 'homework_id', 'submitted_at'])])
