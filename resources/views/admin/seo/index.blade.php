@@ -98,7 +98,7 @@
         </div>
         <div class="seo-admin-section-head"><div><h3>لینک‌های فوتر</h3><p>حداکثر ۸ لینک؛ مسیر داخلی مانند /contact یا نشانی کامل HTTPS.</p></div></div>
         <div class="panel-form-grid">
-            @for($i = 0; $i < 4; $i++)
+            @for($i = 0; $i < 8; $i++)
                 <div class="panel-field"><label for="footer-link-label-{{ $i }}">عنوان لینک {{ $i + 1 }}</label><input id="footer-link-label-{{ $i }}" class="panel-input" name="footer_links[{{ $i }}][label]" value="{{ old("footer_links.$i.label", $settings->footer_links[$i]['label'] ?? '') }}" maxlength="80"></div>
                 <div class="panel-field"><label for="footer-link-url-{{ $i }}">نشانی لینک {{ $i + 1 }}</label><input id="footer-link-url-{{ $i }}" class="panel-input" name="footer_links[{{ $i }}][url]" value="{{ old("footer_links.$i.url", $settings->footer_links[$i]['url'] ?? '') }}" maxlength="2048" dir="ltr"></div>
             @endfor
