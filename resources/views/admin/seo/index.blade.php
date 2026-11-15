@@ -87,6 +87,21 @@
             <div class="panel-field"><label for="social_linkedin">لینکدین</label><input id="social_linkedin" class="panel-input" type="url" name="social_links[linkedin]" value="{{ old('social_links.linkedin', $settings->social_links['linkedin'] ?? '') }}" placeholder="https://linkedin.com/..." dir="ltr"></div>
         </div>
 
+        <div class="seo-admin-section-head"><div><h3>محتوای فوتر و نماد اعتماد</h3><p>متن معرفی، لینک‌های قابل نمایش در فوتر و تصویر نماد اعتماد از این بخش مدیریت می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label for="footer_description">متن معرفی فوتر</label><textarea id="footer_description" class="panel-textarea" name="footer_description" maxlength="500">{{ old('footer_description', $settings->footer_description) }}</textarea></div>
+            <div class="panel-field"><label for="trust_badge">تصویر نماد اعتماد</label><input id="trust_badge" class="panel-input" type="file" name="trust_badge" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">PNG شفاف یا WebP پیشنهاد می‌شود؛ حداکثر ۴ مگابایت.</small>
+                @if($settings->trust_badge_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($settings->trust_badge_path) }}" alt="نماد اعتماد فعلی"><span class="panel-muted">نماد اعتماد ذخیره‌شده</span></div>@endif
+            </div>
+        </div>
+        <div class="seo-admin-section-head"><div><h3>لینک‌های فوتر</h3><p>حداکثر ۸ لینک؛ مسیر داخلی مانند /contact یا نشانی کامل HTTPS.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label for="footer-link-label-{{ $i }}">عنوان لینک {{ $i + 1 }}</label><input id="footer-link-label-{{ $i }}" class="panel-input" name="footer_links[{{ $i }}][label]" value="{{ old("footer_links.$i.label", $settings->footer_links[$i]['label'] ?? '') }}" maxlength="80"></div>
+                <div class="panel-field"><label for="footer-link-url-{{ $i }}">نشانی لینک {{ $i + 1 }}</label><input id="footer-link-url-{{ $i }}" class="panel-input" name="footer_links[{{ $i }}][url]" value="{{ old("footer_links.$i.url", $settings->footer_links[$i]['url'] ?? '') }}" maxlength="2048" dir="ltr"></div>
+            @endfor
+        </div>
+
         <div class="seo-admin-section-head"><div><h3>تأیید مالکیت موتورهای جست‌وجو</h3><p>کدها بدون تغییر در بخش head صفحات عمومی درج می‌شوند.</p></div></div>
         <div class="panel-form-grid">
             <div class="panel-field"><label for="google_site_verification">کد Google Search Console</label><input id="google_site_verification" class="panel-input" name="google_site_verification" value="{{ old('google_site_verification', $settings->google_site_verification) }}" dir="ltr" autocomplete="off"></div>
