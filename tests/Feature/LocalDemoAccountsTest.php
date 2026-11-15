@@ -63,7 +63,7 @@ class LocalDemoAccountsTest extends TestCase
 
         $accounts = [
             'admin@sh.local' => 'admin.dashboard',
-            'teacher@sh.local' => 'admin.dashboard',
+            'teacher@sh.local' => 'teacher.dashboard',
             'student@sh.local' => 'student.dashboard',
             'parent@sh.local' => 'guardian.dashboard',
         ];
