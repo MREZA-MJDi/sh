@@ -10,7 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const placement = form?.querySelector('[data-image-placement]');
         const titleFields = form?.querySelectorAll('[data-image-title]');
         const excerptField = form?.querySelector('[data-image-excerpt]');
+        const dimensionHint = root.querySelector('[data-preview-dimensions]');
         let objectUrl = null;
+
+        const checkDimensions = (node) => {
+            if (!node?.naturalWidth || !node?.naturalHeight || !dimensionHint) return;
+            const width = node.naturalWidth;
+            const height = node.naturalHeight;
+            const ratio = width / height;
+            const isArticle = root.dataset.previewKind === 'article';
+            const isHero = root.dataset.previewKind === 'banner' && (!placement || placement.value === 'home_hero');
+            let warning = false;
+            let message = 'ابعاد فایل: ' + width + '×' + height + ' پیکسل';
+            if (isArticle && (width < 900 || Math.abs(ratio - (16 / 9)) > 0.18)) {
+                warning = true;
+                message += ' · پیشنهاد: حداقل ۹۰۰×۵۰۶ با نسبت ۱۶:۹ برای وضوح و برش بهتر کارت';
+            } else if (isHero && (width < 1600 || ratio < 1.5)) {
+                warning = true;
+                message += ' · پیشنهاد: تصویر افقی حداقل ۱۶۰۰ پیکسل عرض برای نمایش بهتر هیرو';
+            } else if (!isArticle && !isHero && width < 1200) {
+                warning = true;
+                message += ' · پیشنهاد: عرض ۱۲۰۰ پیکسل یا بیشتر برای وضوح بهتر بنر';
+            } else {
+                message += ' · اندازه برای جایگاه انتخاب‌شده مناسب است';
+            }
+            dimensionHint.textContent = message;
+            dimensionHint.classList.toggle('is-warning', warning);
+        };
 
         const syncTitle = () => {
             const value = [...(titleFields || [])].find((field) => field.value.trim())?.value.trim() || 'عنوان تصویر';
@@ -38,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const setImage = (src) => {
             [image, articleImage].forEach((node) => {
                 if (!node) return;
+                node.onload = () => checkDimensions(node);
                 node.src = src;
                 node.hidden = false;
             });
@@ -50,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
             objectUrl = URL.createObjectURL(file);
             setImage(objectUrl);
         });
-        placement?.addEventListener('change', syncPlacement);
+        placement?.addEventListener('change', () => { syncPlacement(); checkDimensions(placement.value === 'home_hero' ? image : (articleImage || image)); });
+        [image, articleImage].forEach((node) => node?.addEventListener('load', () => checkDimensions(node)));
         titleFields?.forEach((field) => field.addEventListener('input', syncTitle));
         excerptField?.addEventListener('input', syncExcerpt);
         const stages = [hero, articleBanner, root.querySelector('.seo-admin-blog-image')].filter(Boolean);
@@ -77,5 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
         syncTitle();
         syncExcerpt();
         syncPlacement();
+        checkDimensions(placement?.value === 'home_hero' ? image : (articleImage || image));
     });
 });
