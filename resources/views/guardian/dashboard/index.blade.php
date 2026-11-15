@@ -115,7 +115,7 @@
     </section>
 
     <section class="c" id="classes" data-page-section="home">
-        <h3>دوره‌ها و پیشرفت آموزشی</h3>
+        <h3>پیشرفت دوره‌ها و درس‌ها</h3>
         @forelse($course_progress as $course)
             <div class="row">
                 <div><strong>{{ $course->title }}</strong><small>{{ $faNumber($course->completed_lessons) }} از {{ $faNumber($course->total_lessons) }} درس تکمیل‌شده</small></div>
@@ -162,7 +162,7 @@
 </section>
 
 <section class="c" id="homework-reviews" data-page-section="homework">
-    <h3>بازخورد مدرس درباره تکالیف</h3>
+    <h3>نتایج بررسی تکالیف</h3>
     @forelse($reviewed_homework as $submission)
         <div class="row">
             <div><strong>{{ $submission->homework?->title ?? 'تکلیف' }}</strong><small>{{ $submission->homework?->classroom?->name ?? 'کلاس' }} · {{ $submission->reviewer?->name ?? 'مدرس' }} · {{ \App\Support\PersianDate::format($submission->reviewed_at, 'Y/m/d H:i') }}</small></div>
