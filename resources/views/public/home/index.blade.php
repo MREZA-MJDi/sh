@@ -232,6 +232,7 @@
         </div>
         <div class="g4">
             @foreach($homeContent['steps'] as $index => $step)
+                @continue(blank($step['title'] ?? '') && blank($step['body'] ?? ''))
                 <div class="card stp">
                     <div class="n">{{ ['۱', '۲', '۳', '۴'][$index] ?? ($index + 1) }}</div>
                     <h3>{{ $step['title'] ?? '' }}</h3>
@@ -257,6 +258,7 @@
         @php($panelColors = ['linear-gradient(135deg,#0d9488,#0f766e)', 'linear-gradient(135deg,#f97316,#db2777)', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)'])
         <div class="g4">
             @foreach($homeContent['panel_cards'] as $index => $panelCard)
+                @continue(blank($panelCard['title'] ?? '') && blank($panelCard['body'] ?? ''))
                 <a class="card pn" href="{{ $panelRoutes[$index] ?? route('home') }}">
                     <div class="ic" style="background:{{ $panelColors[$index] ?? $panelColors[0] }}">
                         <svg class="i"><use href="#{{ $panelIcons[$index] ?? 'cap' }}"/></svg>
@@ -346,6 +348,7 @@
             @php($benefitColors = ['linear-gradient(135deg,#0d9488,#0f766e)', 'linear-gradient(135deg,#f97316,#db2777)', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)', 'linear-gradient(135deg,#7c3aed,#db2777)', 'linear-gradient(135deg,#16a34a,#0d9488)'])
             <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
                 @foreach($homeContent['benefits'] as $index => $benefit)
+                    @continue(blank($benefit['title'] ?? '') && blank($benefit['body'] ?? ''))
                     <div class="card wf">
                         <div class="ic" style="background:{{ $benefitColors[$index] ?? $benefitColors[0] }}">
                             <svg class="i"><use href="#{{ $benefitIcons[$index] ?? 'cap' }}"/></svg>
@@ -430,6 +433,7 @@
             </div>
             <div>
                 @foreach($homeContent['faq_items'] as $index => $item)
+                    @continue(blank($item['question'] ?? '') && blank($item['answer'] ?? ''))
                     <details @if($index === 0) open @endif>
                         <summary>{{ $item['question'] ?? '' }}</summary>
                         <div class="fa">{{ $item['answer'] ?? '' }}</div>
