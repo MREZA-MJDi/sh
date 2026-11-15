@@ -1,4 +1,5 @@
 @import '../rich-text.css';
+@import '../shared/brand-tokens.css';
 /* آکادمی شیخان · کارتابل — neumorphic glass design */
 :root{
     --bg1:#b4c4d2;--bg2:#8ea4b8;--panel:rgba(255,255,255,.28);--panel-b:rgba(255,255,255,.55);
@@ -500,3 +501,176 @@ h1,h2,h3,h4{line-height:1.4}.mu{font-size:12.5px;color:var(--muted)}.sr{position
     .student-course-item__head,
     .student-course-lesson__head { flex-wrap: wrap; }
 }
+
+/* Shared portal theme aligned with the admin design system. */
+:root {
+    --bg1:var(--brand-bg);
+    --bg2:var(--brand-bg);
+    --panel:var(--brand-card);
+    --panel-b:var(--brand-line);
+    --text:var(--brand-ink);
+    --muted:var(--brand-muted);
+    --side:var(--brand-sidebar);
+    --side2:var(--brand-sidebar-deep);
+    --teal:var(--brand-teal);
+    --teal-d:var(--brand-primary);
+    --h1:var(--brand-ink);
+    --sh:var(--brand-shadow);
+    --in:none;
+}
+body.student-page,
+body.parent-page {
+    background:var(--brand-bg);
+    color:var(--brand-ink);
+}
+body.student-page .app,
+body.parent-page .app {
+    max-width:1280px;
+    padding:16px;
+    gap:20px;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+}
+body.student-page .side,
+body.parent-page .side {
+    border:1px solid rgba(195,203,239,.12);
+    border-radius:16px;
+    background:var(--brand-sidebar);
+    box-shadow:var(--brand-shadow);
+}
+body.student-page .nav a,
+body.parent-page .nav a { color:var(--brand-sidebar-muted); }
+body.student-page .nav a.on,
+body.parent-page .nav a.on {
+    color:#fff;
+    border-inline-start:3px solid var(--brand-amber);
+    background:rgba(255,255,255,.11);
+    box-shadow:none;
+}
+body.student-page .nav a:hover,
+body.parent-page .nav a:hover { background:rgba(255,255,255,.07); }
+body.student-page .top h1,
+body.parent-page .top h1 { color:var(--brand-ink); text-shadow:none; }
+body.student-page .card,
+body.parent-page .card,
+body.student-page .student-course-item,
+body.parent-page .student-course-item,
+body.student-page .student-course-lesson,
+body.parent-page .student-course-lesson {
+    border:1px solid var(--brand-line);
+    border-radius:14px;
+    background:var(--brand-card);
+    box-shadow:var(--brand-shadow);
+}
+body.student-page .btn,
+body.parent-page .btn,
+body.student-page .tabs button.on,
+body.parent-page .tabs button.on {
+    color:#fff;
+    border:1px solid transparent;
+    border-radius:10px;
+    background:var(--brand-primary);
+    box-shadow:none;
+}
+body.student-page .btn.g,
+body.parent-page .btn.g,
+body.student-page .tabs button,
+body.parent-page .tabs button {
+    color:var(--brand-primary);
+    border:1px solid var(--brand-line);
+    background:var(--brand-card);
+    box-shadow:none;
+}
+body.student-page .ib,
+body.parent-page .ib,
+body.student-page .pill,
+body.parent-page .pill,
+body.student-page .kid select,
+body.parent-page .kid select {
+    color:var(--brand-primary);
+    border:1px solid var(--brand-line);
+    background:var(--brand-card);
+    box-shadow:none;
+}
+body.student-page .ib.pr,
+body.parent-page .ib.pr { color:#fff; background:var(--brand-teal); }
+body.student-page .ib.pr .i,
+body.parent-page .ib.pr .i { color:#fff; }
+body.student-page .st,
+body.parent-page .st {
+    color:var(--brand-ink);
+    border:1px solid var(--brand-line);
+    border-radius:14px;
+    background:var(--brand-card);
+    box-shadow:var(--brand-shadow);
+}
+body.student-page .st.s1,
+body.parent-page .st.s1 { background:linear-gradient(145deg,var(--brand-primary-soft),var(--brand-card)); }
+body.student-page .st.s2,
+body.parent-page .st.s2 { background:linear-gradient(145deg,var(--brand-teal-soft),var(--brand-card)); }
+body.student-page .st.s3,
+body.parent-page .st.s3 { background:linear-gradient(145deg,var(--brand-amber-soft),var(--brand-card)); }
+body.student-page .st.s4,
+body.parent-page .st.s4 { background:linear-gradient(145deg,var(--brand-red-soft),var(--brand-card)); }
+body.student-page .st .ic,
+body.parent-page .st .ic { color:var(--brand-primary); background:var(--brand-card); box-shadow:none; }
+body.student-page .st small,
+body.parent-page .st small { color:var(--brand-muted); }
+body.student-page .tag,
+body.parent-page .tag { color:var(--brand-teal); background:var(--brand-teal-soft); }
+body.student-page .tag.w,
+body.parent-page .tag.w { color:#8a5a00; background:var(--brand-amber-soft); }
+body.student-page .tag.d,
+body.parent-page .tag.d { color:var(--brand-primary); background:var(--brand-primary-soft); }
+body.student-page .tag.r,
+body.parent-page .tag.r { color:var(--brand-red); background:var(--brand-red-soft); }
+body.student-page .prog,
+body.parent-page .prog { background:var(--brand-line); box-shadow:none; }
+body.student-page .prog i,
+body.parent-page .prog i { background:var(--brand-teal); }
+body.student-page .info,
+body.parent-page .info { color:var(--brand-ink); background:var(--brand-primary-soft); box-shadow:none; }
+body.student-page .info.w,
+body.parent-page .info.w { background:var(--brand-amber-soft); }
+body.student-page .student-welcome,
+body.parent-page .student-welcome {
+    color:#fff;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    background:linear-gradient(125deg,var(--brand-primary),var(--brand-sidebar));
+    box-shadow:var(--brand-shadow);
+}
+body.student-page .student-welcome h1,
+body.parent-page .student-welcome h1,
+body.student-page .student-welcome h2,
+body.parent-page .student-welcome h2 { color:#fff; text-shadow:none; }
+body.student-page .student-course-progress__item,
+body.parent-page .student-course-progress__item,
+body.student-page .student-course-lesson__text,
+body.parent-page .student-course-lesson__text {
+    border:1px solid var(--brand-line);
+    background:var(--brand-card);
+    box-shadow:none;
+}
+body.student-page .student-homework-item__review,
+body.parent-page .student-homework-item__review {
+    border-color:var(--brand-teal-soft);
+    background:var(--brand-teal-soft);
+}
+body.student-page .student-mobile-nav,
+body.parent-page .student-mobile-nav {
+    border:1px solid var(--brand-line);
+    background:var(--brand-card);
+    box-shadow:var(--brand-shadow);
+}
+body.student-page .student-mobile-nav a,
+body.parent-page .student-mobile-nav a { color:var(--brand-muted); }
+body.student-page .student-mobile-nav a.on,
+body.parent-page .student-mobile-nav a.on {
+    color:#fff;
+    background:var(--brand-primary);
+}
+body.student-page :focus-visible,
+body.parent-page :focus-visible { outline-color:var(--brand-amber); }

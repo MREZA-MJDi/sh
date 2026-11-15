@@ -1,0 +1,63 @@
+:root {
+    --brand-bg:#eef0f7;
+    --brand-card:#ffffff;
+    --brand-ink:#141c45;
+    --brand-muted:#626c8f;
+    --brand-line:#e2e6f2;
+    --brand-primary:#26389a;
+    --brand-primary-soft:#e9ecfb;
+    --brand-teal:#0b8f80;
+    --brand-teal-soft:#d9f3ee;
+    --brand-amber:#f0a21a;
+    --brand-amber-soft:#fdefcf;
+    --brand-red:#cf3f4b;
+    --brand-red-soft:#fbe2e4;
+    --brand-sidebar:#10173f;
+    --brand-sidebar-deep:#080c22;
+    --brand-sidebar-muted:#c3cbef;
+    --brand-shadow:0 1px 2px rgba(20,28,69,.06),0 8px 24px -12px rgba(20,28,69,.18);
+    color-scheme:light;
+}
+:root[data-theme="dark"],
+html[data-admin-theme="dark"] {
+    --brand-bg:#0b1029;
+    --brand-card:#141b3f;
+    --brand-ink:#edf0fc;
+    --brand-muted:#98a2cf;
+    --brand-line:#252e60;
+    --brand-primary:#94a6ff;
+    --brand-primary-soft:#222c66;
+    --brand-teal:#3ccdb9;
+    --brand-teal-soft:#10393a;
+    --brand-amber:#f5b942;
+    --brand-amber-soft:#47381a;
+    --brand-red:#ff7f89;
+    --brand-red-soft:#48202a;
+    --brand-sidebar:#080c22;
+    --brand-sidebar-deep:#050819;
+    --brand-sidebar-muted:#c3cbef;
+    --brand-shadow:none;
+    color-scheme:dark;
+}
+@media (prefers-color-scheme:dark) {
+    :root:not([data-theme="light"]) {
+        --brand-bg:#0b1029;
+        --brand-card:#141b3f;
+        --brand-ink:#edf0fc;
+        --brand-muted:#98a2cf;
+        --brand-line:#252e60;
+        --brand-primary:#94a6ff;
+        --brand-primary-soft:#222c66;
+        --brand-teal:#3ccdb9;
+        --brand-teal-soft:#10393a;
+        --brand-amber:#f5b942;
+        --brand-amber-soft:#47381a;
+        --brand-red:#ff7f89;
+        --brand-red-soft:#48202a;
+        --brand-sidebar:#080c22;
+        --brand-sidebar-deep:#050819;
+        --brand-sidebar-muted:#c3cbef;
+        --brand-shadow:none;
+        color-scheme:dark;
+    }
+}

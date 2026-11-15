@@ -75,6 +75,130 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_paid_resource_is_not_downloadable_without_a_verified_purchase(): void
+    {
+        [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+        $resource->update(['is_free' => false, 'price' => 25000]);
+
+        Storage::disk('local')->put($resource->file_path, 'paid material');
+
+        $this->actingAs($student)
+            ->get(route('student.resources.download', $resource))
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('learning_resource_access_logs', [
+            'learning_resource_id' => $resource->id,
+            'user_id' => $student->id,
+        ]);
+    }
+
+    public function test_resource_is_unavailable_before_its_release_time(): void
+    {
+        [, , $classroom, $resource] = $this->makePublishedResourceForStudent();
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+        $resource->update(['release_at' => now()->addDay()]);
+
+        Storage::disk('local')->put($resource->file_path, 'not released');
+
+        $this->actingAs($student)
+            ->get(route('student.resources.download', $resource))
+            ->assertNotFound();
+    }
+
+    public function test_unscoped_authenticated_resource_can_be_accessed_and_access_is_logged(): void
+    {
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $resource = LearningResource::query()->create([
+            'uploaded_by' => $student->id,
+            'title' => 'راهنمای عمومی ورود',
+            'kind' => 'pdf',
+            'is_free' => true,
+            'price' => 0,
+            'visibility' => 'authenticated',
+            'file_path' => 'private/resources/general-guide.pdf',
+            'status' => 'published',
+        ]);
+        Storage::disk('local')->put($resource->file_path, 'general guide');
+
+        $this->actingAs($student)
+            ->get(route('student.resources.download', $resource))
+            ->assertOk();
+
+        $this->assertDatabaseHas('learning_resource_access_logs', [
+            'learning_resource_id' => $resource->id,
+            'user_id' => $student->id,
+            'student_id' => $student->id,
+            'event_type' => 'download',
+        ]);
+    }
+
+    public function test_view_only_pdf_is_streamed_inline_and_parent_access_is_logged_for_selected_child(): void
+    {
+        [, , $classroom, $resource] = $this->makePublishedResourceForStudent();
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $guardian = User::factory()->create();
+        $guardian->roles()->attach(Role::query()->where('name', 'parent')->value('id'));
+        $guardian->children()->attach($student->id);
+        $resource->update(['downloadable' => false]);
+        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 sample');
+
+        $response = $this->actingAs($guardian)
+            ->get(route('guardian.resources.download', ['resource' => $resource, 'child' => $student->id]))
+            ->assertOk();
+
+        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
+        $this->assertDatabaseHas('learning_resource_access_logs', [
+            'learning_resource_id' => $resource->id,
+            'user_id' => $guardian->id,
+            'student_id' => $student->id,
+            'event_type' => 'view',
+        ]);
+    }
+
+    public function test_public_unscoped_free_resource_is_available_to_guests_and_logged(): void
+    {
+        $resource = LearningResource::query()->create([
+            'title' => 'فایل عمومی',
+            'kind' => 'pdf',
+            'is_free' => true,
+            'price' => 0,
+            'visibility' => 'public',
+            'file_path' => 'private/resources/public-guide.pdf',
+            'status' => 'published',
+        ]);
+        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 public');
+
+        $this->get(route('public.resources.download', $resource))->assertOk();
+
+        $this->assertDatabaseHas('learning_resource_access_logs', [
+            'learning_resource_id' => $resource->id,
+            'user_id' => null,
+            'student_id' => null,
+            'event_type' => 'download',
+        ]);
+    }
+
+    public function test_public_visibility_does_not_bypass_course_or_class_membership(): void
+    {
+        [, , , $resource] = $this->makePublishedResourceForStudent();
+        $resource->update(['visibility' => 'public']);
+        Storage::disk('local')->put($resource->file_path, 'still scoped');
+
+        $this->get(route('public.resources.download', $resource))->assertNotFound();
+    }
+
     private function makePublishedResourceForStudent(): array
     {
         $teacher = User::factory()->create();

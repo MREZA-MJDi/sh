@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveSeoArticleRequest;
 use App\Http\Requests\Admin\SaveSeoBannerRequest;
+use App\Http\Requests\Admin\SaveSeoTestimonialRequest;
 use App\Http\Requests\Admin\UpdateSeoSettingsRequest;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
+use App\Models\SeoTestimonial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -175,6 +177,40 @@ class SeoDashboardController extends Controller
         $this->deleteStoredFiles($paths);
 
         return back()->with('success', 'مقاله حذف شد.');
+    }
+
+
+    public function testimonials(): View
+    {
+        $testimonials = SeoTestimonial::query()->orderBy('sort_order')->latest('id')->paginate(20)->withQueryString();
+
+        return view('admin.seo.testimonials', compact('testimonials'));
+    }
+
+    public function storeTestimonial(SaveSeoTestimonialRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $data['created_by'] = $request->user()->id;
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+        SeoTestimonial::query()->create($data);
+
+        return back()->with('success', 'نظر برای صفحه اصلی ثبت شد.');
+    }
+
+    public function updateTestimonial(SaveSeoTestimonialRequest $request, SeoTestimonial $testimonial): RedirectResponse
+    {
+        $data = $request->validated();
+        $data['sort_order'] = $data['sort_order'] ?? $testimonial->sort_order;
+        $testimonial->update($data);
+
+        return back()->with('success', 'نظر به‌روزرسانی شد.');
+    }
+
+    public function destroyTestimonial(SeoTestimonial $testimonial): RedirectResponse
+    {
+        $testimonial->delete();
+
+        return back()->with('success', 'نظر حذف شد.');
     }
 
     private function articleData(SaveSeoArticleRequest $request, ?SeoArticle $article = null): array

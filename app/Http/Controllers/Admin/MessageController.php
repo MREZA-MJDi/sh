@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Models\MessageReply;
+use App\Models\User;
+use App\Notifications\MessageActivityNotification;
 use App\Services\Admin\MessageWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +17,7 @@ class MessageController extends Controller
     public function index(Request $request, MessageWorkspaceService $workspace): View
     {
         $messages = $workspace->queryFor($request->user())
-            ->with(['sender', 'replies.sender'])
+            ->with(['sender', 'recipient', 'student', 'replies.sender'])
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()->paginate(15)->withQueryString();
 
@@ -40,6 +42,10 @@ class MessageController extends Controller
         ]);
 
         $message->update(['status' => 'answered', 'replied_at' => now()]);
+        $otherParticipantId = (int) $message->sender_id === (int) $request->user()->id
+            ? $message->recipient_id
+            : $message->sender_id;
+        User::query()->find($otherParticipantId)?->notify(new MessageActivityNotification($message, 'پاسخ جدیدی در گفت‌وگوی شما ثبت شد.'));
 
         return redirect()->route('admin.messages.index', ['message' => $message->id])
             ->with('success', 'پاسخ در کارتابل پیام ثبت شد.');

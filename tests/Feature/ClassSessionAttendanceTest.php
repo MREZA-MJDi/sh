@@ -7,6 +7,7 @@ use App\Models\ClassSession;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\User;
+use App\Services\Admin\AttendanceService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -94,6 +95,99 @@ final class ClassSessionAttendanceTest extends TestCase
 
         $this->expectException(QueryException::class);
         $session->delete();
+    }
+
+    public function test_same_student_can_have_attendance_for_two_sessions_on_the_same_day(): void
+    {
+        [$teacher, $student, $classroom] = $this->classroomFixture();
+        $date = now()->toDateString();
+
+        $morning = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه صبح',
+            'session_type' => 'onsite',
+            'starts_at' => now()->startOfDay()->addHours(9),
+            'ends_at' => now()->startOfDay()->addHours(10),
+            'status' => 'completed',
+            'created_by' => $teacher->id,
+        ]);
+        $afternoon = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه عصر',
+            'session_type' => 'onsite',
+            'starts_at' => now()->startOfDay()->addHours(15),
+            'ends_at' => now()->startOfDay()->addHours(16),
+            'status' => 'completed',
+            'created_by' => $teacher->id,
+        ]);
+
+        foreach ([$morning, $afternoon] as $session) {
+            Attendance::query()->create([
+                'classroom_id' => $classroom->id,
+                'class_session_id' => $session->id,
+                'student_id' => $student->id,
+                'session_date' => $date,
+                'status' => 'present',
+                'marked_by' => $teacher->id,
+            ]);
+        }
+
+        $this->assertSame(2, Attendance::query()->where('student_id', $student->id)->whereDate('session_date', $date)->count());
+    }
+
+    public function test_attendance_service_persists_explicit_duration_and_computes_lateness_from_actual_check_in(): void
+    {
+        [$teacher, $student, $classroom] = $this->classroomFixture();
+        $startsAt = now()->subHours(2);
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه با زمان مشخص',
+            'session_type' => 'online',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes(90),
+            'status' => 'completed',
+            'created_by' => $teacher->id,
+        ]);
+
+        app(AttendanceService::class)->record($classroom, $session, [
+            $student->id => [
+                'status' => 'late',
+                'joined_at' => $startsAt->copy()->addMinutes(12)->format('Y-m-d\\TH:i'),
+                'attended_minutes' => 70,
+            ],
+        ], $teacher->id);
+
+        $record = Attendance::query()->with('session')->where('class_session_id', $session->id)->firstOrFail();
+
+        $this->assertSame(90, $record->scheduled_minutes);
+        $this->assertSame(70, $record->attended_minutes);
+        $this->assertSame(12, $record->late_minutes);
+    }
+
+    public function test_legacy_attendance_without_real_session_end_does_not_invent_a_scheduled_duration(): void
+    {
+        [$teacher, $student, $classroom] = $this->classroomFixture();
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه قدیمی',
+            'session_type' => 'legacy',
+            'starts_at' => now()->startOfDay(),
+            'ends_at' => null,
+            'status' => 'completed',
+            'created_by' => $teacher->id,
+        ]);
+
+        $record = Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $session->id,
+            'student_id' => $student->id,
+            'session_date' => now()->toDateString(),
+            'status' => 'present',
+            'marked_by' => $teacher->id,
+        ])->load('session');
+
+        $this->assertNull($record->scheduled_minutes);
+        $this->assertNull($record->late_minutes);
     }
 
     /** @return array{0: User, 1: User, 2: Classroom} */

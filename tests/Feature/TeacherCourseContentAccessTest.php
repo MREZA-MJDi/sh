@@ -79,6 +79,44 @@ final class TeacherCourseContentAccessTest extends TestCase
         ]);
     }
 
+    public function test_teacher_assigned_only_through_a_classroom_can_manage_its_course_content(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $course = Course::query()->create([
+            'title' => 'دوره با تخصیص کلاسی',
+            'slug' => 'class-only-teacher-course-content',
+            'teacher_id' => null,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+        Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس تخصیص مستقیم',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('admin.courses.content', $course))
+            ->assertOk()
+            ->assertSee('افزودن بخش جدید');
+
+        $this->actingAs($teacher)
+            ->post(route('admin.courses.sections.store', $course), [
+                'title' => 'بخش مجاز',
+                'sort_order' => 1,
+                'status' => 'published',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('course_sections', [
+            'course_id' => $course->id,
+            'title' => 'بخش مجاز',
+        ]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

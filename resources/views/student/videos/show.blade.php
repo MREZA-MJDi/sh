@@ -30,7 +30,13 @@
             <dt>وضعیت سرویس</dt>
             <dd>{{ $health->available ? 'سرویس در دسترس' : $health->message }}</dd>
             <dt>لایسنس این دوره</dt>
-            <dd>{{ $license ? 'رکورد لایسنس فعال ثبت شده؛ پخش مرورگری هنوز به آداپتور رسمی نیاز دارد.' : 'برای این حساب لایسنس فعال ثبت نشده است.' }}</dd>
+            <dd>{{ $license ? (['active' => 'فعال', 'waiting_contract' => 'در انتظار اتصال سرویس', 'queued' => 'در صف صدور', 'failed' => 'ناموفق', 'revoked' => 'لغوشده'][$license->status] ?? $license->status) : 'برای این حساب هنوز درخواستی ثبت نشده است.' }}</dd>
         </dl>
+        @if ((! $license || in_array($license->status, ['failed', 'revoked'], true)) && filled($video->course?->spotplayer_course_id))
+            <form method="POST" action="{{ route('student.courses.spotplayer-license.store', $video->course_id) }}">
+                @csrf
+                <button class="btn s" type="submit">درخواست صدور لایسنس</button>
+            </form>
+        @endif
     </section>
 @endsection

@@ -18,25 +18,25 @@
 
     <section class="panel-grid panel-grid-4 mb-4">
         @canany(['users.manage', 'students.view.assigned'])
-            <x-admin::stat label="دانش‌آموزان فعال" :value="number_format($stats['students'])" note="در کلاس‌های قابل دسترس" accent="#5065d8" icon="♙"/>
+            <x-admin::stat label="دانش‌آموزان فعال" :value="number_format($stats['students'])" note="در کلاس‌های قابل دسترس" tone="people" icon="♙"/>
         @endcanany
         @can('users.manage')
-            <x-admin::stat label="مدرسان فعال" :value="number_format($stats['teachers'])" note="حساب‌های فعال" accent="#0b9a89" icon="♟"/>
+            <x-admin::stat label="مدرسان فعال" :value="number_format($stats['teachers'])" note="حساب‌های فعال" tone="people" icon="♟"/>
         @endcan
         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
-            <x-admin::stat label="کلاس‌های فعال" :value="number_format($stats['classes'])" note="کلاس‌های قابل دسترس" accent="#d18b11" icon="▣"/>
+            <x-admin::stat label="کلاس‌های فعال" :value="number_format($stats['classes'])" note="کلاس‌های قابل دسترس" tone="learning" icon="▣"/>
         @endcanany
         @canany(['courses.manage', 'courses.view.assigned'])
-            <x-admin::stat label="دوره‌های منتشرشده" :value="number_format($stats['courses'])" note="دوره‌های قابل ارائه" accent="#d84b59" icon="▤"/>
+            <x-admin::stat label="دوره‌های منتشرشده" :value="number_format($stats['courses'])" note="دوره‌های قابل ارائه" tone="learning" icon="▤"/>
         @endcanany
         @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned', 'homework.grade'])
-            <x-admin::stat label="تکالیف منتظر بررسی" :value="number_format($stats['pending_homework'])" note="ارسال‌های تحویل‌شده" accent="#7b55c7" icon="✎"/>
+            <x-admin::stat label="تکالیف منتظر بررسی" :value="number_format($stats['pending_homework'])" note="ارسال‌های تحویل‌شده" tone="work" icon="✎"/>
         @endcanany
     </section>
 
     <section class="panel-grid panel-grid-2 mb-4">
         @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
-            <article class="panel-card">
+            <article class="panel-card" data-tone="presence">
                 <div class="panel-card-title">
                     <div><h3>نرخ حضور در هفت روز گذشته</h3><p>بر اساس رکوردهای واقعی حضور و غیاب</p></div>
                     <span class="panel-badge panel-badge-success">امروز {{ $stats['attendance_rate'] }}٪</span>
@@ -50,7 +50,7 @@
         @endcanany
 
         @canany(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'])
-            <article class="panel-card">
+            <article class="panel-card" data-tone="learning">
                 <div class="panel-card-title">
                     <div><h3>{{ $teacherView ? 'کلاس‌های من' : 'کلاس‌های فعال' }}</h3><p>کلاس‌های مجاز برای حساب شما</p></div>
                     <a href="{{ route('admin.classes.index') }}" class="panel-btn panel-btn-secondary panel-btn-sm">همه کلاس‌ها</a>
@@ -73,7 +73,7 @@
 
     <section class="panel-grid panel-grid-3">
         @canany(['messages.view.all', 'messages.view.assigned'])
-            <article class="panel-card">
+            <article class="panel-card" data-tone="talk">
                 <div class="panel-card-title"><h3>پیام‌های بی‌پاسخ</h3><a href="{{ route('admin.messages.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">مشاهده</a></div>
                 <div class="panel-list">
                     @forelse ($recentMessages as $message)
@@ -86,7 +86,7 @@
         @endcanany
 
         @can('consultations.manage')
-            <article class="panel-card">
+            <article class="panel-card" data-tone="talk">
                 <div class="panel-card-title"><h3>درخواست‌های مشاوره</h3><a href="{{ route('admin.consultations.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">کارتابل</a></div>
                 <div class="panel-list">
                     @forelse ($pendingConsultations as $consultation)
@@ -99,7 +99,7 @@
         @endcan
 
         @canany(['announcements.manage', 'announcements.view'])
-            <article class="panel-card">
+            <article class="panel-card" data-tone="talk">
                 <div class="panel-card-title"><h3>اطلاعیه‌های منتشرشده</h3><a href="{{ route('admin.announcements.index') }}" class="panel-btn panel-btn-ghost panel-btn-sm">مشاهده</a></div>
                 <div class="panel-list">
                     @forelse ($recentAnnouncements as $announcement)
@@ -112,7 +112,7 @@
         @endcanany
     </section>
 
-    <section class="panel-card mt-4">
+    <section class="panel-card mt-4" data-tone="system">
         <div class="panel-card-title">
             <div><h3>میانبرهای سریع</h3><p>ورود مستقیم به کارهای پرتکرار، بر اساس دسترسی حساب شما</p></div>
         </div>

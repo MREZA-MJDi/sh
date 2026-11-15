@@ -34,7 +34,7 @@ final class VideoController extends Controller
         $license = SpotPlayerLicense::query()
             ->where('student_id', $request->user()->id)
             ->where('course_id', $video->course_id)
-            ->where('status', 'active')
+            ->latest('id')
             ->first();
 
         return view('student.videos.show', [

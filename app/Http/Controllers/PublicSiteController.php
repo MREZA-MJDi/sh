@@ -9,7 +9,9 @@ use App\Models\Lesson;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
+use App\Models\SeoTestimonial;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -26,7 +28,7 @@ final class PublicSiteController extends Controller
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
-            ->withCount('enrollments');
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
         $popularCourses = (clone $courseQuery)->orderByDesc('enrollments_count')->latest()->limit(6)->get();
@@ -37,6 +39,7 @@ final class PublicSiteController extends Controller
             ->orderBy('name')->limit(8)->get(['id', 'name', 'subject']);
 
         $articles = SeoArticle::published()->latest('published_at')->limit(3)->get();
+        $testimonials = SeoTestimonial::query()->where('status', 'published')->orderBy('sort_order')->orderByDesc('id')->limit(6)->get();
         $categories = Course::query()->where('status', 'published')->whereNotNull('subject')
             ->where('subject', '<>', '')->distinct()->orderBy('subject')->pluck('subject');
 
@@ -45,10 +48,10 @@ final class PublicSiteController extends Controller
             'teachers' => User::query()->where('is_active', true)->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))->count(),
             'lessons' => Lesson::query()->where('status', 'published')->whereHas('section', fn ($sections) => $sections
                 ->where('status', 'published')->whereHas('course', fn ($courses) => $courses->where('status', 'published')))->count(),
-            'enrollments' => CourseEnrollment::query()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
+            'enrollments' => CourseEnrollment::query()->where('status', 'active')->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
-        return view('public.home.index', compact('settings', 'banners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats'));
+        return view('public.home.index', compact('settings', 'banners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
     }
 
     public function courses(Request $request): View
@@ -86,14 +89,18 @@ final class PublicSiteController extends Controller
         return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades'));
     }
 
-    public function course(string $slug): View
+    public function course(Request $request, string $slug, CourseEnrollmentService $enrollments): View
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note'), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
-            ->withCount('enrollments')->firstOrFail();
+            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->firstOrFail();
+
+        $hasCourseAccess = $request->user()?->hasRole('student') && $request->user()->is_active
+            ? $enrollments->hasActiveAccess($request->user(), $course)
+            : false;
 
         $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
@@ -101,9 +108,9 @@ final class PublicSiteController extends Controller
                 'teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name'),
                 'sections' => fn ($sections) => $sections->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
-            ])->withCount('enrollments')->latest()->limit(3)->get();
+            ])->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'relatedCourses'));
+        return view('public.courses.show', compact('settings', 'course', 'relatedCourses', 'hasCourseAccess'));
     }
 
     public function teachers(Request $request): View

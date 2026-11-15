@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
@@ -64,6 +65,66 @@ final class UserManagementService
             }
 
             return $user->refresh();
+        });
+    }
+
+
+    public function updateStudent(User $student, array $data, User $actor): User
+    {
+        if (! $student->hasRole('student') || $student->hasRole('admin')) {
+            throw ValidationException::withMessages(['student' => 'حساب انتخاب‌شده دانش‌آموز قابل ویرایش نیست.']);
+        }
+
+        return DB::transaction(function () use ($student, $data, $actor): User {
+            $student->fill([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+                'external_student_id' => $data['external_student_id'] ?? null,
+                'grade' => $data['grade'],
+            ]);
+
+            if (filled($data['password'] ?? null)) {
+                $student->password = $data['password'];
+            }
+
+            $student->save();
+            $affectedCourseIds = $student->enrolledClasses()->whereNotNull('course_id')->pluck('course_id');
+            $student->enrolledClasses()->syncWithPivotValues($data['classroom_ids'] ?? [], ['assigned_by' => $actor->id]);
+            $affectedCourseIds = $affectedCourseIds
+                ->merge($student->enrolledClasses()->whereNotNull('course_id')->pluck('course_id'))
+                ->unique()
+                ->values();
+
+            foreach (Course::query()->whereIn('id', $affectedCourseIds)->get() as $course) {
+                $this->enrollments->syncCourseRoster($course);
+            }
+
+            return $student->refresh();
+        });
+    }
+
+    public function updateParent(User $parent, array $data): User
+    {
+        if (! $parent->hasRole('parent') || $parent->hasRole('admin')) {
+            throw ValidationException::withMessages(['parent' => 'حساب انتخاب‌شده ولی قابل ویرایش نیست.']);
+        }
+
+        return DB::transaction(function () use ($parent, $data): User {
+            $parent->fill([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+            ]);
+
+            if (filled($data['password'] ?? null)) {
+                $parent->password = $data['password'];
+            }
+
+            $parent->save();
+            $parent->children()->sync($data['child_ids'] ?? []);
+
+            return $parent->refresh();
         });
     }
 

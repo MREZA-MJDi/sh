@@ -14,6 +14,7 @@ class ExampleTest extends TestCase
         $this->withoutVite()
             ->get('/')
             ->assertOk()
-            ->assertSee('مسیر یادگیری هوشمند');
+            ->assertDontSee('مسیر یادگیری هوشمند')
+            ->assertSee('کوییز ۳۰ ثانیه‌ای');
     }
 }

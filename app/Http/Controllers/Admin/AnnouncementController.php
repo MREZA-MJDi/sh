@@ -30,6 +30,20 @@ class AnnouncementController extends Controller
         return back()->with('success', 'اطلاعیه ذخیره شد.');
     }
 
+
+    public function update(StoreAnnouncementRequest $request, Announcement $announcement): RedirectResponse
+    {
+        $data = $request->validated();
+        $status = $data['status'];
+
+        $announcement->update([
+            ...$data,
+            'published_at' => $status === 'published' ? ($announcement->published_at ?? now()) : null,
+        ]);
+
+        return back()->with('success', 'اطلاعیه به‌روزرسانی شد.');
+    }
+
     public function updateStatus(UpdateAnnouncementStatusRequest $request, Announcement $announcement): RedirectResponse
     {
         $status = $request->validated('status');

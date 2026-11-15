@@ -175,6 +175,35 @@
                         <div class="empty">هنوز کلاسی برای این حساب ثبت نشده است.</div>
                     @endforelse
                 </div>
+
+                <div class="student-session-list" aria-label="جلسه‌های آنلاین">
+                    @forelse ($upcoming_sessions as $session)
+                        @php
+                            $sessionJoinUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+                            $sessionJoinable = $session->starts_at->lte(now()->addMinutes(15))
+                                && $session->ends_at?->gte(now())
+                                && filled($sessionJoinUrl);
+                        @endphp
+                        <article class="student-class-item">
+                            <span class="student-class-item__icon"><x-icon name="video"/></span>
+                            <div class="student-class-item__body">
+                                <h3>{{ $session->title }}</h3>
+                                <p>{{ $session->classroom?->name ?? 'کلاس آموزشی' }}</p>
+                                <span class="mu">شروع: {{ $session->starts_at->format('Y/m/d H:i') }} · پایان: {{ $session->ends_at->format('H:i') }}</span>
+                            </div>
+                            @if ($sessionJoinable)
+                                <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">
+                                    @csrf
+                                    <button class="btn s" type="submit">ورود به کلاس</button>
+                                </form>
+                            @else
+                                <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? '۱۵ دقیقه مانده فعال می‌شود' : 'لینک ورود ثبت نشده' }}</span>
+                            @endif
+                        </article>
+                    @empty
+                        <p class="mu">جلسه آنلاین فعالی برای کلاس‌های شما زمان‌بندی نشده است.</p>
+                    @endforelse
+                </div>
             </section>
         @endcan
 
@@ -299,7 +328,7 @@
                 @endif
                 <div class="tw">
                     <table class="tbl">
-                        <thead><tr><th scope="col">کلاس</th><th scope="col">تاریخ جلسه</th><th scope="col">وضعیت</th></tr></thead>
+                        <thead><tr><th scope="col">کلاس</th><th scope="col">تاریخ جلسه</th><th scope="col">وضعیت</th><th scope="col">زمان واقعی</th></tr></thead>
                         <tbody>
                             @forelse ($attendance as $record)
                                 <tr>
@@ -308,11 +337,16 @@
                                     <td>
                                         @if ($record->status === 'present')<span class="tag">حاضر</span>
                                         @elseif ($record->status === 'late')<span class="tag w">با تأخیر</span>
+                                        @elseif ($record->status === 'excused')<span class="tag">موجه</span>
                                         @else<span class="tag r">غایب</span>@endif
+                                    </td>
+                                    <td>
+                                        {{ $record->attended_minutes !== null ? $faNumber($record->attended_minutes).' دقیقه حضور' : 'مدت حضور ثبت نشده' }}
+                                        @if ($record->late_minutes !== null && $record->late_minutes > 0)<div class="mu">{{ $faNumber($record->late_minutes) }} دقیقه تأخیر</div>@endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="3" class="empty">رکوردی از حضور و غیاب برای تو ثبت نشده است.</td></tr>
+                                <tr><td colspan="4" class="empty">رکوردی از حضور و غیاب برای تو ثبت نشده است.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -371,8 +405,10 @@
                         <h3>{{ $resource->title }}</h3>
                         <p>{{ $resource->kind }}</p>
                         <span class="mu">{{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}</span>
-                        @if ($resource->file_path)
-                            <a class="btn g s" href="{{ route('student.resources.download', $resource) }}">دریافت منبع</a>
+                        @if ($resource->file_path && $resource->is_free)
+                            <a class="btn g s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت منبع' : 'مشاهده PDF' }}</a>
+                        @elseif (! $resource->is_free)
+                            <span class="tag w">نیازمند خرید</span>
                         @endif
                     </article>
                 @empty

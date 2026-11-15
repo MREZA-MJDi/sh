@@ -3,9 +3,12 @@
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
+use App\Http\Controllers\Admin\ClassSessionController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\ChunkUploadController;
+use App\Http\Controllers\Admin\LearningAdminController;
 use App\Http\Controllers\Admin\CourseContentController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamController;
@@ -15,24 +18,31 @@ use App\Http\Controllers\Admin\HomeworkController;
 use App\Http\Controllers\Admin\LearningResourceController;
 use App\Http\Controllers\Admin\LookupController;
 use App\Http\Controllers\Admin\MessageController;
+use App\Http\Controllers\Admin\ParentMeetingController as AdminParentMeetingController;
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
 use App\Http\Controllers\SeoPublicController;
 use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\PublicLearningResourceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardController;
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
+use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\JoinClassSessionController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\EnrollFreeCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
 use App\Http\Controllers\Student\VideoController as StudentVideoController;
+use App\Http\Controllers\Student\SpotPlayerLicenseController as StudentSpotPlayerLicenseController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
+use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
@@ -45,6 +55,7 @@ Route::get('/cart', [PublicSiteController::class, 'cart'])->name('public.cart');
 Route::post('/cart/{course}/add', [PublicSiteController::class, 'addToCart'])->name('public.cart.add');
 Route::delete('/cart/{course}', [PublicSiteController::class, 'removeFromCart'])->name('public.cart.remove');
 Route::get('/courses/{slug}', [PublicSiteController::class, 'course'])->name('public.courses.show');
+Route::get('/resources/{resource}/download', [PublicLearningResourceController::class, 'download'])->middleware('throttle:20,1')->name('public.resources.download');
 Route::get('/articles', [SeoPublicController::class, 'index'])->name('seo.articles.index');
 Route::get('/articles/{slug}', [SeoPublicController::class, 'show'])->name('seo.articles.show');
 Route::get('/sitemap.xml', [SeoPublicController::class, 'sitemap'])->name('seo.sitemap');
@@ -86,6 +97,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/seo/banners/{banner}', [SeoDashboardController::class, 'updateBanner'])->middleware('permission:seo.manage')->name('seo.banners.update');
     Route::delete('/seo/banners/{banner}', [SeoDashboardController::class, 'destroyBanner'])->middleware('permission:seo.manage')->name('seo.banners.destroy');
     Route::get('/seo/articles', [SeoDashboardController::class, 'articles'])->middleware('permission:seo.manage')->name('seo.articles.index');
+    Route::get('/seo/testimonials', [SeoDashboardController::class, 'testimonials'])->middleware('permission:seo.manage')->name('seo.testimonials.index');
+    Route::post('/seo/testimonials', [SeoDashboardController::class, 'storeTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.store');
+    Route::patch('/seo/testimonials/{testimonial}', [SeoDashboardController::class, 'updateTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.update');
+    Route::delete('/seo/testimonials/{testimonial}', [SeoDashboardController::class, 'destroyTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.destroy');
     Route::post('/seo/articles', [SeoDashboardController::class, 'storeArticle'])->middleware('permission:seo.manage')->name('seo.articles.store');
     Route::patch('/seo/articles/{article}', [SeoDashboardController::class, 'updateArticle'])->middleware('permission:seo.manage')->name('seo.articles.update');
     Route::delete('/seo/articles/{article}', [SeoDashboardController::class, 'destroyArticle'])->middleware('permission:seo.manage')->name('seo.articles.destroy');
@@ -93,15 +108,24 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage', 'throttle:60,1'])->name('lookups.students');
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage,students.view.assigned')->name('students.index');
     Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.store');
+    Route::patch('/students/{student}', [UserController::class, 'updateStudent'])->middleware('permission:users.manage')->name('students.update');
     Route::get('/teachers', [UserController::class, 'index'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.index');
     Route::post('/teachers', [UserController::class, 'store'])->defaults('role', 'teacher')->middleware('permission:users.manage')->name('teachers.store');
     Route::patch('/teachers/{teacher}', [UserController::class, 'updateTeacher'])->middleware('permission:users.manage')->name('teachers.update');
     Route::get('/parents', [UserController::class, 'index'])->defaults('role', 'parent')->middleware('permission:users.manage')->name('parents.index');
     Route::post('/parents', [UserController::class, 'store'])->defaults('role', 'parent')->middleware('permission:users.manage')->name('parents.store');
+    Route::patch('/parents/{parent}', [UserController::class, 'updateParent'])->middleware('permission:users.manage')->name('parents.update');
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->middleware('permission:users.manage')->name('users.status');
 
     Route::get('/courses', [CourseController::class, 'index'])->middleware('permission:courses.manage,courses.view.assigned')->name('courses.index');
     Route::post('/courses', [CourseController::class, 'store'])->middleware('permission:courses.manage')->name('courses.store');
+    Route::get('/courses/{course}/teaser', [LearningAdminController::class, 'teaser'])->middleware('permission:courses.manage')->name('courses.teaser');
+    Route::get('/courses/{course}/teaser/status', [LearningAdminController::class, 'teaserStatus'])->middleware('permission:courses.manage')->name('courses.teaser.status');
+    Route::delete('/courses/{course}/teaser', [LearningAdminController::class, 'destroyTeaser'])->middleware('permission:courses.manage')->name('courses.teaser.destroy');
+    Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
+    Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
+    Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
+
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->middleware('permission:courses.manage')->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->middleware('permission:courses.manage')->name('courses.destroy');
     Route::middleware('permission:courses.manage,courses.content.manage.assigned')->group(function (): void {
@@ -118,12 +142,22 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/classes', [ClassroomController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.store');
     Route::patch('/classes/{classroom}', [ClassroomController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.update');
     Route::delete('/classes/{classroom}', [ClassroomController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.destroy');
+    Route::get('/classes/{classroom}/sessions', [ClassSessionController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.sessions.index');
+    Route::post('/classes/{classroom}/sessions', [ClassSessionController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.store');
+    Route::patch('/class-sessions/{classSession}', [ClassSessionController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.update');
+    Route::delete('/class-sessions/{classSession}', [ClassSessionController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.destroy');
+
+    Route::get('/parent-meetings', [AdminParentMeetingController::class, 'index'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.index');
+    Route::post('/parent-meetings', [AdminParentMeetingController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.store');
+    Route::patch('/parent-meetings/{meeting}/status', [AdminParentMeetingController::class, 'updateStatus'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.status');
 
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage.all,attendance.manage.assigned,attendance.view.assigned')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.store');
 
     Route::get('/homework', [HomeworkController::class, 'index'])->middleware('permission:homework.manage.all,homework.manage.assigned,homework.view.assigned')->name('homework.index');
     Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.store');
+    Route::patch('/homework/{homework}', [HomeworkController::class, 'update'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.update');
+    Route::delete('/homework/{homework}', [HomeworkController::class, 'destroy'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.destroy');
     Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
     Route::get('/homework/{homework}/attachment', [HomeworkController::class, 'downloadAttachment'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework.attachment');
 
@@ -155,6 +189,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('permission:announcements.manage,announcements.view')->name('announcements.index');
     Route::post('/announcements', [AnnouncementController::class, 'store'])->middleware('permission:announcements.manage')->name('announcements.store');
+    Route::patch('/announcements/{announcement}', [AnnouncementController::class, 'update'])->middleware('permission:announcements.manage')->name('announcements.update');
     Route::patch('/announcements/{announcement}/status', [AnnouncementController::class, 'updateStatus'])->middleware('permission:announcements.manage')->name('announcements.status');
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->middleware('permission:announcements.manage')->name('announcements.destroy');
 
@@ -178,6 +213,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/class-sessions/{classSession}/join', JoinClassSessionController::class)->middleware('throttle:20,1')->name('class-sessions.join');
 
         Route::middleware('permission:exams.view.own')->group(function (): void {
             Route::get('/exams', [StudentExamController::class, 'index'])->name('exams.index');
@@ -195,6 +231,8 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
 
         Route::middleware('permission:lessons.view')->group(function (): void {
             Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+            Route::post('/courses/{course}/spotplayer-license', [StudentSpotPlayerLicenseController::class, 'store'])->middleware('throttle:3,1')->name('courses.spotplayer-license.store');
+        Route::post('/courses/{course}/enroll-free', EnrollFreeCourseController::class)->middleware('throttle:10,1')->name('courses.enroll-free');
             Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
             Route::patch('/courses/{course}/lessons/{lesson}/progress', [StudentCourseController::class, 'updateProgress'])
                 ->middleware('permission:lessons.progress')->name('courses.lessons.progress');
@@ -221,6 +259,10 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->group(function (): void {
         // Compatibility URL only: teachers use the exact same admin dashboard, layout and views.
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::middleware('permission:messages.view.assigned')->group(function (): void {
+            Route::get('/messages/create', [TeacherMessageController::class, 'create'])->name('messages.create');
+            Route::post('/messages', [TeacherMessageController::class, 'store'])->name('messages.store');
+        });
     });
 
 Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
@@ -228,6 +270,8 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
+        Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
     });
 

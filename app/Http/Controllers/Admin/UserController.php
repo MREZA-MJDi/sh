@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateTeacherAccessRequest;
+use App\Http\Requests\Admin\UpdateStudentRequest;
+use App\Http\Requests\Admin\UpdateParentRequest;
 use App\Http\Requests\Admin\UpdateUserStatusRequest;
 use App\Models\Classroom;
 use App\Models\Course;
@@ -36,6 +38,8 @@ class UserController extends Controller
 
         $users = User::query()
             ->with(['roles.permissions', 'permissions', 'assignedCourses'])
+            ->when($role === 'student', fn ($query) => $query->with('enrolledClasses:id,name'))
+            ->when($role === 'parent', fn ($query) => $query->with('children:id,name'))
             ->whereHas('roles', fn ($roles) => $roles->where('name', $role))
             ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->whereHas('enrolledClasses', fn ($classes) => $classes->whereIn('classrooms.id', $classroomIds))
@@ -113,6 +117,27 @@ class UserController extends Controller
         $users->updateTeacher($teacher, $request->validated(), $request->user());
 
         return back()->with('success', 'اطلاعات، دوره‌ها و دسترسی‌های مدرس به‌روزرسانی شد.');
+    }
+
+
+    public function updateStudent(
+        UpdateStudentRequest $request,
+        User $student,
+        UserManagementService $users
+    ): RedirectResponse {
+        $users->updateStudent($student, $request->validated(), $request->user());
+
+        return back()->with('success', 'اطلاعات دانش‌آموز و عضویت کلاس‌ها به‌روزرسانی شد.');
+    }
+
+    public function updateParent(
+        UpdateParentRequest $request,
+        User $parent,
+        UserManagementService $users
+    ): RedirectResponse {
+        $users->updateParent($parent, $request->validated());
+
+        return back()->with('success', 'اطلاعات ولی و ارتباط دانش‌آموزان به‌روزرسانی شد.');
     }
 
     public function updateStatus(UpdateUserStatusRequest $request, User $user): RedirectResponse

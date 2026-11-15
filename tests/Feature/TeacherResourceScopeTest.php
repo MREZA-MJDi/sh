@@ -25,6 +25,53 @@ final class TeacherResourceScopeTest extends TestCase
         Storage::fake('local');
     }
 
+    public function test_teacher_assigned_only_through_a_classroom_can_create_and_list_its_resource(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره تخصیص کلاسی',
+            'slug' => 'class-only-resource-course',
+            'teacher_id' => null,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس من',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($teacher)
+            ->post(route('admin.resources.store'), [
+                'title' => 'جزوه کلاس من',
+                'course_id' => $course->id,
+                'classroom_id' => $classroom->id,
+                'kind' => 'pdf',
+                'price' => 0,
+                'is_free' => 1,
+                'visibility' => 'enrolled',
+                'status' => 'published',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('learning_resources', [
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'title' => 'جزوه کلاس من',
+            'uploaded_by' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('admin.resources.index'))
+            ->assertOk()
+            ->assertSee('جزوه کلاس من');
+    }
+
     public function test_teacher_cannot_list_download_or_create_a_resource_with_mismatched_course_and_classroom(): void
     {
         $teacher = User::factory()->create(['permissions_customized' => true]);

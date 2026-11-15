@@ -7,9 +7,11 @@ use App\Http\Requests\Portal\ReplyPortalMessageRequest;
 use App\Http\Requests\Portal\StorePortalMessageRequest;
 use App\Http\Requests\Portal\UpdatePortalMessageRequest;
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Message;
 use App\Models\MessageReply;
 use App\Models\User;
+use App\Notifications\MessageActivityNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -25,13 +27,10 @@ final class MessageController extends Controller
         $messages = Message::query()
             ->whereNull('parent_id')
             ->where('student_id', $student?->id ?? 0)
-            ->when(
-                $request->user()->hasRole('student'),
-                fn (Builder $query) => $query->where(function (Builder $scope) use ($request): void {
-                    $scope->where('sender_id', $request->user()->id)
-                        ->orWhere('recipient_id', $request->user()->id);
-                })
-            )
+            ->where(function (Builder $participants) use ($request): void {
+                $participants->where('sender_id', $request->user()->id)
+                    ->orWhere('recipient_id', $request->user()->id);
+            })
             ->with(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name'])
             ->latest()
             ->paginate(12)
@@ -82,6 +81,8 @@ final class MessageController extends Controller
             'status' => 'open',
         ]);
 
+        User::query()->find($message->recipient_id)?->notify(new MessageActivityNotification($message, 'پیام جدیدی برای شما ارسال شده است.'));
+
         return redirect()
             ->route($this->routeName($request, 'show'), $message)
             ->with('status', 'پیام شما با موفقیت ارسال شد.');
@@ -115,6 +116,10 @@ final class MessageController extends Controller
         ]);
 
         $message->update(['replied_at' => now()]);
+        $otherParticipantId = (int) $message->sender_id === (int) $request->user()->id
+            ? $message->recipient_id
+            : $message->sender_id;
+        User::query()->find($otherParticipantId)?->notify(new MessageActivityNotification($message, 'پاسخ جدیدی در گفت‌وگوی شما ثبت شد.'));
 
         return back()->with('status', 'پاسخ شما در گفتگو ثبت شد.');
     }
@@ -200,10 +205,11 @@ final class MessageController extends Controller
             })
             ->select('classrooms.id');
 
-        $teacherIds = Classroom::query()
-            ->whereIn('id', clone $classroomIds)
+        $visibleClassrooms = Classroom::query()->whereIn('id', clone $classroomIds)->get(['id', 'course_id', 'teacher_id']);
+        $teacherIds = $visibleClassrooms->pluck('teacher_id')->filter();
+        $courseTeacherIds = Course::query()
+            ->whereIn('id', $visibleClassrooms->pluck('course_id')->filter()->unique())
             ->whereNotNull('teacher_id')
-            ->distinct()
             ->pluck('teacher_id');
 
         $adminIds = User::query()
@@ -213,7 +219,7 @@ final class MessageController extends Controller
 
         return User::query()
             ->where('is_active', true)
-            ->whereIn('id', $teacherIds->merge($adminIds)->unique())
+            ->whereIn('id', $teacherIds->merge($courseTeacherIds)->merge($adminIds)->unique())
             ->orderBy('name')
             ->get(['id', 'name']);
     }
@@ -234,11 +240,14 @@ final class MessageController extends Controller
         }
 
         abort_unless(
-            $actor->children()
-                ->whereKey($message->student_id)
-                ->where('users.is_active', true)
-                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
-                ->exists(),
+            $actor->hasRole('parent')
+                && (int) $message->student_id > 0
+                && ((int) $message->sender_id === (int) $actor->id || (int) $message->recipient_id === (int) $actor->id)
+                && $actor->children()
+                    ->whereKey($message->student_id)
+                    ->where('users.is_active', true)
+                    ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
+                    ->exists(),
             404
         );
 

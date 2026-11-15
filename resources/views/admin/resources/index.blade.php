@@ -5,7 +5,7 @@
 
 @section('content')
     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="library">
         <div><h2>منابع آموزشی</h2><p>{{ $resources->total() }} فایل و منبع ثبت‌شده</p></div>
         @canany(['resources.manage', 'resources.manage.assigned'])
             <button class="panel-btn" type="button" data-admin-drawer-open="resource-create" data-drawer-title="افزودن منبع">＋ افزودن جزوه</button>
@@ -26,13 +26,13 @@
                 <tbody>
                 @forelse ($resources as $resource)
                     <tr>
-                        <td><strong>{{ $resource->title }}</strong><div class="panel-muted">{{ $resource->uploader->name ?? '—' }}</div></td>
+                        <td><strong>{{ $resource->title }}</strong><div class="panel-muted">{{ $resource->uploader->name ?? '—' }} · {{ number_format($resource->access_logs_count ?? 0) }} بار مشاهده/دریافت</div></td>
                         <td>{{ ['pdf'=>'جزوه PDF','book'=>'کتاب','other'=>'سایر'][$resource->kind] ?? $resource->kind }}</td>
                         <td>{{ $resource->course->title ?? $resource->classroom->name ?? '—' }}</td>
                         <td>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</td>
                         <td>{{ ['public'=>'عمومی','authenticated'=>'کاربران واردشده','enrolled'=>'اعضای دوره/کلاس'][$resource->visibility] ?? $resource->visibility }}</td>
                         <td><x-admin::badge :variant="$resource->status === 'published' ? 'success' : 'warning'">{{ ['published'=>'منتشرشده','draft'=>'پیش‌نویس','archived'=>'بایگانی'][$resource->status] ?? $resource->status }}</x-admin.badge></td>
-                        <td>@if($resource->file_path)<a href="{{ route('admin.resources.download', $resource) }}">دریافت خصوصی</a>@else<span class="panel-muted">فایل ندارد</span>@endif</td>
+                        <td>@if($resource->file_path)<a href="{{ route('admin.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت خصوصی' : 'مشاهده PDF' }}</a>@else<span class="panel-muted">فایل ندارد</span>@endif</td>
                         @canany(['resources.manage', 'resources.manage.assigned'])
                             <td class="panel-table-actions">
                                 <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="resource-edit-{{ $resource->id }}" data-drawer-title="ویرایش منبع">ویرایش</button>
@@ -54,6 +54,8 @@
                             <label class="panel-checkbox"><input type="checkbox" name="is_free" value="1" @checked($resource->is_free)> منبع رایگان است</label>
                             <div class="panel-field"><label>قیمت (تومان)</label><input class="panel-input" type="number" name="price" min="0" value="{{ $resource->price }}"></div>
                             <div class="panel-field"><label>سطح دسترسی</label><select class="panel-select" name="visibility">@unless($teacherView)<option value="public" @selected($resource->visibility === 'public')>عمومی</option>@endunless<option value="authenticated" @selected($resource->visibility === 'authenticated')>کاربران واردشده</option><option value="enrolled" @selected($resource->visibility === 'enrolled')>اعضای دوره/کلاس</option></select></div>
+                            <div class="panel-field"><label>زمان انتشار (اختیاری)</label><input class="panel-input" type="datetime-local" name="release_at" value="{{ $resource->release_at?->format('Y-m-d\\TH:i') }}"></div>
+                            <input type="hidden" name="downloadable" value="0"><label class="panel-checkbox"><input type="checkbox" name="downloadable" value="1" @checked($resource->downloadable)> اجازه دریافت فایل (در صورت غیرفعال بودن، PDF فقط در مرورگر باز می‌شود)</label>
                             <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($resource->status === $key)>{{ $label }}</option>@endforeach</select></div>
                             <div class="panel-field"><label>جایگزینی فایل (اختیاری)</label><input class="panel-input" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"><span class="panel-muted">فایل قبلی پس از ذخیره موفق جایگزین می‌شود.</span></div>
                         </x-admin.drawer-form>
@@ -77,6 +79,8 @@
             <label class="panel-checkbox"><input type="checkbox" name="is_free" value="1" checked> منبع رایگان است</label>
             <div class="panel-field"><label>قیمت (تومان)</label><input class="panel-input" type="number" name="price" min="0" value="0"></div>
             <div class="panel-field"><label>سطح دسترسی</label><select class="panel-select" name="visibility">@unless($teacherView)<option value="public">عمومی</option>@endunless<option value="authenticated">کاربران واردشده</option><option value="enrolled" selected>اعضای دوره/کلاس</option></select></div>
+            <div class="panel-field"><label>زمان انتشار (اختیاری)</label><input class="panel-input" type="datetime-local" name="release_at" value="{{ old('release_at') }}"></div>
+            <input type="hidden" name="downloadable" value="0"><label class="panel-checkbox"><input type="checkbox" name="downloadable" value="1" checked> اجازه دریافت فایل (در صورت غیرفعال بودن، PDF فقط در مرورگر باز می‌شود)</label>
             <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="draft">پیش‌نویس</option><option value="published">منتشرشده</option></select></div>
             <div class="panel-field"><label>فایل</label><input class="panel-input" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"></div>
         </x-admin.drawer-form>

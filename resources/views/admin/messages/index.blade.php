@@ -4,6 +4,7 @@
 @section('page-description', 'کارتابل پیام‌های کاربران و پاسخ‌گویی متمرکز')
 
 @section('content')
+    <section class="panel-page-head" data-tone="talk"><div><h2>کارتابل پیام‌ها</h2><p>گفت‌وگوهای مرتبط با حساب و کلاس‌های شما</p></div>@if(auth()->user()->hasRole('teacher'))<a class="panel-btn" href="{{ route('teacher.messages.create') }}">＋ پیام جدید</a>@endif</section>
     <section class="panel-grid panel-grid-2">
         <article class="panel-card">
             <div class="panel-card-title"><div><h3>کارتابل</h3><p>پیام‌های اصلی و وضعیت پاسخ</p></div></div>
@@ -11,7 +12,7 @@
                 @forelse ($messages as $message)
                     <a href="{{ route('admin.messages.index', ['message' => $message->id]) }}" class="panel-list-row no-underline {{ $selected?->id === $message->id ? 'rounded-xl bg-[var(--sh-primary-soft)] px-2' : '' }}">
                         <div class="panel-avatar">{{ mb_substr($message->sender->name ?? '؟', 0, 1) }}</div>
-                        <div class="panel-list-main"><strong>{{ $message->subject }}</strong><span>{{ $message->sender->name ?? 'کاربر حذف‌شده' }} · {{ $message->created_at->diffForHumans() }}</span></div>
+                        <div class="panel-list-main"><strong>{{ $message->subject }}</strong><span>{{ $message->sender->name ?? 'کاربر حذف‌شده' }} ← {{ $message->recipient->name ?? 'گیرنده حذف‌شده' }} · {{ $message->student?->name ?? 'بدون دانش‌آموز' }} · {{ $message->created_at->diffForHumans() }}</span></div>
                         <span class="panel-badge {{ $message->status==='answered' ? 'panel-badge-success' : ($message->status==='open' ? 'panel-badge-warning' : '') }}">{{ ['open'=>'باز','read'=>'خوانده‌شده','answered'=>'پاسخ‌داده‌شده'][$message->status] ?? $message->status }}</span>
                     </a>
                 @empty
@@ -24,7 +25,7 @@
         <article class="panel-card">
             @if ($selected)
                 <div class="panel-card-title">
-                    <div><h3>{{ $selected->subject }}</h3><p>فرستنده: {{ $selected->sender->name ?? 'کاربر حذف‌شده' }}</p></div>
+                    <div><h3>{{ $selected->subject }}</h3><p>فرستنده: {{ $selected->sender->name ?? 'کاربر حذف‌شده' }} · گیرنده: {{ $selected->recipient->name ?? '—' }} · دانش‌آموز: {{ $selected->student?->name ?? '—' }}</p></div>
                     <span class="panel-badge">{{ $selected->created_at->format('Y-m-d H:i') }}</span>
                 </div>
                 <x-rich-content :value="$selected->body" class="rounded-xl bg-[var(--sh-surface-soft)] p-4 text-sm leading-8"/>

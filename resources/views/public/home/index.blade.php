@@ -1,6 +1,7 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
+@if($banners->isNotEmpty())
 <header class="hero" id="homeHero">
     <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
         <svg class="i"><use href="#arrr"/></svg>
@@ -39,64 +40,11 @@
                 </div>
             </div>
         @endforeach
-    @else
-        <!-- اسلاید ۱: مسیر هوشمند -->
-        <div class="sl on" style="--a:#0d9488;--b:#1e40af">
-            <div>
-                <span class="bd">مسیر یادگیری هوشمند</span>
-                <h1>مهارتی یاد بگیر که برایت <span style="color:var(--pri2)">آینده</span> می‌سازد</h1>
-                <p>دوره‌های ساختارمند با اساتید مجرب، آزمون‌های گام‌به‌گام و دسترسی پیوسته به جلسات آموزشی.</p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-                    <a class="btn" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها <svg class="i"><use href="#arrl"/></svg></a>
-                    <a class="btn o" href="#quiz">پیدا کردن مسیر من</a>
-                </div>
-            </div>
-            <div class="vis">
-                <i class="m"><svg class="i"><use href="#cap"/></svg></i>
-                <i class="t1"><svg class="i"><use href="#code"/></svg></i>
-                <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
-            </div>
-        </div>
-
-        <!-- اسلاید ۲: تمرین و آزمون -->
-        <div class="sl" style="--a:#f97316;--b:#7c3aed">
-            <div>
-                <span class="bd">تمرین و تست‌محور</span>
-                <h1>هر فصل، یک مهارت واقعی برای موفقیتت</h1>
-                <p>به‌جای تماشای صرف، تمرین کن، آزمون بده و رشد درسی و تحصیلی‌ات را گام‌به‌گام بساز.</p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-                    <a class="btn" href="{{ route('public.courses.index') }}">شروع یادگیری <svg class="i"><use href="#arrl"/></svg></a>
-                    <a class="btn o" href="{{ route('public.courses.index', ['grade' => 'کنکور']) }}">دوره‌های کنکور</a>
-                </div>
-            </div>
-            <div class="vis">
-                <i class="m"><svg class="i"><use href="#rocket"/></svg></i>
-                <i class="t1"><svg class="i"><use href="#award"/></svg></i>
-                <i class="t2"><svg class="i"><use href="#pen"/></svg></i>
-            </div>
-        </div>
-
-        <!-- اسلاید ۳: همراهی مدرسان -->
-        <div class="sl" style="--a:#2563eb;--b:#0d9488">
-            <div>
-                <span class="bd">پشتیبانی و همراهی</span>
-                <h1>مدرس کنارت است، نه فقط پشت ویدیو</h1>
-                <p>سؤال بپرس، رفع اشکال کن و با نظارت مستمر اساتید مسیرت را تا رسیدن به نتیجه ادامه بده.</p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-                    <a class="btn" href="{{ route('public.teachers.index') }}">آشنایی با مدرسان <svg class="i"><use href="#arrl"/></svg></a>
-                    <a class="btn o" href="{{ route('public.contact') }}">مشاوره رایگان</a>
-                </div>
-            </div>
-            <div class="vis">
-                <i class="m"><svg class="i"><use href="#user"/></svg></i>
-                <i class="t1"><svg class="i"><use href="#help"/></svg></i>
-                <i class="t2"><svg class="i"><use href="#star"/></svg></i>
-            </div>
-        </div>
     @endif
 
     <div class="dots" id="heroDots"></div>
 </header>
+@endif
 <section id="quiz" style="background:var(--sf);padding:64px 0">
     <div class="c">
         <div class="qz">
@@ -124,28 +72,23 @@
         </div>
         <div class="g6">
             @php
-                $mainCategories = [
-                    ['ریاضی', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)'],
-                    ['فیزیک', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)'],
-                    ['شیمی', 'pen', 'linear-gradient(135deg,#f97316,#db2777)'],
-                    ['زیست', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)'],
-                    ['زبان', 'lang', 'linear-gradient(135deg,#0891b2,#2563eb)'],
-                    ['ادبیات', 'brief', 'linear-gradient(135deg,#7c3aed,#db2777)'],
+                $categoryStyles = [
+                    'ریاضی' => ['chart', 'linear-gradient(135deg,#2563eb,#7c3aed)'],
+                    'فیزیک' => ['rocket', 'linear-gradient(135deg,#0d9488,#0f766e)'],
+                    'شیمی' => ['pen', 'linear-gradient(135deg,#f97316,#db2777)'],
+                    'زیست' => ['user', 'linear-gradient(135deg,#16a34a,#0d9488)'],
+                    'زبان' => ['lang', 'linear-gradient(135deg,#0891b2,#2563eb)'],
+                    'ادبیات' => ['brief', 'linear-gradient(135deg,#7c3aed,#db2777)'],
                 ];
             @endphp
-            @foreach($mainCategories as $catItem)
-                @php
-                    $catName = $catItem[0];
-                    $catIcon = $catItem[1];
-                    $catGrad = $catItem[2];
-                    $hasCourse = $categories->contains($catName);
-                @endphp
+            @foreach($categories as $catName)
+                @php($categoryStyle = $categoryStyles[$catName] ?? ['cap', 'linear-gradient(135deg,#0d9488,#1e3a8a)'])
                 <a class="card cat" href="{{ route('public.courses.index', ['subject' => $catName]) }}">
-                    <div class="ic" style="background:{{ $catGrad }}">
-                        <svg class="i"><use href="#{{ $catIcon }}"/></svg>
+                    <div class="ic" style="background:{{ $categoryStyle[1] }}">
+                        <svg class="i"><use href="#{{ $categoryStyle[0] }}"/></svg>
                     </div>
                     <b>{{ $catName }}</b>
-                    <small>{{ $hasCourse ? '۱ دوره فعال' : 'دوره‌ها' }}</small>
+                    <small>مشاهده دوره‌ها</small>
                 </a>
             @endforeach
         </div>
@@ -156,19 +99,19 @@
     <div class="c">
         <div class="g">
             <div>
-                <b>+{{ number_format(max($stats['enrollments'], 1200)) }}</b>
-                <span>دانشجوی فعال</span>
+                <b>{{ number_format($stats['enrollments']) }}</b>
+                <span>ثبت‌نام فعال</span>
             </div>
             <div>
-                <b>+{{ number_format(max($stats['lessons'], 150)) }}</b>
-                <span>جلسه آموزشی</span>
+                <b>{{ number_format($stats['lessons']) }}</b>
+                <span>درس منتشرشده</span>
             </div>
             <div>
-                <b>{{ number_format(max($stats['teachers'], 8)) }}</b>
+                <b>{{ number_format($stats['teachers']) }}</b>
                 <span>مدرس متخصص</span>
             </div>
             <div>
-                <b>{{ number_format(max($stats['courses'], 1)) }}</b>
+                <b>{{ number_format($stats['courses']) }}</b>
                 <span>دوره منتشرشده</span>
             </div>
         </div>
@@ -190,62 +133,47 @@
         <div class="g4">
             {{-- دوره‌های واقعی دیتابیس --}}
             @foreach($courses as $course)
-                <x-public.academy.course-card :course="$course" />
-            @endforeach
-
-            {{-- در صورت کم بودن دوره‌های دیتابیس، نمایش دوره‌های مبدا با اندازه استاندارد و بدون کشیدگی --}}
-            @php
-                $existingCount = $courses->count();
-                $placeholders = [
-                    ['فیزیک یازدهم و کنکور تخصصی', 'فیزیک', 'مهندس رضایی', '۲۴ جلسه', '۴٫۸', '۱٬۸۰۰', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', 'به‌زودی', '۷۹۰٬۰۰۰'],
-                    ['شیمی جامع کنکور و تست‌های طلایی', 'شیمی', 'دکتر کریمی', '۳۰ جلسه', '۴٫۷', '۱٬۵۰۰', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', 'به‌زودی', '۶۹۰٬۰۰۰'],
-                    ['زیست‌شناسی مفهومی و نهایی', 'زیست', 'دکتر نوری', '۴۲ جلسه', '۴٫۹', '۲٬۶۰۰', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', 'به‌زودی', '۸۵۰٬۰۰۰'],
-                    ['ریاضیات پایه و کنکور تجربی', 'ریاضی', 'دکتر احمدی', '۳۶ جلسه', '۴٫۸', '۲٬۱۰۰', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'به‌زودی', '۸۹۰٬۰۰۰'],
-                ];
-                $needed = max(0, 4 - $existingCount);
-            @endphp
-            @for($i = 0; $i < $needed; $i++)
-                @php $ph = $placeholders[$i % count($placeholders)]; @endphp
                 <article class="card cc">
-                    <a class="th" href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}" style="background:{{ $ph[7] }}">
-                        <svg class="i"><use href="#{{ $ph[6] }}"/></svg>
-                        <span class="bd">{{ $ph[8] }}</span>
+                    @php
+                        $courseGradients = [
+                            'ریاضی' => ['linear-gradient(135deg,#2563eb,#7c3aed)', 'chart'],
+                            'فیزیک' => ['linear-gradient(135deg,#0d9488,#0f766e)', 'rocket'],
+                            'شیمی' => ['linear-gradient(135deg,#f97316,#db2777)', 'pen'],
+                            'زیست' => ['linear-gradient(135deg,#16a34a,#0d9488)', 'user'],
+                            'زبان' => ['linear-gradient(135deg,#0891b2,#2563eb)', 'lang'],
+                            'ادبیات' => ['linear-gradient(135deg,#7c3aed,#db2777)', 'pen'],
+                        ];
+                        $courseStyle = $courseGradients[$course->subject ?? ''] ?? ['linear-gradient(135deg,#0d9488,#1e3a8a)', 'cap'];
+                        $courseLessonsCount = (int) $course->sections->sum('lessons_count');
+                    @endphp
+                    <a class="th" href="{{ route('public.courses.show', $course->slug) }}" style="background:{{ $courseStyle[0] }}" aria-label="مشاهده {{ $course->title }}">
+                        <svg class="i"><use href="#{{ $courseStyle[1] }}"/></svg>
+                        <span class="bd {{ $course->type === 'free' ? 'bd-free' : '' }}">{{ $course->type === 'free' ? 'رایگان' : ($course->grade ? 'پایه '.$course->grade : ($course->subject ?: 'ویژه')) }}</span>
                     </a>
                     <div class="cb">
-                        <h3>
-                            <a href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}">
-                                {{ $ph[0] }}
-                            </a>
-                        </h3>
-                        <small style="color:var(--mute);margin-bottom:8px;display:block">
-                            مدرس: {{ $ph[2] }}
-                        </small>
+                        <h3><a href="{{ route('public.courses.show', $course->slug) }}">{{ $course->title }}</a></h3>
+                        @if($course->teacher)
+                            <small style="color:var(--mute);margin-bottom:8px;display:block">مدرس: {{ $course->teacher->name }}</small>
+                        @endif
                         <div class="mt">
-                            <span>
-                                <svg class="i"><use href="#clock"/></svg>
-                                {{ $ph[3] }}
-                            </span>
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                                {{ $ph[4] }}
-                            </span>
-                            <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ $ph[5] }}
-                            </span>
+                            <span><svg class="i"><use href="#clock"/></svg>{{ $courseLessonsCount > 0 ? $courseLessonsCount.' درس' : 'دوره آموزشی' }}</span>
+                            <span><svg class="i"><use href="#user"/></svg>{{ number_format($course->enrollments_count ?? 0) }} ثبت‌نام فعال</span>
                         </div>
                         <div class="pr">
                             <div>
-                                <b>{{ $ph[9] }}</b>
-                                <small>تومان</small>
+                                @if($course->type === 'free')
+                                    <b style="color:var(--pri)">رایگان</b>
+                                @else
+                                    <b>{{ number_format((int) $course->price) }}</b><small>تومان</small>
+                                @endif
                             </div>
-                            <a class="btn s o" style="color:var(--pri)" href="{{ route('public.courses.index', ['subject' => $ph[1]]) }}">
-                                اطلاعات
-                            </a>
+                            <a class="btn s" href="{{ route('public.courses.show', $course->slug) }}">مشاهده</a>
                         </div>
                     </div>
                 </article>
-            @endfor
+            @endforeach
+
+
         </div>
     </div>
 </section>
@@ -286,7 +214,6 @@
                         <div class="mt" style="margin-bottom:4px">
                             <span style="color:#f59e0b">
                                 <svg class="i"><use href="#star"/></svg>
-                                ۴٫۹
                             </span>
                             <span>
                                 <svg class="i"><use href="#user"/></svg>
@@ -305,49 +232,7 @@
                 </a>
             @endforeach
 
-            {{-- تکمیل دوره‌های پرطرفدار مبدا تا ۶ آیتم با ابعاد ثابت --}}
-            @php
-                $popExisting = $popularCourses->count();
-                $popSamples = [
-                    ['فیزیک دوازدهم نهایی و تست', 'مهندس رضایی', '۲٬۱۰۰ دانشجو', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', '۸۵۰٬۰۰۰ ت'],
-                    ['زیست‌شناسی جامع کنکور', 'دکتر نوری', '۳٬۲۰۰ دانشجو', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', '۱٬۱۹۰٬۰۰۰ ت'],
-                    ['جمع‌بندی ریاضی و حسابان', 'دکتر احمدی', '۳٬۵۰۰ دانشجو', 'chart', 'linear-gradient(135deg,#2563eb,#7c3aed)', '۱٬۲۹۰٬۰۰۰ ت'],
-                    ['واژگان و ریدینگ زبان کنکور', 'خانم صادقی', '۱٬۹۰۰ دانشجو', 'lang', 'linear-gradient(135deg,#0891b2,#2563eb)', '۵۹۰٬۰۰۰ ت'],
-                    ['شیمی دوازدهم جمع‌بندی', 'دکتر کریمی', '۲٬۴۰۰ دانشجو', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', '۷۹۰٬۰۰۰ ت'],
-                    ['هندسه و گسسته جامع کنکور', 'مهندس سهرابی', '۱٬۶۰۰ دانشجو', 'pen', 'linear-gradient(135deg,#059669,#047857)', '۶۹۰٬۰۰۰ ت'],
-                ];
-                $popNeeded = max(0, 6 - $popExisting);
-            @endphp
-            @for($j = 0; $j < $popNeeded; $j++)
-                @php $ps = $popSamples[$j % count($popSamples)]; @endphp
-                <a class="card pop" href="{{ route('public.courses.index') }}">
-                    <span class="n">{{ $popExisting + $j + 1 }}</span>
-                    <div class="th" style="background:{{ $ps[4] }}">
-                        <svg class="i"><use href="#{{ $ps[3] }}"/></svg>
-                    </div>
-                    <div style="flex:1">
-                        <h3>{{ $ps[0] }}</h3>
-                        <div class="mt" style="margin-bottom:4px">
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                                ۴٫۸
-                            </span>
-                            <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ $ps[2] }}
-                            </span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-                            <span style="font-size:13px;color:var(--mute)">
-                                {{ $ps[1] }}
-                            </span>
-                            <span style="font-weight:700;color:var(--pri);font-size:14px">
-                                {{ $ps[5] }}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            @endfor
+
         </div>
     </div>
 </section>
@@ -433,53 +318,23 @@
     </div>
 </section>
 
-{{-- نظرات دانش‌آموزان --}}
+{{-- نظرهای تأییدشده از پنل سئو --}}
+@if($testimonials->isNotEmpty())
 <section style="padding:64px 0">
     <div class="c">
-        <div class="sh">
-            <div>
-                <span class="eyebrow">نظرات</span>
-                <h2>دانشجوها چه می‌گویند؟</h2>
-                <p>تجربه واقعی دانش‌آموزان از دوره‌ها و آزمون‌های شیخان</p>
-            </div>
-        </div>
+        <div class="sh"><div><span class="eyebrow">نظرهای ثبت‌شده</span><h2>تجربه دانش‌آموزان</h2></div></div>
         <div class="g3">
-            <div class="card ts">
-                <div class="stars">★★★★★</div>
-                <p>«ساختار فصل‌ها و پشتیبانی مستقیم استاد دقیقاً همان چیزی بود که برای درس ریاضی لازم داشتم؛ تراز نهایی‌ام خیلی رشد کرد.»</p>
-                <div class="who">
-                    <div class="av" style="background:linear-gradient(135deg,#0d9488,#0f766e)">س</div>
-                    <div>
-                        <b>سارا احمدی</b>
-                        <small style="color:var(--mute);display:block">دانش‌آموز پایه دوازدهم</small>
-                    </div>
-                </div>
-            </div>
-            <div class="card ts">
-                <div class="stars">★★★★★</div>
-                <p>«کوییزها و آزمون‌های مرحله‌ای باعث شد نقاط ضعفم را قبل از امتحانات پیدا کنم. پنل کاربری هم کار با ویدیوها را خیلی راحت کرده.»</p>
-                <div class="who">
-                    <div class="av" style="background:linear-gradient(135deg,#f97316,#db2777)">ع</div>
-                    <div>
-                        <b>علی رضایی</b>
-                        <small style="color:var(--mute);display:block">داوطلب کنکور تجربی</small>
-                    </div>
-                </div>
-            </div>
-            <div class="card ts">
-                <div class="stars">★★★★★</div>
-                <p>«پاسخگویی مدرسان به سوالات سریع و دقیق است. گزارش‌های پنل والدین هم به ما کمک کرد پیگیر وضعیت درسی فرزندمان باشیم.»</p>
-                <div class="who">
-                    <div class="av" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">م</div>
-                    <div>
-                        <b>مریم کاظمی</b>
-                        <small style="color:var(--mute);display:block">ولی دانش‌آموز</small>
-                    </div>
-                </div>
-            </div>
+            @foreach($testimonials as $testimonial)
+                <article class="card ts">
+                    <div class="stars" aria-label="{{ $testimonial->rating }} از ۵ ستاره">{{ str_repeat('★', $testimonial->rating) }}{{ str_repeat('☆', 5 - $testimonial->rating) }}</div>
+                    <p>«{{ $testimonial->quote }}»</p>
+                    <div class="who"><div class="av">{{ mb_substr($testimonial->name, 0, 1) }}</div><div><b>{{ $testimonial->name }}</b>@if($testimonial->role)<small style="color:var(--mute);display:block">{{ $testimonial->role }}</small>@endif</div></div>
+                </article>
+            @endforeach
         </div>
     </div>
 </section>
+@endif
 
 {{-- مدرسان شیخان --}}
 @if($teachers->isNotEmpty())
@@ -506,7 +361,6 @@
                     <div class="mt">
                         <span style="color:#f59e0b">
                             <svg class="i"><use href="#star"/></svg>
-                            ۴٫۹
                         </span>
                         <span>
                             <svg class="i"><use href="#cam"/></svg>

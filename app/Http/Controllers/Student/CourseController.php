@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\UpdateLessonProgressRequest;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
+use App\Models\SpotPlayerLicense;
 use App\Models\Lesson;
 use App\Services\CourseProgressService;
 use Illuminate\Http\RedirectResponse;
@@ -56,6 +57,9 @@ final class CourseController extends Controller
             : null;
 
         $selectedSection ??= $sections->first();
+        $license = $course->delivery_type === 'spotplayer'
+            ? SpotPlayerLicense::query()->where('student_id', $request->user()->id)->where('course_id', $course->id)->latest('id')->first()
+            : null;
 
         $lessons = $selectedSection
             ? $selectedSection->lessons()
@@ -65,7 +69,7 @@ final class CourseController extends Controller
                 ->withQueryString()
             : null;
 
-        return view('student.courses.show', compact('course', 'sections', 'selectedSection', 'lessons'));
+        return view('student.courses.show', compact('course', 'sections', 'selectedSection', 'lessons', 'license'));
     }
 
     public function updateProgress(

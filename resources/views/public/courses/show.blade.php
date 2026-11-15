@@ -26,10 +26,6 @@
             <p>{{ \Illuminate\Support\Str::limit(strip_tags($course->description), 200) }}</p>
         @endif
         <div class="mt">
-            <span style="color:#fbbf24">
-                <svg class="i"><use href="#star"/></svg>
-                ۴٫۸ (رضایت دانش‌آموزان)
-            </span>
             <span>
                 <svg class="i"><use href="#user"/></svg>
                 {{ number_format($course->enrollments_count ?? 0) }} دانش‌آموز
@@ -48,10 +44,9 @@
 {{-- تب‌بار ناوبری سریع سرفصل‌ها --}}
 <div class="stab">
     <div class="c">
-        <a href="#c1">آنچه یاد می‌گیری</a>
+        @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $course->sections->count() }} فصل)</a>
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
-        <a href="#c4">نظرات و رضایت</a>
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
 </div>
@@ -60,14 +55,38 @@
 <div class="c">
     <div class="cr">
         <div>
-            {{-- کاور ویدیو پلیر معرفی دوره --}}
-            <div class="vd">
-                <span class="play" title="مشاهده پیش‌نمایش دوره">
-                    <svg class="i"><path d="M8 5v14l11-7z"/></svg>
-                </span>
-            </div>
+            {{-- تیزر عمومی دوره؛ فقط خروجی پردازش‌شده منتشر می‌شود --}}
+            @if ($course->teaser_status === 'ready' && $course->teaser_url)
+                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls playsinline preload="none" @if($course->teaser_poster_url) poster="{{ $course->teaser_poster_url }}" @endif aria-label="تیزر دوره {{ $course->title }}">
+                    <source src="{{ $course->teaser_url }}" type="video/mp4">
+                    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                </video>
+            @else
+                <div class="vd" role="status">
+                    <span class="play"><svg class="i"><use href="#video"/></svg></span>
+                    <span>
+                        @if($course->teaser_status === 'uploading')
+                            تیزر در حال بارگذاری است
+                        @elseif($course->teaser_status === 'processing')
+                            تیزر در حال آماده‌سازی است
+                        @elseif($course->teaser_status === 'failed')
+                            تیزر فعلاً در دسترس نیست
+                        @else
+                            برای این دوره تیزر منتشر نشده است
+                        @endif
+                    </span>
+                </div>
+            @endif
 
-            {{-- بخش ۱: در این دوره چه یاد می‌گیری؟ --}}
+            {{-- معرفی دوره بر اساس محتوای ثبت‌شده در پنل مدیریت --}}
+            @if($course->description)
+                <div class="card blk" id="c1">
+                    <h2>معرفی دوره</h2>
+                    <p style="margin:0;color:var(--mute);line-height:2;font-size:15px;white-space:pre-line">{{ $course->description }}</p>
+                </div>
+            @endif
+
+
             <div class="card blk" id="c1">
                 <h2>در این دوره چه یاد می‌گیری؟</h2>
                 <ul class="learn">
@@ -148,7 +167,7 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    $isPreview = ($loop->parent->first && $loop->first);
+                                                    $isPreview = false;
                                                 @endphp
                                                 <div class="lesson-row {{ $isPreview ? 'is-preview' : '' }}">
                                                     <div class="lesson-main">
@@ -196,16 +215,6 @@
                 @endif
             </div>
 
-            {{-- توضیحات تکمیلی دوره --}}
-            @if($course->description)
-                <div class="card blk">
-                    <h2>توضیحات و اهداف دوره</h2>
-                    <p style="margin:0;color:var(--mute);line-height:2;font-size:15px;white-space:pre-line">
-                        {{ $course->description }}
-                    </p>
-                </div>
-            @endif
-
             {{-- بخش ۳: مدرس دوره --}}
             @if($teacher)
                 <div class="card blk" id="c3">
@@ -236,25 +245,6 @@
                 </div>
             @endif
 
-            {{-- بخش ۴: نظرات و رضایت دانش‌آموزان --}}
-            <div class="card blk" id="c4">
-                <h2>نظرات و رضایت دانش‌آموزان</h2>
-                <div class="rv">
-                    <span style="width:24px;font-weight:700">۵</span>
-                    <div class="qbar"><i style="width:84%"></i></div>
-                    <span style="width:40px;text-align:left;color:var(--mute);font-size:13px">۸۴٪</span>
-                </div>
-                <div class="rv">
-                    <span style="width:24px;font-weight:700">۴</span>
-                    <div class="qbar"><i style="width:12%"></i></div>
-                    <span style="width:40px;text-align:left;color:var(--mute);font-size:13px">۱۲٪</span>
-                </div>
-                <div class="rv">
-                    <span style="width:24px;font-weight:700">۳</span>
-                    <div class="qbar"><i style="width:4%"></i></div>
-                    <span style="width:40px;text-align:left;color:var(--mute);font-size:13px">۴٪</span>
-                </div>
-            </div>
         </div>
 
         {{-- سایدبار استیکی قیمت و ثبت‌نام --}}
@@ -272,23 +262,29 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('public.cart.add', $course) }}">
-                @csrf
-                <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">
-                    {{ $course->type === 'paid' ? 'ثبت‌نام در دوره' : 'شروع رایگان دوره' }}
-                </button>
-            </form>
-
-            @guest
-                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">
-                    ورود به حساب کاربری
-                </a>
-            @endguest
+            @if ($hasCourseAccess)
+                <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
+            @elseif (auth()->check() && auth()->user()->hasRole('student') && $course->type === 'free')
+                <form method="POST" action="{{ route('student.courses.enroll-free', $course) }}">
+                    @csrf
+                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام رایگان</button>
+                </form>
+            @elseif ($course->type === 'paid')
+                <form method="POST" action="{{ route('public.cart.add', $course) }}">
+                    @csrf
+                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام در دوره</button>
+                </form>
+                @guest
+                    <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">ورود به حساب کاربری</a>
+                @endguest
+            @elseif (auth()->guest())
+                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">برای ثبت‌نام رایگان وارد شوید</a>
+            @else
+                <p class="mu" style="text-align:center">ثبت‌نام رایگان فقط از حساب فعال دانش‌آموز انجام می‌شود.</p>
+            @endif
 
             <p style="font-size:13px;color:var(--mute);margin:14px 0 0;text-align:center;line-height:1.7">
-                پس از ثبت‌نام، دوره بلافاصله در 
-                <a href="{{ route('student.dashboard') }}" style="color:var(--pri);font-weight:700">پنل دانش‌آموز</a> 
-                فعال می‌شود.
+                دسترسی دوره بر اساس وضعیت ثبت‌نام و تأیید پرداخت مدیریت می‌شود.
             </p>
 
             <ul>
@@ -298,7 +294,7 @@
                 </li>
                 <li>
                     <svg class="i"><use href="#inf"/></svg>
-                    <span>دسترسی همیشگی به تمام سرفصل‌ها</span>
+                    <span>دسترسی به سرفصل‌های منتشرشده بر اساس وضعیت ثبت‌نام</span>
                 </li>
                 <li>
                     <svg class="i"><use href="#help"/></svg>
@@ -312,7 +308,8 @@
         </aside>
     </div>
 
-    {{-- دوره‌های مرتبط --}}
+    @if($relatedCourses->isNotEmpty())
+{{-- دوره‌های مرتبط واقعی --}}
     <section id="rel" style="padding:48px 0 32px">
         <div class="sh">
             <div>
@@ -330,58 +327,7 @@
                 <x-public.academy.course-card :course="$related" />
             @endforeach
 
-            {{-- تکمیل دوره‌های مکمل بر اساس مبدا تا ۳ کارت اندازه ثابت --}}
-            @php
-                $relatedCount = $relatedCourses->count();
-                $samples = [
-                    ['فیزیک یازدهم و دوازدهم تخصصی', 'فیزیک', 'مهندس رضایی', '۲۴ جلسه', '۴٫۸', '۱٬۸۰۰', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', 'پایه یازدهم', '۷۹۰٬۰۰۰'],
-                    ['شیمی جامع کنکور و تست‌های طلایی', 'شیمی', 'دکتر کریمی', '۳۰ جلسه', '۴٫۷', '۱٬۵۰۰', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', 'کنکور', '۶۹۰٬۰۰۰'],
-                    ['زیست‌شناسی مفهومی و نهایی', 'زیست', 'دکتر نوری', '۴۲ جلسه', '۴٫۹', '۲٬۶۰۰', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', 'پایه دوازدهم', '۸۵۰٬۰۰۰'],
-                ];
-            @endphp
-            @for($k = 0; $k < (3 - $relatedCount); $k++)
-                @php $sm = $samples[$k]; @endphp
-                <article class="card cc">
-                    <a class="th" href="{{ route('public.courses.index', ['subject' => $sm[1]]) }}" style="background:{{ $sm[7] }}">
-                        <svg class="i"><use href="#{{ $sm[6] }}"/></svg>
-                        <span class="bd">{{ $sm[8] }}</span>
-                    </a>
-                    <div class="cb">
-                        <h3>
-                            <a href="{{ route('public.courses.index', ['subject' => $sm[1]]) }}">
-                                {{ $sm[0] }}
-                            </a>
-                        </h3>
-                        <small style="color:var(--mute);margin-bottom:8px;display:block">
-                            مدرس: {{ $sm[2] }}
-                        </small>
-                        <div class="mt">
-                            <span>
-                                <svg class="i"><use href="#clock"/></svg>
-                                {{ $sm[3] }}
-                            </span>
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                                {{ $sm[4] }}
-                            </span>
-                            <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ $sm[5] }} دانشجو
-                            </span>
-                        </div>
-                        <div class="pr">
-                            <div>
-                                <b>{{ $sm[9] }}</b>
-                                <small>تومان</small>
-                            </div>
-                            <a class="btn s o" style="color:var(--pri)" href="{{ route('public.courses.index', ['subject' => $sm[1]]) }}">
-                                مشاهده
-                            </a>
-                        </div>
-                    </div>
-                </article>
-            @endfor
-        </div>
     </section>
+@endif
 </div>
 @endsection

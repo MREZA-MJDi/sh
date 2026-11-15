@@ -1,4 +1,5 @@
 @import '../rich-text.css';
+@import '../shared/brand-tokens.css';
 @import 'tailwindcss';
 @import './tones.css';
 @source '../../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -7,22 +8,22 @@
 @source '../../js/admin/**/*.js';
 
 body.admin-body {
-    --adm-bg:#eef0f7; --adm-card:#fff; --adm-ink:#141c45; --adm-muted:#626c8f;
-    --adm-line:#e2e6f2; --adm-primary:#26389a; --adm-primary-soft:#e9ecfb;
-    --adm-teal:#0b8f80; --adm-teal-soft:#d9f3ee; --adm-amber:#f0a21a;
-    --adm-amber-soft:#fdefcf; --adm-red:#cf3f4b; --adm-red-soft:#fbe2e4;
-    --adm-sidebar:#10173f; --adm-sidebar-muted:#c3cbef;
-    --adm-shadow:0 1px 2px rgba(20,28,69,.06),0 8px 24px -12px rgba(20,28,69,.18);
+    --adm-bg:var(--brand-bg); --adm-card:var(--brand-card); --adm-ink:var(--brand-ink); --adm-muted:var(--brand-muted);
+    --adm-line:var(--brand-line); --adm-primary:var(--brand-primary); --adm-primary-soft:var(--brand-primary-soft);
+    --adm-teal:var(--brand-teal); --adm-teal-soft:var(--brand-teal-soft); --adm-amber:var(--brand-amber);
+    --adm-amber-soft:var(--brand-amber-soft); --adm-red:var(--brand-red); --adm-red-soft:var(--brand-red-soft);
+    --adm-sidebar:var(--brand-sidebar); --adm-sidebar-muted:var(--brand-sidebar-muted);
+    --adm-shadow:var(--brand-shadow);
     margin:0; min-height:100dvh; background:var(--adm-bg); color:var(--adm-ink);
     font:14px/1.8 Vazirmatn,Tahoma,sans-serif; color-scheme:light;
 }
 html:has(body.admin-body[data-theme="dark"]) { color-scheme:dark; }
 body.admin-body[data-theme="dark"], html[data-admin-theme="dark"] body.admin-body {
-    --adm-bg:#0b1029; --adm-card:#141b3f; --adm-ink:#edf0fc; --adm-muted:#98a2cf;
-    --adm-line:#252e60; --adm-primary:#94a6ff; --adm-primary-soft:#222c66;
-    --adm-teal:#3ccdb9; --adm-teal-soft:#10393a; --adm-amber:#f5b942;
-    --adm-amber-soft:#47381a; --adm-red:#ff7f89; --adm-red-soft:#48202a;
-    --adm-sidebar:#080c22; --adm-sidebar-muted:#c3cbef; --adm-shadow:none;
+    --adm-bg:var(--brand-bg); --adm-card:var(--brand-card); --adm-ink:var(--brand-ink); --adm-muted:var(--brand-muted);
+    --adm-line:var(--brand-line); --adm-primary:var(--brand-primary); --adm-primary-soft:var(--brand-primary-soft);
+    --adm-teal:var(--brand-teal); --adm-teal-soft:var(--brand-teal-soft); --adm-amber:var(--brand-amber);
+    --adm-amber-soft:var(--brand-amber-soft); --adm-red:var(--brand-red); --adm-red-soft:var(--brand-red-soft);
+    --adm-sidebar:var(--brand-sidebar); --adm-sidebar-muted:var(--brand-sidebar-muted); --adm-shadow:var(--brand-shadow);
     color-scheme:dark;
 }
 body.admin-body *, body.admin-body *::before, body.admin-body *::after { box-sizing:border-box; }

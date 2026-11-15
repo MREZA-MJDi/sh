@@ -5,7 +5,7 @@
 
 @section('content')
     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="learning">
         <div><h2>کلاس‌های آکادمی</h2><p>{{ $classrooms->total() }} کلاس ثبت‌شده</p></div>
         @canany(['classes.manage', 'classes.manage.assigned'])
             <button class="panel-btn" type="button" data-admin-drawer-open="class-create" data-drawer-title="کلاس جدید">＋ کلاس جدید</button>
@@ -39,7 +39,7 @@
                             @endif
                         </td>
                         @canany(['classes.manage', 'classes.manage.assigned'])
-                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="class-edit-{{ $classroom->id }}" data-drawer-title="ویرایش کلاس">ویرایش</button></td>
+                            <td><div style="display:flex;gap:6px;flex-wrap:wrap"><a class="panel-btn panel-btn-sm" href="{{ route('admin.classes.sessions.index', $classroom) }}">جلسه‌ها</a><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="class-edit-{{ $classroom->id }}" data-drawer-title="ویرایش کلاس">ویرایش</button></div></td>
                         @endcanany
                     </tr>
                     @canany(['classes.manage', 'classes.manage.assigned'])

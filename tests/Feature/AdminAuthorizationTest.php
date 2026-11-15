@@ -91,6 +91,7 @@ class AdminAuthorizationTest extends TestCase
 
         $this->assertTrue($teacher->hasPermissionTo('homework.grade'));
         $this->assertTrue($teacher->hasPermissionTo('attendance.manage.assigned'));
+        $this->assertTrue($teacher->hasPermissionTo('videos.manage.assigned'));
         $this->assertFalse($teacher->hasPermissionTo('users.manage'));
         $this->assertFalse($teacher->hasPermissionTo('integrations.manage'));
     }

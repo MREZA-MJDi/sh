@@ -5,8 +5,10 @@ namespace App\Services\Courses;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\IntegrationRun;
+use App\Models\VideoUploadSession;
 use App\Services\Integrations\IntegrationOperationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -74,6 +76,10 @@ class CourseService
 
     public function delete(Course $course): void
     {
+        if ($course->teaser_status === 'processing') {
+            throw ValidationException::withMessages(['course' => 'تا پایان پردازش تیزر، حذف دوره مجاز نیست.']);
+        }
+
         if (
             $course->classrooms()->exists()
             || $course->enrollments()->exists()
@@ -86,6 +92,21 @@ class CourseService
             throw ValidationException::withMessages([
                 'course' => 'این دوره دارای کلاس، ثبت‌نام یا محتوای آموزشی است؛ برای حفظ سوابق آن را بایگانی کنید.',
             ]);
+        }
+
+        VideoUploadSession::query()->where('target', 'teaser')->where('target_id', $course->id)
+            ->where('status', 'uploading')->get()->each(function (VideoUploadSession $session): void {
+                Storage::disk('local')->deleteDirectory('chunks/'.$session->upload_id);
+                $session->update(['status' => 'cancelled']);
+            });
+
+        foreach ([$course->teaser_path, $course->teaser_poster_path] as $path) {
+            if ($path) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+        if ($course->teaser_original_path) {
+            Storage::disk('local')->delete($course->teaser_original_path);
         }
 
         $course->delete();

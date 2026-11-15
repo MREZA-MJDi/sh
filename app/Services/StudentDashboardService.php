@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
@@ -24,6 +25,17 @@ final class StudentDashboardService
             ->with(['course:id,title,subject,grade', 'teacher:id,name'])
             ->orderBy('classrooms.name')
             ->limit(6)
+            ->get();
+
+        $upcomingSessions = ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'scheduled')
+            ->where('session_type', 'online')
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '>=', now())
+            ->with('classroom:id,name,meeting_url')
+            ->orderBy('starts_at')
+            ->limit(10)
             ->get();
 
         $homeworkQuery = Homework::query()
@@ -60,7 +72,7 @@ final class StudentDashboardService
             ->count();
 
         $attendance = (clone $attendanceQuery)
-            ->with('classroom:id,name')
+            ->with(['classroom:id,name', 'session:id,starts_at,ends_at'])
             ->latest('session_date')
             ->limit(6)
             ->get();
@@ -83,8 +95,9 @@ final class StudentDashboardService
             ->get();
 
         $resourceQuery = LearningResource::query()
-            ->whereIn('visibility', ['enrolled', 'authenticated'])
+            ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
             ->where('status', 'published')
+            ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
                         ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function (Builder $classScoped) use ($classroomIds, $courseIds): void {
                     $classScoped->whereNotNull('classroom_id')
@@ -99,6 +112,9 @@ final class StudentDashboardService
                         });
                 })->orWhere(function (Builder $courseOnly) use ($courseIds): void {
                     $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                })->orWhere(function (Builder $unscoped): void {
+                    $unscoped->whereNull('classroom_id')->whereNull('course_id')
+                        ->whereIn('visibility', ['public', 'authenticated']);
                 });
             });
 
@@ -106,7 +122,7 @@ final class StudentDashboardService
             ->with(['course:id,title', 'classroom:id,name'])
             ->latest()
             ->limit(5)
-            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'created_at']);
+            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'downloadable', 'created_at']);
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6);
 
@@ -119,6 +135,7 @@ final class StudentDashboardService
 
         return [
             'classrooms' => $classrooms,
+            'upcoming_sessions' => $upcomingSessions,
             'course_progress' => $courseProgress,
             'classroom_count' => (clone $classroomIds)->count(),
             'homeworks' => $homeworks,

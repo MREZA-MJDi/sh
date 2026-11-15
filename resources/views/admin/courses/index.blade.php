@@ -5,7 +5,7 @@
 
 @section('content')
     @php($teacherView = auth()->user()->hasRole('teacher') && ! auth()->user()->hasRole('admin'))
-    <div class="panel-page-head">
+    <div class="panel-page-head" data-tone="learning">
         <div><h2>دوره‌های آموزشی</h2><p>{{ $courses->total() }} دوره در این فهرست</p></div>
         @can('courses.manage')
             <button class="panel-btn" type="button" data-admin-drawer-open="course-create" data-drawer-title="دوره جدید">＋ ساخت دوره</button>
@@ -39,7 +39,7 @@
                             <td><a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.content', $course) }}">مدیریت درس‌ها</a></td>
                         @endcanany
                         @can('courses.manage')
-                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button></td>
+                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button> <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.teaser', $course) }}">مدیریت تیزر</a></td>
                         @endcan
                     </tr>
                     @can('courses.manage')
