@@ -910,3 +910,8 @@ footer .cp { border-top: 1px solid #22305a; margin-top: 40px; padding-top: 20px;
   .art { padding: 20px 16px; }
   .art .th { aspect-ratio: 16/9; }
 }
+
+.seo-social-icons{display:flex;align-items:center;gap:14px;margin-top:14px}
+.seo-social-icons a{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);transition:transform .18s ease,background .18s ease}
+.seo-social-icons a:hover{transform:translateY(-2px);background:rgba(255,255,255,.14)}
+.seo-social-icons svg{display:block;width:19px;height:19px}
