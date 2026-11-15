@@ -18,8 +18,11 @@
         </button>
 
         <a class="logo" href="{{ route('home') }}" style="margin:0;cursor:pointer">
-            <svg class="i"><use href="#cap"/></svg>
-            <span>{{ $settings->site_name ?? 'شیخان' }}</span>
+            @if($settings->organization_logo_path)
+                <img src="{{ Storage::disk('public')->url($settings->organization_logo_path) }}" alt="{{ $settings->organization_name ?: $settings->site_name }}" style="max-width:150px;max-height:44px;object-fit:contain">
+            @else
+                <svg class="i"><use href="#cap"/></svg><span>{{ $settings->site_name ?? 'شیخان' }}</span>
+            @endif
         </a>
 
         <nav class="links" id="lk" aria-label="ناوبری اصلی">
@@ -46,9 +49,9 @@
                         <a href="{{ route('public.courses.index', ['subject' => 'زیست']) }}">زیست</a>
                     </div>
                     <div class="promo">
-                        <b>کوییز مسیر یادگیری</b><br>
-                        در ۳۰ ثانیه دوره مناسب خودت را پیدا کن.<br>
-                        <a href="{{ route('home') }}#quiz" style="color:#fff;text-decoration:underline">شروع کوییز</a>
+                        <b>راهنمای انتخاب دوره</b><br>
+                        برای انتخاب مسیر آموزشی متناسب با نیازت با تیم آکادمی در ارتباط باش.<br>
+                        <a href="{{ route('public.contact') }}" style="color:#fff;text-decoration:underline">درخواست راهنمایی</a>
                     </div>
                 </div>
             </div>
