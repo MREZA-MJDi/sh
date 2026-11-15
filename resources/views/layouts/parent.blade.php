@@ -5,37 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <title>@yield('title', 'کارتابل اولیاء') | آکادمی شیخان</title>
+    <title>@yield('title', 'پنل اولیا') | آکادمی شیخان</title>
     <script>
         try {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light' || savedTheme === 'dark') {
-                document.documentElement.dataset.theme = savedTheme;
-            }
-        } catch (error) {
-            // Theme persistence is optional when browser storage is unavailable.
-        }
+            const theme = localStorage.getItem('guardian-theme');
+            const palette = localStorage.getItem('guardian-palette');
+            if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+            if (palette) document.documentElement.dataset.pal = palette;
+        } catch (error) {}
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
-    @vite(['resources/css/student/app.css', 'resources/js/student/app.js'])
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap">
+    @vite(['resources/css/parent/app.css', 'resources/js/parent/app.js'])
     @stack('head')
 </head>
 <body class="parent-page">
     @include('partials.sprite')
-
-    <div class="app">
+    <div class="app parent-app">
         @include('parent.partials.sidebar')
-        <div class="scrim" data-menu-close></div>
-
         <main class="main" id="main">
             @include('parent.partials.topbar')
             @include('partials.flash')
             @yield('content')
         </main>
     </div>
-
+    <div class="scrim" data-menu-close></div>
     @stack('scripts')
 </body>
 </html>
