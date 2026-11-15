@@ -1,3 +1,4 @@
+import '../seo/image-preview.js';
 import '../rich-text.js';
 import './persian-date.js';
 
