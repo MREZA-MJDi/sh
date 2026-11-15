@@ -68,3 +68,5 @@ body.admin-body .seo-admin-blog-copy{padding:16px}
 body.admin-body .seo-admin-blog-copy strong{display:block;font-size:15px;font-weight:900}
 body.admin-body .seo-admin-blog-copy p{margin:8px 0 0;color:var(--adm-muted);font-size:12px;line-height:1.9}
 @media(max-width:700px){body.admin-body .seo-admin-preview-hero{min-height:0;height:auto;padding:50px 20px 70px}body.admin-body .seo-admin-preview-hero-copy{max-width:100%;text-align:center}}
+
+body.admin-body .seo-admin-field-hint.is-warning{color:#b45309;font-weight:800}
