@@ -181,7 +181,7 @@
                                                                 جلسه {{ $lessonIndex + 1 }}: {{ $lesson->title }}
                                                             </span>
                                                             @if($isUnlocked)
-                                                                <span class="lesson-badge-free">قابل دسترس پس از ثبت‌نام</span>
+                                                                <span class="lesson-badge-free">محتوای دوره در دسترس است</span>
                                                             @else
                                                                 <span class="lesson-badge-locked">قفل‌شده</span>
                                                             @endif
@@ -252,7 +252,7 @@
         {{-- سایدبار استیکی قیمت و ثبت‌نام --}}
         <aside class="card stk">
             @if($course->type === 'paid')
-                <span class="bd a">ثبت‌نام فعال دوره</span>
+                <span class="bd a">{{ $hasCourseAccess ? 'دسترسی فعال' : 'دوره پولی' }}</span>
                 <div style="margin:12px 0 16px">
                     <span class="big">{{ number_format((int)$course->price) }}</span>
                     <small style="color:var(--mute);font-size:14px">تومان</small>
