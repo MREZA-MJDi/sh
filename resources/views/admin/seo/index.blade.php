@@ -85,6 +85,8 @@
             <div class="panel-field"><label for="social_instagram">اینستاگرام</label><input id="social_instagram" class="panel-input" type="url" name="social_links[instagram]" value="{{ old('social_links.instagram', $settings->social_links['instagram'] ?? '') }}" placeholder="https://instagram.com/..." dir="ltr"></div>
             <div class="panel-field"><label for="social_telegram">تلگرام</label><input id="social_telegram" class="panel-input" type="url" name="social_links[telegram]" value="{{ old('social_links.telegram', $settings->social_links['telegram'] ?? '') }}" placeholder="https://t.me/..." dir="ltr"></div>
             <div class="panel-field"><label for="social_linkedin">لینکدین</label><input id="social_linkedin" class="panel-input" type="url" name="social_links[linkedin]" value="{{ old('social_links.linkedin', $settings->social_links['linkedin'] ?? '') }}" placeholder="https://linkedin.com/..." dir="ltr"></div>
+            <div class="panel-field"><label for="social_youtube">یوتیوب</label><input id="social_youtube" class="panel-input" type="url" name="social_links[youtube]" value="{{ old('social_links.youtube', $settings->social_links['youtube'] ?? '') }}" placeholder="https://youtube.com/..." dir="ltr"></div>
+            <div class="panel-field"><label for="social_x">X</label><input id="social_x" class="panel-input" type="url" name="social_links[x]" value="{{ old('social_links.x', $settings->social_links['x'] ?? '') }}" placeholder="https://x.com/..." dir="ltr"></div>
         </div>
 
         <div class="seo-admin-section-head"><div><h3>محتوای فوتر و نماد اعتماد</h3><p>متن معرفی، لینک‌های قابل نمایش در فوتر و تصویر نماد اعتماد از این بخش مدیریت می‌شوند.</p></div></div>
