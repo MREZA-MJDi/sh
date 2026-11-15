@@ -104,7 +104,7 @@
             @endfor
         </div>
 
-        @php($homeContent = $settings->home_sections ?? \\App\\Models\\SeoSetting::defaultHomeSections())
+        @php($homeContent = $settings->home_sections ?? [])
         <div class="seo-admin-section-head"><div><h3>محتوای صفحه اصلی</h3><p>متن‌های ثابت صفحه اصلی از اینجا ذخیره می‌شوند؛ آمار، دوره‌ها، مدرس‌ها، مقاله‌ها و نظرها همچنان از داده‌های واقعی دیتابیس خوانده می‌شوند.</p></div><span class="seo-admin-status">محتوای عمومی</span></div>
         <div class="panel-form-grid">
             <div class="panel-field"><label>نشان بالای هیرو</label><input class="panel-input" name="home_sections[hero_badge]" value="{{ old('home_sections.hero_badge', $homeContent['hero_badge'] ?? '') }}" maxlength="120"></div>
@@ -117,6 +117,14 @@
             <div class="panel-field"><label>توضیح دوره‌های تازه</label><textarea class="panel-textarea" name="home_sections[latest_courses_description]" maxlength="500">{{ old('home_sections.latest_courses_description', $homeContent['latest_courses_description'] ?? '') }}</textarea></div>
             <div class="panel-field"><label>عنوان دوره‌های محبوب</label><input class="panel-input" name="home_sections[popular_courses_title]" value="{{ old('home_sections.popular_courses_title', $homeContent['popular_courses_title'] ?? '') }}" maxlength="180"></div>
             <div class="panel-field"><label>توضیح دوره‌های محبوب</label><textarea class="panel-textarea" name="home_sections[popular_courses_description]" maxlength="500">{{ old('home_sections.popular_courses_description', $homeContent['popular_courses_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>برچسب مراحل یادگیری</label><input class="panel-input" name="home_sections[steps_eyebrow]" value="{{ old('home_sections.steps_eyebrow', $homeContent['steps_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب دوره‌های محبوب</label><input class="panel-input" name="home_sections[popular_courses_eyebrow]" value="{{ old('home_sections.popular_courses_eyebrow', $homeContent['popular_courses_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب پنل‌های اختصاصی</label><input class="panel-input" name="home_sections[panels_eyebrow]" value="{{ old('home_sections.panels_eyebrow', $homeContent['panels_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب مدرسان</label><input class="panel-input" name="home_sections[teachers_eyebrow]" value="{{ old('home_sections.teachers_eyebrow', $homeContent['teachers_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>عنوان بخش مدرسان</label><input class="panel-input" name="home_sections[teachers_title]" value="{{ old('home_sections.teachers_title', $homeContent['teachers_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح بخش مدرسان</label><textarea class="panel-textarea" name="home_sections[teachers_description]" maxlength="500">{{ old('home_sections.teachers_description', $homeContent['teachers_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>برچسب مقاله‌ها</label><input class="panel-input" name="home_sections[articles_eyebrow]" value="{{ old('home_sections.articles_eyebrow', $homeContent['articles_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب نظرها</label><input class="panel-input" name="home_sections[testimonials_eyebrow]" value="{{ old('home_sections.testimonials_eyebrow', $homeContent['testimonials_eyebrow'] ?? '') }}" maxlength="120"></div>
             <div class="panel-field"><label>عنوان مراحل یادگیری</label><input class="panel-input" name="home_sections[steps_title]" value="{{ old('home_sections.steps_title', $homeContent['steps_title'] ?? '') }}" maxlength="180"></div>
             <div class="panel-field"><label>توضیح مراحل یادگیری</label><textarea class="panel-textarea" name="home_sections[steps_description]" maxlength="500">{{ old('home_sections.steps_description', $homeContent['steps_description'] ?? '') }}</textarea></div>
             <div class="panel-field"><label>عنوان پنل‌های اختصاصی</label><input class="panel-input" name="home_sections[panels_title]" value="{{ old('home_sections.panels_title', $homeContent['panels_title'] ?? '') }}" maxlength="180"></div>
