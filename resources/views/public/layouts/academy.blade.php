@@ -73,42 +73,52 @@
         <div class="g-footer">
             <div>
                 <a class="logo" href="{{ route('home') }}" style="color:#fff;margin-bottom:12px">
-                    <svg class="i"><use href="#cap"/></svg>
-                    <span>{{ $settings->site_name ?? 'شیخان' }}</span>
+                    @if($settings->organization_logo_path)
+                        <img src="{{ Storage::disk('public')->url($settings->organization_logo_path) }}" alt="{{ $settings->organization_name ?: $settings->site_name }}" style="max-width:150px;max-height:56px;object-fit:contain">
+                    @else
+                        <svg class="i"><use href="#cap"/></svg><span>{{ $settings->site_name }}</span>
+                    @endif
                 </a>
-                <p>آموزشگاه شیخان؛ آموزش اصولی و ساختارمند همراه با نظارت و پیگیری مستمر اساتید تا نتیجه مطلوب.</p>
-            </div>
-            <div>
-                <h4>دوره‌ها</h4>
-                <a href="{{ route('public.courses.index', ['subject' => 'ریاضی']) }}">ریاضیات</a>
-                <a href="{{ route('public.courses.index', ['subject' => 'فیزیک']) }}">فیزیک</a>
-                <a href="{{ route('public.courses.index', ['subject' => 'شیمی']) }}">شیمی</a>
-                <a href="{{ route('public.courses.index', ['subject' => 'زیست']) }}">زیست‌شناسی</a>
-                <a href="{{ route('public.courses.index') }}">همه دوره‌ها</a>
+                <p>{{ $settings->footer_description ?: $settings->default_description }}</p>
+                @if($settings->trust_badge_path)
+                    <img src="{{ Storage::disk('public')->url($settings->trust_badge_path) }}" alt="نماد اعتماد" loading="lazy" style="display:block;max-width:120px;max-height:76px;object-fit:contain;margin-top:18px">
+                @endif
             </div>
             <div>
                 <h4>دسترسی سریع</h4>
-                <a href="{{ route('home') }}">صفحه اصلی</a>
-                <a href="{{ route('public.courses.index') }}">آرشیو دوره‌ها</a>
-                <a href="{{ route('public.teachers.index') }}">مدرسان شیخان</a>
-                <a href="{{ route('seo.articles.index') }}">مجله مقالات</a>
+                @forelse(($settings->footer_links ?? []) as $footerLink)
+                    @php($footerUrl = str_starts_with($footerLink['url'] ?? '', '/') ? url($footerLink['url']) : ($footerLink['url'] ?? '#'))
+                    <a href="{{ $footerUrl }}">{{ $footerLink['label'] ?? '' }}</a>
+                @empty
+                    <a href="{{ route('public.courses.index') }}">دوره‌ها</a>
+                    <a href="{{ route('seo.articles.index') }}">مقالات</a>
+                    <a href="{{ route('public.contact') }}">تماس با ما</a>
+                @endforelse
             </div>
             <div>
-                <h4>پنل‌های کاربری</h4>
-                <a href="{{ route('student.dashboard') }}">پنل دانش‌آموز</a>
-                <a href="{{ route('teacher.dashboard') }}">پنل مدرس</a>
-                <a href="{{ route('guardian.dashboard') }}">پنل والدین</a>
-                <a href="{{ route('admin.dashboard') }}">پنل مدیریت</a>
+                <h4>حساب کاربری</h4>
+                <a href="{{ route('login') }}">ورود</a>
+                <a href="{{ route('register') }}">ساخت حساب</a>
             </div>
             <div>
-                <h4>پشتیبانی و ارتباط</h4>
-                <a href="{{ route('public.contact') }}">مشاوره و تماس</a>
-                <a href="{{ route('login') }}">ورود به حساب</a>
-                <a href="{{ route('register') }}">ثبت‌نام جدید</a>
-                <a href="{{ route('public.cart') }}">سبد خرید</a>
+                <h4>شبکه‌های اجتماعی</h4>
+                <div class="seo-social-icons" aria-label="شبکه‌های اجتماعی آکادمی">
+                    @if(!empty($settings->social_links['instagram']))
+                        <a href="{{ $settings->social_links['instagram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram" style="color:#E4405F"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+                    @endif
+                    @if(!empty($settings->social_links['telegram']))
+                        <a href="{{ $settings->social_links['telegram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Telegram" style="color:#229ED9"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.7 4.3 18.5 20c-.2 1.1-.9 1.3-1.8.8l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6 13.5l-4.9-1.6c-1.1-.3-1.1-1.1.2-1.6L20.4 3.2c.9-.3 1.6.2 1.3 1.1Z"/></svg></a>
+                    @endif
+                    @if(!empty($settings->social_links['linkedin']))
+                        <a href="{{ $settings->social_links['linkedin'] }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style="color:#0A66C2"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5.2 3.5a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4ZM3.4 9.5H7v11H3.4v-11Zm5.8 0h3.4V11h.1c.5-.9 1.6-1.9 3.4-1.9 3.6 0 4.3 2.3 4.3 5.3v6.1h-3.6v-5.4c0-1.3 0-3-1.9-3s-2.2 1.4-2.2 2.9v5.5H9.2v-11Z"/></svg></a>
+                    @endif
+                    @if(!empty($settings->social_links['youtube']))
+                        <a href="{{ $settings->social_links['youtube'] }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube" style="color:#FF0033"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23 7.1a3 3 0 0 0-2.1-2.1C19 4.5 12 4.5 12 4.5s-7 0-8.9.5A3 3 0 0 0 1 7.1 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.9A3 3 0 0 0 3.1 19c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.9 31 31 0 0 0-.5-4.9ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg></a>
+                    @endif
+                </div>
             </div>
         </div>
-        <div class="cp">© {{ now()->year }} {{ $settings->site_name ?? 'شیخان' }} · تمامی حقوق محفوظ است.</div>
+        <div class="cp">© {{ now()->year }} {{ $settings->site_name }} · تمامی حقوق محفوظ است.</div>
     </div>
 </footer>
 
