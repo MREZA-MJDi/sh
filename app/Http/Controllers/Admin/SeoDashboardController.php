@@ -59,6 +59,9 @@ class SeoDashboardController extends Controller
         if (array_key_exists('social_links', $data)) {
             $data['social_links'] = array_filter($data['social_links'] ?? [], fn ($url) => filled($url));
         }
+        if (array_key_exists('home_sections', $data)) {
+            $data['home_sections'] = array_replace_recursive(SeoSetting::defaultHomeSections(), $data['home_sections'] ?? []);
+        }
         if (array_key_exists('footer_links', $data)) {
             $data['footer_links'] = collect($data['footer_links'] ?? [])
                 ->map(fn (array $link): array => ['label' => trim((string) ($link['label'] ?? '')), 'url' => trim((string) ($link['url'] ?? ''))])
