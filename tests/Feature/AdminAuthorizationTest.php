@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\AuthenticationService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -82,6 +83,38 @@ class AdminAuthorizationTest extends TestCase
             ->assertSee('کلاس‌ها و اسکای‌روم')
             ->assertDontSee('مدیریت کاربران')
             ->assertDontSee('کوییز ۲۴');
+    }
+
+    public function test_teacher_and_admin_roles_resolve_to_the_shared_admin_dashboard(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::where('name', 'teacher')->value('id'));
+
+        $admin = User::factory()->create();
+        $admin->roles()->attach([
+            Role::where('name', 'admin')->value('id'),
+            Role::where('name', 'teacher')->value('id'),
+            Role::where('name', 'seo')->value('id'),
+        ]);
+
+        $authentication = app(AuthenticationService::class);
+
+        $this->assertSame('admin.dashboard', $authentication->dashboardRouteName($teacher));
+        $this->assertSame('admin.dashboard', $authentication->dashboardRouteName($admin));
+    }
+
+    public function test_login_ignores_a_stale_intended_url_from_another_role_dashboard(): void
+    {
+        $admin = User::factory()->create(['password' => 'password']);
+        $admin->roles()->attach(Role::where('name', 'admin')->value('id'));
+
+        $this->get(route('student.dashboard'))
+            ->assertRedirect(route('login'));
+
+        $this->post(route('login.store'), [
+            'email' => $admin->email,
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_teacher_has_only_assigned_work_permissions(): void
