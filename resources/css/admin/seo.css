@@ -45,3 +45,26 @@ body.admin-body .seo-admin-errors ul{margin:6px 18px 0 0}
 @media(max-width:640px){body.admin-body .seo-admin-hero{padding:17px}body.admin-body .seo-admin-hero h2{font-size:18px}body.admin-body .seo-admin-kpis{gap:8px}body.admin-body .seo-admin-kpi{padding:12px}body.admin-body .seo-admin-kpi strong{font-size:22px}body.admin-body .seo-admin-section{padding:13px}body.admin-body .seo-admin-inline-form{min-width:0;width:100%}body.admin-body .seo-admin-inline-form .panel-form-grid{grid-template-columns:1fr}}
 
 body.admin-body .seo-admin-save-actions{margin-top:18px}
+
+/* Public-media previews mirror the actual hero and 16:9 article-card crops. */
+body.admin-body .seo-admin-live-preview{display:grid;gap:12px;padding:18px;border:1px solid var(--adm-line);border-radius:16px;background:var(--adm-bg);margin:14px 0 18px}
+body.admin-body .seo-admin-preview-hero{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:360px;height:min(560px,70vh);padding:40px;background:#0b1b3a;color:#fff;border-radius:14px;cursor:crosshair}
+body.admin-body .seo-admin-preview-hero[hidden],body.admin-body .seo-admin-preview-article-banner[hidden]{display:none}
+body.admin-body .seo-admin-preview-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.28;filter:blur(2px);z-index:-1;cursor:crosshair}
+body.admin-body .seo-admin-preview-hero-copy{max-width:58%;position:relative;z-index:1}
+body.admin-body .seo-admin-preview-hero-copy>span:first-child{font-size:12px;font-weight:800;background:#ffffff26;padding:6px 10px;border-radius:99px}
+body.admin-body .seo-admin-preview-hero-copy h2{font-size:clamp(24px,3vw,42px);line-height:1.5;margin:18px 0;color:#fff}
+body.admin-body .seo-admin-preview-hero-copy p{color:#dbe5f6;line-height:1.9}
+body.admin-body .seo-admin-preview-cta{display:inline-flex;margin-top:12px;padding:9px 16px;border-radius:10px;background:#fff;color:#16202a;font-size:12px;font-weight:800}
+body.admin-body .seo-admin-preview-article-banner{overflow:hidden;border-radius:12px;background:var(--adm-card);cursor:crosshair}
+body.admin-body .seo-admin-preview-article-banner img{display:block;width:100%;height:auto;object-fit:contain}
+body.admin-body .seo-admin-preview-article-banner span{display:block;padding:12px;font-weight:800}
+body.admin-body .seo-admin-blog-card{max-width:420px;overflow:hidden;border:1px solid var(--adm-line);border-radius:16px;background:var(--adm-card)}
+body.admin-body .seo-admin-blog-image{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--adm-primary-soft);cursor:crosshair}
+body.admin-body .seo-admin-blog-image img{display:block;width:100%;height:100%;object-fit:cover}
+body.admin-body .seo-admin-blog-image span{position:absolute;inset:0;display:grid;place-items:center;color:var(--adm-muted);font-size:12px}
+body.admin-body .seo-admin-blog-image span[hidden]{display:none}
+body.admin-body .seo-admin-blog-copy{padding:16px}
+body.admin-body .seo-admin-blog-copy strong{display:block;font-size:15px;font-weight:900}
+body.admin-body .seo-admin-blog-copy p{margin:8px 0 0;color:var(--adm-muted);font-size:12px;line-height:1.9}
+@media(max-width:700px){body.admin-body .seo-admin-preview-hero{min-height:300px;height:58vh;padding:22px}body.admin-body .seo-admin-preview-hero-copy{max-width:100%;text-align:center}}
