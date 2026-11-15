@@ -202,7 +202,11 @@
                                             @endforeach
                                         </div>
                                         @if ($section->published_lessons_count > $sectionLessons->count())
-                                            <div class="lesson-empty">برای مشاهده همه درس‌ها و ادامه آموزش، وارد حساب دانش‌آموزی شوید و ثبت‌نام دوره را تکمیل کنید.</div>
+                                            @if ($hasCourseAccess)
+                                                <a class="btn g s" href="{{ route('student.courses.show', $course) }}">مشاهده همه درس‌ها در پنل</a>
+                                            @else
+                                                <div class="lesson-empty">برای مشاهده همه درس‌ها و ادامه آموزش، ثبت‌نام دوره را تکمیل کنید.</div>
+                                            @endif
                                         @endif
                                     @else
                                         <div class="lesson-empty">جلسات این فصل به‌زودی ضبط و بارگذاری خواهد شد.</div>
