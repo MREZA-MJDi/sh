@@ -11,6 +11,7 @@ class SeoSetting extends Model
         'default_keywords', 'canonical_base_url', 'default_og_image_path',
         'organization_name', 'organization_url', 'organization_logo_path',
         'twitter_handle', 'google_site_verification', 'bing_site_verification',
+        'footer_description', 'footer_links', 'trust_badge_path',
         'robots_index', 'robots_follow', 'sitemap_enabled', 'social_links', 'updated_by',
     ];
 
@@ -22,6 +23,7 @@ class SeoSetting extends Model
             'robots_index' => 'boolean',
             'robots_follow' => 'boolean',
             'sitemap_enabled' => 'boolean',
+            'footer_links' => 'array',
         ];
     }
 
@@ -38,6 +40,13 @@ class SeoSetting extends Model
                 'robots_index' => true,
                 'robots_follow' => true,
                 'sitemap_enabled' => true,
+                'footer_description' => 'آکادمی شیخان؛ آموزش هدفمند و همراهی مستمر در مسیر یادگیری.',
+                'footer_links' => [
+                    ['label' => 'دوره‌ها', 'url' => '/courses'],
+                    ['label' => 'مدرسان', 'url' => '/teachers'],
+                    ['label' => 'مقالات', 'url' => '/articles'],
+                    ['label' => 'تماس با ما', 'url' => '/contact'],
+                ],
             ]
         );
     }
