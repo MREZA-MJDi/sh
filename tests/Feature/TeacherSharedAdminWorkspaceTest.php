@@ -403,4 +403,45 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->assertSee('آزمون کلاس بدون انتخاب مجدد دوره');
     }
 
+    public function test_teacher_uses_dedicated_shell_and_consultation_requests_appear_in_admin_inbox(): void
+    {
+        $teacher = $this->teacherWithPermissions(['consultations.create', 'messages.view.assigned']);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.dashboard'))
+            ->assertOk()
+            ->assertSee('teacher-sidebar')
+            ->assertSee('فضای کاری مدرس')
+            ->assertDontSee('مدیریت کاربران');
+
+        $desiredAt = now()->addDays(2)->format('Y-m-d H:i');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.consultations.store'), [
+                'type' => 'phone',
+                'topic' => 'هماهنگی جلسه با مدیریت',
+                'contact_phone' => '09120000011',
+                'desired_at' => $desiredAt,
+                'body' => 'برای هماهنگی برنامه کلاس و منابع آموزشی درخواست جلسه دارم.',
+            ])
+            ->assertRedirect(route('teacher.consultations.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('consultations', [
+            'requester_id' => $teacher->id,
+            'topic' => 'هماهنگی جلسه با مدیریت',
+            'contact_phone' => '09120000011',
+            'status' => 'pending',
+        ]);
+
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.consultations.index'))
+            ->assertOk()
+            ->assertSee('هماهنگی جلسه با مدیریت')
+            ->assertSee('برای هماهنگی برنامه کلاس و منابع آموزشی درخواست جلسه دارم.');
+    }
+
 }
