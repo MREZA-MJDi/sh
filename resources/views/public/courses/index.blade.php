@@ -1,7 +1,7 @@
 @extends('public.layouts.academy')
 
-@section('title', 'دوره‌های آموزشی' . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
-@section('description', 'فهرست دوره‌های آموزشی منتشرشده آکادمی شیخان بر اساس پایه تحصیلی و موضوع')
+@section('title', ($settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
+@section('description', $settings->home_sections['courses_page_description'] ?? $settings->default_description)
 
 @section('content')
 <div class="pgh">
@@ -9,8 +9,8 @@
         <div class="bc">
             <a href="{{ route('home') }}">خانه</a> ‹ <span>دوره‌ها</span>
         </div>
-        <h1>دوره‌های آموزشی</h1>
-        <p>بر اساس پایه تحصیلی و درس، دوره مناسب خودت را انتخاب کن</p>
+        <h1>{{ $settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی' }}</h1>
+        <p>{{ $settings->home_sections['courses_page_description'] ?? $settings->default_description }}</p>
     </div>
 </div>
 
@@ -19,13 +19,7 @@
     <div class="chips" style="padding-top:28px">
         @php
             $currentGrade = request('grade');
-            $gradeList = [
-                '' => 'همه پایه‌ها',
-                'دهم' => 'پایه دهم',
-                'یازدهم' => 'پایه یازدهم',
-                'دوازدهم' => 'پایه دوازدهم',
-                'کنکور' => 'پایه سیزدهم (کنکور)',
-            ];
+            $gradeList = collect($grades)->mapWithKeys(fn ($grade) => [(string) $grade => (string) $grade])->prepend('همه پایه‌ها', '')->all();
         @endphp
         @foreach($gradeList as $val => $title)
             <a class="chip {{ (string)$currentGrade === (string)$val ? 'on' : '' }}" 
@@ -52,7 +46,7 @@
                         <span>همه موضوع‌ها</span>
                     </label>
                     @php
-                        $allSubjects = collect($subjects)->merge(['ریاضی', 'فیزیک', 'شیمی', 'زیست', 'زبان'])->unique()->filter();
+                        $allSubjects = collect($subjects)->filter();
                     @endphp
                     @foreach($allSubjects as $subj)
                         <label>
