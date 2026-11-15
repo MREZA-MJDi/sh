@@ -24,7 +24,7 @@
     $meetingLabels = ['requested' => 'در انتظار تأیید', 'proposed' => 'زمان پیشنهادی', 'scheduled' => 'زمان‌بندی‌شده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده', 'declined' => 'ردشده'];
 @endphp
 
-<section class="c" id="overview">
+<section class="c" id="overview" data-page-section="home">
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <div class="av">{{ mb_substr(auth()->user()->name ?? 'و', 0, 1) }}</div>
         <div style="flex:1;min-width:180px">
@@ -43,7 +43,7 @@
 </section>
 
 @if($selected_child)
-<section class="g g4" aria-label="خلاصه وضعیت آموزشی">
+<section class="g g4" aria-label="خلاصه وضعیت آموزشی" data-page-section="home">
     <div class="st"><b>{{ $faNumber($course_progress->count()) }}</b><span>دوره فعال</span><small>دوره‌های قابل مشاهده</small></div>
     <div class="st bl"><b>{{ $faNumber($pending_homework_count) }}</b><span>تکلیف باز</span><small>بدون ارسال ثبت‌شده</small></div>
     <div class="st gn"><b>{{ $presentPercent === null ? '—' : $faNumber($presentPercent).'٪' }}</b><span>نرخ حضور</span><small>{{ $faNumber($trackedAttendance) }} جلسه ثبت‌شده</small></div>
@@ -51,7 +51,7 @@
 </section>
 
 <section class="g g2">
-    <section class="c chart-card">
+    <section class="c chart-card" data-page-section="home">
         <h3>روند نمرات ثبت‌شده</h3>
         @if($chartResults->isNotEmpty())
             <div class="bars" role="img" aria-label="نمودار نمرات آزمون‌های ثبت‌شده">
@@ -69,7 +69,7 @@
         @endif
     </section>
 
-    <section class="c">
+    <section class="c" data-page-section="home">
         <h3>وضعیت حضور و غیاب</h3>
         @if($trackedAttendance > 0)
             <div class="donut">
@@ -94,7 +94,7 @@
 </section>
 
 <section class="g g2">
-    <section class="c" id="attendance">
+    <section class="c" id="attendance" data-page-section="attendance">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
             <h3>تقویم حضور و غیاب · {{ \App\Support\PersianDate::format(now(), 'F Y') }}</h3>
             <span class="bd bl">{{ $faNumber($attendance_count) }} جلسه</span>
@@ -114,7 +114,7 @@
         </div>
     </section>
 
-    <section class="c" id="classes">
+    <section class="c" id="classes" data-page-section="home">
         <h3>دوره‌ها و پیشرفت آموزشی</h3>
         @forelse($course_progress as $course)
             <div class="row">
@@ -135,7 +135,7 @@
 </section>
 
 <section class="g g2">
-    <section class="c" id="exams">
+    <section class="c" id="exams" data-page-section="exams">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>آزمون‌ها و نتایج</h3><span class="bd pk">{{ $faNumber($results->count()) }} نتیجه</span></div>
         @forelse($results as $result)
             <div class="row">
@@ -148,7 +148,7 @@
         @endforelse
     </section>
 
-    <section class="c" id="homework">
+    <section class="c" id="homework" data-page-section="homework">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3>تکالیف نیازمند پیگیری</h3><span class="bd am">{{ $faNumber($pending_homework_count) }} باز</span></div>
         @forelse($homeworks as $homework)
             <div class="row">
@@ -161,7 +161,7 @@
     </section>
 </section>
 
-<section class="c">
+<section class="c" id="homework-reviews" data-page-section="homework">
     <h3>بازخورد مدرس درباره تکالیف</h3>
     @forelse($reviewed_homework as $submission)
         <div class="row">
@@ -175,13 +175,13 @@
 </section>
 
 <section class="g g2">
-    <section class="c" id="messages">
+    <section class="c" id="messages" data-page-section="messages">
         <h3>پیام به مدرس</h3>
         <p style="color:var(--mu)">گفت‌وگوها و پاسخ‌های ثبت‌شده با مدرس یا آموزشگاه را در صندوق پیام‌ها دنبال کنید.</p>
         <a class="b" href="{{ route('guardian.messages.index') }}">مشاهده پیام‌ها</a>
         <a class="b s" href="{{ route('guardian.messages.create') }}">ارسال پیام جدید</a>
     </section>
-    <section class="c" id="meetings">
+    <section class="c" id="meetings" data-page-section="meetings">
         <h3>جلسات مشاوره و ملاقات</h3>
         @forelse($meetings as $meeting)
             <div class="row">
@@ -196,7 +196,7 @@
 </section>
 
 <section class="g g2">
-    <section class="c" id="resources">
+    <section class="c" id="resources" data-page-section="home">
         <h3>منابع آموزشی</h3>
         @forelse($resources as $resource)
             <div class="row">
@@ -211,7 +211,7 @@
             <div class="empty">منبع آموزشی منتشرشده‌ای در دسترس نیست.</div>
         @endforelse
     </section>
-    <section class="c" id="announcements">
+    <section class="c" id="announcements" data-page-section="home">
         <h3>اطلاعیه‌های آکادمی</h3>
         @forelse($announcements as $announcement)
             <div class="row"><div><strong>{{ $announcement->title }}</strong><small>{{ \App\Support\PersianDate::format($announcement->published_at, 'Y/m/d H:i') }}</small>@if(filled($announcement->body))<p style="color:var(--mu)">{{ \Illuminate\Support\Str::limit(strip_tags((string) $announcement->body), 180) }}</p>@endif</div></div>
