@@ -764,3 +764,59 @@ svg.chart {
     width:120px;
   }
 }
+
+
+/* Laravel portal shell: preserve the reference geometry while using real routes. */
+.parent-app { grid-template-columns:220px minmax(0,1fr); align-items:start; }
+.parent-app > .side { position:sticky; top:76px; align-self:start; min-width:0; }
+.parent-app > .main { min-width:0; padding:0; background:transparent; }
+.parent-page .top { margin:0 0 18px; }
+.parent-page .logo { margin-inline-end:auto; }
+.parent-page .kid select { max-width:190px; border:1px solid var(--ln); background:var(--bg); color:var(--tx); border-radius:10px; padding:6px 10px; font:inherit; }
+.parent-page .side .nav { position:static; display:flex; flex-direction:column; gap:4px; }
+.parent-page .side .nav a { display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:12px; color:var(--tx); text-decoration:none; }
+.parent-page .side .nav a.on { background:var(--ps); color:var(--pri); font-weight:600; box-shadow:inset -3px 0 var(--pri); }
+.parent-page .side .nav h6 { color:var(--mu); margin:14px 12px 4px; font-size:11px; }
+.parent-page .side .prem { margin-top:14px; padding:14px; border:1px solid var(--ln); border-radius:14px; background:var(--sf); }
+.parent-page .side .prem p { color:var(--mu); font-size:12px; }
+.parent-page .side .logout { display:block; width:100%; border:0; background:transparent; color:var(--mu); padding:10px 0 0; text-align:start; }
+.parent-page #main > section { margin-bottom:14px; }
+.parent-page #main .g { display:grid; }
+.parent-page #main .c { min-width:0; }
+.parent-page #main .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:14px; align-items:stretch; border:0; padding:0; }
+.parent-page #main .row > section { min-width:0; }
+.parent-page #main .hero { display:flex; gap:18px; align-items:center; padding:20px; border-radius:16px; background:var(--sf); border:1px solid var(--ln); margin-bottom:14px; }
+.parent-page #main .hero .txt { flex:1; }
+.parent-page #main .hero p { color:var(--mu); }
+.parent-page #main .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:14px; margin-bottom:14px; }
+.parent-page #main .stats > * { min-width:0; }
+.parent-page #main .empty { padding:18px; text-align:center; color:var(--mu); background:var(--bg); border-radius:12px; }
+.parent-page #main .table-wrap { overflow-x:auto; }
+.parent-page #main table { width:100%; border-collapse:collapse; }
+.parent-page #main th,.parent-page #main td { text-align:start; padding:10px 8px; border-bottom:1px solid var(--ln); }
+.parent-page #main th { color:var(--mu); font-weight:600; white-space:nowrap; }
+.parent-page #main .chart-card svg { width:100%; height:auto; display:block; }
+.parent-page #main .calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+.parent-page #main .calendar .day { min-height:42px; display:grid; place-items:center; border-radius:10px; background:var(--bg); color:var(--mu); }
+.parent-page #main .calendar .present { background:var(--gns); color:var(--gn); }
+.parent-page #main .calendar .absent { background:var(--rds); color:var(--rd); }
+.parent-page #main .calendar .late { background:var(--ams); color:var(--am); }
+.parent-page #main .calendar .today { outline:2px solid var(--pri); }
+.parent-page #main [hidden] { display:none !important; }
+@media(max-width:800px) {
+ .parent-app { display:block; padding:0 12px 92px; }
+ .parent-app > .side { position:static; }
+ .parent-page .side .me,.parent-page .side .prem { display:none; }
+ .parent-page .side .nav { position:fixed; inset-inline:0; bottom:0; top:auto; z-index:8; flex-direction:row; overflow-x:auto; background:var(--sf); border-top:1px solid var(--ln); padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px)); }
+ .parent-page .side .nav h6 { display:none; }
+ .parent-page .side .nav a { flex:1; min-width:70px; flex-direction:column; justify-content:center; gap:0; padding:4px 6px; font-size:11px; white-space:nowrap; }
+ .parent-page .side .nav a.on { box-shadow:inset 0 3px var(--pri); }
+ .parent-page .top { gap:8px; padding:10px 12px; }
+ .parent-page .sr { display:none; }
+ .parent-page #main .hero { align-items:flex-start; }
+}
+@media(max-width:480px) {
+ .parent-page #main .hero { padding:14px; }
+ .parent-page #main .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .parent-page #main .g2 { grid-template-columns:minmax(0,1fr); }
+}
