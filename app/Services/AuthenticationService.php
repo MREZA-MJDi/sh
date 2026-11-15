@@ -27,11 +27,17 @@ final class AuthenticationService
         });
     }
 
+    /**
+     * Resolve one canonical landing page for accounts with one or more roles.
+     * Admin takes precedence over specialist roles; teachers share the admin
+     * shell but their data remains scoped by DashboardService permissions.
+     */
     public function dashboardRouteName(User $user): ?string
     {
         return match (true) {
+            $user->hasRole('admin') => 'admin.dashboard',
             $user->hasRole('seo') => 'admin.seo.index',
-            $user->hasRole(['admin', 'teacher']) => 'admin.dashboard',
+            $user->hasRole('teacher') => 'admin.dashboard',
             $user->hasRole('student') => 'student.dashboard',
             $user->hasRole('parent') => 'guardian.dashboard',
             default => null,
