@@ -783,8 +783,6 @@ svg.chart {
 .parent-page #main > section { margin-bottom:14px; }
 .parent-page #main .g { display:grid; }
 .parent-page #main .c { min-width:0; }
-.parent-page #main .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:14px; align-items:stretch; border:0; padding:0; }
-.parent-page #main .row > section { min-width:0; }
 .parent-page #main .hero { display:flex; gap:18px; align-items:center; padding:20px; border-radius:16px; background:var(--sf); border:1px solid var(--ln); margin-bottom:14px; }
 .parent-page #main .hero .txt { flex:1; }
 .parent-page #main .hero p { color:var(--mu); }
