@@ -313,6 +313,7 @@
     </div>
 
     {{-- دوره‌های مرتبط --}}
+    @if($relatedCourses->isNotEmpty())
     <section id="rel" style="padding:48px 0 32px">
         <div class="sh">
             <div>
@@ -329,59 +330,8 @@
             @foreach($relatedCourses as $related)
                 <x-public.academy.course-card :course="$related" />
             @endforeach
-
-            {{-- تکمیل دوره‌های مکمل بر اساس مبدا تا ۳ کارت اندازه ثابت --}}
-            @php
-                $relatedCount = $relatedCourses->count();
-                $samples = [
-                    ['فیزیک یازدهم و دوازدهم تخصصی', 'فیزیک', 'مهندس رضایی', '۲۴ جلسه', '۴٫۸', '۱٬۸۰۰', 'rocket', 'linear-gradient(135deg,#0d9488,#0f766e)', 'پایه یازدهم', '۷۹۰٬۰۰۰'],
-                    ['شیمی جامع کنکور و تست‌های طلایی', 'شیمی', 'دکتر کریمی', '۳۰ جلسه', '۴٫۷', '۱٬۵۰۰', 'pen', 'linear-gradient(135deg,#f97316,#db2777)', 'کنکور', '۶۹۰٬۰۰۰'],
-                    ['زیست‌شناسی مفهومی و نهایی', 'زیست', 'دکتر نوری', '۴۲ جلسه', '۴٫۹', '۲٬۶۰۰', 'user', 'linear-gradient(135deg,#16a34a,#0d9488)', 'پایه دوازدهم', '۸۵۰٬۰۰۰'],
-                ];
-            @endphp
-            @for($k = 0; $k < (3 - $relatedCount); $k++)
-                @php $sm = $samples[$k]; @endphp
-                <article class="card cc">
-                    <a class="th" href="{{ route('public.courses.index', ['subject' => $sm[1]]) }}" style="background:{{ $sm[7] }}">
-                        <svg class="i"><use href="#{{ $sm[6] }}"/></svg>
-                        <span class="bd">{{ $sm[8] }}</span>
-                    </a>
-                    <div class="cb">
-                        <h3>
-                            <a href="{{ route('public.courses.index', ['subject' => $sm[1]]) }}">
-                                {{ $sm[0] }}
-                            </a>
-                        </h3>
-                        <small style="color:var(--mute);margin-bottom:8px;display:block">
-                            مدرس: {{ $sm[2] }}
-                        </small>
-                        <div class="mt">
-                            <span>
-                                <svg class="i"><use href="#clock"/></svg>
-                                {{ $sm[3] }}
-                            </span>
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                                {{ $sm[4] }}
-                            </span>
-                            <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ $sm[5] }} دانشجو
-                            </span>
-                        </div>
-                        <div class="pr">
-                            <div>
-                                <b>{{ $sm[9] }}</b>
-                                <small>تومان</small>
-                            </div>
-                            <a class="btn s o" style="color:var(--pri)" href="{{ route('public.courses.index', ['subject' => $sm[1]]) }}">
-                                مشاهده
-                            </a>
-                        </div>
-                    </div>
-                </article>
-            @endfor
         </div>
     </section>
+    @endif
 </div>
 @endsection

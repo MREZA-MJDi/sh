@@ -156,19 +156,19 @@
     <div class="c">
         <div class="g">
             <div>
-                <b>+{{ number_format(max($stats['enrollments'], 1200)) }}</b>
+                <b>+{{ number_format($stats['enrollments']) }}</b>
                 <span>دانشجوی فعال</span>
             </div>
             <div>
-                <b>+{{ number_format(max($stats['lessons'], 150)) }}</b>
+                <b>+{{ number_format($stats['lessons']) }}</b>
                 <span>جلسه آموزشی</span>
             </div>
             <div>
-                <b>{{ number_format(max($stats['teachers'], 8)) }}</b>
+                <b>{{ number_format($stats['teachers']) }}</b>
                 <span>مدرس متخصص</span>
             </div>
             <div>
-                <b>{{ number_format(max($stats['courses'], 1)) }}</b>
+                <b>{{ number_format($stats['courses']) }}</b>
                 <span>دوره منتشرشده</span>
             </div>
         </div>
@@ -619,7 +619,7 @@
                             </h3>
                             <div class="mt">
                                 <span>{{ $article->published_at ? $article->published_at->format('Y/m/d') : 'امروز' }}</span>
-                                <span>۶ دقیقه مطالعه</span>
+                                <span>{{ max(1, (int) ceil(count(preg_split('/\s+/u', trim(strip_tags($article->content ?? '')), -1, PREG_SPLIT_NO_EMPTY)) / 200)) }} دقیقه مطالعه</span>
                             </div>
                             <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
                                 {{ Str::limit(strip_tags($article->excerpt ?: $article->content ?? ''), 95) }}
@@ -632,49 +632,6 @@
                         </div>
                     </article>
                 @endforeach
-            @else
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
-                        <svg class="i"><use href="#pen"/></svg>
-                        <span class="bd">روش مطالعه</span>
-                    </div>
-                    <div class="cb">
-                        <h3>چطور برای کنکور برنامه مطالعاتی واقعی بنویسیم؟</h3>
-                        <div class="mt"><span>۱۴ آبان</span><span>۸ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            برنامه‌ای که در روزهای سخت هم قابل اجرا باشد، از برنامه‌ای که فقط روی کاغذ عالی است بهتر است.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                        <svg class="i"><use href="#chart"/></svg>
-                        <span class="bd">کنکور</span>
-                    </div>
-                    <div class="cb">
-                        <h3>ریاضی کنکور را از کجا و با چه مباحثی شروع کنیم؟</h3>
-                        <div class="mt"><span>۱۰ آبان</span><span>۶ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            بررسی زنجیره پیش‌نیازهای ریاضیات و بودجه‌بندی تست‌های پرامتیاز در آزمون سراسری.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                        <svg class="i"><use href="#clock"/></svg>
-                        <span class="bd">سلامت و تمرکز</span>
-                    </div>
-                    <div class="cb">
-                        <h3>خواب شب امتحان و راه‌های افزایش بازدهی حافظه</h3>
-                        <div class="mt"><span>۷ آبان</span><span>۵ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            روش‌های کاربردی برای کاهش استرس، تثبیت مطالب در حافظه بلندمدت و استراحت هدفمند.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
             @endif
         </div>
     </div>
