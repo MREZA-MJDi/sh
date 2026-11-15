@@ -274,7 +274,7 @@
             @elseif ($course->type === 'paid')
                 <form method="POST" action="{{ route('public.cart.add', $course) }}">
                     @csrf
-                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام در دوره</button>
+                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">افزودن به سبد خرید</button>
                 </form>
                 @guest
                     <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">ورود به حساب کاربری</a>
