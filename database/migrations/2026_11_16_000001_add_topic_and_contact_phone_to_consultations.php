@@ -13,7 +13,7 @@ return new class extends Migration
                 $table->string('topic', 190)->nullable()->after('type');
             }
             if (! Schema::hasColumn('consultations', 'contact_phone')) {
-                $table->string('contact_phone', 30)->nullable()->after('topic');
+                $table->string('contact_phone', 30)->nullable();
             }
         });
     }
