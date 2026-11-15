@@ -1,46 +1,30 @@
-@php
-    $guardian = auth()->user();
-@endphp
-
-<aside class="side" id="side" aria-label="منوی اولیاء">
+@php($guardian = auth()->user())
+<aside class="side" id="side" aria-label="منوی پنل اولیا">
     <div class="me">
-        <div class="av">
-            <svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true">
-                <use href="#avatar"></use>
-            </svg>
-        </div>
-        <h3>{{ $guardian?->name ?? 'ولی دانش‌آموز' }}</h3>
-        <small>کارتابل اولیاء</small>
+        <div class="av">{{ mb_substr($guardian?->name ?? 'و', 0, 1) }}</div>
+        <div><strong>{{ $guardian?->name ?? 'ولی دانش‌آموز' }}</strong><small>پنل اولیا</small></div>
     </div>
-
-    <nav class="nav" aria-label="بخش‌های کارتابل اولیاء">
-        <a href="#overview" data-dashboard-nav-target="overview" class="on" aria-current="page" data-nav-link>
-            <x-icon name="home"/> خانه
-        </a>
-
-        <h6>وضعیت فرزند</h6>
-        <a href="#classes" data-dashboard-nav-target="classes" data-nav-link><x-icon name="book"/> کلاس‌ها و دوره‌ها</a>
-        <a href="#homework" data-dashboard-nav-target="homework" data-nav-link><x-icon name="task"/> تکالیف</a>
-        <a href="#results" data-dashboard-nav-target="results" data-nav-link><x-icon name="exam"/> نتایج آزمون‌ها</a>
-        <a href="#attendance" data-dashboard-nav-target="attendance" data-nav-link><x-icon name="cal"/> حضور و غیاب</a>
-        <a href="#resources" data-dashboard-nav-target="resources" data-nav-link><x-icon name="file"/> منابع آموزشی</a>
-
-        <h6>ارتباط با آکادمی</h6>
-        <a href="{{ route('guardian.consultations.index') }}"><x-icon name="phone"/> درخواست مشاوره</a>
-        <a href="{{ route('guardian.meetings.index') }}"><x-icon name="cal"/> جلسات با آموزشگاه</a>
-        <a href="{{ route('guardian.messages.index') }}"><x-icon name="msg"/> پیام‌ها</a>
-
-        <h6>اطلاع‌رسانی</h6>
-        <a href="#announcements" data-dashboard-nav-target="announcements" data-nav-link><x-icon name="bell"/> اطلاعیه‌ها</a>
+    <nav class="nav" aria-label="بخش‌های پنل اولیا">
+        @if(request()->routeIs('guardian.dashboard'))
+            <a href="#overview" class="on" aria-current="page" data-nav-link data-page="home"><span>🏠</span>داشبورد</a>
+            <a href="#attendance" data-nav-link data-page="attendance"><span>✅</span>حضور و غیاب</a>
+            <a href="#exams" data-nav-link data-page="exams"><span>📊</span>آزمون‌ها</a>
+            <a href="#homework" data-nav-link data-page="homework"><span>📝</span>تکالیف</a>
+            <a href="#messages" data-nav-link data-page="messages"><span>💬</span>پیام به مدرس</a>
+            <a href="#meetings" data-nav-link data-page="meetings"><span>🤝</span>جلسات مشاوره</a>
+        @else
+            <a href="{{ route('guardian.dashboard') }}"><span>🏠</span>داشبورد</a>
+            <a href="{{ route('guardian.dashboard') }}#attendance"><span>✅</span>حضور و غیاب</a>
+            <a href="{{ route('guardian.dashboard') }}#exams"><span>📊</span>آزمون‌ها</a>
+            <a href="{{ route('guardian.dashboard') }}#homework"><span>📝</span>تکالیف</a>
+            <a href="{{ route('guardian.messages.index') }}"><span>💬</span>پیام به مدرس</a>
+            <a href="{{ route('guardian.meetings.index') }}"><span>🤝</span>جلسات مشاوره</a>
+        @endif
     </nav>
-
     <div class="prem">
-        <h4>پیگیری آموزش فرزند</h4>
-        <p>گزارش کلاس‌ها، تکالیف و نتایج فرزند متصل به حساب را مشاهده کنید.</p>
-        <a class="btn s" href="{{ route('guardian.meetings.index') }}">درخواست جلسه با آموزشگاه</a>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button class="logout" type="submit">خروج از حساب</button>
-        </form>
+        <h4>ارتباط با آکادمی</h4>
+        <p>برای پیگیری وضعیت آموزشی فرزند یا هماهنگی جلسه با آموزشگاه اقدام کنید.</p>
+        <a class="b" href="{{ route('guardian.meetings.index') }}">درخواست جلسه</a>
+        <form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit">خروج از حساب</button></form>
     </div>
 </aside>
