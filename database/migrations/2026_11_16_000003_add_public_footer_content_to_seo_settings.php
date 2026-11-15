@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -18,6 +19,9 @@ return new class extends Migration
             if (! Schema::hasColumn('seo_settings', 'trust_badge_path')) {
                 $table->string('trust_badge_path')->nullable();
             }
+            if (! Schema::hasColumn('seo_settings', 'home_sections')) {
+                $table->json('home_sections')->nullable();
+            }
         });
         if (Schema::hasTable('seo_settings')) {
             DB::table('seo_settings')->whereNull('footer_links')->update([
@@ -29,13 +33,16 @@ return new class extends Migration
                     ['label' => 'تماس با ما', 'url' => '/contact'],
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ]);
+            DB::table('seo_settings')->whereNull('home_sections')->update([
+                'home_sections' => json_encode([ 'hero_badge' => 'ویژه دانش‌آموزان شیخان' ], JSON_UNESCAPED_UNICODE),
+            ]);
         }
     }
 
     public function down(): void
     {
         Schema::table('seo_settings', function (Blueprint $table): void {
-            foreach (['trust_badge_path', 'footer_links', 'footer_description'] as $column) {
+            foreach (['home_sections', 'trust_badge_path', 'footer_links', 'footer_description'] as $column) {
                 if (Schema::hasColumn('seo_settings', $column)) {
                     $table->dropColumn($column);
                 }
