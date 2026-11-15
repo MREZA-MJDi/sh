@@ -87,12 +87,12 @@
             <div>
                 <h4>دسترسی سریع</h4>
                 @forelse(($settings->footer_links ?? []) as $footerLink)
-                    @php($footerUrl = str_starts_with($footerLink['url'] ?? '', '/') ? url($footerLink['url']) : ($footerLink['url'] ?? '#'))
+                    @php($footerPath = (string) ($footerLink['url'] ?? ''))
+                    @php($footerScheme = strtolower((string) parse_url($footerPath, PHP_URL_SCHEME)))
+                    @php($footerUrl = str_starts_with($footerPath, '/') && ! str_starts_with($footerPath, '//') ? url($footerPath) : (in_array($footerScheme, ['http', 'https'], true) ? $footerPath : '#'))
                     <a href="{{ $footerUrl }}">{{ $footerLink['label'] ?? '' }}</a>
                 @empty
-                    <a href="{{ route('public.courses.index') }}">دوره‌ها</a>
-                    <a href="{{ route('seo.articles.index') }}">مقالات</a>
-                    <a href="{{ route('public.contact') }}">تماس با ما</a>
+                    <span>لینکی برای نمایش ثبت نشده است.</span>
                 @endforelse
             </div>
             <div>
