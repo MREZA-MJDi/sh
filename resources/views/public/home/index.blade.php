@@ -419,47 +419,38 @@
                 <h2>{{ $homeContent['articles_title'] }}</h2>
                 <p>{{ $homeContent['articles_description'] }}</p>
             </div>
-            <a class="btn o s" style="color:var(--pri)" href="{{ route('seo.articles.index') }}">
-                همه مقالات
-            </a>
+            <a class="btn o s" style="color:var(--pri)" href="{{ route('seo.articles.index') }}">همه مقالات</a>
         </div>
         <div class="g3">
-                @foreach($articles as $article)
-                    <article class="card cc">
-                        @if($article->featured_image_path)
-                            <a class="th" href="{{ route('seo.articles.show', $article->slug) }}">
-                                <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;height:100%;object-fit:cover;object-position: {{ $article->image_position ?? '50% 50%' }}">
-                            </a>
-                        @else
-                            <a class="th" href="{{ route('seo.articles.show', $article->slug) }}" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
-                                <svg class="i"><use href="#pen"/></svg>
-                                <span class="bd bd-article">مقاله</span>
-                            </a>
-                                    <div class="cb">
-                            <h3>
-                                <a href="{{ route('seo.articles.show', $article->slug) }}">
-                                    {{ $article->title }}
-                                </a>
-                            </h3>
-                            <div class="mt">
-                                <span>{{ $article->published_at ? $article->published_at->format('Y/m/d') : 'امروز' }}</span>
-                                <span>۶ دقیقه مطالعه</span>
-                            </div>
-                            <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                                {{ Str::limit(strip_tags($article->excerpt ?: $article->content ?? ''), 95) }}
-                            </p>
-                            <div class="pr">
-                                <a class="btn s" href="{{ route('seo.articles.show', $article->slug) }}">
-                                    ادامه مطلب
-                                </a>
-                            </div>
+            @foreach($articles as $article)
+                <article class="card cc">
+                    @if($article->featured_image_path)
+                        <a class="th" href="{{ route('seo.articles.show', $article->slug) }}">
+                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;height:100%;object-fit:cover;object-position: {{ $article->image_position ?? '50% 50%' }}" loading="lazy">
+                        </a>
+                    @else
+                        <a class="th" href="{{ route('seo.articles.show', $article->slug) }}" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
+                            <svg class="i"><use href="#pen"/></svg>
+                            <span class="bd bd-article">مقاله</span>
+                        </a>
+                    @endif
+                    <div class="cb">
+                        <h3><a href="{{ route('seo.articles.show', $article->slug) }}">{{ $article->title }}</a></h3>
+                        <div class="mt">
+                            <span>{{ $article->published_at?->format('Y/m/d') }}</span>
+                            <span>{{ max(1, (int) ceil(mb_strlen(strip_tags($article->body ?? ''), 'UTF-8') / 700)) }} دقیقه مطالعه</span>
                         </div>
-                    </article>
-                @endforeach
-            @endif
+                        @if($article->excerpt)
+                            <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">{{ Str::limit(strip_tags($article->excerpt), 95) }}</p>
+                        @endif
+                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.show', $article->slug) }}">ادامه مطلب</a></div>
+                    </div>
+                </article>
+            @endforeach
         </div>
     </div>
 </section>
+@endif
 @endif
 
 {{-- بنر اقدام به ثبت‌نام (CTA) --}}
