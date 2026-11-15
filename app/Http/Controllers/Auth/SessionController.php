@@ -117,7 +117,9 @@ final class SessionController extends Controller
 
         $user->forceFill(['last_login_at' => now()])->save();
 
-        return redirect()->intended(route($dashboardRoute));
+        // Never honor a stale intended URL here: it may point to another
+        // role's dashboard or an admin-only route and turn a valid login into 403.
+        return redirect()->route($dashboardRoute);
     }
 
     public function register(): View
