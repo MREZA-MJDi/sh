@@ -8,7 +8,7 @@
     @if(isset($children) && $children->isNotEmpty())
         <label class="kid"><span class="sr">انتخاب فرزند</span><select data-child aria-label="انتخاب فرزند">
             @foreach($children as $childOption)
-                <option value="{{ $childOption->id }}" @selected($selected_child?->id === $childOption->id)>{{ $childOption->name }} · {{ $childOption->grade ?? 'پایه ثبت نشده' }}</option>
+                <option value="{{ $childOption->id }}" @selected(($selected_child ?? null)?->id === $childOption->id)>{{ $childOption->name }} · {{ $childOption->grade ?? 'پایه ثبت نشده' }}</option>
             @endforeach
         </select></label>
     @endif
