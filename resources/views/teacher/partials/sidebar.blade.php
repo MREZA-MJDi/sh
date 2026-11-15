@@ -46,6 +46,5 @@
             <span class="panel-user-avatar">{{ mb_substr($adminUser->name, 0, 1) }}</span>
             <span class="panel-user-meta"><strong class="panel-user-name">{{ $adminUser->name }}</strong><small class="panel-user-role">مدرس</small></span>
         </div>
-        <form method="POST" action="{{ route('logout') }}">@csrf<button class="panel-nav-link teacher-logout" type="submit"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-exit"/></svg></span><span>خروج از حساب</span></button></form>
     </div>
 </aside>
