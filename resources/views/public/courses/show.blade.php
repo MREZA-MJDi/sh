@@ -167,21 +167,23 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    $isPreview = false;
+                                                    $isUnlocked = (bool) $hasCourseAccess;
                                                 @endphp
-                                                <div class="lesson-row {{ $isPreview ? 'is-preview' : '' }}">
+                                                <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
                                                     <div class="lesson-main">
-                                                        <div class="lesson-icon {{ $isPreview ? 'preview-icon' : 'locked-icon' }}">
+                                                        <div class="lesson-icon {{ $isUnlocked ? 'unlocked-icon' : 'locked-icon' }}">
                                                             <svg class="i">
-                                                                <use href="#{{ $isPreview ? 'cam' : 'lock' }}"/>
+                                                                <use href="#{{ $isUnlocked ? 'play' : 'lock' }}"/>
                                                             </svg>
                                                         </div>
                                                         <div class="lesson-title-box">
                                                             <span class="lesson-title">
                                                                 جلسه {{ $lessonIndex + 1 }}: {{ $lesson->title }}
                                                             </span>
-                                                            @if($isPreview)
-                                                                <span class="lesson-badge-free">پیش‌نمایش رایگان</span>
+                                                            @if($isUnlocked)
+                                                                <span class="lesson-badge-free">قابل دسترس پس از ثبت‌نام</span>
+                                                            @else
+                                                                <span class="lesson-badge-locked">قفل‌شده</span>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -191,10 +193,10 @@
                                                             <svg class="i" style="width:14px;height:14px"><use href="#clock"/></svg>
                                                             {{ $lesson->duration_minutes ? $lesson->duration_minutes . ' دقیقه' : 'ویدیویی' }}
                                                         </span>
-                                                        @if($isPreview)
-                                                            <button type="button" class="btn s lesson-preview-btn" onclick="document.querySelector('.vd')?.scrollIntoView({behavior:'smooth'})">
-                                                                مشاهده رایگان
-                                                            </button>
+                                                        @if($isUnlocked)
+                                                            <a class="btn s" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
+                                                        @else
+                                                            <span class="lesson-lock-label">پس از ثبت‌نام فعال می‌شود</span>
                                                         @endif
                                                     </div>
                                                 </div>
