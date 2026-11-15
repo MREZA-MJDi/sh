@@ -11,6 +11,7 @@ use App\Models\ExamResult;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\LearningResource;
+use App\Models\ParentMeeting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -99,7 +100,18 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
-        $results = ExamResult::query()
+        $attendanceCalendar = (clone $attendanceQuery)
+            ->whereBetween('session_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->orderBy('session_date')
+            ->get(['id', 'session_date', 'status']);
+
+        $attendanceBreakdown = (clone $attendanceQuery)
+            ->whereIn('status', ['present', 'late', 'absent'])
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $resultQuery = ExamResult::query()
             ->where('student_id', $student->id)
             ->whereHas('exam', function (Builder $exam) use ($classroomIds, $courseIds): void {
                 $exam->where('show_to_guardians', true)
@@ -111,11 +123,19 @@ final class GuardianDashboardService
                                 ->whereIn('exams.course_id', clone $courseIds);
                         });
                 });
-            })
+            });
+
+        $results = (clone $resultQuery)
             ->with(['exam:id,title,classroom_id,course_id', 'exam.course:id,title', 'exam.classroom:id,name'])
             ->latest()
             ->limit(8)
             ->get();
+
+        $resultTrend = (clone $resultQuery)
+            ->whereNotNull('score')
+            ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->orderBy('created_at')
+            ->get(['id', 'score', 'max_score', 'created_at']);
 
         $resourceQuery = LearningResource::query()
             ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
@@ -163,6 +183,15 @@ final class GuardianDashboardService
             ->limit(5)
             ->get();
 
+        $meetings = ParentMeeting::query()
+            ->where('guardian_id', $guardian->id)
+            ->where('student_id', $student->id)
+            ->with(['classroom:id,name', 'course:id,title'])
+            ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
+            ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
+            ->limit(5)
+            ->get();
+
         return [
             'children' => $children,
             'selected_child' => $selectedChild,
@@ -176,15 +205,19 @@ final class GuardianDashboardService
                 fn (Builder $query) => $query->where('student_id', $student->id)
             )->count(),
             'attendance' => $attendance,
+            'attendance_calendar' => $attendanceCalendar,
+            'attendance_breakdown' => $attendanceBreakdown,
             'attendance_count' => $attendanceTotal,
             'attendance_rate' => $attendanceTotal > 0
                 ? (int) round($attendancePresent / $attendanceTotal * 100)
                 : null,
             'results' => $results,
+            'result_trend' => $resultTrend,
             'resources' => $resources,
             'resource_count' => (clone $resourceQuery)->count(),
             'announcements' => $announcements,
             'consultations' => $consultations,
+            'meetings' => $meetings,
         ];
     }
 
@@ -235,9 +268,12 @@ final class GuardianDashboardService
             'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
             'attendance' => collect(),
+            'attendance_calendar' => collect(),
+            'attendance_breakdown' => collect(),
             'attendance_count' => 0,
             'attendance_rate' => null,
             'results' => collect(),
+            'result_trend' => collect(),
             'resources' => collect(),
             'resource_count' => 0,
             'announcements' => Announcement::query()
@@ -247,6 +283,7 @@ final class GuardianDashboardService
                 ->limit(5)
                 ->get(['id', 'title', 'body', 'published_at']),
             'consultations' => collect(),
+            'meetings' => collect(),
         ];
     }
 }
