@@ -28,7 +28,7 @@
                             </a>
                         @else
                             <a class="btn" href="{{ route('public.courses.index') }}">
-                                مشاهده دوره‌ها <svg class="i"><use href="#arrl"/></svg>
+                                {{ $homeContent['hero_primary_label'] }} <svg class="i"><use href="#arrl"/></svg>
                             </a>
                         @endif
                         <a class="btn o" href="{{ route('public.contact') }}">{{ $homeContent['hero_secondary_label'] }}</a>
@@ -233,7 +233,7 @@
         <div class="g4">
             @foreach($homeContent['steps'] as $index => $step)
                 <div class="card stp">
-                    <div class="n">{{ \App\Support\PersianDate::toPersianDigits($index + 1) }}</div>
+                    <div class="n">{{ ['۱', '۲', '۳', '۴'][$index] ?? ($index + 1) }}</div>
                     <h3>{{ $step['title'] ?? '' }}</h3>
                     <p>{{ $step['body'] ?? '' }}</p>
                 </div>
