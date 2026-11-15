@@ -61,7 +61,7 @@ final class PublicSiteController extends Controller
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
-            ->withCount('enrollments');
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
 
         if ($search = trim((string) $request->query('q'))) {
             $query->where(fn ($builder) => $builder->where('title', 'like', '%'.$search.'%')
@@ -155,8 +155,8 @@ final class PublicSiteController extends Controller
                     ->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])
-            ->withCount('enrollments')
-            ->latest()
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')])
+            ->latest()->limit(12)
             ->get();
 
         $stats = [
