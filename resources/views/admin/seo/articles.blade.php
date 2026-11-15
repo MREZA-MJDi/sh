@@ -82,9 +82,9 @@
                             <form method="POST" action="{{ route('admin.seo.articles.update', $article) }}" enctype="multipart/form-data">
                                 @csrf @method('PATCH')
                                 <div class="panel-form-grid">
-                                    <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $article->title }}" required maxlength="180"></div>
+                                    <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $article->title }}" required maxlength="180" data-image-title></div>
                                     <div class="panel-field"><label>Slug</label><input class="panel-input" name="slug" value="{{ $article->slug }}" dir="ltr" maxlength="190"></div>
-                                    <div class="panel-field"><label>خلاصه</label><textarea class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500">{{ $article->excerpt }}</textarea></div>
+                                    <div class="panel-field"><label>خلاصه</label><textarea class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500" data-image-excerpt>{{ $article->excerpt }}</textarea></div>
                                     <div class="panel-field"><label>متن مقاله</label><textarea class="panel-textarea seo-admin-richtext" name="body" data-rich-text required maxlength="100000">{{ $article->body }}</textarea></div>
                                     <div class="panel-field"><label>تصویر شاخص جدید</label><input class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp" data-image-file>@if($article->featured_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}"><span class="panel-muted">تصویر فعلی</span></div>@endif</div>
                                     <div class="panel-field"><label>متن جایگزین</label><input class="panel-input" name="image_alt" value="{{ $article->image_alt }}" maxlength="180"><input type="hidden" name="image_position" value="{{ $article->image_position ?? '50% 50%' }}" data-image-position></div>
@@ -95,6 +95,13 @@
                                     <div class="panel-field"><label>تصویر OG جدید</label><input class="panel-input" type="file" name="og_image" accept="image/jpeg,image/png,image/webp">@if($article->og_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($article->og_image_path) }}" alt="تصویر اشتراک‌گذاری مقاله"><span class="panel-muted">تصویر فعلی</span></div>@endif</div>
                                     <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach(['draft'=>'پیش‌نویس','published'=>'منتشرشده','scheduled'=>'زمان‌بندی‌شده','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($article->status === $key)>{{ $label }}</option>@endforeach</select></div>
                                     <div class="panel-field"><label>زمان انتشار</label><input class="panel-input" type="datetime-local" name="published_at" value="{{ $article->published_at?->format('Y-m-d\\TH:i') }}"></div>
+                                </div>
+                                <div class="seo-admin-live-preview" data-seo-image-preview data-preview-kind="article">
+                                    <div class="seo-admin-section-head"><div><h3>پیش‌نمایش کارت مقاله در صفحه اصلی</h3><p>نسبت ۱۶:۹ و برش مشابه کارت عمومی؛ تصویر را بکش تا نقطه‌ی کانونی تنظیم شود.</p></div></div>
+                                    <article class="seo-admin-blog-card"><div class="seo-admin-blog-image">
+                                        @if($article->featured_image_path)<img data-preview-image src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="object-position: {{ $article->image_position ?? '50% 50%' }}">@else<img data-preview-image alt="" hidden><span data-preview-placeholder>برای این مقاله هنوز تصویر شاخص ثبت نشده است.</span>@endif
+                                    </div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ $article->title }}</strong><p data-preview-excerpt>{{ $article->excerpt ?: 'خلاصه مقاله در این بخش نمایش داده می‌شود.' }}</p></div></article>
+                                    <p class="seo-admin-field-hint">نسبت تصویر ۱۶:۹ · object-fit: cover · نمایش در کارت صفحه اصلی</p>
                                 </div>
                                 <button class="panel-btn" type="submit">ذخیره تغییرات مقاله</button>
                             </form>
