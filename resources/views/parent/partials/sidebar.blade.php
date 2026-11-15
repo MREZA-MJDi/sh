@@ -5,12 +5,12 @@
         <div><strong>{{ $guardian?->name ?? 'ولی دانش‌آموز' }}</strong><small>پنل اولیا</small></div>
     </div>
     <nav class="nav" aria-label="بخش‌های پنل اولیا">
-        <a href="#overview" class="on" aria-current="page" data-nav-link><span>🏠</span>داشبورد</a>
-        <a href="#attendance" data-nav-link><span>✅</span>حضور و غیاب</a>
-        <a href="#exams" data-nav-link><span>📊</span>آزمون‌ها</a>
-        <a href="#homework" data-nav-link><span>📝</span>تکالیف</a>
-        <a href="{{ route('guardian.messages.index') }}"><span>💬</span>پیام به مدرس</a>
-        <a href="{{ route('guardian.meetings.index') }}"><span>🤝</span>جلسات مشاوره</a>
+        <a href="#overview" class="on" aria-current="page" data-nav-link data-page="home"><span>🏠</span>داشبورد</a>
+        <a href="#attendance" data-nav-link data-page="attendance"><span>✅</span>حضور و غیاب</a>
+        <a href="#exams" data-nav-link data-page="exams"><span>📊</span>آزمون‌ها</a>
+        <a href="#homework" data-nav-link data-page="homework"><span>📝</span>تکالیف</a>
+        <a href="#messages" data-nav-link data-page="messages"><span>💬</span>پیام به مدرس</a>
+        <a href="#meetings" data-nav-link data-page="meetings"><span>🤝</span>جلسات مشاوره</a>
     </nav>
     <div class="prem">
         <h4>ارتباط با آکادمی</h4>
