@@ -152,7 +152,7 @@
                                     </div>
                                     <div class="sec-meta-wrap">
                                         <span class="sec-count">{{ $section->published_lessons_count }} جلسه</span>
-                                        @if($sectionDuration > 0)
+                                        @if($sectionDuration > 0 && $section->published_lessons_count <= $sectionLessons->count())
                                             <span class="sec-duration">{{ $sectionDuration }} دقیقه</span>
                                         @endif
                                         <span class="sec-arrow">
@@ -201,6 +201,9 @@
                                                 </div>
                                             @endforeach
                                         </div>
+                                        @if ($section->published_lessons_count > $sectionLessons->count())
+                                            <div class="lesson-empty">برای مشاهده همه درس‌ها و ادامه آموزش، وارد حساب دانش‌آموزی شوید و ثبت‌نام دوره را تکمیل کنید.</div>
+                                        @endif
                                     @else
                                         <div class="lesson-empty">جلسات این فصل به‌زودی ضبط و بارگذاری خواهد شد.</div>
                                     @endif
