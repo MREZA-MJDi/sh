@@ -1,6 +1,7 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
+@php($homeContent = $settings->home_sections ?? \\App\\Models\\SeoSetting::defaultHomeSections())
 @if($banners->isNotEmpty())
 <header class="hero" id="homeHero">
     <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
@@ -17,20 +18,20 @@
                     <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
                 @endif
                 <div style="position:relative;z-index:2">
-                    <span class="bd">ویژه دانش‌آموزان شیخان</span>
+                    <span class="bd">{{ $homeContent['hero_badge'] }}</span>
                     <h1>{{ $banner->title }}</h1>
-                    <p>آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای منتشرشده.</p>
+                    <p>{{ $homeContent['hero_description'] }}</p>
                     <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
                         @if($banner->target_url)
                             <a class="btn" href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>
-                                مشاهده اطلاعات <svg class="i"><use href="#arrl"/></svg>
+                                {{ $homeContent['hero_primary_label'] }} <svg class="i"><use href="#arrl"/></svg>
                             </a>
                         @else
                             <a class="btn" href="{{ route('public.courses.index') }}">
                                 مشاهده دوره‌ها <svg class="i"><use href="#arrl"/></svg>
                             </a>
                         @endif
-                        <a class="btn o" href="{{ route('public.contact') }}">درخواست راهنمایی</a>
+                        <a class="btn o" href="{{ route('public.contact') }}">{{ $homeContent['hero_secondary_label'] }}</a>
                     </div>
                 </div>
                 <div class="vis" style="position:relative;z-index:2">
@@ -49,8 +50,8 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">دسته‌بندی‌ها</span>
-                <h2>موضوع مورد علاقه‌ات را انتخاب کن</h2>
+                <span class="eyebrow">{{ $homeContent['categories_eyebrow'] }}</span>
+                <h2>{{ $homeContent['categories_title'] }}</h2>
             </div>
         </div>
         <div class="g6">
@@ -83,19 +84,19 @@
         <div class="g">
             <div>
                 <b>{{ number_format($stats['enrollments']) }}</b>
-                <span>ثبت‌نام فعال</span>
+                <span>{{ $homeContent['stats_labels'][0] }}</span>
             </div>
             <div>
                 <b>{{ number_format($stats['lessons']) }}</b>
-                <span>درس منتشرشده</span>
+                <span>{{ $homeContent['stats_labels'][1] }}</span>
             </div>
             <div>
                 <b>{{ number_format($stats['teachers']) }}</b>
-                <span>مدرس متخصص</span>
+                <span>{{ $homeContent['stats_labels'][2] }}</span>
             </div>
             <div>
                 <b>{{ number_format($stats['courses']) }}</b>
-                <span>دوره منتشرشده</span>
+                <span>{{ $homeContent['stats_labels'][3] }}</span>
             </div>
         </div>
     </div>
@@ -105,9 +106,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">جدیدترین‌ها</span>
-                <h2>دوره‌های تازه</h2>
-                <p>تازه‌ترین آموزش‌های منتشر شده در آکادمی شیخان</p>
+                <span class="eyebrow">{{ $homeContent['latest_courses_eyebrow'] }}</span>
+                <h2>{{ $homeContent['latest_courses_title'] }}</h2>
+                <p>{{ $homeContent['latest_courses_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('public.courses.index') }}">
                 مشاهده همه
@@ -165,9 +166,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">انتخاب دانشجوها</span>
-                <h2>پرطرفدارترین دوره‌ها</h2>
-                <p>محبوب‌ترین دوره‌ها بر اساس استقبال و ثبت‌نام دانش‌آموزان</p>
+                <span class="eyebrow">{{ $homeContent['popular_courses_eyebrow'] }}</span>
+                <h2>{{ $homeContent['popular_courses_title'] }}</h2>
+                <p>{{ $homeContent['popular_courses_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('public.courses.index', ['sort' => 'popular']) }}">
                 مشاهده پرفروش‌ترین‌ها
@@ -224,32 +225,19 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">مسیر یادگیری</span>
-                <h2>چهار قدم تا تسلط</h2>
-                <p>فرآیند اصولی یادگیری در آکادمی شیخان</p>
+                <span class="eyebrow">{{ $homeContent['steps_eyebrow'] }}</span>
+                <h2>{{ $homeContent['steps_title'] }}</h2>
+                <p>{{ $homeContent['steps_description'] }}</p>
             </div>
         </div>
         <div class="g4">
-            <div class="card stp">
-                <div class="n">۱</div>
-                <h3>انتخاب مسیر</h3>
-                <p>هدفت را بگو تا دوره و برنامه مطالعاتی پیشنهادی بگیری.</p>
-            </div>
-            <div class="card stp">
-                <div class="n">۲</div>
-                <h3>آموزش مرحله‌ای</h3>
-                <p>هر درس را با ویدیوهای تدوین‌شده و سرفصل‌های معین یاد بگیر.</p>
-            </div>
-            <div class="card stp">
-                <div class="n">۳</div>
-                <h3>تمرین و آزمون</h3>
-                <p>با تمرین‌های مستمر و آزمون‌های استاندارد آموخته‌هایت را بسنج.</p>
-            </div>
-            <div class="card stp">
-                <div class="n">۴</div>
-                <h3>پیگیری و پشتیبانی</h3>
-                <p>سؤال بپرس، رفع اشکال کن و با نظارت مدرس به نتیجه برس.</p>
-            </div>
+            @foreach($homeContent['steps'] as $index => $step)
+                <div class="card stp">
+                    <div class="n">{{ \App\Support\PersianDate::toPersianDigits($index + 1) }}</div>
+                    <h3>{{ $step['title'] ?? '' }}</h3>
+                    <p>{{ $step['body'] ?? '' }}</p>
+                </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -259,9 +247,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">پنل‌های اختصاصی</span>
-                <h2>هر نقش، یک پنل مخصوص خودش</h2>
-                <p>پس از ورود، دسترسی تو بر اساس نقش حساب مشخص می‌شود.</p>
+                <span class="eyebrow">{{ $homeContent['panels_eyebrow'] ?? 'پنل‌های اختصاصی' }}</span>
+                <h2>{{ $homeContent['panels_title'] }}</h2>
+                <p>{{ $homeContent['panels_description'] }}</p>
             </div>
         </div>
         <div class="g4">
@@ -305,7 +293,7 @@
 @if($testimonials->isNotEmpty())
 <section style="padding:64px 0">
     <div class="c">
-        <div class="sh"><div><span class="eyebrow">نظرهای ثبت‌شده</span><h2>تجربه دانش‌آموزان</h2></div></div>
+        <div class="sh"><div><span class="eyebrow">{{ $homeContent['testimonials_eyebrow'] }}</span><h2>{{ $homeContent['testimonials_title'] }}</h2></div></div>
         <div class="g3">
             @foreach($testimonials as $testimonial)
                 <article class="card ts">
@@ -325,9 +313,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">مدرسان برتر</span>
-                <h2>با مدرس‌های شیخان آشنا شو</h2>
-                <p>یادگیری از اساتید باسابقه و متخصص در هر رشته</p>
+                <span class="eyebrow">{{ $homeContent['teachers_eyebrow'] }}</span>
+                <h2>{{ $homeContent['teachers_title'] }}</h2>
+                <p>{{ $homeContent['teachers_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('public.teachers.index') }}">
                 همه مدرسان
@@ -426,9 +414,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">مجله شیخان</span>
-                <h2>تازه‌ترین مقالات آموزشی</h2>
-                <p>نکته‌های مطالعه، برنامه‌ریزی درسی و آمادگی کنکور</p>
+                <span class="eyebrow">{{ $homeContent['articles_eyebrow'] }}</span>
+                <h2>{{ $homeContent['articles_title'] }}</h2>
+                <p>{{ $homeContent['articles_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('seo.articles.index') }}">
                 همه مقالات
@@ -478,10 +466,10 @@
 <section style="padding:64px 0">
     <div class="c">
         <div class="cta">
-            <h2>اولین جلسه را رایگان ببین</h2>
-            <p>بدون نیاز به ثبت کارت بانکی و بدون تعهد، تدریس اساتید شیخان را بررسی کن.</p>
+            <h2>{{ $homeContent['cta_title'] }}</h2>
+            <p>{{ $homeContent['cta_body'] }}</p>
             <a class="btn w" href="{{ route('public.courses.index') }}">
-                شروع یادگیری <svg class="i"><use href="#arrl"/></svg>
+                {{ $homeContent['cta_label'] }} <svg class="i"><use href="#arrl"/></svg>
             </a>
         </div>
     </div>
@@ -492,34 +480,20 @@
     <div class="c">
         <div class="faq">
             <div>
-                <span class="eyebrow">سؤالات متداول</span>
-                <h2 style="font-size:30px;line-height:1.6;margin:8px 0;font-weight:800">قبل از شروع، این‌ها را بدان</h2>
+                <span class="eyebrow">{{ $homeContent['faq_eyebrow'] }}</span>
+                <h2 style="font-size:30px;line-height:1.6;margin:8px 0;font-weight:800">{{ $homeContent['faq_title'] }}</h2>
                 <p style="color:var(--mute);margin:0 0 20px;line-height:1.9">
-                    جواب سؤالت اینجا نبود؟ تیم پشتیبانی شیخان همیشه برای راهنمایی در کنارت است.
+                    {{ $homeContent['faq_description'] }}
                 </p>
-                <a class="btn" href="{{ route('public.contact') }}">تماس با پشتیبانی</a>
+                <a class="btn" href="{{ route('public.contact') }}">{{ $homeContent['faq_cta_label'] }}</a>
             </div>
             <div>
-                <details open>
-                    <summary>چطور در دوره‌ها ثبت‌نام کنم؟</summary>
-                    <div class="fa">با شماره موبایل وارد شو، دوره مدنظرت را انتخاب و ثبت‌نام کن. دسترسی به جلسات بلافاصله در پنل دانش‌آموز فعال می‌شود.</div>
-                </details>
-                <details>
-                    <summary>تا کی به ویدیوها و محتوای دوره دسترسی دارم؟</summary>
-                    <div class="fa">دسترسی به دوره‌های خریداری‌شده همیشگی است و می‌توانی هر زمان و هر چندبار که خواستی جلسه‌ها را مرور کنی.</div>
-                </details>
-                <details>
-                    <summary>اگر در مورد درس‌ها سؤال داشتم چطور بپرسم؟</summary>
-                    <div class="fa">از طریق پنل کاربری یا سامانه پشتیبانی اختصاصی هر دوره می‌توانی مستقیماً از مدرس سؤال بپرسی و رفع اشکال کنی.</div>
-                </details>
-                <details>
-                    <summary>والدین چطور پیشرفت فرزندشان را پیگیری می‌کنند؟</summary>
-                    <div class="fa">در پنل اختصاصی والدین، گزارش حضور در کلاس‌ها، نمرات آزمون‌ها و نمودار رشد تحصیلی در یک نگاه قابل مشاهده است.</div>
-                </details>
-                <details>
-                    <summary>آیا آزمون‌ها دارای کارنامه و پاسخ تشریحی هستند؟</summary>
-                    <div class="fa">بله، بلافاصله پس از اتمام آزمون، کارنامه تحلیلی به همراه پاسخ تشریحی تک‌تک سؤالات در پنل قرار می‌گیرد.</div>
-                </details>
+                @foreach($homeContent['faq_items'] as $index => $item)
+                    <details @if($index === 0) open @endif>
+                        <summary>{{ $item['question'] ?? '' }}</summary>
+                        <div class="fa">{{ $item['answer'] ?? '' }}</div>
+                    </details>
+                @endforeach
             </div>
         </div>
     </div>
