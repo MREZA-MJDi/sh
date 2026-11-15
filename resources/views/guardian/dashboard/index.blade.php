@@ -20,7 +20,8 @@
     $calendarOffset = (now()->startOfMonth()->dayOfWeekIso + 1) % 7;
     $calendarDays = now()->daysInMonth;
     $chartResults = $result_trend->take(6);
-    $maxTrendScore = max(1, (float) $chartResults->max('max_score'));
+    $homeworkMonths = collect(range(5, 0))->map(fn ($offset) => now()->subMonths($offset));
+    $maxHomeworkCount = max(1, (int) $homework_trend->map(fn ($counts) => array_sum($counts))->max());
     $meetingLabels = ['requested' => 'در انتظار تأیید', 'proposed' => 'زمان پیشنهادی', 'scheduled' => 'زمان‌بندی‌شده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده', 'declined' => 'ردشده'];
 @endphp
 
@@ -66,6 +67,25 @@
             <div class="leg"><span><i style="background:var(--pri)"></i>نمره واقعی آزمون‌های منتشرشده</span></div>
         @else
             <div class="empty">هنوز نمره قابل نمایشی برای این فرزند ثبت نشده است.</div>
+        @endif
+    </section>
+
+    <section class="c chart-card" data-page-section="home">
+        <h3>روند تحویل تکالیف در شش ماه اخیر</h3>
+        @if($homework_trend->isNotEmpty())
+            <div class="bars" role="img" aria-label="نمودار واقعی وضعیت تحویل تکالیف">
+                @foreach($homeworkMonths as $month)
+                    @php($monthCounts = $homework_trend->get($month->format('Y-m'), ['on_time' => 0, 'late' => 0, 'missing' => 0]))
+                    @php($monthTotal = array_sum($monthCounts))
+                    <div title="به‌موقع {{ $faNumber($monthCounts['on_time']) }} · با تأخیر {{ $faNumber($monthCounts['late']) }} · انجام‌نشده {{ $faNumber($monthCounts['missing']) }}">
+                        <i style="height:{{ $monthTotal > 0 ? max(4, ($monthTotal / $maxHomeworkCount) * 100) : 0 }}%;background:var(--pri)"></i>
+                        <small>{{ \App\Support\PersianDate::format($month, 'M') }}</small>
+                    </div>
+                @endforeach
+            </div>
+            <div class="leg"><span><i style="background:var(--pri)"></i>تکالیف ثبت‌شده در هر ماه</span></div>
+        @else
+            <div class="empty">برای شش ماه اخیر داده‌ای از تکالیف و ارسال‌ها ثبت نشده است.</div>
         @endif
     </section>
 
@@ -176,10 +196,19 @@
 
 <section class="g g2">
     <section class="c" id="messages" data-page-section="messages">
-        <h3>پیام به مدرس</h3>
-        <p style="color:var(--mu)">گفت‌وگوها و پاسخ‌های ثبت‌شده با مدرس یا آموزشگاه را در صندوق پیام‌ها دنبال کنید.</p>
-        <a class="b" href="{{ route('guardian.messages.index') }}">مشاهده پیام‌ها</a>
-        <a class="b s" href="{{ route('guardian.messages.create') }}">ارسال پیام جدید</a>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <h3>پیام به مدرس</h3>
+            <a class="b" href="{{ route('guardian.messages.create', ['child' => $selected_child->id]) }}">پیام جدید</a>
+        </div>
+        @forelse($messages as $message)
+            <a class="row" href="{{ route('guardian.messages.show', ['message' => $message, 'child' => $selected_child->id]) }}" style="text-decoration:none;color:inherit">
+                <div><strong>{{ $message->subject }}</strong><small>{{ $message->sender?->name ?? 'فرستنده' }} · {{ \App\Support\PersianDate::format($message->created_at, 'Y/m/d H:i') }}</small></div>
+                <span class="bd {{ $message->status === 'closed' ? 'bl' : 'gn' }}">{{ $message->replies->count() ? $faNumber($message->replies->count()).' پاسخ' : 'بدون پاسخ' }}</span>
+            </a>
+        @empty
+            <div class="empty">هنوز گفت‌وگویی برای این فرزند ثبت نشده است.</div>
+        @endforelse
+        <a class="b s" href="{{ route('guardian.messages.index', ['child' => $selected_child->id]) }}">مشاهده همه پیام‌ها</a>
     </section>
     <section class="c" id="meetings" data-page-section="meetings">
         <h3>جلسات مشاوره و ملاقات</h3>
