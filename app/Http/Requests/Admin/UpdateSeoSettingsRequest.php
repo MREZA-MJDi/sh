@@ -32,6 +32,32 @@ class UpdateSeoSettingsRequest extends FormRequest
             'sitemap_enabled' => ['sometimes', 'boolean'],
             'social_links' => ['nullable', 'array', 'max:8'],
             'social_links.*' => ['nullable', 'url:http,https', 'max:2048'],
+            'trust_badge' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'footer_description' => ['nullable', 'string', 'max:500'],
+            'footer_links' => ['nullable', 'array', 'max:8'],
+            'footer_links.*.label' => ['nullable', 'string', 'max:80'],
+            'footer_links.*.url' => ['nullable', 'string', 'max:2048'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function ($validator): void {
+            foreach ((array) $this->input('footer_links', []) as $index => $link) {
+                $label = trim((string) ($link['label'] ?? ''));
+                $url = trim((string) ($link['url'] ?? ''));
+                if ($label === '' && $url === '') continue;
+                if ($label === '' || $url === '') {
+                    $validator->errors()->add("footer_links.$index.label", 'برای هر لینک فوتر، عنوان و نشانی را با هم وارد کن.');
+                    continue;
+                }
+                $internal = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, chr(92));
+                $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+                $external = filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true);
+                if (! $internal && ! $external) {
+                    $validator->errors()->add("footer_links.$index.url", 'نشانی لینک باید مسیر داخلی یا URL معتبر HTTP/HTTPS باشد.');
+                }
+            }
+        }];
     }
 }
