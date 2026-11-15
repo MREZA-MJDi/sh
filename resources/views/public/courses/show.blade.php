@@ -123,7 +123,7 @@
                     <div class="curriculum-stats">
                         <span class="c-badge">
                             <svg class="i" style="width:14px;height:14px"><use href="#brief"/></svg>
-                            {{ $course->sections->count() }} فصل
+                            {{ $sections->total() }} فصل
                         </span>
                         <span class="c-badge">
                             <svg class="i" style="width:14px;height:14px"><use href="#cam"/></svg>
