@@ -16,13 +16,21 @@
         } catch (error) { /* Theme persistence is optional. */ }
     </script>
     @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
+    @if(auth()->user()?->hasRole('teacher') && !auth()->user()?->hasRole('admin'))
+        @vite(['resources/css/teacher/app.css'])
+    @endif
     @stack('head')
 </head>
-<body class="admin-body" data-theme="light">
-    @php($adminUser = auth()->user())
+@php($adminUser = auth()->user())
+@php($teacherWorkspace = $adminUser && $adminUser->hasRole('teacher') && ! $adminUser->hasRole('admin'))
+<body class="admin-body {{ $teacherWorkspace ? 'teacher-workspace' : '' }}" data-theme="light">
     @include('admin.partials.sprite')
     <div class="admin-shell" data-admin-shell>
-        @include('admin.partials.sidebar')
+        @if($teacherWorkspace)
+            @include('teacher.partials.sidebar')
+        @else
+            @include('admin.partials.sidebar')
+        @endif
         <div class="admin-scrim" data-admin-close></div>
         <main class="panel-main admin-main" id="admin-main">
             @include('admin.partials.topbar')
