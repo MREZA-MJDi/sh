@@ -53,6 +53,7 @@ class SeoSetting extends Model
                 ['title' => 'تمرین و آزمون', 'body' => 'با تمرین‌های مستمر و آزمون‌ها آموخته‌هایت را بسنج.'],
                 ['title' => 'پیگیری و پشتیبانی', 'body' => 'با مدرس در ارتباط باش و مسیر پیشرفتت را پیگیری کن.'],
             ],
+            'panels_eyebrow' => 'پنل‌های اختصاصی',
             'panels_title' => 'هر نقش، یک پنل مخصوص خودش',
             'panels_description' => 'پس از ورود، دسترسی تو بر اساس نقش حساب مشخص می‌شود.',
             'testimonials_eyebrow' => 'نظرهای ثبت‌شده',
@@ -104,12 +105,12 @@ class SeoSetting extends Model
             ]
         );
 
-        if (! is_array($settings->home_sections) || $settings->home_sections === []) {
-            $settings->forceFill(['home_sections' => static::defaultHomeSections()])->save();
-        } else {
-            $settings->forceFill([
-                'home_sections' => array_replace_recursive(static::defaultHomeSections(), $settings->home_sections),
-            ])->saveQuietly();
+        $homeSections = array_replace_recursive(
+            static::defaultHomeSections(),
+            is_array($settings->home_sections) ? $settings->home_sections : []
+        );
+        if ($homeSections !== $settings->home_sections) {
+            $settings->forceFill(['home_sections' => $homeSections])->saveQuietly();
         }
 
         return $settings;
