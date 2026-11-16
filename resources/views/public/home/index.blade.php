@@ -1,8 +1,8 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
-@php($homeContent = $settings->home_sections ?? [])
-@if($banners->isNotEmpty())
+@php($homeContent = $homeContent ?? (is_array($settings->home_sections) ? $settings->home_sections : \\App\\Models\\SeoSetting::defaultHomeSections()))
+@if($homeBanners->isNotEmpty())
 <header class="hero" id="homeHero">
     <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
         <svg class="i"><use href="#arrr"/></svg>
@@ -11,7 +11,7 @@
         <svg class="i"><use href="#arrl"/></svg>
     </button>
 
-    @foreach($banners as $index => $banner)
+    @foreach($homeBanners as $index => $banner)
             <div class="sl {{ $index === 0 ? 'on' : '' }}" style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}">
                 @if($banner->image_path)
                     <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
