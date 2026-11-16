@@ -71,11 +71,37 @@
         <div class="panel-form-grid">
             <div class="panel-field"><label for="organization_name">نام سازمان</label><input id="organization_name" class="panel-input" name="organization_name" value="{{ old('organization_name', $settings->organization_name) }}" maxlength="180"></div>
             <div class="panel-field"><label for="organization_url">نشانی سازمان</label><input id="organization_url" class="panel-input" type="url" name="organization_url" value="{{ old('organization_url', $settings->organization_url) }}" dir="ltr"></div>
-            <div class="panel-field"><label for="default_og_image">تصویر پیش‌فرض Open Graph</label><input id="default_og_image" class="panel-input" type="file" name="default_og_image" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">ترجیحاً تصویر ۱۲۰۰×۶۳۰ پیکسل، حداکثر ۴ مگابایت.</small>
-                @if($settings->default_og_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($settings->default_og_image_path) }}" alt="تصویر پیش‌فرض شبکه‌های اجتماعی"><span class="panel-muted">تصویر فعلی ذخیره شده است.</span></div>@endif
+            <div class="panel-field">
+                <label for="default_og_image">تصویر پیش‌فرض Open Graph</label>
+                <div class="seo-admin-asset-preview seo-admin-asset-preview--og" data-seo-asset-preview data-asset-kind="og">
+                    <input id="default_og_image" class="panel-input" type="file" name="default_og_image" accept="image/jpeg,image/png,image/webp" data-asset-file>
+                    <div class="seo-admin-asset-preview__stage">
+                        @if($settings->default_og_image_path)
+                            <img class="seo-admin-asset-preview__image" data-asset-image src="{{ Storage::disk('public')->url($settings->default_og_image_path) }}" alt="تصویر پیش‌فرض شبکه‌های اجتماعی">
+                        @else
+                            <img class="seo-admin-asset-preview__image" data-asset-image alt="پیش‌نمایش تصویر Open Graph" hidden>
+                            <span data-asset-empty>پیش‌نمایش ۱۲۰۰×۶۳۰</span>
+                        @endif
+                    </div>
+                    <small class="seo-admin-field-hint">ترجیحاً تصویر ۱۲۰۰×۶۳۰ پیکسل، حداکثر ۴ مگابایت.</small>
+                    <small class="seo-admin-field-hint" data-asset-status>برای مشاهده‌ی پیش‌نمایش، تصویر را انتخاب کنید.</small>
+                </div>
             </div>
-            <div class="panel-field"><label for="organization_logo">لوگوی سازمان</label><input id="organization_logo" class="panel-input" type="file" name="organization_logo" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">تصویر واضح و مربعی برای معرفی ناشر.</small>
-                @if($settings->organization_logo_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($settings->organization_logo_path) }}" alt="لوگوی سازمان"><span class="panel-muted">لوگوی فعلی ذخیره شده است.</span></div>@endif
+            <div class="panel-field">
+                <label for="organization_logo">لوگوی سازمان</label>
+                <div class="seo-admin-asset-preview seo-admin-asset-preview--logo" data-seo-asset-preview data-asset-kind="logo">
+                    <input id="organization_logo" class="panel-input" type="file" name="organization_logo" accept="image/jpeg,image/png,image/webp" data-asset-file>
+                    <div class="seo-admin-asset-preview__stage">
+                        @if($settings->organization_logo_path)
+                            <img class="seo-admin-asset-preview__image" data-asset-image src="{{ Storage::disk('public')->url($settings->organization_logo_path) }}" alt="لوگوی سازمان">
+                        @else
+                            <img class="seo-admin-asset-preview__image" data-asset-image alt="پیش‌نمایش لوگوی سازمان" hidden>
+                            <span data-asset-empty>پیش‌نمایش لوگو در هدر</span>
+                        @endif
+                    </div>
+                    <small class="seo-admin-field-hint">تصویر در قاب ۱۵۰×۵۶ پیکسل و با حفظ نسبت اصلی نمایش داده می‌شود.</small>
+                    <small class="seo-admin-field-hint" data-asset-status>برای مشاهده‌ی پیش‌نمایش، تصویر را انتخاب کنید.</small>
+                </div>
             </div>
         </div>
 
@@ -92,8 +118,21 @@
         <div class="seo-admin-section-head"><div><h3>محتوای فوتر و نماد اعتماد</h3><p>متن معرفی، لینک‌های قابل نمایش در فوتر و تصویر نماد اعتماد از این بخش مدیریت می‌شوند.</p></div></div>
         <div class="panel-form-grid">
             <div class="panel-field"><label for="footer_description">متن معرفی فوتر</label><textarea id="footer_description" class="panel-textarea" name="footer_description" maxlength="500">{{ old('footer_description', $settings->footer_description) }}</textarea></div>
-            <div class="panel-field"><label for="trust_badge">تصویر نماد اعتماد</label><input id="trust_badge" class="panel-input" type="file" name="trust_badge" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">PNG شفاف یا WebP پیشنهاد می‌شود؛ حداکثر ۴ مگابایت.</small>
-                @if($settings->trust_badge_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($settings->trust_badge_path) }}" alt="نماد اعتماد فعلی"><span class="panel-muted">نماد اعتماد ذخیره‌شده</span></div>@endif
+            <div class="panel-field">
+                <label for="trust_badge">تصویر نماد اعتماد</label>
+                <div class="seo-admin-asset-preview seo-admin-asset-preview--trust" data-seo-asset-preview data-asset-kind="trust">
+                    <input id="trust_badge" class="panel-input" type="file" name="trust_badge" accept="image/jpeg,image/png,image/webp" data-asset-file>
+                    <div class="seo-admin-asset-preview__stage">
+                        @if($settings->trust_badge_path)
+                            <img class="seo-admin-asset-preview__image" data-asset-image src="{{ Storage::disk('public')->url($settings->trust_badge_path) }}" alt="نماد اعتماد فعلی">
+                        @else
+                            <img class="seo-admin-asset-preview__image" data-asset-image alt="پیش‌نمایش نماد اعتماد" hidden>
+                            <span data-asset-empty>پیش‌نمایش نماد اعتماد</span>
+                        @endif
+                    </div>
+                    <small class="seo-admin-field-hint">قاب نمایش در فوتر ۱۲۰×۷۶ پیکسل است؛ PNG شفاف یا WebP پیشنهاد می‌شود.</small>
+                    <small class="seo-admin-field-hint" data-asset-status>برای مشاهده‌ی پیش‌نمایش، تصویر را انتخاب کنید.</small>
+                </div>
             </div>
         </div>
         <div class="seo-admin-section-head"><div><h3>لینک‌های فوتر</h3><p>حداکثر ۸ لینک؛ مسیر داخلی مانند /contact یا نشانی کامل HTTPS.</p></div></div>
