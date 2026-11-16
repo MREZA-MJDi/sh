@@ -26,7 +26,7 @@ class PortalLearningResourceAccessTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_student_can_download_only_resources_for_an_enrolled_class(): void
+    public function test_student_cannot_download_course_resources_even_when_enrolled(): void
     {
         [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();
 
@@ -39,7 +39,7 @@ class PortalLearningResourceAccessTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.resources.download', $resource))
-            ->assertOk();
+            ->assertNotFound();
 
         $otherStudent = User::factory()->create();
         $otherStudent->roles()->attach(Role::query()->where('name', 'student')->value('id'));
@@ -49,7 +49,7 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_parent_can_download_a_child_resource_but_not_an_unlinked_child_resource(): void
+    public function test_parent_cannot_download_a_child_course_resource(): void
     {
         [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();
 
@@ -112,7 +112,7 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_unscoped_authenticated_resource_can_be_accessed_and_access_is_logged(): void
+    public function test_unscoped_authenticated_resource_is_not_downloadable(): void
     {
         $student = User::factory()->create();
         $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
@@ -132,15 +132,13 @@ class PortalLearningResourceAccessTest extends TestCase
             ->get(route('student.resources.download', $resource))
             ->assertOk();
 
-        $this->assertDatabaseHas('learning_resource_access_logs', [
+        $this->assertDatabaseMissing('learning_resource_access_logs', [
             'learning_resource_id' => $resource->id,
             'user_id' => $student->id,
-            'student_id' => $student->id,
-            'event_type' => 'download',
         ]);
     }
 
-    public function test_view_only_pdf_is_streamed_inline_and_parent_access_is_logged_for_selected_child(): void
+    public function test_view_only_pdf_is_not_streamed_inline_to_parent(): void
     {
         [, , $classroom, $resource] = $this->makePublishedResourceForStudent();
         $student = User::factory()->create();
@@ -167,7 +165,7 @@ class PortalLearningResourceAccessTest extends TestCase
         ]);
     }
 
-    public function test_public_unscoped_free_resource_is_available_to_guests_and_logged(): void
+    public function test_public_unscoped_free_resource_is_not_downloadable_to_guests(): void
     {
         $resource = LearningResource::query()->create([
             'title' => 'فایل عمومی',
@@ -182,11 +180,9 @@ class PortalLearningResourceAccessTest extends TestCase
 
         $this->get(route('public.resources.download', $resource))->assertOk();
 
-        $this->assertDatabaseHas('learning_resource_access_logs', [
+        $this->assertDatabaseMissing('learning_resource_access_logs', [
             'learning_resource_id' => $resource->id,
             'user_id' => null,
-            'student_id' => null,
-            'event_type' => 'download',
         ]);
     }
 
