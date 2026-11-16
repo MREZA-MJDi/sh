@@ -11,7 +11,7 @@ final class LocalDemoAccountsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! app()->environment(['local', 'testing']) || ! config('demo.enabled')) {
+        if (! config('demo.enabled')) {
             return;
         }
 
