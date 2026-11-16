@@ -264,6 +264,9 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/attendance', [GuardianDashboardController::class, 'attendance'])->name('attendance');
+        Route::get('/exams', [GuardianDashboardController::class, 'exams'])->name('exams');
+        Route::get('/homework', [GuardianDashboardController::class, 'homework'])->name('homework');
         Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
         Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
     });
