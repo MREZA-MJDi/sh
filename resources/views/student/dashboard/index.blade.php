@@ -189,7 +189,7 @@
                             <div class="student-class-item__body">
                                 <h3>{{ $session->title }}</h3>
                                 <p>{{ $session->classroom?->name ?? 'کلاس آموزشی' }}</p>
-                                <span class="mu">شروع: {{ $session->starts_at->format('Y/m/d H:i') }} · پایان: {{ $session->ends_at->format('H:i') }}</span>
+                                <span class="mu">شروع: {{ \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') }} · پایان: {{ \App\Support\PersianDate::format($session->ends_at, 'H:i') }}</span>
                             </div>
                             @if ($sessionJoinable)
                                 <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">
@@ -197,7 +197,7 @@
                                     <button class="btn s" type="submit">ورود به کلاس</button>
                                 </form>
                             @else
-                                <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? '۱۵ دقیقه مانده فعال می‌شود' : 'لینک ورود ثبت نشده' }}</span>
+                                <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? 'ورود نزدیک زمان شروع فعال می‌شود' : 'لینک ورود ثبت نشده' }}</span>
                             @endif
                         </article>
                     @empty
@@ -276,15 +276,17 @@
 
                             @can('homework.submit')
                                 @if (! $submission || ($submission->reviewed_at === null && ! in_array($submission->status, ['reviewed', 'graded'], true)))
-                                    <details class="student-homework-item__details">
+                                    @php($showHomeworkErrors = (int) old('homework_id') === (int) $homework->id)
+                                    <details class="student-homework-item__details" {!! $showHomeworkErrors ? 'open' : '' !!}>
                                         <summary class="btn g s">{{ $submission ? 'ویرایش پاسخ' : 'ارسال پاسخ' }}</summary>
                                         <form method="POST" action="{{ route('student.homework.submissions.store', $homework) }}" enctype="multipart/form-data" class="stack">
                                             @csrf
+                                            <input type="hidden" name="homework_id" value="{{ $homework->id }}">
                                             <label class="lbl" for="answer-{{ $homework->id }}">پاسخ متنی</label>
-                                            <textarea class="fld" id="answer-{{ $homework->id }}" name="answer" rows="3" maxlength="12000">{{ old('answer', $submission?->answer) }}</textarea>
+                                            <textarea class="fld" id="answer-{{ $homework->id }}" name="answer" rows="3" maxlength="12000">{{ $showHomeworkErrors ? old('answer') : $submission?->answer }}</textarea>
                                             <label class="lbl" for="files-{{ $homework->id }}">پیوست‌ها (حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت)</label>
-                                            <input class="fld" id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png">
-                                            <button class="btn s" type="submit">ثبت پاسخ</button>
+                                            <input class="fld" id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.txt">
+                                        <button class="btn s" type="submit">ثبت پاسخ</button>
                                         </form>
                                         @if ($submission)
                                             <form method="POST" action="{{ route('student.homework.submissions.destroy', $homework) }}" onsubmit="return confirm('پاسخ این تکلیف حذف شود؟')">

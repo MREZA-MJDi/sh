@@ -463,3 +463,41 @@ body.admin-body :where(a,button,input,select,textarea):focus-visible {
     outline:3px solid color-mix(in srgb,var(--adm-primary) 22%,transparent);
     outline-offset:2px;
 }
+
+
+/* Shared admin interaction states — semantic colors are never used as decoration. */
+body.admin-body {
+    --state-success:#28776d; --state-success-bg:#e2f2ef;
+    --state-warning:#b96b18; --state-warning-bg:#fff0d9;
+    --state-danger:#b43d4d; --state-danger-bg:#fae9ec;
+    --state-info:#465c76; --state-info-bg:#e9edf3;
+}
+body.admin-body .admin-toast { border-inline-start:4px solid var(--state-success); }
+body.admin-body .admin-toast.is-error { border-inline-start-color:var(--state-danger); }
+body.admin-body .admin-toast.is-warning { border-inline-start-color:var(--state-warning); }
+body.admin-body .field-error, body.admin-body .invalid-feedback {
+    display:block; margin-top:5px; color:var(--state-danger); font-size:12.5px; line-height:1.8;
+}
+body.admin-body input[aria-invalid="true"], body.admin-body select[aria-invalid="true"],
+body.admin-body textarea[aria-invalid="true"], body.admin-body .is-invalid {
+    border-color:var(--state-danger) !important; box-shadow:0 0 0 3px rgba(180,61,77,.12);
+}
+body.admin-body .is-valid { border-color:var(--state-success) !important; }
+body.admin-body .btn-danger, body.admin-body .panel-btn-danger {
+    color:#fff; background:#b43d4d; border-color:#b43d4d;
+}
+body.admin-body .btn-success, body.admin-body .panel-btn-success {
+    color:#fff; background:#28776d; border-color:#28776d;
+}
+body.admin-body .alert-warning { color:#81480e; background:var(--state-warning-bg); border-color:#f0d5ad; }
+body.admin-body .alert-danger { color:#922d3d; background:var(--state-danger-bg); border-color:#efc5cc; }
+body.admin-body .alert-success { color:#176454; background:var(--state-success-bg); border-color:#b9e2d4; }
+body.admin-body form.is-submitting button[type="submit"],
+body.admin-body form.is-submitting [type="submit"] { opacity:.72; cursor:wait; pointer-events:none; }
+
+body.admin-body .admin-toast:not(.is-error):not(.is-warning) {
+    color:#176454; background:var(--state-success-bg);
+}
+body.admin-body .admin-toast.is-warning {
+    color:#81480e; background:var(--state-warning-bg);
+}

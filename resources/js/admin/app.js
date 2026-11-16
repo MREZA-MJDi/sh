@@ -149,6 +149,27 @@ document.querySelectorAll('form[data-confirm]').forEach((form) => {
         if (!window.confirm(form.dataset.confirm || 'از انجام این عملیات مطمئن هستید؟')) event.preventDefault();
     });
 });
+// Lock valid forms after the first submit to prevent duplicate writes.
+document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.dataset.noSubmitLock !== undefined) return;
+    if (event.defaultPrevented || !form.checkValidity()) return;
+    if (form.dataset.submitting === 'true') {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = 'true';
+    form.classList.add('is-submitting');
+    form.setAttribute('aria-busy', 'true');
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button) => {
+        button.disabled = true;
+        if (button instanceof HTMLButtonElement) {
+            button.dataset.originalLabel ??= button.textContent.trim();
+            button.textContent = 'در حال ثبت…';
+        }
+    });
+});
+
 document.querySelectorAll('[data-auto-dismiss]').forEach((notice) => {
     window.setTimeout(() => notice.remove(), 5000);
 });

@@ -267,8 +267,27 @@ function initDashboardNavigation() {
     sections.forEach((section) => observer.observe(section));
 }
 
+function initFormSubmissionFeedback() {
+    document.querySelectorAll('form').forEach((form) => {
+        if (form.dataset.noSubmitLock !== undefined) return;
+        form.addEventListener('submit', (event) => {
+            if (event.defaultPrevented || !form.checkValidity()) return;
+            form.classList.add('is-submitting');
+            form.setAttribute('aria-busy', 'true');
+            form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button) => {
+                button.disabled = true;
+                if (button instanceof HTMLButtonElement) {
+                    button.dataset.originalLabel ??= button.textContent.trim();
+                    button.textContent = 'در حال ثبت…';
+                }
+            });
+        });
+    });
+}
+
 function initStudentDashboard() {
     initMobileMenu();
+    initFormSubmissionFeedback();
     initChildSwitcher();
     initDashboardNavigation();
     initThemeToggle();
