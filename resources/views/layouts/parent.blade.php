@@ -13,11 +13,7 @@
             if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
             if (palette) document.documentElement.dataset.pal = palette;
         } catch (error) {}
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap">
-    @vite(['resources/css/student/app.css', 'resources/css/parent/app.css', 'resources/js/parent/app.js'])
+    </script>\n    @vite(['resources/css/student/app.css', 'resources/css/parent/app.css', 'resources/css/shared/typography.css', 'resources/js/parent/app.js'])
     @stack('head')
 </head>
 <body class="parent-page">
