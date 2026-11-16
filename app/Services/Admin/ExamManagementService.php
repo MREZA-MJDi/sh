@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Exam;
+use App\Models\Course;
 use App\Models\User;
 use App\Services\Quiz24\Quiz24Service;
 use Illuminate\Support\Facades\DB;
