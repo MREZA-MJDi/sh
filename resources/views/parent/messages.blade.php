@@ -1,27 +1,15 @@
 @extends('parent.layouts.app')
-
 @section('title', 'پیام به مدرس')
-
 @section('content')
-<h2>پیام به مدرس</h2>
-<section class="c"><h3>{{ $teacherTitle ?? '' }}</h3>
-    <form method="POST" action="{{ url('parent/messages/send') }}">
-        @csrf
-        <input type="hidden" name="teacher_id" value="{{ $teacherId ?? '' }}">
-        <div class="chips">
-            @foreach (['سوال', 'انتقاد', 'پیشنهاد'] as $i => $cat)
-                <label class="chip"><input type="radio" name="category" value="{{ $cat }}" @checked($i === 0)>{{ $cat }}</label>
-            @endforeach
-        </div>
-        <div class="msgs">
-            @foreach (($messages ?? []) as $m)
-                <div class="m {{ data_get($m, 'mine') ? 'me2' : '' }}">{{ data_get($m, 'text') }}</div>
-            @endforeach
-        </div>
-        <div class="send">
-            <input name="message" placeholder="پیام خود را بنویسید…" autocomplete="off" required>
-            <button class="b" type="submit">ارسال پیام</button>
-        </div>
-    </form>
+<h2>پیام‌های من</h2>
+@include('parent.partials.kid-picker')
+<section class="c">
+ <div class="chead"><h3>گفت‌وگوها</h3><a class="b" href="{{ route('guardian.messages.create', ['child' => $selected_child?->id]) }}">پیام جدید</a></div>
+ @forelse ($messages as $message)
+  <a class="row" href="{{ route('guardian.messages.show', $message) }}"><div>{{ $message->subject }}<small>{{ $message->sender?->name }} · {{ $message->created_at?->format('Y/m/d H:i') }} · {{ $message->student?->name }}</small><span>{{ \\Illuminate\\Support\\Str::limit(strip_tags($message->body), 150) }}</span></div><i class="bd {{ $message->status === 'open' ? 'am' : 'gn' }}">{{ $message->status }}</i></a>
+ @empty
+  <p>گفت‌وگویی برای این فرزند ثبت نشده است.</p>
+ @endforelse
+ {{ $messages->links() }}
 </section>
 @endsection
