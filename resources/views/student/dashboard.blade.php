@@ -7,8 +7,9 @@
     $sessions = $upcoming_sessions ?? collect();
     $tasks = $homeworks ?? collect();
     $courseItems = $course_progress ?? collect();
+    $classItems = $classrooms ?? collect();
 @endphp
-<section class="page" id="dashboard">
+<section class="page" id="overview">
  <div class="hero">
   <svg class="av" viewBox="0 0 120 120"><use href="#avatar"/></svg>
   <div class="txt">
@@ -18,10 +19,10 @@
   </div>
  </div>
  <div class="stats">
-  <a class="st s1" href="{{ url('student/live-classes') }}"><div class="ic"><svg class="i"><use href="#i-video"/></svg></div><small>کلاس‌های پیش‌رو</small><b>{{ $sessions->count() }}</b><span>جلسات برنامه‌ریزی‌شده</span></a>
-  <a class="st s2" href="{{ url('student/homework') }}"><div class="ic"><svg class="i"><use href="#i-task"/></svg></div><small>تکالیف نمایش‌داده‌شده</small><b>{{ $tasks->count() }}</b><span>{{ $pending_homework_count }} تکلیف بدون ارسال</span></a>
-  <a class="st s3" href="{{ url('student/exams') }}"><div class="ic"><svg class="i"><use href="#i-exam"/></svg></div><small>نتایج اخیر</small><b>{{ $results->count() }}</b><span>نتایج قابل مشاهده</span></a>
-  <a class="st s4" href="{{ url('student/messages') }}"><div class="ic"><svg class="i"><use href="#i-msg"/></svg></div><small>یادداشت‌ها</small><b>{{ $notes->count() }}</b><span>یادداشت‌های شخصی</span></a>
+  <a class="st s1" href="{{ url('student/live-classes') }}" id="classes"><div class="ic"><svg class="i"><use href="#i-video"/></svg></div><small>کلاس‌های پیش‌رو</small><b>{{ $sessions->count() }}</b><span>جلسات برنامه‌ریزی‌شده</span></a>
+  <a class="st s2" href="{{ url('student/homework') }}" id="homework"><div class="ic"><svg class="i"><use href="#i-task"/></svg></div><small>تکالیف نمایش‌داده‌شده</small><b>{{ $tasks->count() }}</b><span>{{ $pending_homework_count }} تکلیف بدون ارسال</span></a>
+  <a class="st s3" href="{{ url('student/exams') }}" id="results"><div class="ic"><svg class="i"><use href="#i-exam"/></svg></div><small>نتایج اخیر</small><b>{{ $results->count() }}</b><span>نتایج قابل مشاهده</span></a>
+  <a class="st s4" href="{{ url('student/attendance') }}" id="attendance"><div class="ic"><svg class="i"><use href="#i-msg"/></svg></div><small>نرخ حضور</small><b>{{ $attendance_rate === null ? '—' : $attendance_rate.'%' }}</b><span>حضور و غیاب ثبت‌شده</span></a>
  </div>
  <div class="row">
   <div class="card">
@@ -35,14 +36,23 @@
    @empty
     <p>جلسه‌ی برنامه‌ریزی‌شده‌ای برای شما ثبت نشده است.</p>
    @endforelse
+   @if ($classItems->isNotEmpty())
+    <div class="chead"><h2>کلاس‌های ثبت‌شده</h2></div>
+    @foreach ($classItems as $classroom)
+     <div class="trk"><div><b>{{ $classroom->name }}</b><span>{{ $classroom->course?->title ?? 'کلاس فعال' }}</span></div></div>
+    @endforeach
+   @endif
   </div>
-  <div class="card">
+  <div class="card" id="homework-list">
    <div class="chead"><h2>تکالیف من</h2><a class="pill" href="{{ url('student/homework') }}">همه</a></div>
    @forelse ($tasks->take(5) as $homework)
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#c3d2dd,#6f8fb3)"></div>
      <div><b>{{ $homework->title }}</b><span>{{ $homework->classroom?->name }} · {{ $homework->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت' }}</span></div>
      <span class="tag">{{ $homework->submitted_by_student_count ? 'ارسال‌شده' : 'در انتظار' }}</span>
+     @if ($homework->submissions->first()?->feedback)
+      <p>نتیجه بررسی مدرس: {{ $homework->submissions->first()->feedback }}</p>
+     @endif
     </div>
    @empty
     <p>تکلیفی برای کلاس‌های فعال شما ثبت نشده است.</p>
