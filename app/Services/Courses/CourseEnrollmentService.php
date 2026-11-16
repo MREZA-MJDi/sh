@@ -146,6 +146,7 @@ class CourseEnrollmentService
                 'status' => 'active',
                 'source_reference' => $paymentReference,
                 'granted_at' => now(),
+                'expires_at' => null,
             ])->save();
 
             return $enrollment;
@@ -201,7 +202,7 @@ class CourseEnrollmentService
 
     public function hasActiveAccess(User $student, Course $course): bool
     {
-        if ($course->status !== 'published') {
+        if ($course->status !== 'published' || ! $student->is_active || ! $student->hasRole('student')) {
             return false;
         }
 
