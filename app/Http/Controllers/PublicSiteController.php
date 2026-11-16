@@ -187,7 +187,7 @@ final class PublicSiteController extends Controller
         // Video playback is exposed only when both the enrollment and the
         // provider-issued license are currently valid. Embed hosts are explicitly
         // allow-listed in services.spotplayer.embed_hosts (never trust arbitrary URLs).
-        $videoLicense = $hasCourseAccess && $course->delivery_type === 'spotplayer'
+        $videoLicense = $hasCourseAccess && ($features['recorded_video'] ?? false)
             ? SpotPlayerLicense::query()
                 ->where('student_id', $request->user()->id)
                 ->where('course_id', $course->id)
