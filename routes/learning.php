@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\LearningAdminController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\EnrollFreeCourseController;
@@ -59,4 +60,17 @@ Route::middleware(['auth', 'role:parent'])
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])
             ->middleware('permission:resources.view.enrolled')
             ->name('resources.download');
+    });
+
+Route::middleware(['auth', 'role:admin,teacher,seo'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function (): void {
+        Route::post('/licenses/{license}/retry', [LearningAdminController::class, 'retryLicense'])
+            ->middleware('permission:integrations.manage')
+            ->name('licenses.retry');
+
+        Route::post('/lessons/{lesson}/video/retry', [LearningAdminController::class, 'retryLessonVideo'])
+            ->middleware('permission:courses.manage')
+            ->name('lessons.video.retry');
     });

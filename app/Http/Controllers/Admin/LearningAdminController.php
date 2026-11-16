@@ -10,11 +10,22 @@ use App\Models\CourseLesson;
 use App\Models\CourseLicense;
 use App\Models\VideoUploadSession;
 use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LearningAdminController extends Controller
 {
+    public function teaser(Course $course): StreamedResponse
+    {
+        abort_unless($course->teaser_status === 'ready' && filled($course->teaser_path), 404);
+
+        $response = Storage::disk('public')->response($course->teaser_path);
+        $response->headers->set('Cache-Control', 'private, no-store, max-age=0');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
+    }
+
     public function teaserStatus(Course $course): JsonResponse
     {
         return response()->json(['status' => $course->teaser_status, 'error' => $course->teaser_error]);

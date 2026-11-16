@@ -40,5 +40,7 @@ final class LearningWebRouteIntegrationTest extends TestCase
         $this->assertNotNull($routes->getByName('student.courses.enroll-free'));
         $this->assertNotNull($routes->getByName('student.resources.download'));
         $this->assertNotNull($routes->getByName('guardian.resources.download'));
+        $this->assertNotNull($routes->getByName('admin.licenses.retry'));
+        $this->assertNotNull($routes->getByName('admin.lessons.video.retry'));
     }
 }
