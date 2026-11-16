@@ -90,7 +90,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
-    Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');\n    Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');
+    Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
+    Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');
 
     Route::get('/seo', [SeoDashboardController::class, 'index'])->middleware('permission:seo.manage')->name('seo.index');
     Route::patch('/seo/settings', [SeoDashboardController::class, 'updateSettings'])->middleware('permission:seo.manage')->name('seo.settings.update');
