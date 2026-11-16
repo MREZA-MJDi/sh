@@ -23,22 +23,24 @@ class CourseService
     {
         return DB::transaction(function () use ($data): Course {
             $deliveryType = $data['delivery_type'];
-            $externalId = $deliveryType === 'spotplayer' ? ($data['spotplayer_course_id'] ?? null) : null;
+            $features = $data['learning_features'] ?? [];
+            $usesSpotPlayer = (bool) ($features['recorded_video'] ?? ($deliveryType === 'spotplayer'));
+            $externalId = $usesSpotPlayer ? ($data['spotplayer_course_id'] ?? null) : null;
 
             $course = Course::create([
                 ...$data,
                 'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(7)),
                 'price' => $data['type'] === 'paid' ? (int) $data['price'] : 0,
                 'spotplayer_course_id' => $externalId,
-                'integration_status' => $deliveryType === 'spotplayer'
+                'integration_status' => $usesSpotPlayer
                     ? (filled($externalId) ? 'awaiting_api_verification' : 'waiting_course_mapping')
                     : 'not_required',
-                'integration_note' => $deliveryType === 'spotplayer'
+                'integration_note' => $usesSpotPlayer
                     ? 'دوره در سامانه محلی ساخته شد؛ اتصال SpotPlayer تا دریافت و پیاده‌سازی قرارداد API تأیید نشده است.'
                     : null,
             ]);
 
-            if ($deliveryType === 'spotplayer') {
+            if ($usesSpotPlayer) {
                 $this->queueCourseMapping($course);
             }
 
@@ -50,21 +52,23 @@ class CourseService
     {
         return DB::transaction(function () use ($course, $data): Course {
             $deliveryType = $data['delivery_type'];
-            $externalId = $deliveryType === 'spotplayer' ? ($data['spotplayer_course_id'] ?? null) : null;
+            $features = $data['learning_features'] ?? [];
+            $usesSpotPlayer = (bool) ($features['recorded_video'] ?? ($deliveryType === 'spotplayer'));
+            $externalId = $usesSpotPlayer ? ($data['spotplayer_course_id'] ?? null) : null;
 
             $course->update([
                 ...$data,
                 'price' => $data['type'] === 'paid' ? (int) $data['price'] : 0,
                 'spotplayer_course_id' => $externalId,
-                'integration_status' => $deliveryType === 'spotplayer'
+                'integration_status' => $usesSpotPlayer
                     ? (filled($externalId) ? 'awaiting_api_verification' : 'waiting_course_mapping')
                     : 'not_required',
-                'integration_note' => $deliveryType === 'spotplayer'
+                'integration_note' => $usesSpotPlayer
                     ? 'شناسه خارجی ثبت شده یا منتظر ثبت است؛ اعتبار آن پس از فعال‌شدن API بررسی می‌شود.'
                     : null,
             ]);
 
-            if ($deliveryType === 'spotplayer') {
+            if ($usesSpotPlayer) {
                 $this->queueCourseMapping($course);
             }
 
