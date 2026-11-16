@@ -70,16 +70,19 @@ class AdminAuthorizationTest extends TestCase
         }
     }
 
-    public function test_teacher_opens_the_same_admin_dashboard_without_admin_only_navigation(): void
+    public function test_teacher_is_redirected_to_the_independent_teacher_workspace(): void
     {
         $teacher = User::factory()->create();
         $teacher->roles()->attach(Role::where('name', 'teacher')->value('id'));
 
         $this->actingAs($teacher)
             ->get(route('admin.dashboard'))
+            ->assertRedirect(route('teacher.dashboard'));
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.dashboard'))
             ->assertOk()
-            ->assertSee('داشبورد من')
-            ->assertSee('کلاس‌ها و اسکای‌روم')
+            ->assertSee('فضای کاری مدرس')
             ->assertDontSee('مدیریت کاربران')
             ->assertDontSee('کوییز ۲۴');
     }
