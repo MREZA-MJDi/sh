@@ -163,7 +163,8 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    $isUnlocked = (bool) $hasCourseAccess;
+                                                    $isUnlocked = (bool) $hasCourseAccess
+                                                        && (! ($features['recorded_video'] ?? false) || (bool) $canWatchCourseVideos);
                                                 @endphp
                                                 <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
                                                     <div class="lesson-main">
@@ -337,23 +338,28 @@
             </p>
 
             <ul>
-                <li>
-                    <svg class="i"><use href="#cam"/></svg>
-                    <span>{{ $totalLessons > 0 ? $totalLessons . ' جلسه آموزش ویدیویی' : 'دسترسی به ویدیوها' }}</span>
-                </li>
-                <li>
-                    <svg class="i"><use href="#inf"/></svg>
-                    <span>دسترسی به سرفصل‌های منتشرشده بر اساس وضعیت ثبت‌نام</span>
-                </li>
-                <li>
-                    <svg class="i"><use href="#help"/></svg>
-                    <span>پشتیبانی و رفع اشکال مستقیم مدرس</span>
-                </li>
-                <li>
-                    <svg class="i"><use href="#award"/></svg>
-                    <span>آزمون‌های مرحله‌ای و سنجش تراز</span>
-                </li>
+                @if($features['recorded_video'] ?? false)
+                    <li><svg class="i"><use href="#cam"/></svg><span>{{ $totalLessons }} درس ویدیویی / آموزشی</span></li>
+                @endif
+                @if($features['live_class'] ?? false)
+                    <li><svg class="i"><use href="#users"/></svg><span>جلسات زنده و گروه‌های کلاسی</span></li>
+                @endif
+                @if($features['resources'] ?? false)
+                    <li><svg class="i"><use href="#inf"/></svg><span>جزوه و منابع تکمیلی</span></li>
+                @endif
+                @if($features['assignments'] ?? false)
+                    <li><svg class="i"><use href="#file"/></svg><span>تمرین و تکلیف با بازخورد مدرس</span></li>
+                @endif
+                @if($features['exams'] ?? false)
+                    <li><svg class="i"><use href="#award"/></svg><span>آزمون و کوییز و ثبت نتیجه</span></li>
+                @endif
+                @if($features['projects'] ?? false)
+                    <li><svg class="i"><use href="#check"/></svg><span>پروژه و ارزیابی مرحله‌ای</span></li>
+                @endif
             </ul>
+            @if(($features['recorded_video'] ?? false) && $hasCourseAccess && ! $canWatchCourseVideos)
+                <p class="lesson-empty" style="margin-top:14px">ثبت‌نام شما فعال است؛ پخش ویدیو پس از صدور یا تأیید لایسنس SpotPlayer در همین صفحه فعال می‌شود.</p>
+            @endif
         </aside>
     </div>
 
