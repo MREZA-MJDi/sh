@@ -260,6 +260,7 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
         Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
         Route::get('/attendance', [TeacherPortalController::class, 'attendance'])->middleware('permission:attendance.view.assigned')->name('attendance');
+        Route::post('/attendance', [TeacherPortalController::class, 'storeAttendance'])->middleware('permission:attendance.manage.assigned')->name('attendance.store');
         Route::get('/live', [TeacherPortalController::class, 'live'])->middleware('permission:classes.view.assigned')->name('live');
         Route::get('/meetings', [TeacherPortalController::class, 'meetings'])->middleware('permission:classes.view.assigned')->name('meetings');
         Route::get('/messages', [TeacherPortalController::class, 'messages'])->middleware('permission:messages.view.assigned')->name('messages.index');
