@@ -59,7 +59,7 @@ final class TeacherAccessService
         // Customized teachers still need the minimum permissions required to enter
         // their workspace and maintain their own profile. Access groups only
         // control optional work areas.
-        $permissionNames = collect(['dashboard.view', 'profile.update', 'announcements.view'])
+        $permissionNames = collect(['dashboard.view', 'profile.update', 'announcements.view', 'consultations.create'])
             ->merge(collect($accessGroups)
                 ->flatMap(fn (string $group) => self::ACCESS_GROUPS[$group]['permissions']))
             ->unique()
