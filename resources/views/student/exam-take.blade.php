@@ -15,7 +15,7 @@
     $options = $question->options ?? [];
    @endphp
    <section class="q-item">
-    <h3>{{ $loop->iteration }}. {{ $question->text }} <small>({{ $question->score }} نمره)</small></h3>
+    <h3>{{ $loop->iteration }}. {{ $question->question }} <small>({{ $question->score }} نمره)</small></h3>
     @if ($question->type === 'text')
      <textarea name="answers[{{ $question->id }}]" rows="4" placeholder="پاسخ تشریحی">{{ $saved }}</textarea>
     @elseif ($question->type === 'multiple')
