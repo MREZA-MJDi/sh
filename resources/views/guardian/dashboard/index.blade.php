@@ -231,7 +231,7 @@
             <div class="row">
                 <div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? $resource->classroom?->name ?? $resource->kind }}</small></div>
                 @if($resource->file_path && $resource->is_free)
-                    <span class="bd">فایل در فضای خصوصی نگهداری می‌شود؛ دریافت مستقیم غیرفعال است.</span>
+                    <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $selected_child->id]) }}">دریافت</a>
                 @else
                     <span class="bd am">{{ $resource->is_free ? 'رایگان' : 'نیازمند خرید' }}</span>
                 @endif
