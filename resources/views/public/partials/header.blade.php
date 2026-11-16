@@ -1,14 +1,14 @@
 @php
     $cartCount = count(session('public_cart', []));
     $user = auth()->user();
-    $currentDashboard = null;
-    if ($user) {
-        $currentDashboard = $user->hasRole('student') 
-            ? route('student.dashboard') 
-            : ($user->hasRole('teacher') 
-                ? route('teacher.dashboard') 
-                : ($user->hasRole('parent') ? route('guardian.dashboard') : route('admin.dashboard')));
-    }
+    $currentDashboard = match (true) {
+        $user?->hasRole('admin') => route('admin.dashboard'),
+        $user?->hasRole('seo') => route('admin.seo.index'),
+        $user?->hasRole('teacher') => route('teacher.dashboard'),
+        $user?->hasRole('student') => route('student.dashboard'),
+        $user?->hasRole('parent') => route('guardian.dashboard'),
+        default => null,
+    };
 @endphp
 
 <header class="nv">
@@ -104,75 +104,58 @@
 
 <!-- منوی بازشونده پنل من -->
 <div class="card ddm" id="pm">
-    @auth
+    @guest
+        <a href="{{ route('login') }}">
+            <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#login"/></svg></div>
+            <div><b>ورود به حساب</b><small>برای دسترسی به میز کار وارد شوید</small></div>
+        </a>
+        <a href="{{ route('register') }}">
+            <div class="ic" style="background:var(--soft)"><svg class="i"><use href="#user"/></svg></div>
+            <div><b>ساخت حساب دانش‌آموزی</b><small>ثبت‌نام در آکادمی شیخان</small></div>
+        </a>
+    @else
         <div style="padding:10px 12px;border-bottom:1px solid var(--ln);margin-bottom:6px">
             <b style="display:block;font-size:15px;color:var(--ink)">{{ $user->name }}</b>
             <small style="color:var(--mute)">{{ $user->mobile ?? $user->email }}</small>
         </div>
-        @if($currentDashboard)
-            <a href="{{ $currentDashboard }}" style="background:var(--soft);color:var(--pri);margin-bottom:4px">
-                <div class="ic" style="background:var(--pri)">
-                    <svg class="i"><use href="#cap"/></svg>
-                </div>
-                <div>
-                    <b>داشبورد اصلی من</b>
-                    <small style="color:var(--pri)">ورود به میز کار شما</small>
-                </div>
+        @if($user->hasRole('admin'))
+            <a href="{{ route('admin.dashboard') }}">
+                <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#chart"/></svg></div>
+                <div><b>پنل مدیریت</b><small>مدیریت سامانه و دوره‌ها</small></div>
             </a>
         @endif
-    @endauth
-
-    <a href="{{ route('student.dashboard') }}">
-        <div class="ic" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-            <svg class="i"><use href="#cap"/></svg>
-        </div>
-        <div>
-            <b>پنل دانشجو</b>
-            <small>دوره‌ها، تکالیف، آزمون و رشد تحصیلی</small>
-        </div>
-    </a>
-
-    <a href="{{ route('teacher.dashboard') }}">
-        <div class="ic" style="background:linear-gradient(135deg,#f97316,#db2777)">
-            <svg class="i"><use href="#pen"/></svg>
-        </div>
-        <div>
-            <b>پنل مدرس</b>
-            <small>مدیریت دوره‌ها، دانشجوها و درآمد</small>
-        </div>
-    </a>
-
-    <a href="{{ route('guardian.dashboard') }}">
-        <div class="ic" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-            <svg class="i"><use href="#user"/></svg>
-        </div>
-        <div>
-            <b>پنل والدین</b>
-            <small>گزارش پیشرفت، حضور و پرداخت‌ها</small>
-        </div>
-    </a>
-
-    <a href="{{ route('admin.dashboard') }}">
-        <div class="ic" style="background:linear-gradient(135deg,#0891b2,#2563eb)">
-            <svg class="i"><use href="#chart"/></svg>
-        </div>
-        <div>
-            <b>پنل مدیریت</b>
-            <small>کاربران، دوره‌ها، مالی و محتوا</small>
-        </div>
-    </a>
-
-    @auth
+        @if($user->hasRole('seo'))
+            <a href="{{ route('admin.seo.index') }}">
+                <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#search"/></svg></div>
+                <div><b>پنل سئو و محتوا</b><small>مدیریت مقاله‌ها و تنظیمات انتشار</small></div>
+            </a>
+        @endif
+        @if($user->hasRole('teacher'))
+            <a href="{{ route('teacher.dashboard') }}">
+                <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#pen"/></svg></div>
+                <div><b>پنل مدرس</b><small>کلاس‌ها و محتوای آموزشی تخصیص‌یافته</small></div>
+            </a>
+        @endif
+        @if($user->hasRole('student'))
+            <a href="{{ route('student.dashboard') }}">
+                <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#cap"/></svg></div>
+                <div><b>پنل دانش‌آموز</b><small>دوره‌ها، تکالیف و پیشرفت آموزشی</small></div>
+            </a>
+        @endif
+        @if($user->hasRole('parent'))
+            <a href="{{ route('guardian.dashboard') }}">
+                <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#user"/></svg></div>
+                <div><b>پنل اولیا</b><small>پیگیری وضعیت آموزشی فرزندان</small></div>
+            </a>
+        @endif
         <div style="border-top:1px solid var(--ln);margin-top:6px;padding-top:6px">
             <form action="{{ route('logout') }}" method="POST" style="margin:0">
                 @csrf
                 <button type="submit" style="width:100%;background:none;border:0;display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;color:#dc2626;cursor:pointer;font:inherit;font-weight:600">
-                    <div class="ic" style="background:#fee2e2;color:#dc2626">
-                        <svg class="i"><use href="#logout"/></svg>
-                    </div>
+                    <div class="ic" style="background:#fee2e2;color:#dc2626"><svg class="i"><use href="#logout"/></svg></div>
                     <span>خروج از حساب</span>
                 </button>
             </form>
         </div>
-    @endauth
+    @endguest
 </div>
