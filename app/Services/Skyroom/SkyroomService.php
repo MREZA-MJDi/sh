@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Services\\Skyroom;
+namespace App\Services\Skyroom;
 
-use App\\Models\\Classroom;
-use App\\Models\\User;
-use App\\Services\\Integrations\\Contracts\\IntegrationHealth;
-use App\\Services\\Skyroom\\Contracts\\SkyroomGateway;
-use App\\Services\\Skyroom\\Contracts\\SkyroomLoginCommand;
-use App\\Services\\Skyroom\\Contracts\\SkyroomRoomCommand;
+use App\Models\Classroom;
+use App\Models\User;
+use App\Services\Integrations\Contracts\IntegrationHealth;
+use App\Services\Skyroom\Contracts\SkyroomGateway;
+use App\Services\Skyroom\Contracts\SkyroomLoginCommand;
+use App\Services\Skyroom\Contracts\SkyroomRoomCommand;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -75,7 +75,7 @@ final class SkyroomService
         ));
     }
 
-    /** @return iterable<\\App\\Services\\Skyroom\\Contracts\\SkyroomAttendanceEvent> */
+    /** @return iterable<\App\Services\Skyroom\Contracts\SkyroomAttendanceEvent> */
     public function attendance(string $meetingId, DateTimeImmutable $from, DateTimeImmutable $to): iterable
     {
         if (trim($meetingId) === '' || $to <= $from) {
