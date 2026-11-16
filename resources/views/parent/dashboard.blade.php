@@ -65,7 +65,7 @@
         </section>
         <section class="c"><h3>نتایج بررسی تکالیف و بازخورد مدرس</h3>
             @forelse (($teacherNotes ?? collect()) as $note)
-                <div class="row"><div>{{ data_get($note, 'teacher') }}<small>نتیجه بررسی مدرس: {{ data_get($note, 'text') }}</small>@if (data_get($note, 'score') !== null)<small>نمره: {{ strtr(rtrim(rtrim(number_format((float) data_get($note, 'score'), 2, '.', ''), '0'), '.'), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از ۲۰</small>@endif</div><i class="bd am">بازخورد</i></div>
+                <div class="row"><div>{{ data_get($note, 'homework') }} · {{ data_get($note, 'teacher') }}<small>نتیجه بررسی مدرس: {{ data_get($note, 'text') }}</small>@if (data_get($note, 'score') !== null)<small>نمره: {{ strtr(rtrim(rtrim(number_format((float) data_get($note, 'score'), 2, '.', ''), '0'), '.'), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از ۲۰</small>@endif</div><i class="bd am">بازخورد</i></div>
             @empty
                 <p>بازخوردی ثبت نشده است.</p>
             @endforelse
