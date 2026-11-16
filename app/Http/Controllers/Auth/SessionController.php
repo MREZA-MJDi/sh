@@ -19,16 +19,26 @@ final class SessionController extends Controller
 {
     public function create(): View
     {
+        return view('auth.login', $this->loginViewData('login'));
+    }
+
+    /**
+     * Use one centered screen for both sign-in and student registration.
+     * Demo credentials are visible locally when demo accounts are explicitly enabled.
+     */
+    private function loginViewData(string $activeTab): array
+    {
         $demoPassword = config('demo.password');
         $showDemoAccounts = config('demo.enabled')
-            && config('demo.login_cards_enabled')
+            && (app()->environment(['local', 'testing']) || config('demo.login_cards_enabled'))
             && is_string($demoPassword)
             && mb_strlen($demoPassword) >= 12;
 
-        return view('auth.login', [
+        return [
+            'activeTab' => $activeTab,
             'demoAccounts' => $showDemoAccounts ? config('demo.accounts', []) : [],
             'demoPassword' => $showDemoAccounts ? $demoPassword : null,
-        ]);
+        ];
     }
 
     public function store(
@@ -127,7 +137,7 @@ final class SessionController extends Controller
 
     public function register(): View
     {
-        return view('auth.register');
+        return view('auth.login', $this->loginViewData('register'));
     }
 
     public function storeRegistration(
