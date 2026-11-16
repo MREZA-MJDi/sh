@@ -80,7 +80,7 @@
 @endsection
 
 @push('modals')
-<x-admin.modal id="session-modal" title="ثبت جلسه جدید" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
+<x-admin.modal :demo="false" id="session-modal" title="ثبت جلسه جدید" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
   <x-admin.legend title="اطلاعات جلسه"/>
   <x-admin.input label="عنوان جلسه" name="title" wide required/>
   <x-admin.select label="نوع جلسه" name="session_type" :options="$typeLabels" required/>
