@@ -29,7 +29,7 @@ final class MessageController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('teacher.messages.create', compact('classrooms'));
+        return view('teacher.message-create', compact('classrooms'));
     }
 
     public function store(Request $request, ClassroomWorkspaceService $workspace): RedirectResponse
@@ -65,7 +65,7 @@ final class MessageController extends Controller
                 $admin->notify(new MessageActivityNotification($message, 'پیام جدیدی از طرف مدرس برای مدیریت آکادمی ارسال شده است.'));
             }
 
-            return redirect()->route('admin.messages.index', ['message' => $message->id])
+            return redirect()->route('teacher.messages.index')
                 ->with('success', 'پیام برای کارتابل مدیریت آکادمی ارسال شد.');
         }
 
@@ -106,7 +106,7 @@ final class MessageController extends Controller
 
         $recipient->notify(new MessageActivityNotification($message, 'پیام جدیدی از طرف مدرس برای شما ارسال شده است.'));
 
-        return redirect()->route('admin.messages.index', ['message' => $message->id])
+        return redirect()->route('teacher.messages.index')
             ->with('success', 'پیام برای مخاطب مرتبط ارسال شد.');
     }
 }

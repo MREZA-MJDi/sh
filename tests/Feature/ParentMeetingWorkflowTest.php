@@ -32,7 +32,7 @@ final class ParentMeetingWorkflowTest extends TestCase
             'student_id' => $child->id,
             'title' => 'پیگیری وضعیت درسی',
             'message' => 'لطفاً زمان جلسه اعلام شود.',
-        ])->assertRedirect(route('guardian.meetings.index'));
+        ])->assertRedirect(route('guardian.meetings.index', ['child' => $child->id]));
 
         $this->assertDatabaseHas('parent_meetings', [
             'guardian_id' => $guardian->id,
@@ -75,6 +75,33 @@ final class ParentMeetingWorkflowTest extends TestCase
             'guardian_id' => $guardian->id,
             'status' => 'proposed',
         ]);
+    }
+
+    public function test_parent_meeting_list_is_scoped_to_the_selected_child(): void
+    {
+        $guardian = $this->userWithRole('parent');
+        $firstChild = $this->userWithRole('student');
+        $secondChild = $this->userWithRole('student');
+        $guardian->children()->attach([$firstChild->id, $secondChild->id]);
+
+        ParentMeeting::query()->create([
+            'student_id' => $firstChild->id,
+            'guardian_id' => $guardian->id,
+            'title' => 'جلسه مربوط به فرزند اول',
+            'status' => 'requested',
+        ]);
+        ParentMeeting::query()->create([
+            'student_id' => $secondChild->id,
+            'guardian_id' => $guardian->id,
+            'title' => 'جلسه مربوط به فرزند دوم',
+            'status' => 'requested',
+        ]);
+
+        $this->actingAs($guardian)
+            ->get(route('guardian.meetings.index', ['child' => $secondChild->id]))
+            ->assertOk()
+            ->assertSee('جلسه مربوط به فرزند دوم')
+            ->assertDontSee('جلسه مربوط به فرزند اول');
     }
 
     private function userWithRole(string $role): User

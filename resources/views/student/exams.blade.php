@@ -1,11 +1,17 @@
 @extends('student.layouts.app')
-
 @section('title', 'آزمون‌ها')
-
 @section('content')
-<section class="page" id="exams"><div class="card"><div class="chead"><h2>آزمون‌ها</h2><span class="pill">۲ آزمون پیش‌رو</span></div>
- <div class="tw"><table class="tbl"><tr><th>آزمون</th><th>زمان</th><th>مدت</th><th>وضعیت</th><th></th></tr>
- <tr><td>میان‌ترم فیزیک</td><td>شنبه ۱۰:۰۰</td><td>۶۰ دقیقه</td><td><span class="tag">آماده شروع</span></td><td><a class="btn s" href="{{ url('student/exams/take') }}">شروع آزمون</a></td></tr>
- <tr><td>کوییز ریاضی ۲</td><td>دوشنبه ۱۲:۰۰</td><td>۳۰ دقیقه</td><td><span class="tag w">به‌زودی</span></td><td></td></tr>
- <tr><td>آزمون زبان ۱</td><td>گذشته</td><td>۴۵ دقیقه</td><td><span class="tag d">نمره: ۱۷</span></td><td><a class="pill" href="{{ url('student/results') }}">نتیجه</a></td></tr></table></div></div></section>
+<section class="page" id="exams"><div class="card"><div class="chead"><h2>آزمون‌های من</h2><span class="pill">{{ $exams->total() }} آزمون</span></div>
+ <div class="tw"><table class="tbl"><tr><th>آزمون</th><th>درس / کلاس</th><th>زمان</th><th>وضعیت</th><th></th></tr>
+ @forelse ($exams as $exam)
+  <tr><td>{{ $exam->title }}</td><td>{{ $exam->course?->title ?? $exam->classroom?->name ?? '—' }}</td><td>{{ $exam->starts_at?->format('Y/m/d H:i') ?? 'طبق برنامه مدرس' }}</td><td><span class="tag">{{ $exam->status }}</span></td><td>
+   <a class="btn s" href="{{ route('student.exams.show', $exam) }}">جزئیات</a>
+   @if ($exam->status === 'published')
+    <form method="POST" action="{{ route('student.exams.start', $exam) }}" class="inline">@csrf<button class="btn s" type="submit">شروع آزمون</button></form>
+   @endif
+  </td></tr>
+ @empty
+  <tr><td colspan="5">آزمونی برای شما منتشر نشده است.</td></tr>
+ @endforelse
+ </table></div>{{ $exams->links() }}</div></section>
 @endsection

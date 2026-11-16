@@ -4,76 +4,70 @@
 
 @section('content')
 @php
-    $att   = $attendance ?? [];
+    $att = $attendance ?? [];
     $parts = [
         ['l' => 'حاضر', 'v' => (int) ($att['present'] ?? 0), 'c' => '--gn'],
-        ['l' => 'غایب', 'v' => (int) ($att['absent'] ?? 0),  'c' => '--rd'],
-        ['l' => 'تأخیر', 'v' => (int) ($att['late'] ?? 0),   'c' => '--am'],
+        ['l' => 'غایب', 'v' => (int) ($att['absent'] ?? 0), 'c' => '--rd'],
+        ['l' => 'تأخیر', 'v' => (int) ($att['late'] ?? 0), 'c' => '--am'],
     ];
     $subj = collect($subjects ?? []);
 @endphp
-<h2>گزارش {{ data_get($kid ?? null, 'name') }}</h2>
+<h2>وضعیت آموزشی {{ data_get($kid ?? null, 'name') }}</h2>
 @include('parent.partials.kid-picker')
 <div class="g">
     <div class="g g4">
-        <div class="st"><b>{{ $stats['avg'] ?? '' }}</b><span>میانگین نمرات</span><small>{{ $stats['avg_note'] ?? '' }}</small></div>
+        <div class="st"><b>{{ $stats['avg'] ?? '—' }}</b><span>میانگین نمرات ثبت‌شده</span><small>{{ $stats['avg_note'] ?? '' }}</small></div>
         <div class="st gn"><b>{{ $att['percent'] ?? 0 }}٪</b><span>حضور</span><small>{{ $att['absent'] ?? 0 }} غیبت · {{ $att['late'] ?? 0 }} تأخیر</small></div>
-        <div class="st bl"><b>{{ $stats['open_homework'] ?? 0 }}</b><span>تکلیف باز</span><small>{{ $stats['open_homework_note'] ?? '' }}</small></div>
-        <div class="st am"><b>{{ $stats['next_meeting'] ?? '' }}</b><span>جلسه بعدی</span><small>{{ $stats['next_meeting_note'] ?? '' }}</small></div>
+        <div class="st bl"><b>{{ $stats['open_homework'] ?? 0 }}</b><span>تکلیف بدون ارسال</span><small>{{ $stats['open_homework_note'] ?? '' }}</small></div>
+        <div class="st am"><b>{{ $stats['next_meeting'] ?? '—' }}</b><span>جلسه بعدی</span><small>{{ $stats['next_meeting_note'] ?? '' }}</small></div>
     </div>
-
     <div class="g g2">
-        <section class="c"><h3>روند نمرات در برابر میانگین کلاس</h3>
-            @include('parent.partials.chart', [
-                'type' => 'line', 'labels' => $months ?? [],
-                'series' => [
-                    ['name' => data_get($kid ?? null, 'name', ''), 'c' => '--pri', 'data' => $scores ?? [], 'area' => true],
-                    ['name' => 'میانگین کلاس', 'c' => '--mu', 'data' => $classAvg ?? [], 'dash' => true],
-                ],
-            ])
-        </section>
 
-        <section class="c"><h3>وضعیت حضور این ماه</h3>
+    <section class="c">
+        <h3>پیشرفت دوره‌ها و درس‌ها</h3>
+        @forelse (($course_progress ?? collect()) as $course)
+            <div class="row">
+                <div>{{ data_get($course, 'title') }}
+                    <small>{{ strtr((string) data_get($course, 'completed_lessons', 0), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از {{ strtr((string) data_get($course, 'total_lessons', 0), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} درس تکمیل‌شده</small>
+                </div>
+                <div class="pr"><u style="width:{{ (int) data_get($course, 'progress_percent', 0) }}%"></u></div>
+            </div>
+        @empty
+            <p>پیشرفت دوره‌ای برای نمایش وجود ندارد.</p>
+        @endforelse
+    </section>
+        <section class="c"><h3>روند نمرات ثبت‌شده</h3>
+            @include('parent.partials.chart', ['type' => 'line', 'labels' => $months ?? [], 'series' => [
+                ['name' => data_get($kid ?? null, 'name', ''), 'c' => '--pri', 'data' => $scores ?? [], 'area' => true],
+            ]])
+        </section>
+        <section class="c"><h3>وضعیت حضور ثبت‌شده</h3>
             @include('parent.partials.chart', ['type' => 'donut', 'parts' => $parts, 'big' => ($att['percent'] ?? 0).'٪', 'small' => 'حضور'])
         </section>
-
-        <section class="c"><h3>مقایسه درس‌ها با میانگین کلاس</h3>
-            @include('parent.partials.chart', [
-                'type' => 'radar',
-                'labels' => $subj->map(fn ($s) => data_get($s, 'name'))->values()->all(),
-                'series' => [
-                    ['name' => data_get($kid ?? null, 'name', ''), 'c' => '--pri', 'data' => $subj->map(fn ($s) => data_get($s, 'score'))->values()->all()],
-                    ['name' => 'میانگین کلاس', 'c' => '--am', 'data' => $subj->map(fn ($s) => data_get($s, 'class_avg'))->values()->all()],
-                ],
-            ])
+        <section class="c"><h3>عملکرد درس‌ها</h3>
+            @include('parent.partials.chart', ['type' => 'radar', 'labels' => $subj->pluck('name')->all(), 'series' => [
+                ['name' => data_get($kid ?? null, 'name', ''), 'c' => '--pri', 'data' => $subj->pluck('score')->all()],
+            ]])
         </section>
-
-        <section class="c"><h3>ارسال تکالیف در شش ماه</h3>
-            @include('parent.partials.chart', [
-                'type' => 'bar', 'labels' => $months ?? [], 'options' => ['stacked' => true, 'max' => 8],
-                'series' => [
-                    ['name' => 'به‌موقع', 'c' => '--gn', 'data' => $hwOnTime ?? []],
-                    ['name' => 'با تأخیر', 'c' => '--am', 'data' => $hwLate ?? []],
-                    ['name' => 'ارسال‌نشده', 'c' => '--rd', 'data' => $hwMissing ?? []],
-                ],
-            ])
+        <section class="c"><h3>وضعیت ارسال تکالیف</h3>
+            @include('parent.partials.chart', ['type' => 'bar', 'labels' => $homeworkMonths ?? [], 'options' => ['stacked' => true], 'series' => [
+                ['name' => 'به‌موقع', 'c' => '--gn', 'data' => $hwOnTime ?? []],
+                ['name' => 'با تأخیر', 'c' => '--am', 'data' => $hwLate ?? []],
+                ['name' => 'ارسال‌نشده', 'c' => '--rd', 'data' => $hwMissing ?? []],
+            ]])
         </section>
-
-        <section class="c"><h3>آزمون‌های پیش‌رو</h3>
-            @forelse (($upcomingExams ?? []) as $e)
-                <div class="row"><div>{{ data_get($e, 'title') }}<small>{{ data_get($e, 'date') }}</small></div><i class="bd pk">آزمون</i></div>
+        <section class="c"><h3>نتایج آزمون‌های قابل مشاهده</h3>
+            @forelse (($results ?? collect()) as $result)
+                <div class="row"><div>{{ $result->exam?->title }}<small>{{ $result->created_at?->format('Y/m/d') }}</small></div><i class="bd pk">{{ $result->score }} / {{ $result->max_score }}</i></div>
             @empty
-                <p>آزمونی در پیش نیست.</p>
+                <p>نتیجه‌ی قابل نمایشی ثبت نشده است.</p>
             @endforelse
         </section>
-
-        <section class="c"><h3>نکته‌های مدرس</h3>
-            @forelse (($teacherNotes ?? []) as $n)
-                <div class="row"><div>{{ data_get($n, 'teacher') }}<small>{{ data_get($n, 'text') }}</small></div>
-                    @if (data_get($n, 'type') === 'praise')<i class="bd gn">تشویق</i>@else<i class="bd am">پیشنهاد</i>@endif
-                </div>
+        <section class="c"><h3>نتایج بررسی تکالیف و بازخورد مدرس</h3>
+            @forelse (($teacherNotes ?? collect()) as $note)
+                <div class="row"><div>{{ data_get($note, 'homework') }} · {{ data_get($note, 'teacher') }}<small>نتیجه بررسی مدرس: {{ data_get($note, 'text') }}</small>@if (data_get($note, 'score') !== null)<small>نمره: {{ strtr(rtrim(rtrim(number_format((float) data_get($note, 'score'), 2, '.', ''), '0'), '.'), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از ۲۰</small>@endif</div><i class="bd am">بازخورد</i></div>
             @empty
-                <p>نکته‌ای ثبت نشده است.</p>
+                <p>بازخوردی ثبت نشده است.</p>
             @endforelse
         </section>
     </div>

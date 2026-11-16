@@ -15,14 +15,14 @@ final class ExamController extends Controller
 {
     public function index(Request $request, StudentExamService $exams): View
     {
-        return view('student.exams.index', [
+        return view('student.exams', [
             'exams' => $exams->query($request->user())->paginate(12)->withQueryString(),
         ]);
     }
 
     public function show(Request $request, Exam $exam, StudentExamService $exams): View
     {
-        return view('student.exams.show', ['exam' => $exams->find($request->user(), $exam)]);
+        return view('student.exam-detail', ['exam' => $exams->find($request->user(), $exam)]);
     }
 
     public function start(Request $request, Exam $exam, StudentExamService $exams): RedirectResponse
@@ -44,7 +44,15 @@ final class ExamController extends Controller
 
         $attempt->load(['exam.questions' => fn ($query) => $query->orderBy('sort_order')->orderBy('id'), 'answers']);
 
-        return view('student.exams.attempt', compact('attempt'));
+        return view('student.exam-take', [
+            'attempt' => $attempt,
+            'exam' => $attempt->exam,
+            'questions' => $attempt->exam->questions,
+            'answers' => $attempt->answers->keyBy('question_id'),
+            'remainingSeconds' => (int) $attempt->exam->duration_minutes > 0
+                ? max(0, $attempt->started_at->copy()->addMinutes((int) $attempt->exam->duration_minutes)->diffInSeconds(now(), false) * -1)
+                : null,
+        ]);
     }
 
     public function submit(SubmitInternalExamRequest $request, ExamAttempt $attempt, StudentExamService $exams): RedirectResponse
@@ -72,6 +80,6 @@ final class ExamController extends Controller
             ->latest('attempt_number')
             ->get();
 
-        return view('student.exams.result', compact('exam', 'attempts'));
+        return view('student.exam-result', compact('exam', 'attempts'));
     }
 }

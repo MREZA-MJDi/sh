@@ -24,9 +24,11 @@ final class ParentMeetingController extends Controller
             ->orderBy('users.name')
             ->get(['users.id', 'users.name', 'users.grade']);
 
+        $selectedChild = $children->firstWhere('id', $request->integer('child')) ?? $children->first();
+
         $meetings = ParentMeeting::query()
             ->where('guardian_id', $guardian->id)
-            ->whereIn('student_id', $children->modelKeys())
+            ->where('student_id', $selectedChild?->id ?? 0)
             ->with(['student:id,name', 'classroom:id,name', 'course:id,title', 'creator:id,name', 'responder:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
@@ -35,12 +37,17 @@ final class ParentMeetingController extends Controller
 
         $classrooms = Classroom::query()
             ->where('status', 'active')
-            ->whereHas('students', fn (Builder $students) => $students->whereIn('users.id', $children->modelKeys()))
+            ->whereHas('students', fn (Builder $students) => $students->whereKey($selectedChild?->id ?? 0))
             ->with('course:id,title')
             ->orderBy('name')
             ->get(['id', 'name', 'course_id']);
 
-        return view('guardian.meetings.index', compact('children', 'meetings', 'classrooms'));
+        return view('parent.meetings', [
+            'kids' => $children,
+            'kid' => $selectedChild,
+            'meetings' => $meetings,
+            'classrooms' => $classrooms,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -84,6 +91,6 @@ final class ParentMeetingController extends Controller
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))->get();
         Notification::send($admins, new ParentMeetingNotification($meeting, 'درخواست جدید جلسه از طرف ولی ثبت شد.'));
 
-        return redirect()->route('guardian.meetings.index')->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
+        return redirect()->route('guardian.meetings.index', ['child' => $student->id])->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
     }
 }
