@@ -33,7 +33,11 @@ final class SpotPlayerVideoService
         int $size,
     ): SpotPlayerVideo {
         $course = $this->workspace->coursesQueryFor($actor)
-            ->where('delivery_type', 'spotplayer')
+            ->where(function ($query): void {
+                $query->where(function ($legacy): void {
+                    $legacy->whereNull('learning_features')->where('delivery_type', 'spotplayer');
+                })->orWhere('learning_features->recorded_video', true);
+            })
             ->findOrFail((int) $data['course_id']);
 
         $classroomId = filled($data['classroom_id'] ?? null) ? (int) $data['classroom_id'] : null;
