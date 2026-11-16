@@ -6,7 +6,7 @@
 @section('content')
     @php
         $operationStatusLabels = ['waiting_contract' => 'در انتظار قرارداد سرویس', 'queued' => 'در صف اجرا', 'running' => 'در حال اجرا', 'succeeded' => 'با موفقیت انجام شد', 'failed' => 'نیازمند بررسی', 'cancelled' => 'لغوشده'];
-        $operationStatusTones = ['waiting_contract' => 'warning', 'queued' => 'info', 'running' => 'info', 'succeeded' => 'success', 'failed' => 'danger', 'cancelled' => 'warning'];
+        $operationStatusTones = ['waiting_contract' => 'panel-badge-warning', 'queued' => '', 'running' => '', 'succeeded' => 'panel-badge-success', 'failed' => 'panel-badge-danger', 'cancelled' => 'panel-badge-warning'];
         $operationActionLabels = ['sync_course_catalog' => 'دریافت فهرست دوره‌ها', 'verify_course_mapping' => 'بررسی اتصال دوره', 'create_course' => 'ساخت دوره خارجی', 'issue_license' => 'صدور لایسنس', 'revoke_license' => 'ابطال لایسنس'];
     @endphp
     @if ($teacherView)
@@ -136,7 +136,7 @@
                         <tr>
                             <td>{{ $operationActionLabels[$operation->action] ?? 'عملیات یکپارچه‌سازی' }}</td>
                             <td dir="ltr">{{ $operation->correlation_id ?: '—' }}</td>
-                            <td><span class="panel-badge panel-badge-{{ $operationStatusTones[$operation->status] ?? 'warning' }}">{{ $operationStatusLabels[$operation->status] ?? 'در حال بررسی' }}</span></td>
+                            <td><span class="panel-badge {{ $operationStatusTones[$operation->status] ?? 'panel-badge-warning' }}">{{ $operationStatusLabels[$operation->status] ?? 'در حال بررسی' }}</span></td>
                             <td>{{ $operation->updated_at?->format('Y/m/d H:i') ?? '—' }}</td>
                         </tr>
                     @empty
