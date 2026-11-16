@@ -1,8 +1,8 @@
 <?php
 
-namespace App\\Services\\Skyroom\\Contracts;
+namespace App\Services\Skyroom\Contracts;
 
-use App\\Services\\Integrations\\Contracts\\IntegrationHealth;
+use App\Services\Integrations\Contracts\IntegrationHealth;
 use DateTimeImmutable;
 
 interface SkyroomGateway
