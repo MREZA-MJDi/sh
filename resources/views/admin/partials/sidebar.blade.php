@@ -1,8 +1,16 @@
+@php
+  $sidebarUser = auth()->user();
+  $sidebarRole = $sidebarUser?->hasRole('admin') ? 'مدیر سامانه' : ($sidebarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر');
+  $sidebarInitial = mb_substr($sidebarUser?->name ?? 'م', 0, 1);
+@endphp
 <aside class="adm-sidebar" id="adm-sidebar" aria-label="منوی اصلی">
   <a class="adm-brand" href="{{ url('admin') }}">
     <span class="adm-brand-mark">ش</span>
-    <span><strong>آکادمی شیخان</strong><small>پنل مدیریت</small></span>
+    <span><strong>آکادمی شیخان</strong><small>{{ $sidebarRole }}</small></span>
   </a>
+  <button type="button" class="adm-sidebar-mini-toggle" data-admin-sidebar-mini-toggle aria-label="جمع یا باز کردن منو">
+    <x-admin.icon name="panel-left-close"/>
+  </button>
 
   <nav class="adm-nav">
     <a class="adm-nav-link {{ $activeGroup === null ? 'is-active' : '' }}" href="{{ url($nav['home']['url']) }}">
@@ -25,7 +33,7 @@
   </nav>
 
   <div class="adm-side-foot">
-    <span class="adm-avatar">م</span>
-    <div><b>مدیر سامانه</b><br><small>admin@sheikhan.ir</small></div>
+    <span class="adm-avatar">{{ $sidebarInitial }}</span>
+    <div><b>{{ $sidebarUser?->name ?? $sidebarRole }}</b><br><small>{{ $sidebarUser?->email ?? '' }}</small></div>
   </div>
 </aside>
