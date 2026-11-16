@@ -117,7 +117,7 @@ final class StudentDashboardService
                             ->orWhereHas('course', fn (Builder $course) => $course
                                 ->where(fn (Builder $features) => $features
                                     ->whereNull('learning_features')
-                                    ->orWhere('learning_features->resources', true)));
+                                    ->orWhere('learning_features->resources', true))));
                 })->orWhere(function (Builder $unscoped): void {
                     $unscoped->whereNull('course_id')->whereNull('classroom_id');
                 });
