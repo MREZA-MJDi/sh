@@ -24,6 +24,9 @@
         </div>
     </div>
 
+    <section class="panel-card mb-4" data-tone="learning">
+        <p class="panel-muted" style="margin:0">این صفحه فقط نوبت‌های برگزاری کلاس «{{ $classroom->name }}» را مدیریت می‌کند. تغییر جلسه، عضویت دانش‌آموزان یا محتوای دوره را تغییر نمی‌دهد. جلسه آنلاین برای ورود دانش‌آموز به لینک معتبر و بازه زمانی فعال نیاز دارد.</p>
+    </section>
     <section class="panel-grid panel-grid-3 mb-4">
         <x-admin::stat label="کل جلسه‌ها" :value="number_format($sessions->total())" note="ثبت‌شده برای این کلاس" tone="learning" icon="▣"/>
         <x-admin::stat label="جلسه بعدی" :value="$nextSession ? $nextSession->starts_at->format('Y/m/d H:i') : '—'" :note="$nextSession?->title ?? 'جلسه‌ی زمان‌بندی‌شده‌ای نیست'" tone="presence" icon="◷"/>
