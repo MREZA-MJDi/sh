@@ -27,7 +27,6 @@ class UpdateLearningResourceRequest extends FormRequest
             'price' => ['nullable', 'integer', 'min:0', 'max:3000000000'],
             'visibility' => ['required', Rule::in(['public', 'authenticated', 'enrolled'])],
             'release_at' => ['nullable', 'date'],
-            'downloadable' => ['sometimes', 'boolean'],
             'file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:30720'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
         ];
@@ -37,9 +36,6 @@ class UpdateLearningResourceRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             $price = (int) $this->input('price', 0);
-            if (! $this->boolean('downloadable', true) && $this->input('kind') !== 'pdf') {
-                $validator->errors()->add('downloadable', 'حالت فقط-نمایش فعلاً برای فایل PDF پشتیبانی می‌شود.');
-            }
             if ($this->boolean('is_free') && $price !== 0) {
                 $validator->errors()->add('price', 'برای منبع رایگان، قیمت باید صفر باشد.');
             }
