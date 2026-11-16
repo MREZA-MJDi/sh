@@ -28,7 +28,7 @@ final class ParentMeetingController extends Controller
 
         $meetings = ParentMeeting::query()
             ->where('guardian_id', $guardian->id)
-            ->whereIn('student_id', $children->modelKeys())
+            ->where('student_id', $selectedChild?->id ?? 0)
             ->with(['student:id,name', 'classroom:id,name', 'course:id,title', 'creator:id,name', 'responder:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
@@ -91,6 +91,6 @@ final class ParentMeetingController extends Controller
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))->get();
         Notification::send($admins, new ParentMeetingNotification($meeting, 'درخواست جدید جلسه از طرف ولی ثبت شد.'));
 
-        return redirect()->route('guardian.meetings.index')->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
+        return redirect()->route('guardian.meetings.index', ['child' => $student->id])->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
     }
 }

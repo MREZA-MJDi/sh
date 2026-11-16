@@ -11,6 +11,7 @@ use App\Models\Homework;
 use App\Models\MessageReply;
 use App\Models\User;
 use App\Notifications\MessageActivityNotification;
+use App\Notifications\ParentMeetingNotification;
 use App\Models\ParentMeeting;
 use App\Services\Admin\AttendanceService;
 use App\Services\Admin\ClassroomWorkspaceService;
@@ -18,6 +19,7 @@ use App\Services\Admin\MessageWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Validation\Rule;
 
 final class PortalController extends Controller
 {
@@ -136,6 +138,46 @@ final class PortalController extends Controller
             ->withQueryString();
 
         return view('teacher.meetings', compact('meetings'));
+    }
+
+    public function updateMeeting(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
+    {
+        $record = ParentMeeting::query()
+            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->findOrFail($meeting);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['scheduled', 'declined', 'cancelled', 'completed'])],
+            'starts_at' => ['nullable', 'date', 'after:now', Rule::requiredIf(fn () => in_array($record->status, ['requested', 'proposed'], true) && $request->input('status') === 'scheduled')],
+            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+        ]);
+
+        if (in_array($record->status, ['requested', 'proposed'], true)) {
+            abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
+            if ($data['status'] === 'scheduled') {
+                abort_unless(filled($data['starts_at'] ?? null), 422, 'برای تأیید جلسه باید زمان مشخص شود.');
+            }
+        } else {
+            abort_unless($record->status === 'scheduled' && in_array($data['status'], ['completed', 'cancelled'], true), 422);
+        }
+
+        $record->update([
+            'status' => $data['status'],
+            'starts_at' => $data['starts_at'] ?? $record->starts_at ?? $record->preferred_at,
+            'ends_at' => $data['ends_at'] ?? $record->ends_at,
+            'responded_by' => $request->user()->id,
+            'responded_at' => now(),
+        ]);
+
+        $record->loadMissing('guardian');
+        $record->guardian?->notify(new ParentMeetingNotification(
+            $record,
+            $data['status'] === 'scheduled'
+                ? 'درخواست جلسه شما توسط مدرس تأیید شد.'
+                : ($data['status'] === 'declined' ? 'درخواست جلسه شما توسط مدرس رد شد.' : 'وضعیت جلسه شما به‌روزرسانی شد.')
+        ));
+
+        return redirect()->route('teacher.meetings')->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }
 
     public function messages(Request $request, MessageWorkspaceService $messages): View

@@ -22,6 +22,20 @@
         <div class="st am"><b>{{ $stats['next_meeting'] ?? '—' }}</b><span>جلسه بعدی</span><small>{{ $stats['next_meeting_note'] ?? '' }}</small></div>
     </div>
     <div class="g g2">
+
+    <section class="c">
+        <h3>پیشرفت دوره‌ها و درس‌ها</h3>
+        @forelse (($course_progress ?? collect()) as $course)
+            <div class="row">
+                <div>{{ data_get($course, 'title') }}
+                    <small>{{ strtr((string) data_get($course, 'completed_lessons', 0), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از {{ strtr((string) data_get($course, 'total_lessons', 0), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} درس تکمیل‌شده</small>
+                </div>
+                <div class="pr"><u style="width:{{ (int) data_get($course, 'progress_percent', 0) }}%"></u></div>
+            </div>
+        @empty
+            <p>پیشرفت دوره‌ای برای نمایش وجود ندارد.</p>
+        @endforelse
+    </section>
         <section class="c"><h3>روند نمرات ثبت‌شده</h3>
             @include('parent.partials.chart', ['type' => 'line', 'labels' => $months ?? [], 'series' => [
                 ['name' => data_get($kid ?? null, 'name', ''), 'c' => '--pri', 'data' => $scores ?? [], 'area' => true],
@@ -49,9 +63,9 @@
                 <p>نتیجه‌ی قابل نمایشی ثبت نشده است.</p>
             @endforelse
         </section>
-        <section class="c"><h3>بازخوردهای مدرس</h3>
+        <section class="c"><h3>نتایج بررسی تکالیف و بازخورد مدرس</h3>
             @forelse (($teacherNotes ?? collect()) as $note)
-                <div class="row"><div>{{ data_get($note, 'teacher') }}<small>نتیجه بررسی مدرس: {{ data_get($note, 'text') }}</small></div><i class="bd am">بازخورد</i></div>
+                <div class="row"><div>{{ data_get($note, 'homework') }} · {{ data_get($note, 'teacher') }}<small>نتیجه بررسی مدرس: {{ data_get($note, 'text') }}</small>@if (data_get($note, 'score') !== null)<small>نمره: {{ strtr(rtrim(rtrim(number_format((float) data_get($note, 'score'), 2, '.', ''), '0'), '.'), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از ۲۰</small>@endif</div><i class="bd am">بازخورد</i></div>
             @empty
                 <p>بازخوردی ثبت نشده است.</p>
             @endforelse
