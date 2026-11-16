@@ -14,9 +14,9 @@ use Illuminate\View\View;
 
 final class CourseController extends Controller
 {
-    public function index(Request $request, CourseProgressService $progress): View
+    public function index(Request $request, CourseProgressService $progress, LearningAccessService $access): View
     {
-        $courseIds = $this->activeCourseIds($request);
+        $courseIds = $access->activeCourseIds($request->user());
         $courses = Course::query()
             ->whereIn('id', clone $courseIds)
             ->where('status', 'published')
@@ -31,11 +31,11 @@ final class CourseController extends Controller
         return view('student.courses.index', compact('courses', 'progressByCourse'));
     }
 
-    public function show(Request $request, int $course): RedirectResponse
+    public function show(Request $request, int $course, LearningAccessService $access): RedirectResponse
     {
         $course = Course::query()
             ->whereKey($course)
-            ->whereIn('id', $this->activeCourseIds($request))
+            ->whereIn('id', $access->activeCourseIds($request->user()))
             ->where('status', 'published')
             ->firstOrFail();
 
@@ -59,12 +59,4 @@ final class CourseController extends Controller
         return back()->with('success', 'پیشرفت درس ثبت شد.');
     }
 
-    private function activeCourseIds(Request $request)
-    {
-        return CourseEnrollment::query()
-            ->where('student_id', $request->user()->id)
-            ->currentlyActive()
-            ->whereHas('course', fn ($course) => $course->where('status', 'published'))
-            ->select('course_id');
-    }
 }
