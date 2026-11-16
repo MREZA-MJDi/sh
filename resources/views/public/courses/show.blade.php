@@ -198,7 +198,7 @@
                                                             {{ $lesson->duration_minutes ? $lesson->duration_minutes . ' دقیقه' : 'ویدیویی' }}
                                                         </span>
                                                         @if($isUnlocked)
-                                                            <a class="btn s" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
+                                                            <a class="btn s" href="{{ route('public.courses.show', $course->slug).'#c2' }}">ادامه یادگیری در همین صفحه</a>
                                                         @else
                                                             <span class="lesson-lock-label">پس از ثبت‌نام فعال می‌شود</span>
                                                         @endif
@@ -208,7 +208,7 @@
                                         </div>
                                         @if ($section->published_lessons_count > $sectionLessons->count())
                                             @if ($hasCourseAccess)
-                                                <a class="btn g s" href="{{ route('student.courses.show', $course) }}">مشاهده همه درس‌ها در پنل</a>
+                                                <a class="btn g s" href="{{ route('student.courses.show', $course) }}">مشاهده همه سرفصل‌ها</a>
                                             @else
                                                 <div class="lesson-empty">برای مشاهده همه درس‌ها و ادامه آموزش، ثبت‌نام دوره را تکمیل کنید.</div>
                                             @endif
