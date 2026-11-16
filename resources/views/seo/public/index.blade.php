@@ -1,7 +1,7 @@
 @extends('public.layouts.academy')
 
 @section('title', ($settings->home_sections['blog_page_title'] ?? 'مجله شیخان') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
-@section('description', $settings->home_sections['blog_page_description'] ?? $settings->default_description ?? '')
+@section('description', filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description)
 @section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
 @section('content')
@@ -10,7 +10,7 @@
         <div class="c">
             <div class="bc"><a href="{{ route('home') }}">خانه</a> ‹ مقالات</div>
             <h1>{{ $settings->home_sections['blog_page_title'] ?? 'مجله شیخان' }}</h1>
-            <p>{{ $settings->home_sections['blog_page_description'] ?? $settings->default_description }}</p>
+            <p>{{ filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description }}</p>
         </div>
     </div>
 
