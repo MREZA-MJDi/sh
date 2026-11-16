@@ -79,9 +79,11 @@ class ClassroomController extends Controller
         $classroom = $workspace->queryFor($request->user())->findOrFail($classroom->id);
         $roomId = $liveClasses->ensureRoom($classroom);
 
-        return back()->with('success', $roomId
-            ? 'اتاق آنلاین کلاس با شناسه تأییدشده ثبت شد.'
-            : 'اتاق خودکار ساخته نشد؛ اتصال Skyroom در انتظار قرارداد رسمی است. لینک دستی کلاس همچنان قابل استفاده است.');
+        if (! $roomId) {
+            return back()->with('warning', 'اتاق خودکار ساخته نشد؛ اتصال Skyroom در انتظار قرارداد رسمی است. لینک دستی کلاس همچنان قابل استفاده است.');
+        }
+
+        return back()->with('success', 'اتاق آنلاین کلاس با شناسه تأییدشده ثبت شد.');
     }
 
     public function destroy(Request $request, Classroom $classroom, ClassroomService $classrooms): RedirectResponse
