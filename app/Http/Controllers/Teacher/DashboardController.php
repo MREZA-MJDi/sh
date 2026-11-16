@@ -73,7 +73,6 @@ final class DashboardController extends Controller
         $data['pendingHomework'] = $pending;
         $data['newMessages'] = $newMessages;
         $data['liveClass'] = null;
-        $data['myConsultations'] = Consultation::query()->where('requester_id', $user->id)->latest()->limit(5)->get();
 
         return view('teacher.dashboard', $data);
     }
