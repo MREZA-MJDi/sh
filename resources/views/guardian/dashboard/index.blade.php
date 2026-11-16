@@ -230,10 +230,12 @@
         @forelse($resources as $resource)
             <div class="row">
                 <div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? $resource->classroom?->name ?? $resource->kind }}</small></div>
-                @if($resource->file_path && $resource->is_free)
-                    <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $selected_child->id]) }}">دریافت</a>
+                @if(! $resource->is_free)
+                    <span class="bd am">نیازمند خرید</span>
+                @elseif($resource->file_path)
+                    <span class="bd">دریافت مستقیم غیرفعال است</span>
                 @else
-                    <span class="bd am">{{ $resource->is_free ? 'رایگان' : 'نیازمند خرید' }}</span>
+                    <span class="bd gn">رایگان</span>
                 @endif
             </div>
         @empty
