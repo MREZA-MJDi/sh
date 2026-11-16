@@ -42,7 +42,15 @@
   <div class="adm-grid adm-cols-3" data-filter-list>
     @forelse ($courses as $course)
       @php
-        $features = array_replace(array_fill_keys(array_keys($featureLabels), false), $course->learning_features ?? []);
+        $legacyFeatureDefaults = [
+          'recorded_video' => $course->delivery_type === 'spotplayer',
+          'live_class' => $course->delivery_type === 'skyroom',
+          'resources' => true,
+          'assignments' => true,
+          'exams' => true,
+          'projects' => false,
+        ];
+        $features = array_replace($legacyFeatureDefaults, $course->learning_features ?? []);
         $teacherName = $course->teacher?->name ?? 'مدرس تعیین نشده';
         $fill = [
           'title' => $course->title,
@@ -64,7 +72,7 @@
           @if ($published)
             <x-admin.badge tone="ok">منتشرشده</x-admin.badge>
           @elseif ($course->status === 'archived')
-            <x-admin.badge tone="muted">بایگانی‌شده</x-admin.badge>
+            <x-admin.badge tone="mute">بایگانی‌شده</x-admin.badge>
           @else
             <x-admin.badge tone="warn">پیش‌نویس</x-admin.badge>
           @endif
@@ -128,8 +136,9 @@
   <x-admin.legend title="مدل فروش و اتصال سرویس" desc="محصول آموزشی مستقل از سرویس ارائه ویدیو یا کلاس آنلاین تعریف می‌شود."/>
   <x-admin.select label="نوع فروش" name="type" :options="$types" required/>
   <x-admin.input label="قیمت (تومان)" name="price" inputmode="numeric" placeholder="برای دوره رایگان صفر"/>
-  <x-admin.select label="سرویس اصلی ویدیو / ارائه" name="delivery_type" :options="$deliveryTypes" required/>
+  <x-admin.select label="سرویس پیش‌فرض اتصال قدیمی" name="delivery_type" :options="$deliveryTypes" required/>
   <x-admin.input label="شناسه دوره در SpotPlayer" name="spotplayer_course_id" placeholder="پس از دریافت شناسه از پنل سرویس"/>
+  <p class="adm-muted" style="grid-column:1/-1">امکانات آموزشی از ماتریس پایین تعیین می‌شوند. این فیلد فقط سازگاری با تنظیمات قدیمی دوره را حفظ می‌کند؛ دوره می‌تواند هم‌زمان ویدیو و کلاس زنده داشته باشد.</p>
   <p class="adm-muted" style="grid-column:1/-1">ثبت شناسه به معنی اتصال موفق نیست؛ وضعیت واقعی اتصال در بخش یکپارچه‌سازی نمایش داده می‌شود.</p>
 
   <x-admin.legend title="امکانات آموزشی این دوره" desc="امکانات مستقل‌اند؛ یک دوره می‌تواند چند مدل یادگیری را هم‌زمان داشته باشد."/>
