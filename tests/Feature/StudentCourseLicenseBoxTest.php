@@ -38,10 +38,13 @@ final class StudentCourseLicenseBoxTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.courses.show', $course))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertSee('لایسنس SpotPlayer')
-            ->assertSee('SP-TEST-KEY-001')
-            ->assertSee('https://player.example.test/install');
+            ->assertDontSee('SP-TEST-KEY-001')
+            ->assertDontSee('https://player.example.test/install');
     }
 
     public function test_student_without_a_license_sees_a_truthful_pending_state(): void
@@ -50,9 +53,12 @@ final class StudentCourseLicenseBoxTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.courses.show', $course))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertSee('ثبت‌نشده')
-            ->assertSee('کلید آزمایشی یا ساختگی صادر نمی‌شود.');
+            ->assertDontSee('کلید آزمایشی یا ساختگی صادر نمی‌شود.');
     }
 
     public function test_student_can_request_their_own_license_without_receiving_a_fake_active_key(): void
