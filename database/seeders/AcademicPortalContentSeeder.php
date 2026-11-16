@@ -22,6 +22,7 @@ use App\Models\Role;
 use App\Models\SpotPlayerVideo;
 use App\Models\StudentNote;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -352,6 +353,89 @@ final class AcademicPortalContentSeeder extends Seeder
                             'scheduled_at' => null,
                             'status' => 'pending',
                             'notes' => 'درخواست بررسی روند پیشرفت و برنامه تمرین دانش‌آموز.',
+                        ]
+                    );
+                }
+            }
+
+            // Real paid course fixture: the roster is present, but every
+            // enrollment remains pending_payment until a verified payment.
+            $paidCourse = Course::query()->updateOrCreate(
+                ['slug' => 'riyazi-pishrafte-dore-pooli'],
+                [
+                    'title' => 'ریاضی پیشرفته؛ دوره جامع پولی',
+                    'description' => 'دوره واقعی نمونه برای نمایش ثبت‌نام پولی، قفل محتوای آموزشی و فعال‌شدن دسترسی پس از تأیید پرداخت.',
+                    'subject' => 'ریاضی',
+                    'grade' => $students->first()->grade ?: 'هفتم',
+                    'teacher_id' => $teacher->id,
+                    'type' => 'paid',
+                    'price' => 1250000,
+                    'delivery_type' => 'skyroom',
+                    'status' => 'published',
+                    'integration_status' => 'not_required',
+                    'integration_note' => null,
+                ]
+            );
+
+            $paidClassroom = Classroom::query()->updateOrCreate(
+                ['course_id' => $paidCourse->id, 'name' => 'کلاس دوره جامع پولی - گروه آزمایشی'],
+                [
+                    'teacher_id' => $teacher->id,
+                    'schedule' => [
+                        ['day' => 'یکشنبه', 'start' => '17:00', 'end' => '18:30', 'label' => 'جلسه آموزش پیشرفته'],
+                        ['day' => 'سه‌شنبه', 'start' => '17:00', 'end' => '18:30', 'label' => 'حل تمرین و رفع اشکال'],
+                    ],
+                    'meeting_url' => null,
+                    'status' => 'active',
+                    'created_by' => $teacher->id,
+                ]
+            );
+
+            foreach ($students as $student) {
+                $paidClassroom->students()->syncWithoutDetaching([
+                    $student->id => ['assigned_by' => $teacher->id],
+                ]);
+            }
+
+            app(CourseEnrollmentService::class)->syncClassroomRoster($paidClassroom);
+
+            $paidSections = [
+                [
+                    'title' => 'مفاهیم پایه و پیشرفته',
+                    'description' => 'سرفصل‌های دوره پولی؛ محتوای آموزشی پس از ثبت‌نام معتبر فعال می‌شود.',
+                    'lessons' => [
+                        ['title' => 'تحلیل مسئله‌های چندمرحله‌ای', 'duration' => 42],
+                        ['title' => 'روش‌های پیشرفته محاسباتی', 'duration' => 38],
+                    ],
+                ],
+                [
+                    'title' => 'کاربرد و ارزیابی',
+                    'description' => 'تمرین، جمع‌بندی و سنجش آموخته‌ها.',
+                    'lessons' => [
+                        ['title' => 'حل نمونه سؤال‌های ترکیبی', 'duration' => 46],
+                        ['title' => 'جمع‌بندی و آمادگی آزمون', 'duration' => 34],
+                    ],
+                ],
+            ];
+
+            foreach ($paidSections as $sectionIndex => $definition) {
+                $paidSection = CourseSection::query()->updateOrCreate(
+                    ['course_id' => $paidCourse->id, 'title' => $definition['title']],
+                    [
+                        'description' => $definition['description'],
+                        'sort_order' => $sectionIndex + 1,
+                        'status' => 'published',
+                    ]
+                );
+
+                foreach ($definition['lessons'] as $lessonIndex => $lessonData) {
+                    Lesson::query()->updateOrCreate(
+                        ['course_section_id' => $paidSection->id, 'title' => $lessonData['title']],
+                        [
+                            'body' => 'محتوای این درس پس از ثبت‌نام معتبر و تأیید پرداخت در دسترس دانش‌آموز قرار می‌گیرد.',
+                            'duration_minutes' => $lessonData['duration'],
+                            'sort_order' => $lessonIndex + 1,
+                            'status' => 'published',
                         ]
                     );
                 }

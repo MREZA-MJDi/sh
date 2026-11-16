@@ -910,3 +910,26 @@ footer .cp { border-top: 1px solid #22305a; margin-top: 40px; padding-top: 20px;
   .art { padding: 20px 16px; }
   .art .th { aspect-ratio: 16/9; }
 }
+
+/* Paid curriculum access states */
+.lesson-row.is-locked { opacity:1; }
+.lesson-row.is-locked .lesson-icon { color:#7d263f; background:#f5e9ed; }
+.lesson-row.is-unlocked .lesson-icon { color:#28776d; background:#e2f2ef; }
+.lesson-badge-locked {
+    display:inline-flex; align-items:center; margin-inline-start:8px; padding:3px 9px;
+    border-radius:999px; color:#7d263f; background:#f5e9ed; font-size:11px; font-weight:700;
+}
+.lesson-lock-label { color:#7d263f; font-size:11px; font-weight:700; }
+.lesson-preview-btn { background:#7d263f; }
+
+.course-curriculum-pagination { display:flex; justify-content:center; margin-top:22px; }
+.course-curriculum-pagination nav { display:flex; justify-content:center; }
+.course-curriculum-pagination a,
+.course-curriculum-pagination span {
+    display:inline-flex; align-items:center; justify-content:center; min-width:36px; min-height:36px;
+    margin:2px; padding:6px 10px; border:1px solid var(--ln); border-radius:9px;
+    color:var(--ink); background:var(--sf); font-size:12px;
+}
+.course-curriculum-pagination [aria-current="page"] span {
+    color:#fff; border-color:#7d263f; background:#7d263f;
+}

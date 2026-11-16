@@ -6,7 +6,6 @@
 
 @section('content')
 @php
-    $totalLessons = (int) $course->sections->sum(fn($section) => $section->lessons->count());
     $teacher = $course->teacher;
 @endphp
 
@@ -45,7 +44,7 @@
 <div class="stab">
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
-        <a href="#c2">سرفصل‌ها ({{ $course->sections->count() }} فصل)</a>
+        <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
@@ -124,7 +123,7 @@
                     <div class="curriculum-stats">
                         <span class="c-badge">
                             <svg class="i" style="width:14px;height:14px"><use href="#brief"/></svg>
-                            {{ $course->sections->count() }} فصل
+                            {{ $sections->total() }} فصل
                         </span>
                         <span class="c-badge">
                             <svg class="i" style="width:14px;height:14px"><use href="#cam"/></svg>
@@ -133,9 +132,9 @@
                     </div>
                 </div>
 
-                @if($course->sections->isNotEmpty())
+                @if($sections->isNotEmpty())
                     <div class="sec-list">
-                        @foreach($course->sections as $index => $section)
+                        @foreach($sections as $index => $section)
                             @php
                                 $sectionLessons = $section->lessons ?? collect();
                                 $sectionDuration = $sectionLessons->sum('duration_minutes');
@@ -152,8 +151,8 @@
                                         </div>
                                     </div>
                                     <div class="sec-meta-wrap">
-                                        <span class="sec-count">{{ $sectionLessons->count() }} جلسه</span>
-                                        @if($sectionDuration > 0)
+                                        <span class="sec-count">{{ $section->published_lessons_count }} جلسه</span>
+                                        @if($sectionDuration > 0 && $section->published_lessons_count <= $sectionLessons->count())
                                             <span class="sec-duration">{{ $sectionDuration }} دقیقه</span>
                                         @endif
                                         <span class="sec-arrow">
@@ -167,21 +166,23 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    $isPreview = false;
+                                                    $isUnlocked = (bool) $hasCourseAccess;
                                                 @endphp
-                                                <div class="lesson-row {{ $isPreview ? 'is-preview' : '' }}">
+                                                <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
                                                     <div class="lesson-main">
-                                                        <div class="lesson-icon {{ $isPreview ? 'preview-icon' : 'locked-icon' }}">
+                                                        <div class="lesson-icon {{ $isUnlocked ? 'unlocked-icon' : 'locked-icon' }}">
                                                             <svg class="i">
-                                                                <use href="#{{ $isPreview ? 'cam' : 'lock' }}"/>
+                                                                <use href="#{{ $isUnlocked ? 'play' : 'lock' }}"/>
                                                             </svg>
                                                         </div>
                                                         <div class="lesson-title-box">
                                                             <span class="lesson-title">
                                                                 جلسه {{ $lessonIndex + 1 }}: {{ $lesson->title }}
                                                             </span>
-                                                            @if($isPreview)
-                                                                <span class="lesson-badge-free">پیش‌نمایش رایگان</span>
+                                                            @if($isUnlocked)
+                                                                <span class="lesson-badge-free">محتوای دوره در دسترس است</span>
+                                                            @else
+                                                                <span class="lesson-badge-locked">قفل‌شده</span>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -191,15 +192,22 @@
                                                             <svg class="i" style="width:14px;height:14px"><use href="#clock"/></svg>
                                                             {{ $lesson->duration_minutes ? $lesson->duration_minutes . ' دقیقه' : 'ویدیویی' }}
                                                         </span>
-                                                        @if($isPreview)
-                                                            <button type="button" class="btn s lesson-preview-btn" onclick="document.querySelector('.vd')?.scrollIntoView({behavior:'smooth'})">
-                                                                مشاهده رایگان
-                                                            </button>
+                                                        @if($isUnlocked)
+                                                            <a class="btn s" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
+                                                        @else
+                                                            <span class="lesson-lock-label">پس از ثبت‌نام فعال می‌شود</span>
                                                         @endif
                                                     </div>
                                                 </div>
                                             @endforeach
                                         </div>
+                                        @if ($section->published_lessons_count > $sectionLessons->count())
+                                            @if ($hasCourseAccess)
+                                                <a class="btn g s" href="{{ route('student.courses.show', $course) }}">مشاهده همه درس‌ها در پنل</a>
+                                            @else
+                                                <div class="lesson-empty">برای مشاهده همه درس‌ها و ادامه آموزش، ثبت‌نام دوره را تکمیل کنید.</div>
+                                            @endif
+                                        @endif
                                     @else
                                         <div class="lesson-empty">جلسات این فصل به‌زودی ضبط و بارگذاری خواهد شد.</div>
                                     @endif
@@ -207,6 +215,9 @@
                             </details>
                         @endforeach
                     </div>
+                    @if ($sections->hasPages())
+                        <div class="course-curriculum-pagination">{{ $sections->links() }}</div>
+                    @endif
                 @else
                     <div class="curriculum-empty">
                         <svg class="i" style="width:36px;height:36px;color:var(--mute);margin-bottom:8px"><use href="#brief"/></svg>
@@ -250,7 +261,7 @@
         {{-- سایدبار استیکی قیمت و ثبت‌نام --}}
         <aside class="card stk">
             @if($course->type === 'paid')
-                <span class="bd a">ثبت‌نام فعال دوره</span>
+                <span class="bd a">{{ $hasCourseAccess ? 'دسترسی فعال' : 'دوره پولی' }}</span>
                 <div style="margin:12px 0 16px">
                     <span class="big">{{ number_format((int)$course->price) }}</span>
                     <small style="color:var(--mute);font-size:14px">تومان</small>
@@ -272,7 +283,7 @@
             @elseif ($course->type === 'paid')
                 <form method="POST" action="{{ route('public.cart.add', $course) }}">
                     @csrf
-                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام در دوره</button>
+                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">افزودن به سبد خرید</button>
                 </form>
                 @guest
                     <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">ورود به حساب کاربری</a>

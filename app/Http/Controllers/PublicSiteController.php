@@ -22,7 +22,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $banners = SeoBanner::query()->active()->where('placement', 'home_hero')
-            ->orderBy('sort_order')->orderBy('id')->get();
+            ->orderBy('sort_order')->orderBy('id')->limit(8)->get();
 
         $courseQuery = Course::query()->where('status', 'published')
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
@@ -61,7 +61,7 @@ final class PublicSiteController extends Controller
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
-            ->withCount('enrollments');
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
 
         if ($search = trim((string) $request->query('q'))) {
             $query->where(fn ($builder) => $builder->where('title', 'like', '%'.$search.'%')
@@ -93,10 +93,28 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note'), 'sections' => fn ($sections) => $sections
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note')])
+            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])
+            ->firstOrFail();
+
+        // The public curriculum is a preview, not an unbounded dump of every
+        // lesson. Keep sections and per-section lesson previews paginated/bounded.
+        $sections = $course->sections()
+            ->where('status', 'published')
+            ->withCount(['lessons as published_lessons_count' => fn ($lessons) => $lessons->where('status', 'published')])
+            ->with(['lessons' => fn ($lessons) => $lessons
                 ->where('status', 'published')
-                ->with(['lessons' => fn ($lessons) => $lessons->where('status', 'published')->orderBy('sort_order')->orderBy('id')])])
-            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->firstOrFail();
+                ->orderBy('sort_order')->orderBy('id')->limit(20)])
+            ->orderBy('sort_order')->orderBy('id')
+            ->paginate(8, ['*'], 'sections_page')
+            ->withQueryString();
+
+        $totalLessons = Lesson::query()
+            ->where('status', 'published')
+            ->whereHas('section', fn ($section) => $section
+                ->where('course_id', $course->id)
+                ->where('status', 'published'))
+            ->count();
 
         $hasCourseAccess = $request->user()?->hasRole('student') && $request->user()->is_active
             ? $enrollments->hasActiveAccess($request->user(), $course)
@@ -110,7 +128,7 @@ final class PublicSiteController extends Controller
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'relatedCourses', 'hasCourseAccess'));
+        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess'));
     }
 
     public function teachers(Request $request): View
@@ -155,8 +173,8 @@ final class PublicSiteController extends Controller
                     ->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])
-            ->withCount('enrollments')
-            ->latest()
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')])
+            ->latest()->limit(12)
             ->get();
 
         $stats = [
@@ -190,8 +208,9 @@ final class PublicSiteController extends Controller
     public function cart(Request $request): View
     {
         $ids = collect($request->session()->get('public_cart', []))->filter(fn ($id) => is_numeric($id))->unique()->values();
-        $courses = Course::query()->where('status', 'published')->whereIn('id', $ids)
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name')])->get();
+        $courses = Course::query()->where('status', 'published')->where('type', 'paid')->whereIn('id', $ids)
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name')])
+            ->orderBy('title')->limit(50)->get();
         $request->session()->put('public_cart', $courses->modelKeys());
 
         return view('public.cart', ['settings' => SeoSetting::current(), 'courses' => $courses]);
@@ -199,7 +218,7 @@ final class PublicSiteController extends Controller
 
     public function addToCart(Request $request, Course $course): RedirectResponse
     {
-        abort_unless($course->status === 'published', 404);
+        abort_unless($course->status === 'published' && $course->type === 'paid', 404);
         $ids = collect($request->session()->get('public_cart', []))->push($course->id)->unique()->values()->all();
         $request->session()->put('public_cart', $ids);
 

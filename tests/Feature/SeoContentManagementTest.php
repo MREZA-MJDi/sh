@@ -173,6 +173,7 @@ class SeoContentManagementTest extends TestCase
         $this->get(route('seo.articles.index'))
             ->assertOk()
             ->assertSee('name="robots" content="noindex,nofollow"', false)
+            ->assertSee('name="keywords" content="آموزش, شیخان, یادگیری"', false)
             ->assertSee('name="google-site-verification" content="google-token"', false)
             ->assertSee('name="msvalidate.01" content="bing-token"', false)
             ->assertSee('توضیح واقعی وب‌سایت برای موتورهای جست‌وجو')

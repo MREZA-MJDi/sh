@@ -22,12 +22,12 @@ class SeoPublicController extends Controller
             ->where('title', 'like', '%'.$search.'%')
             ->orWhere('excerpt', 'like', '%'.$search.'%'));
         $articles = $articleQuery->latest('published_at')->paginate(12)->withQueryString();
-        $keywords = SeoArticle::published()->pluck('keywords')->flatten()
+        $keywords = SeoArticle::published()->latest('published_at')->limit(250)->pluck('keywords')->flatten()
             ->filter(fn ($value) => is_string($value) && trim($value) !== '')
             ->unique()->sort()->values();
         $banners = SeoBanner::active()
             ->whereIn('placement', ['articles_top', 'sitewide'])
-            ->orderBy('sort_order')
+            ->orderBy('sort_order')->orderBy('id')->limit(6)
             ->get();
 
         return view('seo.public.index', compact('settings', 'articles', 'banners', 'keywords', 'keyword', 'search'));
@@ -39,20 +39,24 @@ class SeoPublicController extends Controller
         $article = SeoArticle::published()->with('author')->where('slug', $slug)->firstOrFail();
         $banners = SeoBanner::active()
             ->whereIn('placement', ['articles_sidebar', 'sitewide'])
-            ->orderBy('sort_order')
+            ->orderBy('sort_order')->orderBy('id')->limit(6)
             ->get();
 
         $relatedArticles = SeoArticle::published()
             ->where('id', '!=', $article->id)
-            ->latest('published_at')
-            ->take(4)
+            ->latest('published_at')->orderByDesc('id')
+            ->limit(4)
             ->get();
 
         $relatedCourses = Course::query()
             ->where('status', 'published')
-            ->with('teacher')
-            ->inRandomOrder()
-            ->take(2)
+            ->select(['id', 'title', 'slug', 'teacher_id', 'type', 'price', 'subject', 'grade', 'description'])
+            ->with([
+                'teacher:id,name',
+                'sections' => fn ($sections) => $sections->where('status', 'published')
+                    ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
+            ])
+            ->latest('updated_at')->limit(2)
             ->get();
 
         return view('seo.public.show', compact('settings', 'article', 'banners', 'relatedArticles', 'relatedCourses'));
@@ -65,10 +69,10 @@ class SeoPublicController extends Controller
 
         $baseUrl = rtrim($settings->canonical_base_url ?: url('/'), '/');
         $articles = $settings->robots_index
-            ? SeoArticle::published()->orderBy('published_at')->get(['slug', 'canonical_url', 'updated_at'])
+            ? SeoArticle::published()->orderBy('published_at')->limit(22000)->get(['slug', 'canonical_url', 'updated_at'])
             : collect();
         $courses = $settings->robots_index
-            ? Course::query()->where('status', 'published')->orderBy('updated_at')->get(['slug', 'updated_at'])
+            ? Course::query()->where('status', 'published')->orderBy('updated_at')->limit(22000)->get(['slug', 'updated_at'])
             : collect();
 
         $urls = collect();
