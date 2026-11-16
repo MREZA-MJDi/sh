@@ -12,6 +12,7 @@ return [
     |
     */
     'enabled' => (bool) env('SHIKHAN_DEMO_ACCOUNTS', false),
+    'login_cards_enabled' => (bool) env('SHIKHAN_DEMO_LOGIN_CARDS', false),
     'password' => env('SHIKHAN_DEMO_PASSWORD'),
     'accounts' => [
         [
@@ -19,12 +20,6 @@ return [
             'label' => 'پنل مدیریت',
             'email' => 'admin@sh.local',
             'role' => 'admin',
-        ],
-        [
-            'name' => 'کارشناس سئو آزمایشی',
-            'label' => 'پنل سئو و محتوا',
-            'email' => 'seo@sh.local',
-            'role' => 'seo',
         ],
         [
             'name' => 'مدرس آزمایشی',
