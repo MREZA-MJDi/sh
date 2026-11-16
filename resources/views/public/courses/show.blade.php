@@ -385,7 +385,7 @@
                         <button
                             type="button"
                             class="btn g s course-video-choice"
-                            data-player-url="{{ $video->embed_url }}"
+                            data-player-url="{{ route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]) }}"
                             style="justify-content:flex-start;text-align:right;white-space:normal"
                         >{{ $video->title }}</button>
                     @endforeach
