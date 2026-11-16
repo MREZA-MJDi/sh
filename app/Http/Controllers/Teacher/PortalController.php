@@ -21,7 +21,7 @@ final class PortalController extends Controller
     {
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
-            ->with(['course:id,title,subject', 'sessions' => fn ($query) => $query
+            ->with(['course:id,title,subject', 'spotPlayerVideos', 'learningResources', 'sessions' => fn ($query) => $query
                 ->where('starts_at', '>=', now())
                 ->where('status', 'scheduled')
                 ->orderBy('starts_at')
