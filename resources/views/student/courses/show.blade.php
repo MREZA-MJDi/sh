@@ -46,11 +46,15 @@
             <h3 style="font-size:15px">جلسه‌های پیش‌رو</h3>
             @forelse ($upcomingSessions as $session)
                 @php
+                    $hasJoinTarget = filled($session->meeting_url)
+                        || filled($session->classroom?->meeting_url)
+                        || (filled($session->classroom?->skyroom_room_id) && $session->classroom?->skyroom_status === 'ready');
                     $joinAvailable = $session->session_type === 'online'
                         && $session->status === 'scheduled'
                         && $session->ends_at
                         && $session->starts_at->lte(now()->addMinutes(15))
-                        && $session->ends_at->gte(now());
+                        && $session->ends_at->gte(now())
+                        && $hasJoinTarget;
                 @endphp
                 <div class="student-course-lesson__head" style="padding:10px 0;border-top:1px solid var(--line, #e7eaf0)">
                     <div>
@@ -62,8 +66,10 @@
                             @csrf
                             <button class="btn s" type="submit">ورود به کلاس</button>
                         </form>
+                    @elseif ($session->session_type === 'online' && $session->starts_at->gt(now()->addMinutes(15)))
+                        <span class="tag w">ورود نزدیک زمان شروع فعال می‌شود</span>
                     @elseif ($session->session_type === 'online')
-                        <span class="tag w">ورود در زمان جلسه</span>
+                        <span class="tag w">لینک ورود هنوز آماده نیست</span>
                     @else
                         <span class="tag">حضوری</span>
                     @endif
