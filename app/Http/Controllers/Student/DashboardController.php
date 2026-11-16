@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Services\StudentDashboardService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,7 +28,7 @@ final class DashboardController extends Controller
         ]);
     }
 
-    public function attendance(Request $request, StudentDashboardService $dashboard): View
+    public function attendance(Request $request): View
     {
         $student = $request->user();
         $start = now()->startOfMonth();
