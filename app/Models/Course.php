@@ -18,7 +18,10 @@ class Course extends Model
 
     protected function casts(): array
     {
-        return ['price' => 'integer'];
+        return [
+            'price' => 'integer',
+            'learning_features' => 'array',
+        ];
     }
 
     public function getTeaserUrlAttribute(): ?string
