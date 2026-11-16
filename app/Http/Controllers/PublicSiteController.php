@@ -11,6 +11,8 @@ use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
 use App\Models\SeoTestimonial;
+use App\Models\SpotPlayerLicense;
+use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Http\RedirectResponse;
@@ -147,6 +149,41 @@ final class PublicSiteController extends Controller
             ? $enrollments->hasActiveAccess($request->user(), $course)
             : false;
 
+        // Video playback is exposed only when both the enrollment and the
+        // provider-issued license are currently valid. Embed hosts are explicitly
+        // allow-listed in services.spotplayer.embed_hosts (never trust arbitrary URLs).
+        $videoLicense = $hasCourseAccess && $course->delivery_type === 'spotplayer'
+            ? SpotPlayerLicense::query()
+                ->where('student_id', $request->user()->id)
+                ->where('course_id', $course->id)
+                ->where('status', 'active')
+                ->whereNotNull('external_license_id')
+                ->whereNotNull('license_key')
+                ->latest('id')
+                ->first()
+            : null;
+
+        $allowedEmbedHosts = array_map('strtolower', config('services.spotplayer.embed_hosts', []));
+        $playableVideos = $videoLicense && $allowedEmbedHosts !== []
+            ? SpotPlayerVideo::query()
+                ->where('course_id', $course->id)
+                ->where('status', 'active')
+                ->whereNotNull('embed_url')
+                ->orderBy('id')
+                ->get(['id', 'title', 'embed_url'])
+                ->filter(function (SpotPlayerVideo $video) use ($allowedEmbedHosts): bool {
+                    $parts = parse_url((string) $video->embed_url);
+                    $host = strtolower((string) ($parts['host'] ?? ''));
+
+                    return ($parts['scheme'] ?? null) === 'https'
+                        && $host !== ''
+                        && in_array($host, $allowedEmbedHosts, true);
+                })
+                ->values()
+            : collect();
+
+        $canWatchCourseVideos = $hasCourseAccess && $videoLicense !== null && $playableVideos->isNotEmpty();
+
         $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
             ->with([
@@ -155,7 +192,7 @@ final class PublicSiteController extends Controller
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess', 'upcomingOnlineSessionCount'));
+        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess', 'upcomingOnlineSessionCount', 'canWatchCourseVideos', 'playableVideos'));
     }
 
     public function teachers(Request $request): View
