@@ -3,6 +3,7 @@
 
 @section('content')
 @php
+  $teacherView = $teacherView ?? false;
   $roleLabels = ['student' => 'دانش‌آموزان', 'teacher' => 'مدرسان', 'parent' => 'اولیا'];
   $rolePlural = ['student' => 'students', 'teacher' => 'teachers', 'parent' => 'parents'];
   $roleLabel = $roleLabels[$role] ?? 'کاربران';
