@@ -95,12 +95,10 @@ class PublicSiteTest extends TestCase
         $this->assertTrue($homeView->getData()['banners']->contains('title', 'بنر صفحه اصلی'));
 
         $response = $this->get(route('home'))->assertOk();
-        fwrite(STDERR, "HOME_RESPONSE_DEBUG\\n".substr(strip_tags($response->getContent()), 0, 5000)."\\nHOME_RESPONSE_END\\n");
-        $this->assertStringContainsString(
-            'بنر صفحه اصلی',
-            $response->getContent(),
-            'بنر در پاسخ صفحه اصلی رندر نشد. خروجی: '.strip_tags(substr($response->getContent(), 0, 3000))
-        );
+        $response->assertViewIs('public.home.index')
+            ->assertViewHas('banners', fn ($banners) => $banners->contains('title', 'بنر صفحه اصلی'))
+            ->assertSee('homeHero')
+            ->assertSee('بنر صفحه اصلی');
         $response
             ->assertDontSee('بنر غیرفعال')
             ->assertSee('دوره منتشرشده')
