@@ -108,7 +108,7 @@ class PriorityOneEducationCompletionTest extends TestCase
         ]);
 
         $this->actingAs($student)
-            ->get(route('student.courses.show', $course))
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSee('درس اول');
 
@@ -381,15 +381,11 @@ class PriorityOneEducationCompletionTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.videos.index'))
-            ->assertOk()
-            ->assertSee('ضبط جلسه اول')
-            ->assertSee('فایل خام ویدئو');
+            ->assertRedirect(route('student.courses.index'));
 
         $this->actingAs($student)
             ->get(route('student.videos.show', $video))
-            ->assertOk()
-            ->assertSee('پخش محافظت‌شده هنوز آماده نیست')
-            ->assertSee('SpotPlayer');
+            ->assertRedirect(route('public.courses.show', $course->slug));
 
         $this->actingAs($student)
             ->get(route('student.videos.stream', $video))
