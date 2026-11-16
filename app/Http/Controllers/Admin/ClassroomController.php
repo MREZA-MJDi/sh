@@ -48,7 +48,20 @@ class ClassroomController extends Controller
             }))
             ->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView'));
+        $visibleClassroomIds = $workspace->queryFor($user)->select('classrooms.id');
+        $stats = [
+            'total' => (clone $visibleClassroomIds)->count(),
+            'active' => (clone $workspace->queryFor($user))->where('status', 'active')->count(),
+            'students' => DB::table('classroom_student')
+                ->whereIn('classroom_id', clone $visibleClassroomIds)
+                ->distinct()
+                ->count('student_id'),
+            'without_teacher' => (clone $workspace->queryFor($user))->whereNull('teacher_id')->count(),
+        ];
+
+        $canManage = $user->hasAnyPermission(['classes.manage', 'classes.manage.assigned']);
+
+        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView', 'stats', 'canManage'));
     }
 
     public function store(StoreClassroomRequest $request, ClassroomService $classrooms): RedirectResponse
