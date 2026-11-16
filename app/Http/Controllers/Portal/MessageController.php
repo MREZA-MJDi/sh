@@ -41,6 +41,8 @@ final class MessageController extends Controller
             'messages' => $messages,
             'children' => $children,
             'selected_child' => $selectedChild,
+            'kids' => $children,
+            'kid' => $selectedChild,
             'student' => $student,
         ]);
     }
@@ -57,6 +59,8 @@ final class MessageController extends Controller
             'student' => $student,
             'children' => $children,
             'selected_child' => $selectedChild,
+            'kids' => $children,
+            'kid' => $selectedChild,
             'recipients' => $recipients,
         ]);
     }
