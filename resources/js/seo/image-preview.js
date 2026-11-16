@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ratio = width / height;
             const isArticle = root.dataset.previewKind === 'article';
             const isHero = root.dataset.previewKind === 'banner' && (!placement || placement.value === 'home_hero');
+            const isSidebarBanner = root.dataset.previewKind === 'banner' && placement?.value === 'articles_sidebar';
             let warning = false;
             let message = 'ابعاد فایل: ' + width + '×' + height + ' پیکسل';
             if (isArticle && (width < 900 || Math.abs(ratio - (16 / 9)) > 0.18)) {
@@ -28,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (isHero && (width < 1600 || ratio < 1.5)) {
                 warning = true;
                 message += ' · پیشنهاد: تصویر افقی حداقل ۱۶۰۰ پیکسل عرض برای نمایش بهتر هیرو';
-            } else if (!isArticle && !isHero && width < 1200) {
+            } else if (isSidebarBanner && width < 600) {
+                warning = true;
+                message += ' · پیشنهاد: حداقل ۶۰۰ پیکسل عرض برای نمایش شفاف در ستون کناری';
+            } else if (!isArticle && !isHero && !isSidebarBanner && width < 1200) {
                 warning = true;
                 message += ' · پیشنهاد: عرض ۱۲۰۰ پیکسل یا بیشتر برای وضوح بهتر بنر';
             } else {
@@ -92,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         excerptField?.addEventListener('input', syncExcerpt);
         const stages = [hero, articleBanner, root.querySelector('.seo-admin-blog-image')].filter(Boolean);
         stages.forEach((stage) => {
-            if (root.dataset.previewKind === 'banner' && stage === articleBanner) return;
             let dragging = false;
             const updateFromPointer = (event) => {
                 const rect = stage.getBoundingClientRect();
@@ -116,5 +119,54 @@ document.addEventListener('DOMContentLoaded', () => {
         syncExcerpt();
         syncPlacement();
         checkDimensions(placement?.value === 'home_hero' ? image : (articleImage || image));
+    });
+
+    document.querySelectorAll('[data-seo-asset-preview]').forEach((root) => {
+        const input = root.querySelector('[data-asset-file]');
+        const image = root.querySelector('[data-asset-image]');
+        const empty = root.querySelector('[data-asset-empty]');
+        const status = root.querySelector('[data-asset-status]');
+        let objectUrl = null;
+
+        const updateStatus = () => {
+            if (!image?.naturalWidth || !image?.naturalHeight || !status) return;
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+            const kind = root.dataset.assetKind;
+            const ratio = width / height;
+            let warning = false;
+            let message = 'ابعاد تصویر: ' + width + '×' + height + ' پیکسل';
+            if (kind === 'og' && (width < 1200 || Math.abs(ratio - (1200 / 630)) > 0.18)) {
+                warning = true;
+                message += ' · پیشنهاد: ۱۲۰۰×۶۳۰ برای تصویر اشتراک‌گذاری';
+            } else if (kind === 'logo' && (width < 300 || height < 80)) {
+                warning = true;
+                message += ' · پیشنهاد: نسخه‌ی واضح‌تر برای نمایش در هدر';
+            } else if (kind === 'trust' && (width < 120 || height < 76)) {
+                warning = true;
+                message += ' · پیشنهاد: نسخه‌ی واضح‌تر برای اندازه‌ی نمایش در فوتر';
+            } else {
+                message += ' · پیش‌نمایش با اندازه‌ی واقعی محل انتشار';
+            }
+            status.textContent = message;
+            status.classList.toggle('is-warning', warning);
+        };
+
+        image?.addEventListener('load', updateStatus);
+        if (image?.complete) updateStatus();
+        input?.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file || !image) return;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            objectUrl = URL.createObjectURL(file);
+            image.onload = updateStatus;
+            image.src = objectUrl;
+            image.hidden = false;
+            if (empty) empty.hidden = true;
+            if (status && file.size > 4 * 1024 * 1024) {
+                status.textContent = 'حجم فایل از سقف ۴ مگابایت بیشتر است؛ فایل پذیرفته نخواهد شد.';
+                status.classList.add('is-warning');
+            }
+        });
     });
 });
