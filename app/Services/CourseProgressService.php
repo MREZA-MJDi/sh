@@ -89,8 +89,7 @@ final class CourseProgressService
         return CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
-            ->where('status', 'active')
-            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->currentlyActive()
             ->exists();
     }
 }
