@@ -1,34 +1,44 @@
 @extends('parent.layouts.app')
-
 @section('title', 'جلسات مشاوره')
-
 @section('content')
 <h2>جلسات مشاوره</h2>
+@include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>درخواست جلسه جدید</h3>
-        <form method="POST" action="{{ url('parent/meetings') }}" data-require-choice="ابتدا یک زمان انتخاب کنید">
+        <form method="POST" action="{{ route('guardian.meetings.store') }}">
             @csrf
-            <div class="chips">
-                @foreach (($slots ?? []) as $s)
-                    <label class="chip"><input type="radio" name="slot" value="{{ data_get($s, 'value', $s) }}">{{ data_get($s, 'label', $s) }}</label>
+            <label>فرزند</label>
+            <select name="student_id" required>
+                @foreach (($kids ?? []) as $child)
+                    <option value="{{ $child->id }}" @selected($child->id === ($kid?->id))>{{ $child->name }}</option>
                 @endforeach
-            </div>
+            </select>
+            <label>کلاس مرتبط</label>
+            <select name="classroom_id">
+                <option value="">بدون انتخاب کلاس</option>
+                @foreach (($classrooms ?? []) as $classroom)
+                    <option value="{{ $classroom->id }}">{{ $classroom->name }}</option>
+                @endforeach
+            </select>
+            <label>موضوع جلسه</label>
+            <input name="title" required minlength="3" maxlength="180" placeholder="موضوع درخواست">
+            <label>توضیحات</label>
+            <textarea name="message" rows="3" maxlength="2000" placeholder="توضیحات تکمیلی (اختیاری)"></textarea>
+            <label>زمان پیشنهادی</label>
+            <input type="datetime-local" name="preferred_at" min="{{ now()->addMinute()->format('Y-m-d\TH:i') }}">
             <button class="b" type="submit">ارسال درخواست</button>
         </form>
     </section>
-
     <section class="c"><h3>جلسه‌های من</h3>
-        {{-- status: confirmed | done | pending --}}
-        @forelse (($meetings ?? []) as $m)
-            @php $st = data_get($m, 'status'); @endphp
-            <div class="row"><div>{{ data_get($m, 'teacher') }}<small>{{ data_get($m, 'time') }}</small></div>
-                @if ($st === 'confirmed')<i class="bd gn">تأیید</i>
-                @elseif ($st === 'done')<i class="bd bl">انجام شد</i>
-                @else<i class="bd am">منتظر</i>@endif
+        @forelse (($meetings ?? collect()) as $meeting)
+            <div class="row"><div>{{ $meeting->title }}<small>{{ $meeting->student?->name }} · {{ $meeting->classroom?->name }} · {{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y/m/d H:i') }}</small>
+                @if ($meeting->message)<small>{{ $meeting->message }}</small>@endif
             </div>
+            <i class="bd {{ $meeting->status === 'scheduled' ? 'gn' : 'am' }}">{{ $meeting->status }}</i></div>
         @empty
             <p>جلسه‌ای ثبت نشده است.</p>
         @endforelse
+        {{ $meetings->links() }}
     </section>
 </div>
 @endsection
