@@ -23,6 +23,13 @@
                     <div class="m {{ $reply->sender_id === auth()->id() ? 'me2' : '' }}">{{ $reply->sender?->name }}: {{ $reply->body }}</div>
                 @endforeach
             </div>
+            @if (!in_array($selectedMessage->status, ['closed', 'deleted'], true))
+                <form class="send" method="POST" action="{{ route('teacher.messages.reply', $selectedMessage) }}">
+                    @csrf
+                    <textarea name="body" required maxlength="30000" placeholder="پاسخ خود را بنویسید…"></textarea>
+                    <button class="b" type="submit">ارسال پاسخ</button>
+                </form>
+            @endif
         @else
             <p>برای مشاهده جزئیات، یک گفت‌وگو را انتخاب کنید.</p>
         @endif
