@@ -36,7 +36,8 @@ final class SeoTestimonialManagementTest extends TestCase
             'sort_order' => 10,
         ])->assertRedirect();
 
-        $testimonial = SeoTestimonial::query()->firstOrFail();
+        $testimonial = SeoTestimonial::query()->where('name', 'دانش‌آموز آزمایشی')->firstOrFail();
+        $this->assertSame('draft', $testimonial->status);
         $this->get('/')->assertDontSee('دانش‌آموز آزمایشی');
 
         $this->actingAs($seo)->patch(route('admin.seo.testimonials.update', $testimonial), [
