@@ -93,7 +93,9 @@ class PublicSiteTest extends TestCase
         $homeView = app(\App\Http\Controllers\PublicSiteController::class)->home();
         $this->assertTrue($homeView->getData()['courses']->contains('title', 'دوره منتشرشده'));
         $this->assertTrue($homeView->getData()['homeBanners']->contains('title', 'بنر صفحه اصلی'));
-        $this->assertStringContainsString('بنر صفحه اصلی', $homeView->render(), 'Controller view did not render the hero title.');
+        $renderedHome = $homeView->render();
+        fwrite(STDERR, "HOME_VIEW_DATA_DEBUG\\n".json_encode($homeView->getData()['homeBanners']->first()?->getAttributes(), JSON_UNESCAPED_UNICODE)."\\nHOME_VIEW_HTML_DEBUG\\n".substr(strip_tags($renderedHome), 0, 2500)."\\nHOME_VIEW_END\\n");
+        $this->assertStringContainsString('بنر صفحه اصلی', $renderedHome, 'Controller view did not render the hero title.');
 
         $response = $this->get(route('home'))->assertOk();
         $response->assertViewIs('public.home.index')
