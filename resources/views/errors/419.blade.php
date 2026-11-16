@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>نشست منقضی شد | آکادمی شیخان</title>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f7fb;color:#172033;font-family:Tahoma,Arial,sans-serif;padding:24px}.panel{width:min(100%,560px);background:#fff;border:1px solid #e5eaf2;border-radius:24px;padding:36px;text-align:center}.code{font-size:13px;color:#8a94a6}h1{font-size:24px;margin:20px 0 12px}p{color:#667085;line-height:2;margin:0 0 24px}a{display:inline-block;padding:12px 18px;border-radius:12px;text-decoration:none;background:#25365b;color:#fff}</style></head>
+<body><main class="panel"><div class="code">ERROR 419</div><h1>نشست شما منقضی شده است</h1><p>برای حفظ امنیت، این درخواست دیگر معتبر نیست. صفحه را دوباره باز کنید و عملیات را تکرار کنید.</p><a href="{{ url()->previous() }}">بازگشت و تلاش دوباره</a></main></body></html>
