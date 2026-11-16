@@ -115,14 +115,9 @@ class PublicSiteTest extends TestCase
         $response = $this->get(route('home'))->assertOk();
         $html = $response->getContent();
 
-        $this->assertStringContainsString(
-            'id="homeQuiz"'.' data-question-url="'.url('/home-quiz/question').'"',
-            $html
-        );
-        $this->assertStringContainsString(
-            'data-answer-url="'.route('public.home.quiz.answer').'"',
-            $html
-        );
+        $quizRootPattern = '/<section\\b(?=[^>]*id="homeQuiz")(?=[^>]*data-question-url="'.preg_quote(url('/home-quiz/question'), '/').'")(?=[^>]*data-answer-url="'.preg_quote(route('public.home.quiz.answer'), '/').'")[^>]*>/s';
+
+        $this->assertMatchesRegularExpression($quizRootPattern, $html);
         $this->assertStringNotContainsString(
             'class="home-quiz-card" data-question-url=',
             $html
