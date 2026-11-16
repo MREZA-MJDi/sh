@@ -795,7 +795,7 @@
 
             <div class="g6">
 
-                @if($categoriesCollection.isNotEmpty())
+                @if($categoriesCollection->isNotEmpty())
                     @foreach($categoriesCollection as $category)
 
                     @php
@@ -901,7 +901,7 @@
 
             <div class="g4">
 
-                @if($coursesCollection.isNotEmpty())
+                @if($coursesCollection->isNotEmpty())
                     @foreach($coursesCollection as $homeCourse)
 
                     @php
@@ -1049,7 +1049,7 @@
 
             <div class="g3">
 
-                @if($popularCoursesCollection.isNotEmpty())
+                @if($popularCoursesCollection->isNotEmpty())
                     @foreach($popularCoursesCollection as $index => $course)
 
                     @php
@@ -1138,7 +1138,7 @@
 
             <div class="g4">
 
-                @if($steps.isNotEmpty())
+                @if($steps->isNotEmpty())
                     @foreach($steps as $index => $step)
 
                     <div class="card stp">
@@ -1192,7 +1192,7 @@
 
             <div class="g4">
 
-                @if($panelCards.isNotEmpty())
+                @if($panelCards->isNotEmpty())
                     @foreach($panelCards as $index => $panelCard)
 
                     @php
@@ -1424,7 +1424,7 @@
 
                 <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
 
-                    @if($benefits.isNotEmpty())
+                    @if($benefits->isNotEmpty())
                     @foreach($benefits as $index => $benefit)
 
                         <div class="card wf">
@@ -1639,7 +1639,7 @@
 
                 <div>
 
-                    @if($faqItems.isNotEmpty())
+                    @if($faqItems->isNotEmpty())
                     @foreach($faqItems as $index => $item)
 
                         <details @if($index === 0) open @endif>
