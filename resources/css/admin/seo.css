@@ -75,3 +75,6 @@ body.admin-body .seo-admin-preview-actions{display:flex;gap:10px;flex-wrap:wrap;
 body.admin-body .seo-admin-preview-cta-secondary{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45)}
 body.admin-body .seo-admin-preview-article-banner{height:auto!important;min-height:0!important;display:block!important;border-radius:14px;overflow:hidden;background:transparent}
 body.admin-body .seo-admin-preview-article-banner img{display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:14px}
+
+body.admin-body .seo-admin-preview-article-banner[data-preview-placement="articles_sidebar"]{width:min(100%,320px);margin-inline-start:auto}
+body.admin-body .seo-admin-preview-article-banner[data-preview-placement="articles_top"],body.admin-body .seo-admin-preview-article-banner[data-preview-placement="sitewide"]{width:100%}
