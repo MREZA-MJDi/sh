@@ -93,6 +93,7 @@ class PublicSiteTest extends TestCase
         $homeView = app(\App\Http\Controllers\PublicSiteController::class)->home();
         $this->assertTrue($homeView->getData()['courses']->contains('title', 'دوره منتشرشده'));
         $this->assertTrue($homeView->getData()['homeBanners']->contains('title', 'بنر صفحه اصلی'));
+        $this->assertStringContainsString('بنر صفحه اصلی', $homeView->render(), 'Controller view did not render the hero title.');
 
         $response = $this->get(route('home'))->assertOk();
         $response->assertViewIs('public.home.index')
