@@ -46,7 +46,7 @@
         </div>
         <div class="mt" aria-label="امکانات و شیوه ارائه دوره">
             @if($features['recorded_video'] ?? false)<span>آموزش ویدیویی</span>@endif
-            @if($features['live_class'] ?? false)<span>کلاس آنلاین</span>@endif
+            @if($features['live_class'] ?? false)<span>آموزش زنده</span>@endif
             @if($features['resources'] ?? false)<span>منابع آموزشی</span>@endif
             @if($features['assignments'] ?? false)<span>تکلیف و تمرین</span>@endif
             @if($features['exams'] ?? false)<span>آزمون و کوییز</span>@endif
@@ -240,7 +240,10 @@
                     </div>
                     @forelse($upcomingSessions as $session)
                         @php
-                            $directMeetingUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+                            $joinReady = filled($session->meeting_url)
+                                || ($session->meeting_provider === 'skyroom'
+                                    && filled($session->classroom?->skyroom_room_id)
+                                    && $session->classroom?->skyroom_status === 'ready');
                         @endphp
                         <article style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--ln);flex-wrap:wrap">
                             <div style="min-width:220px;flex:1">
@@ -251,7 +254,7 @@
                                     @if($session->ends_at) — {{ $session->ends_at->translatedFormat('H:i') }} @endif
                                 </div>
                             </div>
-                            @if(auth()->check() && auth()->user()->hasRole('student') && $session->can_join && filled($directMeetingUrl))
+                            @if(auth()->check() && auth()->user()->hasRole('student') && $session->can_join && $joinReady)
                                 <form method="POST" action="{{ route('student.class-sessions.join', $session) }}" target="_blank" rel="noopener">
                                     @csrf
                                     <button type="submit" class="btn s">ورود به کلاس</button>
