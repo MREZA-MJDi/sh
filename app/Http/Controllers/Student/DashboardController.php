@@ -32,12 +32,12 @@ final class DashboardController extends Controller
     {
         $student = $request->user();
         $start = now()->startOfMonth();
-        $records = Attendance::query()
+        $monthRecords = Attendance::query()
             ->where('student_id', $student->id)
             ->whereBetween('session_date', [$start->toDateString(), now()->toDateString()])
             ->with(['classroom:id,name', 'session:id,starts_at'])
-            ->get()
-            ->groupBy(fn ($record) => $record->session_date->day);
+            ->get();
+        $records = $monthRecords->groupBy(fn ($record) => $record->session_date->day);
 
         $calendar = collect(range(1, now()->daysInMonth))->map(function (int $day) use ($records): array {
             $statuses = $records->get($day, collect())->pluck('status');
@@ -49,7 +49,7 @@ final class DashboardController extends Controller
             ];
         });
 
-        $counts = $records->groupBy('status')->map->count();
+        $counts = $monthRecords->groupBy('status')->map->count();
         $total = (int) $counts->get('present', 0) + (int) $counts->get('late', 0) + (int) $counts->get('absent', 0);
         $rate = $total > 0 ? (int) round((($counts->get('present', 0) + $counts->get('late', 0)) / $total) * 100) : null;
 
