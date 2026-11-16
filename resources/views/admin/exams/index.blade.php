@@ -77,7 +77,9 @@
             </td>
             <td>
               <div class="adm-actions">
-                <x-admin.btn size="sm" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌ها</x-admin.btn>
+                @if($exam->provider === 'internal' || ! in_array($exam->integration_status, ['active', 'connected'], true))
+                  <x-admin.btn size="sm" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌ها</x-admin.btn>
+                @endif
                 <x-admin.btn size="sm" variant="soft" icon="chart" :href="route('admin.exams.results', $exam)">نتایج</x-admin.btn>
                 <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="exam-modal" data-title="ویرایش آزمون" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.exams.update', $exam)" data-method="PATCH">ویرایش</x-admin.btn>
               </div>
