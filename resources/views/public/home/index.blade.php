@@ -51,7 +51,7 @@
         </div>
     @endforelse
 
-    <div class="dots" id="heroDots" @if($homeBanners->count() < 2) hidden @endif></div>
+    <div class="dots" id="heroDots" {!! $homeBanners->count() < 2 ? 'hidden' : '' !!}></div>
 </header>
 <section style="padding:64px 0">
     <div class="c">
