@@ -49,16 +49,15 @@ final class AcademicPortalContentSeeder extends Seeder
             }
 
             $teacher = User::query()
+                ->where('email', 'teacher@sh.local')
                 ->where('is_active', true)
                 ->whereHas('roles', fn ($query) => $query->whereKey($teacherRole->id))
-                ->orderBy('id')
-                ->get()
                 ->first();
 
             $students = User::query()
+                ->where('email', 'student@sh.local')
                 ->where('is_active', true)
                 ->whereHas('roles', fn ($query) => $query->whereKey($studentRole->id))
-                ->orderBy('id')
                 ->get();
 
             if (! $teacher || $students->isEmpty()) {
@@ -69,10 +68,9 @@ final class AcademicPortalContentSeeder extends Seeder
 
             $parent = $parentRole
                 ? User::query()
+                    ->where('email', 'parent@sh.local')
                     ->where('is_active', true)
                     ->whereHas('roles', fn ($query) => $query->whereKey($parentRole->id))
-                    ->orderBy('id')
-                    ->get()
                     ->first()
                 : null;
 
