@@ -22,14 +22,15 @@
    <h3>{{ $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</h3>
    @forelse ($students as $student)
     <div class="row"><div>{{ $student['name'] }}</div>
-     <select name="attendance[{{ $student['id'] }}][status]">
+     <select name="attendance[{{ $student['id'] }}][status]" required>
+      <option value="" disabled @selected(!$student['status'])>انتخاب وضعیت</option>
       <option value="present" @selected($student['status'] === 'present')>حاضر</option>
       <option value="late" @selected($student['status'] === 'late')>تأخیر</option>
       <option value="absent" @selected($student['status'] === 'absent')>غایب</option>
       <option value="excused" @selected($student['status'] === 'excused')>غیبت موجه</option>
      </select>
-     <input type="datetime-local" name="attendance[{{ $student['id'] }}][joined_at]" aria-label="زمان ورود">
-     <input type="number" min="0" max="1440" name="attendance[{{ $student['id'] }}][attended_minutes]" placeholder="دقیقه حضور">
+     <input type="datetime-local" name="attendance[{{ $student['id'] }}][joined_at]" value="{{ $student['joined_at'] }}" aria-label="زمان ورود">
+     <input type="number" min="0" max="1440" name="attendance[{{ $student['id'] }}][attended_minutes]" value="{{ $student['attended_minutes'] }}" placeholder="دقیقه حضور">
      <input type="text" name="attendance[{{ $student['id'] }}][note]" value="{{ $student['note'] }}" placeholder="یادداشت">
     </div>
    @empty
