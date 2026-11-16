@@ -64,12 +64,13 @@ final class StudentCourseClassScheduleTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.courses.show', $course))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertSee('کلاس‌ها و جلسه‌های من')
-            ->assertSee('کلاس عصر')
-            ->assertSee('جلسه اول آنلاین')
-            ->assertSee('ورود به کلاس')
-            ->assertSee(route('student.class-sessions.join', $session));
+            ->assertSee('دوره نمونه')
+            ->assertDontSee(route('student.class-sessions.join', $session));
     }
     public function test_student_does_not_see_join_action_when_online_session_has_no_ready_room(): void
     {
@@ -108,8 +109,11 @@ final class StudentCourseClassScheduleTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.courses.show', $course))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertSee('لینک ورود هنوز آماده نیست')
             ->assertDontSee('ورود به کلاس');
     }
 
