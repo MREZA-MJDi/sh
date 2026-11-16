@@ -11,15 +11,10 @@
     'exams' => 'آزمون و کوییز',
     'projects' => 'پروژه و ارزیابی مرحله‌ای',
   ];
-  $legacyFeatureDefaults = [
-    'recorded_video' => $course->delivery_type === 'spotplayer',
-    'live_class' => $course->delivery_type === 'skyroom',
-    'resources' => true,
-    'assignments' => true,
-    'exams' => true,
-    'projects' => false,
-  ];
-  $features = array_replace($legacyFeatureDefaults, $course->learning_features ?? []);
+  $features = [];
+  foreach ($featureLabels as $key => $label) {
+    $features[$key] = $course->featureEnabled($key);
+  }
   $lessonCount = $course->sections->sum(fn ($section) => $section->lessons->count());
 @endphp
 
