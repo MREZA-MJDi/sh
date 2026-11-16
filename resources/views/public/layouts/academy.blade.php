@@ -48,11 +48,7 @@
     @if(!empty($settings->twitter_handle))<meta name="twitter:site" content="{{ '@'.ltrim($settings->twitter_handle, '@') }}">@endif
     @if(!empty($organizationData))
         <script type="application/ld+json">{!! json_encode($organizationData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
-    @endif
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
-    @vite(['resources/css/app.css', 'resources/css/public-academy.css', 'resources/js/app.js'])
+    @endif\n    @vite(['resources/css/app.css', 'resources/css/public-academy.css', 'resources/css/shared/typography.css', 'resources/js/app.js'])
     @stack('head')
 </head>
 <body class="academy">
