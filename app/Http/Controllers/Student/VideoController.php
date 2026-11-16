@@ -15,41 +15,18 @@ use Illuminate\View\View;
 
 final class VideoController extends Controller
 {
-    public function index(Request $request, SpotPlayerService $spotPlayer): View
+    public function index(Request $request): RedirectResponse
     {
-        $videos = $this->accessibleVideos($request->user())
-            ->with(['course:id,title', 'classroom:id,name'])
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
-
-        $health = $spotPlayer->health();
-
-        return view('student.videos.index', compact('videos', 'health'));
+        return redirect()->route('student.courses.index');
     }
 
-    public function show(Request $request, int $video, SpotPlayerService $spotPlayer): View
+    public function show(Request $request, int $video): RedirectResponse
     {
         $video = $this->findAccessibleVideo($request->user(), $video);
-        $license = SpotPlayerLicense::query()
-            ->where('student_id', $request->user()->id)
-            ->where('course_id', $video->course_id)
-            ->latest('id')
-            ->first();
 
-        return view('student.videos.show', [
-            'video' => $video,
-            'license' => $license,
-            'health' => $spotPlayer->health(),
-            'playbackReady' => false,
-        ]);
+        return redirect()->route('public.courses.show', $video->course->slug);
     }
 
-    /**
-     * Raw staged media is never a student delivery path. Playback must be
-     * supplied by the authenticated SpotPlayer web player after the provider
-     * adapter, course mapping and active student license have been verified.
-     */
     public function stream(Request $request, int $video): Response
     {
         $this->findAccessibleVideo($request->user(), $video);
