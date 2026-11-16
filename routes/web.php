@@ -223,6 +223,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
         Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->middleware('permission:dashboard.view')->name('attendance');
         Route::get('/results', [StudentDashboardController::class, 'results'])->middleware('permission:exams.view.own')->name('results');
         Route::get('/resources', [StudentDashboardController::class, 'resources'])->middleware('permission:resources.view.enrolled')->name('resources.index');
+        Route::get('/library', [StudentDashboardController::class, 'library'])->middleware('permission:dashboard.view')->name('library');
         Route::get('/live-classes', [StudentDashboardController::class, 'liveClasses'])->middleware('permission:dashboard.view')->name('live-classes');
         Route::get('/achievements', [StudentDashboardController::class, 'achievements'])->middleware('permission:dashboard.view')->name('achievements');
         Route::get('/profile', [StudentProfileController::class, 'show'])->middleware('permission:profile.update')->name('profile.edit');
