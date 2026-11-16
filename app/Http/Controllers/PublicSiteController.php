@@ -259,6 +259,7 @@ final class PublicSiteController extends Controller
             ->firstOrFail();
 
         abort_unless($enrollments->hasActiveAccess($student, $course), 403);
+        abort_unless($course->featureEnabled('recorded_video'), 404);
 
         $license = SpotPlayerLicense::query()
             ->where('student_id', $student->id)
