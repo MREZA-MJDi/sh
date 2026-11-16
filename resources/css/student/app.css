@@ -865,7 +865,7 @@ body, body.parent-page, body.student-page {
 :root:not([data-theme="dark"]) body.student-page .fld {
     background:#f8f9fb; border-color:#e2e6ec; box-shadow:none;
 }
-:root:not([data-theme="dark"]) body.student-page .tag { color:#245e55; background:#f5e9ed; }
+:root:not([data-theme="dark"]) body.student-page .tag { color:#642033; background:#f5e9ed; }
 :root:not([data-theme="dark"]) body.student-page .tag.w { color:#89500f; background:#fff0d9; }
 :root:not([data-theme="dark"]) body.student-page .tag.r { color:#a52e40; background:#fae9ec; }
 :root:not([data-theme="dark"]) body.student-page .tag.d { color:#34475e; background:#e9edf3; }
