@@ -19,7 +19,11 @@
     <div class="chips" style="padding-top:28px">
         @php
             $currentGrade = request('grade');
-            $gradeList = collect($grades)->mapWithKeys(fn ($grade) => [(string) $grade => (string) $grade])->prepend('همه پایه‌ها', '')->all();
+            $gradeList = collect($grades)->mapWithKeys(function ($grade) {
+                $value = (string) $grade;
+                $label = $value === 'کنکور' || str_starts_with($value, 'پایه ') ? $value : 'پایه '.$value;
+                return [$value => $label];
+            })->prepend('همه پایه‌ها', '')->all();
         @endphp
         @foreach($gradeList as $val => $title)
             <a class="chip {{ (string)$currentGrade === (string)$val ? 'on' : '' }}" 
