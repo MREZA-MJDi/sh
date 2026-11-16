@@ -39,8 +39,8 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $homework = Homework::query()
             ->whereIn('classroom_id', clone $classroomIds)
-            ->with(['classroom:id,name', 'submissions' => fn ($query) => $query
-                ->with('student:id,name')
+            ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students'), 'submissions' => fn ($query) => $query
+                ->with(['student:id,name', 'homework:id,title'])
                 ->latest('submitted_at')])
             ->withCount('submissions')
             ->latest()
