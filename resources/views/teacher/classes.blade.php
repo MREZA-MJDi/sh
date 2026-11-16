@@ -36,7 +36,7 @@
     <section class="c"><h3>منابع و جزوه‌ها</h3>
         @php $resources = $classrooms->getCollection()->flatMap(fn ($classroom) => $classroom->learningResources); @endphp
         @forelse ($resources as $resource)
-            <div class="row"><div>{{ $resource->title }}<small>{{ $resource->kind }} · {{ $resource->classroom?->name ?? '' }}</small></div>
+            <div class="row"><div>{{ $resource->title }}<small>{{ $resource->kind }}</small></div>
                 <i class="bd {{ $resource->status === 'published' ? 'gn' : 'am' }}">{{ $resource->status }}</i>
             </div>
         @empty
