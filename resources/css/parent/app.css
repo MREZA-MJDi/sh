@@ -1,3 +1,5 @@
+@import '../rich-text.css';
+
 /* Parent portal visual system ported from parent-panel.html reference. */
 :root {
   --bg:#f3f4fa;
@@ -869,7 +871,7 @@ svg.chart {
 .parent-page .chead h2 { margin:0; font-size:18px; }
 .parent-page .acts,.parent-page .frm { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .parent-page .frm { margin-top:16px; }
-.parent-page .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:8px 16px; border:1px solid var(--pri); border-radius:10px; background:var(--pri); color:#fff; font:600 13px/1.6 inherit; text-decoration:none; cursor:pointer; }
+.parent-page .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:8px 16px; border:1px solid var(--pri); border-radius:10px; background:var(--pri); color:#fff; font:inherit; font-size:13px; font-weight:600; line-height:1.6; text-decoration:none; cursor:pointer; }
 .parent-page .btn.s { min-height:34px; padding:5px 12px; font-size:12px; }
 .parent-page .btn.g { color:var(--pri); background:var(--ps); border-color:var(--ln); }
 .parent-page .btn.bad { color:#fff; background:var(--rd); border-color:var(--rd); }
