@@ -121,7 +121,7 @@ final class StudentDashboardService
             ->with(['course:id,title', 'classroom:id,name'])
             ->latest()
             ->limit(5)
-            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'created_at']);
+            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'downloadable', 'release_at', 'created_at']);
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6);
 
