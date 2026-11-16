@@ -46,12 +46,18 @@ final class DashboardController extends Controller
             ])->values();
 
         $trend = $data['result_trend']->groupBy(fn ($result) => $result->created_at->format('Y-m'));
-        $data['months'] = $trend->keys()->map(fn ($month) => Carbon::createFromFormat('Y-m', $month)->translatedFormat('M'))->values();
-        $data['scores'] = $trend->map(fn ($items) => round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1))->values();
+        $periods = collect(range(5, 0))->map(fn ($offset) => now()->subMonths($offset)->format('Y-m'));
+        $data['months'] = $periods->map(fn ($month) => Carbon::createFromFormat('Y-m', $month)->translatedFormat('M'))->values();
+        $data['scores'] = $periods->map(function ($month) use ($trend) {
+            $items = $trend->get($month, collect());
+            return $items->isEmpty() ? null : round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1);
+        })->values();
         $data['classAvg'] = [];
-        $data['hwOnTime'] = $data['homework_trend']->pluck('on_time')->values();
-        $data['hwLate'] = $data['homework_trend']->pluck('late')->values();
-        $data['hwMissing'] = $data['homework_trend']->pluck('missing')->values();
+        $homeworkTrend = $data['homework_trend'];
+        $data['homeworkMonths'] = $data['months'];
+        $data['hwOnTime'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'on_time', 0))->values();
+        $data['hwLate'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'late', 0))->values();
+        $data['hwMissing'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'missing', 0))->values();
         $data['teacherNotes'] = $data['reviewed_homework']->filter(fn ($submission) => filled($submission->feedback))
             ->map(fn ($submission) => [
                 'teacher' => $submission->reviewer?->name ?? 'مدرس',
