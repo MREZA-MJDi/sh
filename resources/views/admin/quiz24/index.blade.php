@@ -122,7 +122,9 @@
     @method('PATCH')
     <x-admin.input label="نام حساب" name="account_name" :value="$settings?->account_name"/>
     <x-admin.input label="آدرس پایه API" name="api_base_url" type="url" :value="$settings?->api_base_url" placeholder="https://api.provider.example"/>
-    <x-admin.input label="توکن API (برای حفظ مقدار فعلی خالی بگذارید)" name="api_token" type="password" autocomplete="new-password"/>
+    <x-admin.field label="توکن API (برای حفظ مقدار فعلی خالی بگذارید)" name="api_token">
+      <input class="adm-input" type="password" name="api_token" value="" autocomplete="new-password">
+    </x-admin.field>
     <x-admin.input label="نام هدر احراز هویت" name="api_token_header" :value="$settings?->api_token_header ?? 'Authorization'"/>
     <x-admin.input label="پیشوند توکن" name="api_token_prefix" :value="$settings?->api_token_prefix ?? 'Bearer'"/>
 
