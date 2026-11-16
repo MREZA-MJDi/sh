@@ -58,8 +58,10 @@
           'delivery_type' => $course->delivery_type,
           'spotplayer_course_id' => $course->spotplayer_course_id,
           'status' => $course->status,
-          'learning_features' => $features,
         ];
+        foreach ($features as $featureKey => $enabled) {
+          $fill['learning_features['.$featureKey.']'] = (bool) $enabled;
+        }
         $published = $course->status === 'published';
       @endphp
       <article class="adm-card" data-state="{{ $published ? 'on' : 'off' }}" data-grade="{{ $course->grade }}" data-name="{{ $course->title.' '.$teacherName }}">
