@@ -15,6 +15,7 @@ final class ExamManagementService
     {
         unset($data['duration_hours']);
         $isQuiz24 = ($data['provider'] ?? 'internal') === 'quiz24';
+        $this->assertCourseExamFeature($data);
 
         return DB::transaction(function () use ($data, $actor, $isQuiz24): Exam {
             $exam = Exam::create([
@@ -40,6 +41,7 @@ final class ExamManagementService
     {
         unset($data['duration_hours']);
         $isQuiz24 = ($data['provider'] ?? 'internal') === 'quiz24';
+        $this->assertCourseExamFeature($data);
 
         return DB::transaction(function () use ($exam, $data, $actor, $isQuiz24): Exam {
             $exam->update([
@@ -59,4 +61,19 @@ final class ExamManagementService
             return $exam->refresh();
         });
     }
+    private function assertCourseExamFeature(array $data): void
+    {
+        $courseId = (int) ($data['course_id'] ?? 0);
+        if ($courseId < 1) {
+            return;
+        }
+
+        $course = Course::query()->findOrFail($courseId);
+        if (! $course->featureEnabled('exams')) {
+            throw ValidationException::withMessages([
+                'course_id' => 'امکان آزمون برای این دوره غیرفعال است.',
+            ]);
+        }
+    }
+
 }
