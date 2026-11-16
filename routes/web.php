@@ -218,6 +218,12 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/homework', [StudentDashboardController::class, 'homework'])->middleware('permission:homework.submit')->name('homework.index');
+        Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->middleware('permission:dashboard.view')->name('attendance');
+        Route::get('/results', [StudentDashboardController::class, 'results'])->middleware('permission:exams.view.own')->name('results');
+        Route::get('/resources', [StudentDashboardController::class, 'resources'])->middleware('permission:resources.view.enrolled')->name('resources.index');
+        Route::get('/live-classes', [StudentDashboardController::class, 'liveClasses'])->middleware('permission:dashboard.view')->name('live-classes');
+        Route::get('/achievements', [StudentDashboardController::class, 'achievements'])->middleware('permission:dashboard.view')->name('achievements');
         Route::get('/profile', [StudentProfileController::class, 'show'])->middleware('permission:profile.update')->name('profile.edit');
         Route::put('/profile', [StudentProfileController::class, 'update'])->middleware('permission:profile.update')->name('profile.update');
 
