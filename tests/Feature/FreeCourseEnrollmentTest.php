@@ -27,7 +27,7 @@ final class FreeCourseEnrollmentTest extends TestCase
         $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
         $course = $this->course('free');
 
-        $this->actingAs($student)->post(route('student.courses.enroll-free', $course))->assertRedirect(route('student.courses.show', $course));
+        $this->actingAs($student)->post(route('student.courses.enroll-free', $course))->assertRedirect(route('public.courses.show', $course->slug));
         $this->actingAs($student)->post(route('student.courses.enroll-free', $course))->assertRedirect(route('student.courses.show', $course));
 
         $this->assertDatabaseHas('course_enrollments', [
