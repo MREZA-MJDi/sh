@@ -57,12 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const syncPlacement = () => {
             const isHero = !placement || placement.value === 'home_hero';
             if (hero) hero.hidden = !isHero;
-            if (articleBanner) articleBanner.hidden = isHero;
+            if (articleBanner) {
+                articleBanner.hidden = isHero;
+                articleBanner.dataset.previewPlacement = placement?.value || 'articles_top';
+            }
             const hint = root.querySelector('[data-preview-dimensions]');
             if (hint && root.dataset.previewKind === 'banner') {
                 hint.textContent = isHero
                     ? 'صفحه اصلی: تصویر پس‌زمینه تمام‌عرض، ارتفاع هم‌راستا با ارتفاع hero و لایه‌ی متنی روی تصویر'
-                    : 'صفحه مقالات: تصویر تمام‌عرض با حفظ نسبت اصلی فایل؛ در خروجی عمومی بدون کشیدگی نمایش داده می‌شود';
+                    : placement?.value === 'articles_sidebar'
+                        ? 'مقاله: تصویر در ستون کناری و با عرض محدود همان ستون نمایش داده می‌شود'
+                        : 'صفحه مقاله‌ها: تصویر تمام‌عرض با حفظ نسبت اصلی فایل و بدون کشیدگی نمایش داده می‌شود';
             }
         };
         const setImage = (src) => {
