@@ -91,7 +91,7 @@
             @endif
 
 
-            <div class="card blk" id="c1">
+            <div class="card blk" id="c1-learning">
                 <h2>در این دوره چه یاد می‌گیری؟</h2>
                 <ul class="learn">
                     <li>
@@ -132,7 +132,7 @@
                         </span>
                         <span class="c-badge">
                             <svg class="i" style="width:14px;height:14px"><use href="#cam"/></svg>
-                            {{ $totalLessons }} جلسه آموزشی
+                            {{ $totalLessons }} درس آموزشی
                         </span>
                     </div>
                 </div>
@@ -342,7 +342,7 @@
             @foreach($relatedCourses as $related)
                 <x-public.academy.course-card :course="$related" />
             @endforeach
-
+        </div>
     </section>
 @endif
 </div>
