@@ -65,8 +65,8 @@ final class CourseController extends Controller
     {
         $course = $courses->create($request->validated());
 
-        $message = $course->delivery_type === 'spotplayer'
-            ? 'دوره در شیخان ایجاد شد؛ اتصال به SpotPlayer در انتظار قرارداد وب‌سرویس است.'
+        $message = in_array($course->integration_status, ['waiting_course_mapping', 'awaiting_api_verification'], true)
+            ? 'دوره در شیخان ایجاد شد؛ اتصال SpotPlayer در کارتابل یکپارچه‌سازی در انتظار قرارداد وب‌سرویس است.'
             : 'دوره با موفقیت ایجاد شد.';
 
         return back()->with('success', $message);
@@ -81,8 +81,8 @@ final class CourseController extends Controller
 
         $course = $courses->update($course, $request->validated());
 
-        $message = $course->delivery_type === 'spotplayer'
-            ? 'اطلاعات دوره ذخیره شد؛ شناسه خارجی تا زمان تأیید API معتبر تلقی نمی‌شود.'
+        $message = in_array($course->integration_status, ['waiting_course_mapping', 'awaiting_api_verification'], true)
+            ? 'اطلاعات دوره ذخیره شد؛ وضعیت SpotPlayer تا زمان تأیید API در انتظار باقی می‌ماند.'
             : 'دوره به‌روزرسانی شد.';
 
         return back()->with('success', $message);
