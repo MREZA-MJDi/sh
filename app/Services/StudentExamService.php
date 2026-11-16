@@ -380,7 +380,11 @@ final class StudentExamService
             ->where('student_id', $student->id)
             ->where('status', 'active')
             ->where(fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-            ->whereHas('course', fn ($course) => $course->where('status', 'published'))
+            ->whereHas('course', fn ($course) => $course
+                ->where('status', 'published')
+                ->where(fn (Builder $features) => $features
+                    ->whereNull('learning_features')
+                    ->orWhere('learning_features->exams', true)))
             ->select('course_id');
     }
 }
