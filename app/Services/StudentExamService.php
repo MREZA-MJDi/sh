@@ -21,19 +21,7 @@ final class StudentExamService
 
         return Exam::query()
             ->where(function (Builder $provider): void {
-                $provider->where(function (Builder $provider): void {
                 $provider->where('provider', 'internal')
-                    ->orWhere(function (Builder $fallback): void {
-                        $fallback->where('provider', 'quiz24')
-                            ->whereIn('integration_status', [
-                                'waiting_external_mapping',
-                                'awaiting_api_verification',
-                                'waiting_contract',
-                                'failed',
-                            ])
-                            ->whereHas('questions');
-                    });
-            })
                     ->orWhere(function (Builder $fallback): void {
                         $fallback->where('provider', 'quiz24')
                             ->whereIn('integration_status', [
@@ -351,7 +339,19 @@ final class StudentExamService
         $courseIds = $this->activeCourseIds($student);
 
         return Exam::query()
-            ->where('provider', 'internal')
+            ->where(function (Builder $provider): void {
+                $provider->where('provider', 'internal')
+                    ->orWhere(function (Builder $fallback): void {
+                        $fallback->where('provider', 'quiz24')
+                            ->whereIn('integration_status', [
+                                'waiting_external_mapping',
+                                'awaiting_api_verification',
+                                'waiting_contract',
+                                'failed',
+                            ])
+                            ->whereHas('questions');
+                    });
+            })
             ->whereIn('status', $statuses)
             ->where(function (Builder $access) use ($student, $courseIds): void {
                 $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
