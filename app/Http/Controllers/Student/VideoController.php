@@ -7,11 +7,10 @@ use App\Models\CourseEnrollment;
 use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
-use App\Services\SpotPlayer\SpotPlayerService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
-use Illuminate\View\View;
 
 final class VideoController extends Controller
 {
