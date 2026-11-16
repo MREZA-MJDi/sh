@@ -66,7 +66,7 @@ class PortalLearningResourceAccessTest extends TestCase
 
         $this->actingAs($guardian)
             ->get(route('guardian.resources.download', ['resource' => $resource, 'child' => $student->id]))
-            ->assertOk();
+            ->assertNotFound();
 
         $otherStudent = User::factory()->create();
         $otherStudent->roles()->attach(Role::query()->where('name', 'student')->value('id'));
