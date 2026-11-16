@@ -21,7 +21,7 @@ class Quiz24Controller extends Controller
         $settings = Quiz24Setting::first();
         $health = $quiz24->health();
 
-        $exams = Exam::with('classroom')->withCount('results')
+        $exams = Exam::with(['classroom', 'course'])->withCount(['results', 'questions'])
             ->where('provider', 'quiz24')->latest()->paginate(12);
 
         $unmatched = Quiz24UnmatchedParticipant::with(['exam', 'resolvedUser'])
