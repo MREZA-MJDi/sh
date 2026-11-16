@@ -48,8 +48,8 @@ class SpotPlayerService
             throw new IntegrationException('صدور لایسنس فقط برای دانش‌آموز فعال مجاز است.');
         }
 
-        if ($course->status !== 'published' || $course->delivery_type !== 'spotplayer') {
-            throw new IntegrationException('دوره باید منتشرشده و از نوع ویدیوی SpotPlayer باشد.');
+        if ($course->status !== 'published' || ! $course->featureEnabled('recorded_video')) {
+            throw new IntegrationException('دوره باید منتشرشده و قابلیت آموزش ویدیویی فعال داشته باشد.');
         }
 
         if (blank($course->spotplayer_course_id)) {
