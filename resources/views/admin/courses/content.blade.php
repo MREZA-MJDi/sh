@@ -20,7 +20,7 @@
 
 <x-admin.page-head tone="edu" icon="book" :title="'محتوای دوره: '.$course->title" desc="ساختار واقعی دوره، فصل‌ها، درس‌ها و گروه‌های آموزشی"
   :back-url="route('admin.courses.index')" back-label="دوره‌ها">
-  <x-admin.btn icon="plus" data-modal-open="section-modal">فصل جدید</x-admin.btn>
+  <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن بخش جدید</x-admin.btn>
   <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', $course->slug)" target="_blank">مشاهده صفحه عمومی</x-admin.btn>
 </x-admin.page-head>
 
