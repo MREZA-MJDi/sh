@@ -37,7 +37,7 @@ final class MessageController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('shared.messages.index', [
+        return view($request->user()->hasRole('parent') ? 'parent.messages' : 'student.messages', [
             'messages' => $messages,
             'children' => $children,
             'selected_child' => $selectedChild,
@@ -53,7 +53,7 @@ final class MessageController extends Controller
 
         $recipients = $this->availableRecipients($student, $access);
 
-        return view('shared.messages.create', [
+        return view($request->user()->hasRole('parent') ? 'parent.message-create' : 'student.message-create', [
             'student' => $student,
             'children' => $children,
             'selected_child' => $selectedChild,
@@ -96,7 +96,7 @@ final class MessageController extends Controller
 
         [$student, $children, $selectedChild] = $this->context($request);
 
-        return view('shared.messages.show', [
+        return view($request->user()->hasRole('parent') ? 'parent.message-show' : 'student.message-show', [
             'message' => $message,
             'student' => $student,
             'children' => $children,
