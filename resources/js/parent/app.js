@@ -23,6 +23,7 @@
     document.querySelectorAll('[data-palette]').forEach((button) => {
         button.addEventListener('click', () => {
             const palette = button.dataset.palette;
+            if (!['i', 'o'].includes(palette)) return;
             if (palette === 'i') delete root.dataset.pal;
             else root.dataset.pal = palette;
             try { localStorage.setItem('guardian-palette', palette); } catch (error) {}

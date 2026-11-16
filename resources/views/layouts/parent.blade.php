@@ -11,9 +11,11 @@
             const theme = localStorage.getItem('guardian-theme');
             const palette = localStorage.getItem('guardian-palette');
             if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
-            if (palette) document.documentElement.dataset.pal = palette;
+            if (palette === 'i' || palette === 'o') document.documentElement.dataset.pal = palette;
+            else if (palette) localStorage.removeItem('guardian-palette');
         } catch (error) {}
-    </script>\n    @vite(['resources/css/student/app.css', 'resources/css/parent/app.css', 'resources/css/shared/typography.css', 'resources/js/parent/app.js'])
+    </script>
+    @vite(['resources/css/parent/app.css', 'resources/css/shared/typography.css', 'resources/js/parent/app.js'])
     @stack('head')
 </head>
 <body class="parent-page">

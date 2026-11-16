@@ -95,14 +95,14 @@
             <div class="donut">
                 <svg viewBox="0 0 120 120" role="img" aria-label="ترکیب وضعیت حضور و غیاب">
                     <circle cx="60" cy="60" r="42" fill="none" stroke="var(--ln)" stroke-width="16"/>
-                    <circle cx="60" cy="60" r="42" fill="none" stroke="var(--gn)" stroke-width="16" stroke-dasharray="{{ 263.89 * $presentCount / $trackedAttendance }} 263.89" transform="rotate(-90 60 60)"/>
+                    <circle cx="60" cy="60" r="42" fill="none" stroke="var(--ok)" stroke-width="16" stroke-dasharray="{{ 263.89 * $presentCount / $trackedAttendance }} 263.89" transform="rotate(-90 60 60)"/>
                     <circle cx="60" cy="60" r="42" fill="none" stroke="var(--am)" stroke-width="16" stroke-dasharray="{{ 263.89 * $lateCount / $trackedAttendance }} 263.89" stroke-dashoffset="-{{ 263.89 * $presentCount / $trackedAttendance }}" transform="rotate(-90 60 60)"/>
                     <circle cx="60" cy="60" r="42" fill="none" stroke="var(--rd)" stroke-width="16" stroke-dasharray="{{ 263.89 * $absentCount / $trackedAttendance }} 263.89" stroke-dashoffset="-{{ 263.89 * ($presentCount + $lateCount) / $trackedAttendance }}" transform="rotate(-90 60 60)"/>
                     <text x="60" y="62" text-anchor="middle" class="big">{{ $faNumber($presentPercent) }}٪</text>
                     <text x="60" y="78" text-anchor="middle" class="ax">حضور</text>
                 </svg>
                 <ul class="lg">
-                    <li><i style="background:var(--gn)"></i>حاضر <b>{{ $faNumber($presentCount) }}</b></li>
+                    <li><i style="background:var(--ok)"></i>حاضر <b>{{ $faNumber($presentCount) }}</b></li>
                     <li><i style="background:var(--am)"></i>با تأخیر <b>{{ $faNumber($lateCount) }}</b></li>
                     <li><i style="background:var(--rd)"></i>غایب <b>{{ $faNumber($absentCount) }}</b></li>
                 </ul>
@@ -128,7 +128,7 @@
             @endfor
         </div>
         <div class="leg">
-            <span><i style="background:var(--gn)"></i>حاضر</span>
+            <span><i style="background:var(--ok)"></i>حاضر</span>
             <span><i style="background:var(--am)"></i>تأخیر</span>
             <span><i style="background:var(--rd)"></i>غایب</span>
         </div>

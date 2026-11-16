@@ -8,8 +8,8 @@
     --brand-primary-soft:#e9edf3;
     --brand-accent:#7d263f;
     --brand-accent-soft:#f5e9ed;
-    --brand-teal:#28776d;
-    --brand-teal-soft:#e2f2ef;
+    --brand-teal:#7d263f;
+    --brand-teal-soft:#f5e9ed;
     --brand-amber:#b96b18;
     --brand-amber-soft:#fff0d9;
     --brand-red:#b43d4d;
@@ -31,8 +31,8 @@ html[data-admin-theme="dark"] {
     --brand-primary-soft:#27374b;
     --brand-accent:#d18a9c;
     --brand-accent-soft:#3b2731;
-    --brand-teal:#69c5b5;
-    --brand-teal-soft:#203b3a;
+    --brand-teal:#d18a9c;
+    --brand-teal-soft:#3b2731;
     --brand-amber:#e4a34d;
     --brand-amber-soft:#49351f;
     --brand-red:#ff8996;
@@ -54,8 +54,8 @@ html[data-admin-theme="dark"] {
         --brand-primary-soft:#27374b;
         --brand-accent:#d18a9c;
         --brand-accent-soft:#3b2731;
-        --brand-teal:#69c5b5;
-        --brand-teal-soft:#203b3a;
+        --brand-teal:#d18a9c;
+        --brand-teal-soft:#3b2731;
         --brand-amber:#d18a9c;
         --brand-amber-soft:#3b2731;
         --brand-red:#ff8996;

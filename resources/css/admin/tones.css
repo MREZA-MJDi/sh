@@ -8,7 +8,7 @@
  *
  * TONES: one colour = one area. Put data-tone="..." on a sidebar group, card,
  * stat or page header; children inherit it.
- *   people (indigo)  learning (teal)  work (orange)  presence (green)
+ *   people (indigo)  learning (burgundy)  work (orange)  presence (slate blue)
  *   talk (pink)      library (violet) system (cyan)
  * Red is reserved for problems (absence, overdue, errors). Never a tone.
  *
@@ -26,17 +26,17 @@
 /* ===== 1. Palette ===== */
 body.admin-body.admin-body {
     --tone-people:#3b5bdb;
-    --tone-learning:#0a7a6e;
+    --tone-learning:#7d263f;
     --tone-work:#c2570a;
-    --tone-presence:#277a37;
+    --tone-presence:#53647a;
     --tone-talk:#d6336c;
     --tone-library:#7048e8;
-    --tone-system:#0b7c90;
+    --tone-system:#465c76;
 
     --on-tone:#ffffff;
     --on-primary:#ffffff;
     --adm-input-line:#7d87b0;
-    --adm-teal-ink:#086b60;
+    --adm-teal-ink:#465c76;
     --adm-red-ink:#a82a36;
     --adm-warn-ink:#8a5a00;
     --adm-danger:#cf3f4b;
@@ -46,9 +46,9 @@ body.admin-body.admin-body {
 body.admin-body.admin-body[data-theme="dark"],
 html[data-admin-theme="dark"] body.admin-body.admin-body {
     --tone-people:#8aa0ff;
-    --tone-learning:#3ccdb9;
+    --tone-learning:#d18a9c;
     --tone-work:#ffa94d;
-    --tone-presence:#69db7c;
+    --tone-presence:#aabbd0;
     --tone-talk:#f783ac;
     --tone-library:#b197fc;
     --tone-system:#3bc9db;
@@ -64,7 +64,7 @@ html[data-admin-theme="dark"] body.admin-body.admin-body {
     --adm-sidebar:#070b1f;
     --adm-shadow:0 0 0 1px rgba(255,255,255,.04), 0 12px 28px -14px rgba(0,0,0,.7);
 
-    --adm-teal-ink:#3ccdb9;
+    --adm-teal-ink:#d18a9c;
     --adm-red-ink:#ff7f89;
     --adm-warn-ink:#f5b942;
     --adm-danger:#ff7f89;
@@ -210,11 +210,11 @@ body.admin-body.admin-body .seo-admin-errors { color:var(--adm-red-ink); }
 
 /* Google-style preview: hardcoded link colours were unreadable on the dark page (1.52) */
 body.admin-body.admin-body .seo-admin-preview-title { color:#1a0dab; }
-body.admin-body.admin-body .seo-admin-preview-url   { color:#137333; }
+body.admin-body.admin-body .seo-admin-preview-url   { color:#53647a; }
 body.admin-body.admin-body[data-theme="dark"] .seo-admin-preview-title,
 html[data-admin-theme="dark"] body.admin-body.admin-body .seo-admin-preview-title { color:#8ab4f8; }
 body.admin-body.admin-body[data-theme="dark"] .seo-admin-preview-url,
-html[data-admin-theme="dark"] body.admin-body.admin-body .seo-admin-preview-url { color:#81c995; }
+html[data-admin-theme="dark"] body.admin-body.admin-body .seo-admin-preview-url { color:#aabbd0; }
 
 body.admin-body .seo-admin-hero[data-tone] {
     border-color:var(--tone-line);
@@ -238,7 +238,7 @@ body.admin-body.admin-body {
     --tone-people:#465c76;
     --tone-learning:#7d263f;
     --tone-work:#687386;
-    --tone-presence:#28776d;
+    --tone-presence:#465c76;
     --tone-talk:#7d263f;
     --tone-library:#53647a;
     --tone-system:#34475e;
@@ -248,7 +248,7 @@ html[data-admin-theme="dark"] body.admin-body.admin-body {
     --tone-people:#a7b8cc;
     --tone-learning:#d18a9c;
     --tone-work:#a6b1bf;
-    --tone-presence:#69c5b5;
+    --tone-presence:#aabbd0;
     --tone-talk:#d18a9c;
     --tone-library:#9eafc4;
     --tone-system:#91a4ba;
