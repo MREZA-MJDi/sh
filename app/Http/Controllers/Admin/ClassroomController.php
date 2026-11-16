@@ -25,7 +25,7 @@ class ClassroomController extends Controller
 
         $classrooms = $workspace->queryFor($user)
             ->with(['course', 'teacher', 'students:id,name'])
-            ->withCount('students')->latest()->paginate(15);
+            ->withCount(['students', 'sessions'])->latest()->paginate(15);
 
         $courses = $workspace->coursesQueryFor($user)
             ->whereIn('status', ['published', 'draft'])
