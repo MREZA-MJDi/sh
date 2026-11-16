@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'سرویس موقتاً در دسترس نیست')
+@section('code', 'ERROR 503')
+@section('heading', 'این سرویس موقتاً در دسترس نیست')
+@section('message', 'بخش‌های دیگر آکادمی ممکن است همچنان در دسترس باشند. کمی بعد دوباره تلاش کنید.')
