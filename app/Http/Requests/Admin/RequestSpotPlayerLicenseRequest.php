@@ -30,9 +30,10 @@ class RequestSpotPlayerLicenseRequest extends FormRequest
                 $validator->errors()->add('student_id', 'دانش‌آموز انتخاب‌شده فعال نیست یا نقش دانش‌آموز ندارد.');
             }
 
-            if ($courseId && ! Course::whereKey($courseId)->where('delivery_type', 'spotplayer')
-                ->where('status', 'published')->whereNotNull('spotplayer_course_id')->exists()) {
-                $validator->errors()->add('course_id', 'دوره باید منتشرشده و دارای شناسه اتصال اسپات پلیر باشد.');
+            $course = $courseId ? Course::query()->find($courseId) : null;
+            if ($courseId && (! $course || $course->status !== 'published'
+                || ! $course->featureEnabled('recorded_video') || blank($course->spotplayer_course_id))) {
+                $validator->errors()->add('course_id', 'دوره باید منتشرشده، دارای قابلیت ویدیویی و شناسه اتصال SpotPlayer باشد.');
             }
         }];
     }
