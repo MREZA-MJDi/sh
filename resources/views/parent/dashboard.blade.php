@@ -36,7 +36,7 @@
             ]])
         </section>
         <section class="c"><h3>وضعیت ارسال تکالیف</h3>
-            @include('parent.partials.chart', ['type' => 'bar', 'labels' => $months ?? [], 'options' => ['stacked' => true], 'series' => [
+            @include('parent.partials.chart', ['type' => 'bar', 'labels' => $homeworkMonths ?? [], 'options' => ['stacked' => true], 'series' => [
                 ['name' => 'به‌موقع', 'c' => '--gn', 'data' => $hwOnTime ?? []],
                 ['name' => 'با تأخیر', 'c' => '--am', 'data' => $hwLate ?? []],
                 ['name' => 'ارسال‌نشده', 'c' => '--rd', 'data' => $hwMissing ?? []],
