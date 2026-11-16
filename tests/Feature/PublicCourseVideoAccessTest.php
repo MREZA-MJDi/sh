@@ -143,7 +143,7 @@ final class PublicCourseVideoAccessTest extends TestCase
         $this->actingAs($student)
             ->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
             ->assertRedirect('https://player.example.test/embed/provider-video-1')
-            ->assertHeader('Cache-Control', 'private, no-store, max-age=0');
+            ->assertHeader('Cache-Control', 'max-age=0, no-store, private');
 
         CourseEnrollment::query()
             ->where('student_id', $student->id)
