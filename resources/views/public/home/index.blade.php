@@ -1,16 +1,15 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
-@if($homeBanners->isNotEmpty())
 <header class="hero" id="homeHero">
-    <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
+    <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی" style="{{ $homeBanners->count() < 2 ? 'display:none' : '' }}">
         <svg class="i"><use href="#arrr"/></svg>
     </button>
-    <button class="arr l" type="button" data-hero-dir="-1" aria-label="قبلی">
+    <button class="arr l" type="button" data-hero-dir="-1" aria-label="قبلی" style="{{ $homeBanners->count() < 2 ? 'display:none' : '' }}">
         <svg class="i"><use href="#arrl"/></svg>
     </button>
 
-    @foreach($homeBanners as $index => $banner)
+    @forelse($homeBanners as $index => $banner)
             <div class="sl {{ $index === 0 ? 'on' : '' }}" style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}">
                 @if($banner->image_path)
                     <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
@@ -38,11 +37,22 @@
                     <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
                 </div>
             </div>
-    @endforeach
+    @empty
+        <div class="sl on">
+            <div style="position:relative;z-index:2">
+                <span class="bd">{{ $homeContent['hero_badge'] }}</span>
+                <h1>{{ $settings->site_name ?? 'آکادمی شیخان' }}</h1>
+                <p>{{ $homeContent['hero_description'] }}</p>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
+                    <a class="btn" href="{{ route('public.courses.index') }}">{{ $homeContent['hero_primary_label'] }} <svg class="i"><use href="#arrl"/></svg></a>
+                    <a class="btn o" href="{{ route('public.contact') }}">{{ $homeContent['hero_secondary_label'] }}</a>
+                </div>
+            </div>
+        </div>
+    @endforelse
 
-    <div class="dots" id="heroDots"></div>
+    <div class="dots" id="heroDots" @if($homeBanners->count() < 2) hidden @endif></div>
 </header>
-@endif
 <section style="padding:64px 0">
     <div class="c">
         <div class="sh">
