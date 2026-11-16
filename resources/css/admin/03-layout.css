@@ -100,4 +100,4 @@
 .adm-shell.is-mini .adm-side-foot{justify-content:center}
 .adm-shell.is-mini .adm-side-foot>div{display:none}
 .adm-shell.is-mini .adm-sidebar-mini-toggle{margin-inline:auto}
-@media(max-width:900px){.adm-shell.is-mini{--side-w:var(--side-w)}}
+
