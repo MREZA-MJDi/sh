@@ -12,6 +12,15 @@
         @endcanany
     </div>
 
+    <section class="panel-card mb-4" data-tone="learning">
+        <div class="panel-card-title"><div><h3>کلاس با جلسه چه تفاوتی دارد؟</h3><p>کلاس یک گروه آموزشی پایدار است؛ جلسه هر نوبت برگزاری آن گروه است.</p></div></div>
+        <div class="panel-grid panel-grid-3">
+            <div><strong>دوره مرتبط</strong><p class="panel-muted">محتوای آموزشی و سرفصل‌ها</p></div>
+            <div><strong>کلاس</strong><p class="panel-muted">مدرس، دانش‌آموزان و برنامه هفتگی</p></div>
+            <div><strong>جلسه آنلاین / حضوری</strong><p class="panel-muted">زمان شروع و پایان، لینک ورود و حضور همان نوبت</p></div>
+        </div>
+    </section>
+
     <section class="panel-card">
         <div class="panel-card-title">
             <div><h3>فهرست کلاس‌ها</h3><p>لینک اسکای‌روم و برنامه زمانی هر کلاس</p></div>
