@@ -18,14 +18,14 @@
   </div>
  </div>
  <div class="stats">
-  <a class="st s1" href="{{ url('student/videos') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-video') }}"/></svg></div><small>کلاس‌های پیش‌رو</small><b>{{ $sessions->count() }}</b><span>جلسات برنامه‌ریزی‌شده</span></a>
+  <a class="st s1" href="{{ url('student/live-classes') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-video') }}"/></svg></div><small>کلاس‌های پیش‌رو</small><b>{{ $sessions->count() }}</b><span>جلسات برنامه‌ریزی‌شده</span></a>
   <a class="st s2" href="{{ url('student/homework') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-task') }}"/></svg></div><small>تکالیف نمایش‌داده‌شده</small><b>{{ $tasks->count() }}</b><span>{{ $pending_homework_count }} تکلیف بدون ارسال</span></a>
   <a class="st s3" href="{{ url('student/exams') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-exam') }}"/></svg></div><small>نتایج اخیر</small><b>{{ $results->count() }}</b><span>نتایج قابل مشاهده</span></a>
   <a class="st s4" href="{{ url('student/messages') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-msg') }}"/></svg></div><small>یادداشت‌ها</small><b>{{ $notes->count() }}</b><span>یادداشت‌های شخصی</span></a>
  </div>
  <div class="row">
   <div class="card">
-   <div class="chead"><h2>کلاس‌های پیش‌رو</h2><a class="pill" href="{{ url('student/videos') }}">همه</a></div>
+   <div class="chead"><h2>کلاس‌های پیش‌رو</h2><a class="pill" href="{{ url('student/live-classes') }}">همه</a></div>
    @forelse ($sessions as $session)
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
