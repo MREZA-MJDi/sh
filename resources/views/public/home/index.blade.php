@@ -1,7 +1,6 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
-@php($homeContent = $homeContent ?? (is_array($settings->home_sections) ? $settings->home_sections : \\App\\Models\\SeoSetting::defaultHomeSections()))
 @if($homeBanners->isNotEmpty())
 <header class="hero" id="homeHero">
     <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
