@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\User;
 use App\Services\Quiz24\Quiz24Service;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class ExamManagementService
 {
