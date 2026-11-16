@@ -3,8 +3,8 @@
 
 @section('content')
 @php
-  $statusLabels = ['pending' => 'در انتظار بررسی', 'scheduled' => 'زمان‌بندی‌شده', 'done' => 'انجام‌شده', 'cancelled' => 'لغوشده'];
-  $statusTones = ['pending' => 'warn', 'scheduled' => 'info', 'done' => 'ok', 'cancelled' => 'mute'];
+  $statusLabels = ['pending' => 'در انتظار بررسی', 'scheduled' => 'زمان‌بندی‌شده', 'done' => 'انجام‌شده', 'cancelled' => 'لغوشده', 'approved' => 'تأییدشده', 'completed' => 'تکمیل‌شده'];
+  $statusTones = ['pending' => 'warn', 'scheduled' => 'info', 'done' => 'ok', 'cancelled' => 'mute', 'approved' => 'ok', 'completed' => 'ok'];
   $statusOptions = $statusLabels;
 @endphp
 
