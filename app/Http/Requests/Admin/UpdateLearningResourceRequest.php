@@ -55,6 +55,14 @@ class UpdateLearningResourceRequest extends FormRequest
                 $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
             }
 
+            $resourceCourseId = $this->integer('course_id')
+                ?: ($this->filled('classroom_id')
+                    ? (int) Classroom::query()->whereKey($this->integer('classroom_id'))->value('course_id')
+                    : 0);
+            if ($resourceCourseId > 0 && ! Course::query()->find($resourceCourseId)?->featureEnabled('resources')) {
+                $validator->errors()->add('course_id', 'امکان منابع آموزشی برای این دوره غیرفعال است.');
+            }
+
             $workspace = app(ClassroomWorkspaceService::class);
             if (! $workspace->isTeacher($this->user())) {
                 return;
