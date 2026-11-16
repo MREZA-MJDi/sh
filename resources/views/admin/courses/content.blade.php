@@ -111,6 +111,7 @@
       </div>
     </x-admin.panel>
 
+    @unless($teacherView)
     <x-admin.panel title="وضعیت یکپارچه‌سازی" desc="اتصال خارجی مستقل از ثبت‌نام و ساختار آموزشی نگهداری می‌شود." data-tone="shop">
       <div class="adm-stack">
         <div class="adm-row-between">
@@ -124,6 +125,7 @@
         <x-admin.btn size="sm" variant="line" :href="route('admin.quiz24.index')">مدیریت Quiz24 و همگام‌سازی نتایج</x-admin.btn>
       </div>
     </x-admin.panel>
+    @endunless
 
     <x-admin.panel title="فروش دوره" desc="قیمت فعلی دوره در صفحه خرید استفاده می‌شود." data-tone="shop">
       <b class="adm-price">{{ $course->type === 'free' ? 'رایگان' : number_format((int) $course->price).' تومان' }}</b>
