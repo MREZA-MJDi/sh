@@ -42,7 +42,7 @@ class UpdateCourseRequest extends FormRequest
             'learning_features.assignments' => ['required', 'boolean'],
             'learning_features.exams' => ['required', 'boolean'],
             'learning_features.projects' => ['required', 'boolean'],
-            'spotplayer_course_id' => ['nullable', 'string', 'max:190', 'prohibited_unless:delivery_type,spotplayer'],
+            'spotplayer_course_id' => ['nullable', 'string', 'max:190'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
         ];
     }
