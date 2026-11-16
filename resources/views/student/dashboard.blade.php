@@ -72,12 +72,43 @@
     <p>دوره‌ی فعالی برای نمایش وجود ندارد.</p>
    @endforelse
   </div>
-  <div class="card">
+  <div class="card" id="announcements">
    <div class="chead"><h2>اطلاعیه‌ها</h2></div>
    @forelse (($announcements ?? collect()) as $announcement)
     <div class="trk"><div><b>{{ $announcement->title }}</b><span>{{ $announcement->published_at?->format('Y/m/d') }}</span><p>{{ \Illuminate\Support\Str::limit(strip_tags($announcement->body), 150) }}</p></div></div>
    @empty
     <p>اطلاعیه‌ی تازه‌ای ثبت نشده است.</p>
+   @endforelse
+  </div>
+ </div>
+
+ <div class="row">
+  <div class="card" id="resources">
+   <div class="chead"><h2>جزوه‌ها و منابع</h2><a class="pill" href="{{ route('student.resources.index') }}">همه منابع</a></div>
+   @forelse (($resources ?? collect()) as $resource)
+    <div class="trk"><div><b>{{ $resource->title }}</b><span>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }}</span></div>
+     @if ($resource->file_path && $resource->downloadable)
+      <a class="btn s" href="{{ route('student.resources.download', $resource) }}">دریافت</a>
+     @else
+      <span class="tag">{{ $resource->file_path ? 'دریافت غیرفعال' : 'بدون فایل' }}</span>
+     @endif
+    </div>
+   @empty
+    <p>منبع منتشرشده‌ای برای شما وجود ندارد.</p>
+   @endforelse
+  </div>
+  <div class="card" id="notes">
+   <div class="chead"><h2>یادداشت‌های من</h2></div>
+   <form class="frm" method="POST" action="{{ route('student.notes.store') }}">@csrf
+    <textarea class="fld" name="body" maxlength="10000" placeholder="یادداشت جدید..." required></textarea>
+    <input type="hidden" name="tone" value="default"><button class="btn s" type="submit">افزودن یادداشت</button>
+   </form>
+   @forelse (($notes ?? collect()) as $note)
+    <div class="trk"><div><p>{{ $note->body }}</p><small>{{ $note->created_at?->format('Y/m/d H:i') }}</small></div>
+     <form method="POST" action="{{ route('student.notes.destroy', $note) }}">@csrf @method('DELETE')<button class="pill" type="submit">حذف</button></form>
+    </div>
+   @empty
+    <p>یادداشتی ثبت نشده است.</p>
    @endforelse
   </div>
  </div>
