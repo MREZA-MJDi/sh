@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\UpdateLessonProgressRequest;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
+use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\SpotPlayerLicense;
 use App\Models\Lesson;
 use App\Services\CourseProgressService;
