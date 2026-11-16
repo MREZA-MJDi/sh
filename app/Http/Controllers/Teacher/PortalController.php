@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\ClassSession;
 use App\Models\Homework;
 use App\Models\Message;
 use App\Models\ParentMeeting;
+use App\Services\Admin\AttendanceService;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\MessageWorkspaceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -55,15 +58,52 @@ final class PortalController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $attendance = Attendance::query()
+        $classroom = $classrooms->firstWhere('id', $request->integer('classroom_id')) ?? $classrooms->first();
+        $classroom = $classroom
+            ? $workspace->queryFor($request->user())->with('students:id,name')->findOrFail($classroom->id)
+            : null;
+
+        $sessions = $classroom
+            ? ClassSession::query()->where('classroom_id', $classroom->id)
+                ->where('status', '!=', 'cancelled')
+                ->where('starts_at', '<=', now())
+                ->latest('starts_at')->limit(12)->get()
+            : collect();
+
+        $session = $sessions->firstWhere('id', $request->integer('class_session_id')) ?? $sessions->first();
+        $records = $session
+            ? Attendance::query()->where('class_session_id', $session->id)->get()->keyBy('student_id')
+            : collect();
+
+        $students = $classroom?->students->map(fn ($student) => [
+            'id' => $student->id,
+            'name' => $student->name,
+            'status' => $records->get($student->id)?->status ?? 'present',
+            'note' => $records->get($student->id)?->note,
+        ]) ?? collect();
+
+        $history = Attendance::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
             ->with(['student:id,name', 'classroom:id,name', 'session:id,starts_at'])
-            ->latest('session_date')
-            ->latest('id')
-            ->paginate(30)
-            ->withQueryString();
+            ->latest('session_date')->latest('id')->limit(30)->get();
 
-        return view('teacher.attendance', compact('classrooms', 'attendance'));
+        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history'));
+    }
+
+    public function storeAttendance(
+        StoreAttendanceRequest $request,
+        AttendanceService $attendance,
+        ClassroomWorkspaceService $workspace
+    ): RedirectResponse {
+        $data = $request->validated();
+        $classroom = $workspace->queryFor($request->user())->findOrFail($data['classroom_id']);
+        $session = ClassSession::query()
+            ->where('classroom_id', $classroom->id)
+            ->findOrFail($data['class_session_id']);
+
+        $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);
+
+        return back()->with('success', 'حضور و غیاب جلسه ذخیره شد.');
     }
 
     public function live(Request $request, ClassroomWorkspaceService $workspace): View
