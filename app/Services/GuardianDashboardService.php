@@ -192,7 +192,7 @@ final class GuardianDashboardService
             ->with(['course:id,title', 'classroom:id,name'])
             ->latest()
             ->limit(6)
-            ->get(['id', 'classroom_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'downloadable', 'created_at']);
+            ->get(['id', 'classroom_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'created_at']);
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 8);
 
