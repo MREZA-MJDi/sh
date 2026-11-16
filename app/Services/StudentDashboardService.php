@@ -33,7 +33,7 @@ final class StudentDashboardService
             ->where('session_type', 'online')
             ->whereNotNull('ends_at')
             ->where('ends_at', '>=', now())
-            ->with('classroom:id,name,meeting_url')
+            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
             ->orderBy('starts_at')
             ->limit(10)
             ->get();
