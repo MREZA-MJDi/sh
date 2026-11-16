@@ -215,6 +215,8 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [StudentProfileController::class, 'show'])->middleware('permission:profile.update')->name('profile.edit');
+        Route::put('/profile', [StudentProfileController::class, 'update'])->middleware('permission:profile.update')->name('profile.update');
         Route::post('/class-sessions/{classSession}/join', JoinClassSessionController::class)->middleware('throttle:20,1')->name('class-sessions.join');
 
         Route::middleware('permission:exams.view.own')->group(function (): void {
