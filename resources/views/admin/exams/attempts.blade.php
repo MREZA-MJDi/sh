@@ -60,6 +60,6 @@
       <x-admin.empty text="تلاشی برای بازبینی در این آزمون وجود ندارد."/>
     @endforelse
   </div>
-  @if($attempts->hasPages())<x-slot:footer>{{ $attempts->links() }}</x-slot:footer>@endif
+  <x-slot:footer>{{ $attempts.links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
