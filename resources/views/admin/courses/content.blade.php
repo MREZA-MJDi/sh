@@ -152,6 +152,6 @@
   <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" required/>
 </x-admin.modal>
 
-<x-admin.confirm id="section-delete" title="حذف فصل" text="اگر برای درس‌های این فصل سابقه پیشرفت وجود داشته باشد، حذف انجام نمی‌شود و باید فصل را بایگانی کنید."/>
-<x-admin.confirm id="lesson-delete" title="حذف درس" text="اگر برای این درس سابقه پیشرفت ثبت شده باشد، حذف انجام نمی‌شود و باید درس را بایگانی کنید."/>
+<x-admin.confirm :demo="false" id="section-delete" title="حذف فصل" text="اگر برای درس‌های این فصل سابقه پیشرفت وجود داشته باشد، حذف انجام نمی‌شود و باید فصل را بایگانی کنید."/>
+<x-admin.confirm :demo="false" id="lesson-delete" title="حذف درس" text="اگر برای این درس سابقه پیشرفت ثبت شده باشد، حذف انجام نمی‌شود و باید درس را بایگانی کنید."/>
 @endpush
