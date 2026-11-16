@@ -105,6 +105,8 @@ final class MessageController extends Controller
             'student' => $student,
             'children' => $children,
             'selected_child' => $selectedChild,
+            'kids' => $children,
+            'kid' => $selectedChild,
         ]);
     }
 
