@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>صفحه پیدا نشد | آکادمی شیخان</title>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f7fb;color:#172033;font-family:Tahoma,Arial,sans-serif;padding:24px}.panel{width:min(100%,560px);background:#fff;border:1px solid #e5eaf2;border-radius:24px;padding:36px;box-shadow:0 18px 60px #17203312;text-align:center}.code{font-size:13px;color:#8a94a6;letter-spacing:2px}h1{font-size:24px;margin:20px 0 12px}p{color:#667085;line-height:2;margin:0 0 24px}a{display:inline-block;padding:12px 18px;border-radius:12px;text-decoration:none;background:#25365b;color:#fff}</style></head>
+<body><main class="panel"><div class="code">ERROR 404</div><h1>این صفحه پیدا نشد</h1><p>ممکن است نشانی تغییر کرده باشد یا صفحه حذف شده باشد. از مسیر زیر به بخش‌های اصلی برگردید.</p><a href="{{ url('/') }}">بازگشت به صفحه اصلی</a></main></body></html>
