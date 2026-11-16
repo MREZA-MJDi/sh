@@ -149,6 +149,15 @@ class RolePermissionSeeder extends Seeder
         $seoPassword = env('SHIKHAN_SEO_PASSWORD');
 
         if (is_string($seoEmail) && $seoEmail !== '' && is_string($seoPassword) && strlen($seoPassword) >= 12) {
+            if (! filter_var($seoEmail, FILTER_VALIDATE_EMAIL)) {
+                throw new \RuntimeException('SHIKHAN_SEO_EMAIL must be a valid email address.');
+            }
+
+            $existingSeoAccount = User::query()->where('email', $seoEmail)->first();
+            if ($existingSeoAccount && $existingSeoAccount->roles()->whereIn('name', ['admin', 'teacher', 'student', 'parent'])->exists()) {
+                throw new \RuntimeException('The SEO account email is already assigned to a client-facing role.');
+            }
+
             $seo = User::query()->updateOrCreate(
                 ['email' => $seoEmail],
                 [
@@ -158,7 +167,7 @@ class RolePermissionSeeder extends Seeder
                 ]
             );
 
-            $seo->roles()->syncWithoutDetaching([$roleModels['seo']->id]);
+            $seo->roles()->sync([$roleModels['seo']->id]);
         }
     }
 }
