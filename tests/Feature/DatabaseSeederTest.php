@@ -35,6 +35,27 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseCount('guardian_student', 1);
     }
 
+    public function test_production_demo_seed_requires_both_explicit_flags_and_is_repeatable(): void
+    {
+        $this->app['env'] = 'production';
+
+        config([
+            'demo.enabled' => true,
+            'demo.seed_academic_content' => true,
+            'demo.password' => 'Production-Demo-Only-2026!',
+        ]);
+
+        $this->seed(DatabaseSeeder::class);
+        $this->seed(DatabaseSeeder::class);
+
+        $this->assertDatabaseHas('users', ['email' => 'teacher@sh.local', 'is_active' => true]);
+        $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
+        $this->assertDatabaseHas('courses', ['slug' => 'riyazi-takmili-nomre']);
+        $this->assertDatabaseHas('courses', ['slug' => 'riyazi-pishrafte-dore-pooli']);
+        $this->assertDatabaseCount('courses', 2);
+        $this->assertDatabaseCount('classrooms', 2);
+    }
+
     public function test_academic_demo_seeder_never_attaches_fixtures_to_unrelated_local_users(): void
     {
         $this->seed(RolePermissionSeeder::class);
