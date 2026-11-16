@@ -33,14 +33,17 @@
      <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ $session->session_type === 'onsite' ? 'حضوری' : 'آنلاین' }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
      @if ($session->session_type === 'online')
       @php
-       $meetingUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+       $joinReady = filled($session->meeting_url)
+        || ($session->meeting_provider === 'skyroom'
+         && filled($session->classroom?->skyroom_room_id)
+         && $session->classroom?->skyroom_status === 'ready');
        $joinWindowOpen = $session->starts_at && $session->ends_at
         && $session->starts_at->lte(now()->addMinutes(15))
         && $session->ends_at->gte(now());
       @endphp
-      @if (filled($meetingUrl) && $joinWindowOpen)
+      @if ($joinReady && $joinWindowOpen)
        <form method="POST" action="{{ route('student.class-sessions.join', $session) }}" target="_blank" rel="noopener">@csrf<button class="pl" type="submit" aria-label="پیوستن به کلاس آنلاین"><svg class="i"><use href="#i-play"/></svg></button></form>
-      @elseif(blank($meetingUrl))
+      @elseif(! $joinReady)
        <span class="tag">لینک ورود پس از اتصال Skyroom فعال می‌شود</span>
       @else
        <span class="tag">ورود از ۱۵ دقیقه پیش از شروع</span>
