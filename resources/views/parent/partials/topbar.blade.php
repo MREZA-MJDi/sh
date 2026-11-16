@@ -2,7 +2,6 @@
     <div class="logo">آکادمی <span>شیخان</span></div>
     <div class="dots" aria-label="رنگ‌بندی پنل">
         <button type="button" data-palette="i" style="background:#4f46e5" aria-label="بنفش"></button>
-        <button type="button" data-palette="g" style="background:#0f9d74" aria-label="سبز"></button>
         <button type="button" data-palette="o" style="background:#e0572f" aria-label="نارنجی"></button>
     </div>
     @if(isset($children) && $children->isNotEmpty())
