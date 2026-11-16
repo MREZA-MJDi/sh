@@ -12,7 +12,7 @@
     ];
     $subj = collect($subjects ?? []);
 @endphp
-<h2>گزارش {{ data_get($kid ?? null, 'name') }}</h2>
+<h2>وضعیت آموزشی {{ data_get($kid ?? null, 'name') }}</h2>
 @include('parent.partials.kid-picker')
 <div class="g">
     <div class="g g4">
@@ -51,7 +51,7 @@
         </section>
         <section class="c"><h3>بازخوردهای مدرس</h3>
             @forelse (($teacherNotes ?? collect()) as $note)
-                <div class="row"><div>{{ data_get($note, 'teacher') }}<small>{{ data_get($note, 'text') }}</small></div><i class="bd am">بازخورد</i></div>
+                <div class="row"><div>{{ data_get($note, 'teacher') }}<small>نتیجه بررسی مدرس: {{ data_get($note, 'text') }}</small></div><i class="bd am">بازخورد</i></div>
             @empty
                 <p>بازخوردی ثبت نشده است.</p>
             @endforelse
