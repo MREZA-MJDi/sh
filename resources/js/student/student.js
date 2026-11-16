@@ -1,0 +1,82 @@
+/* فقط رفتار (action)؛ هیچ داده‌ای در JS نیست. */
+(function () {
+  'use strict';
+  var $ = function (s, c) { return (c || document).querySelector(s); };
+  var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var FA = '۰۱۲۳۴۵۶۷۸۹';
+  var fa = function (n) { return String(n).replace(/\d/g, function (d) { return FA[d]; }); };
+
+  /* Toast: هر عنصری با data-toast="متن" */
+  var toastEl = $('#toast'), toastT;
+  window.shToast = function (msg) {
+    if (!toastEl) return;
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
+  };
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-toast]');
+    if (t) { e.preventDefault(); window.shToast(t.getAttribute('data-toast')); }
+    var c = e.target.closest('[data-confirm]');
+    if (c && !window.confirm(c.getAttribute('data-confirm'))) e.preventDefault();
+  });
+
+  /* تم تیره/روشن */
+  var root = document.documentElement, tg = $('#themeToggle');
+  if (tg) tg.addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('sh-theme', next); } catch (e) {}
+  });
+
+  /* انیمیشن نوار پیشرفت و نمودار */
+  function grow(sel, prop) {
+    $$(sel).forEach(function (el) {
+      var v = el.style[prop]; if (!v) return;
+      el.style[prop] = '0';
+      requestAnimationFrame(function () { requestAnimationFrame(function () { el.style[prop] = v; }); });
+    });
+  }
+  grow('.prog i', 'width');
+  grow('.col div', 'height');
+
+  /* جست‌وجوی زنده در محتوای همین صفحه */
+  var s = $('#globalSearch');
+  if (s) s.addEventListener('input', function () {
+    var q = s.value.trim().toLowerCase();
+    $$('.page .trk, .page .tbl tr:not(:first-child), .page .cc, .page .note, .page .medal').forEach(function (el) {
+      el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1;
+    });
+  });
+
+  /* فرم‌ها: جلوگیری از ارسال مجدد (دوبار کلیک) */
+  $$('form').forEach(function (f) {
+    f.addEventListener('submit', function (e) {
+      if (f.dataset.busy) { e.preventDefault(); return; }
+      f.dataset.busy = '1';
+      setTimeout(function () { delete f.dataset.busy; }, 1500);
+    });
+  });
+
+  /* چت: اسکرول به آخرین پیام */
+  var ms = $('.msgs'); if (ms) ms.scrollTop = ms.scrollHeight;
+
+  /* آزمون: تایمر معکوس؛ با صفر شدن فرم خودکار با go=finish ارسال می‌شود */
+  var ex = $('#exam'), te = $('#examTimer');
+  if (ex && te) {
+    var left = parseInt(ex.getAttribute('data-seconds'), 10) || 0;
+    var tick = function () {
+      var m = Math.floor(left / 60), sec = left % 60;
+      te.textContent = fa(('0' + m).slice(-2) + ':' + ('0' + sec).slice(-2));
+      if (left <= 0) {
+        clearInterval(iv);
+        var h = document.createElement('input');
+        h.type = 'hidden'; h.name = 'go'; h.value = 'finish'; ex.appendChild(h);
+        ex.submit(); return;
+      }
+      left--;
+    };
+    var iv = setInterval(tick, 1000); tick();
+  }
+})();

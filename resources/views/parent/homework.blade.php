@@ -1,0 +1,31 @@
+@extends('parent.layouts.app')
+
+@section('title', 'تکالیف')
+
+@section('content')
+@php $t = $hwTotals ?? []; @endphp
+<h2>تکالیف {{ data_get($kid ?? null, 'name') }}</h2>
+@include('parent.partials.kid-picker')
+<div class="g g2">
+    <section class="c"><h3>وضعیت کل تکالیف</h3>
+        @include('parent.partials.chart', [
+            'type' => 'donut',
+            'parts' => [
+                ['l' => 'به‌موقع', 'v' => (int) ($t['on_time'] ?? 0), 'c' => '--gn'],
+                ['l' => 'با تأخیر', 'v' => (int) ($t['late'] ?? 0), 'c' => '--am'],
+                ['l' => 'ارسال‌نشده', 'v' => (int) ($t['missing'] ?? 0), 'c' => '--rd'],
+            ],
+            'big' => $t['on_time'] ?? 0, 'small' => 'تکلیف به‌موقع',
+        ])
+    </section>
+
+    <section class="c"><h3>وضعیت فعلی</h3>
+        {{-- tone: am | gn | bl | rd --}}
+        @forelse (($homework ?? []) as $h)
+            <div class="row"><div>{{ data_get($h, 'title') }}<small>مهلت: {{ data_get($h, 'due') }}</small></div><i class="bd {{ data_get($h, 'tone', 'am') }}">{{ data_get($h, 'status') }}</i></div>
+        @empty
+            <p>تکلیفی ثبت نشده است.</p>
+        @endforelse
+    </section>
+</div>
+@endsection
