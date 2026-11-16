@@ -96,9 +96,7 @@
     </table>
   </div>
   <x-admin.empty data-empty class="adm-hide" text="آزمونی با این مشخصات پیدا نشد."/>
-  @if($exams->hasPages())
-    <x-slot:footer>{{ $exams->links() }}</x-slot:footer>
-  @endif
+  <x-slot:footer>{{ $exams.links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
 
