@@ -795,7 +795,8 @@
 
             <div class="g6">
 
-                @forelse($categoriesCollection as $category)
+                @if($categoriesCollection.isNotEmpty())
+                    @foreach($categoriesCollection as $category)
 
                     @php
                         $categoryName = is_string($category)
@@ -823,7 +824,8 @@
                         <small>مشاهده دوره‌ها</small>
                     </a>
 
-                @empty
+                @endforeach
+                @else
 
                     <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
                         <p style="margin:0;color:var(--mute)">
@@ -831,7 +833,7 @@
                         </p>
                     </div>
 
-                @endforelse
+                @endif
 
             </div>
         </div>
@@ -899,7 +901,8 @@
 
             <div class="g4">
 
-                @forelse($coursesCollection as $homeCourse)
+                @if($coursesCollection.isNotEmpty())
+                    @foreach($coursesCollection as $homeCourse)
 
                     @php
                         $subject = $homeCourse->subject ?? '';
@@ -989,7 +992,8 @@
 
                     </article>
 
-                @empty
+                @endforeach
+                @else
 
                     <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
 
@@ -1007,7 +1011,7 @@
 
                     </div>
 
-                @endforelse
+                @endif
 
             </div>
         </div>
@@ -1045,7 +1049,8 @@
 
             <div class="g3">
 
-                @forelse($popularCoursesCollection as $index => $course)
+                @if($popularCoursesCollection.isNotEmpty())
+                    @foreach($popularCoursesCollection as $index => $course)
 
                     @php
                         $subject = $course->subject ?? '';
@@ -1100,7 +1105,8 @@
 
                     </a>
 
-                @empty
+                @endforeach
+                @else
 
                     <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
                         <p style="margin:0;color:var(--mute)">
@@ -1108,7 +1114,7 @@
                         </p>
                     </div>
 
-                @endforelse
+                @endif
 
             </div>
         </div>
@@ -1132,7 +1138,8 @@
 
             <div class="g4">
 
-                @forelse($steps as $index => $step)
+                @if($steps.isNotEmpty())
+                    @foreach($steps as $index => $step)
 
                     <div class="card stp">
 
@@ -1146,7 +1153,8 @@
 
                     </div>
 
-                @empty
+                @endforeach
+                @else
 
                     <div class="card" style="grid-column:1/-1;padding:20px">
                         <p style="margin:0;color:var(--mute)">
@@ -1154,7 +1162,7 @@
                         </p>
                     </div>
 
-                @endforelse
+                @endif
 
             </div>
         </div>
@@ -1184,7 +1192,8 @@
 
             <div class="g4">
 
-                @forelse($panelCards as $index => $panelCard)
+                @if($panelCards.isNotEmpty())
+                    @foreach($panelCards as $index => $panelCard)
 
                     @php
                         $panelRoute = $panelRoutes[$index] ?? null;
@@ -1213,7 +1222,8 @@
 
                     </a>
 
-                @empty
+                @endforeach
+                @else
 
                     <div class="card" style="grid-column:1/-1;padding:20px">
                         <p style="margin:0;color:var(--mute)">
@@ -1221,7 +1231,7 @@
                         </p>
                     </div>
 
-                @endforelse
+                @endif
 
             </div>
         </div>
@@ -1414,7 +1424,8 @@
 
                 <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
 
-                    @forelse($benefits as $index => $benefit)
+                    @if($benefits.isNotEmpty())
+                    @foreach($benefits as $index => $benefit)
 
                         <div class="card wf">
 
@@ -1433,7 +1444,8 @@
 
                         </div>
 
-                    @empty
+                    @endforeach
+                @else
 
                         <div class="card">
                             <p style="margin:0;color:var(--mute)">
@@ -1441,7 +1453,7 @@
                             </p>
                         </div>
 
-                    @endforelse
+                    @endif
 
                 </div>
 
@@ -1627,7 +1639,8 @@
 
                 <div>
 
-                    @forelse($faqItems as $index => $item)
+                    @if($faqItems.isNotEmpty())
+                    @foreach($faqItems as $index => $item)
 
                         <details @if($index === 0) open @endif>
 
@@ -1641,7 +1654,8 @@
 
                         </details>
 
-                    @empty
+                    @endforeach
+                @else
 
                         <div class="card" style="padding:20px">
                             <p style="margin:0;color:var(--mute)">
@@ -1649,7 +1663,7 @@
                             </p>
                         </div>
 
-                    @endforelse
+                    @endif
 
                 </div>
 
