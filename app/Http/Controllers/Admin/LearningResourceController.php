@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLearningResourceRequest;
 use App\Http\Requests\Admin\UpdateLearningResourceRequest;
 use App\Models\LearningResource;
-use App\Models\LearningResourceAccessLog;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\LearningResourceService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class LearningResourceController extends Controller
@@ -56,7 +54,9 @@ class LearningResourceController extends Controller
         StoreLearningResourceRequest $request,
         LearningResourceService $resources
     ): RedirectResponse {
-        $resources->create($request->validated(), $request->user());
+        $data = $request->validated();
+        $data['downloadable'] = false;
+        $resources->create($data, $request->user());
 
         return back()->with('success', 'منبع آموزشی در فضای خصوصی شیخان ذخیره شد.');
     }
@@ -68,7 +68,9 @@ class LearningResourceController extends Controller
         ClassroomWorkspaceService $workspace
     ): RedirectResponse {
         $this->authorizeResourceAccess($resource, $workspace);
-        $resources->update($resource, $request->validated());
+        $data = $request->validated();
+        $data['downloadable'] = false;
+        $resources->update($resource, $data);
 
         return back()->with('success', 'منبع آموزشی به‌روزرسانی شد.');
     }
@@ -84,28 +86,9 @@ class LearningResourceController extends Controller
         return back()->with('success', 'منبع آموزشی حذف شد.');
     }
 
-    public function download(LearningResource $resource, ClassroomWorkspaceService $workspace)
+    public function download(LearningResource $resource, ClassroomWorkspaceService $workspace): never
     {
-        $this->authorizeResourceAccess($resource, $workspace);
-        abort_unless($resource->file_path && Storage::disk('local')->exists($resource->file_path), 404);
-        abort_unless($resource->downloadable || $resource->kind === 'pdf', 404);
-
-        LearningResourceAccessLog::query()->create([
-            'learning_resource_id' => $resource->id,
-            'user_id' => auth()->id(),
-            'student_id' => null,
-            'event_type' => $resource->downloadable ? 'download' : 'view',
-            'ip_address' => request()->ip(),
-            'user_agent' => substr((string) request()->userAgent(), 0, 2000),
-            'accessed_at' => now(),
-        ]);
-
-        if (! $resource->downloadable) {
-            abort_unless($resource->kind === 'pdf', 404);
-            return Storage::disk('local')->response($resource->file_path, basename($resource->file_path), ['X-Content-Type-Options' => 'nosniff'], 'inline');
-        }
-
-        return Storage::disk('local')->download($resource->file_path);
+        abort(404);
     }
 
     private function authorizeResourceAccess(
