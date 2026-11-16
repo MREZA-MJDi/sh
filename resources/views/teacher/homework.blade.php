@@ -1,36 +1,32 @@
 @extends('teacher.layouts.app')
-
 @section('title', 'تکالیف')
-
 @section('content')
-<h2>تکالیف</h2>
+<h2>تکالیف و بررسی پاسخ‌ها</h2>
 <div class="g">
-    <section class="c"><h3>تکلیف‌های ثبت‌شده</h3>
-        @forelse (($homework ?? []) as $h)
-            @php $total = max((int) data_get($h, 'total', 0), 1); $sent = (int) data_get($h, 'submitted', 0); @endphp
-            <div class="row"><div>{{ data_get($h, 'title') }}<small>مهلت: {{ data_get($h, 'due') }} · {{ data_get($h, 'type') }}</small></div>
-                <div class="pr"><u style="width:{{ round($sent / $total * 100) }}%"></u></div>
-                <a class="b s" href="{{ url('teacher/homework/'.data_get($h, 'id')) }}">بررسی</a>
-                @include('teacher.partials.crud-actions', ['entity' => 'homework', 'item' => $h])
-            </div>
-        @empty
-            <p>تکلیفی ثبت نشده است.</p>
-        @endforelse
-        <br><button type="button" class="b" data-modal="homework" data-action="{{ url('teacher/homework') }}" data-method="POST">+ تکلیف جدید</button>
-    </section>
-
-    <section class="c"><h3>نمره‌دهی سریع</h3>
-        <form method="POST" action="{{ url('teacher/homework/grades') }}">
-            @csrf
-            @forelse (($gradeStudents ?? []) as $s)
-                <div class="row"><div>{{ data_get($s, 'name') }}<small>{{ data_get($s, 'homework') }}</small></div>
-                    <input class="grade" type="number" min="0" max="20" step="0.25" name="grades[{{ data_get($s, 'id') }}]" value="{{ data_get($s, 'grade') }}">
-                </div>
-            @empty
-                <p>موردی برای نمره‌دهی نیست.</p>
-            @endforelse
-            <br><button class="b" type="submit">ثبت نمره‌ها</button>
-        </form>
-    </section>
+ @forelse ($homework as $item)
+  <section class="c">
+   <h3>{{ $item->title }}</h3>
+   <p>{{ $item->classroom?->name }} · مهلت: {{ $item->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت' }} · {{ $item->submissions_count }} ارسال</p>
+   @forelse ($item->submissions as $submission)
+    <div class="row"><div>{{ $submission->student?->name }}<small>{{ $submission->submitted_at?->format('Y/m/d H:i') }} · {{ $submission->status }}</small></div>
+     @if ($submission->status === 'submitted')
+      <form method="POST" action="{{ route('teacher.homework.review', $submission) }}" class="inline">
+       @csrf @method('PATCH')
+       <input type="number" name="score" min="0" max="20" step="0.25" placeholder="نمره">
+       <input type="text" name="feedback" placeholder="بازخورد" required>
+       <button class="b s" type="submit">ثبت بررسی</button>
+      </form>
+     @else
+      <i class="bd gn">{{ $submission->score ?? 'بررسی‌شده' }}</i>
+     @endif
+    </div>
+   @empty
+    <p>هنوز پاسخی ارسال نشده است.</p>
+   @endforelse
+  </section>
+ @empty
+  <section class="c"><p>تکلیفی برای کلاس‌های تحت مدیریت شما ثبت نشده است.</p></section>
+ @endforelse
+ {{ $homework->links() }}
 </div>
 @endsection
