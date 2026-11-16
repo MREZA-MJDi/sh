@@ -3,16 +3,17 @@
 namespace App\Services;
 
 use App\Models\Course;
-use App\Models\CourseEnrollment;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\User;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class CourseProgressService
 {
+    public function __construct(private readonly LearningAccessService $learningAccess) {}
     /**
      * Aggregate only published lessons from courses the student can currently access.
      *
@@ -86,10 +87,6 @@ final class CourseProgressService
 
     public function hasAccess(User $student, Course $course): bool
     {
-        return CourseEnrollment::query()
-            ->where('student_id', $student->id)
-            ->where('course_id', $course->id)
-            ->currentlyActive()
-            ->exists();
+        return $this->learningAccess->hasCourseAccess($student, $course);
     }
 }

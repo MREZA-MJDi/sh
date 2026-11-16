@@ -62,6 +62,9 @@ final class MessagingWorkflowTest extends TestCase
         $teacher = $this->userWithRole('teacher');
         $student = $this->userWithRole('student');
         $guardian->children()->attach($student);
+        // A child may have multiple linked guardians; linkage grants dashboard visibility,
+        // not access to another guardian's private message thread.
+        $otherGuardian->children()->attach($student);
 
         $message = Message::query()->create([
             'sender_id' => $otherGuardian->id,

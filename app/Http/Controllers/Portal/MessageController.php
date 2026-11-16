@@ -12,6 +12,7 @@ use App\Models\Message;
 use App\Models\MessageReply;
 use App\Models\User;
 use App\Notifications\MessageActivityNotification;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -44,13 +45,13 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request, LearningAccessService $access): View
     {
         [$student, $children, $selectedChild] = $this->context($request);
 
         abort_if(! $student, 403, 'برای ارسال پیام، ابتدا دانش‌آموزی به این حساب متصل کنید.');
 
-        $recipients = $this->availableRecipients($student);
+        $recipients = $this->availableRecipients($student, $access);
 
         return view('shared.messages.create', [
             'student' => $student,
@@ -60,13 +61,13 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function store(StorePortalMessageRequest $request): RedirectResponse
+    public function store(StorePortalMessageRequest $request, LearningAccessService $access): RedirectResponse
     {
         $data = $request->validated();
         $student = $this->resolveStudent($request, (int) $data['student_id']);
 
         abort_unless(
-            $this->availableRecipients($student)->contains('id', (int) $data['recipient_id']),
+            $this->availableRecipients($student, $access)->contains('id', (int) $data['recipient_id']),
             403,
             'گیرنده‌ی انتخاب‌شده برای این دانش‌آموز مجاز نیست.'
         );
@@ -187,23 +188,9 @@ final class MessageController extends Controller
             ->firstOrFail();
     }
 
-    private function availableRecipients(User $student): Collection
+    private function availableRecipients(User $student, LearningAccessService $access): Collection
     {
-        $classroomIds = Classroom::query()
-            ->where('status', 'active')
-            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-            ->where(function (Builder $access) use ($student): void {
-                $access->whereNull('classrooms.course_id')
-                    ->orWhereHas('course', fn (Builder $course) => $course
-                        ->where('status', 'published')
-                        ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
-                            ->where('student_id', $student->id)
-                            ->where('status', 'active')
-                            ->where(fn (Builder $expiry) => $expiry
-                                ->whereNull('expires_at')
-                                ->orWhere('expires_at', '>', now()))));
-            })
-            ->select('classrooms.id');
+        $classroomIds = $access->activeClassroomIds($student);
 
         $visibleClassrooms = Classroom::query()->whereIn('id', clone $classroomIds)->get(['id', 'course_id', 'teacher_id']);
         $teacherIds = $visibleClassrooms->pluck('teacher_id')->filter();
