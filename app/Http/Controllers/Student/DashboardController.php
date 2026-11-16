@@ -65,8 +65,21 @@ final class DashboardController extends Controller
     public function results(Request $request, StudentDashboardService $dashboard): View
     {
         $data = $dashboard->build($request->user());
+        $results = $data['results'];
+        $scored = $results->filter(fn ($result) => $result->score !== null && $result->max_score > 0);
+        $courseScores = $scored->groupBy(fn ($result) => $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? 'سایر')
+            ->map(fn ($items, $name) => [
+                'name' => $name,
+                'score' => round($items->avg(fn ($item) => $item->score / $item->max_score * 20), 1),
+            ])->values();
 
-        return view('student.results', ['results' => $data['results']]);
+        return view('student.results', [
+            'results' => $results,
+            'averageScore' => $scored->isNotEmpty() ? round($scored->avg(fn ($result) => $result->score / $result->max_score * 20), 1) : null,
+            'highestScore' => $scored->isNotEmpty() ? round($scored->max(fn ($result) => $result->score / $result->max_score * 20), 1) : null,
+            'submittedHomeworkCount' => $data['homeworks']->filter(fn ($homework) => $homework->submitted_by_student_count > 0)->count(),
+            'courseScores' => $courseScores,
+        ]);
     }
 
     public function resources(Request $request, StudentDashboardService $dashboard): View
