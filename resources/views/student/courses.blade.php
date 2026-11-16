@@ -5,7 +5,7 @@
  <div class="g3">
   @forelse ($courses as $course)
    @php $progress = $progressByCourse->get($course->id); @endphp
-   <div class="card cc"><div class="th"><svg class="i"><use href="{{ url('student/i-book') }}"/></svg></div><h3>{{ $course->title }}</h3><p>{{ $course->teacher?->name ?? 'مدرس' }} · {{ $course->subject }}</p>
+   <div class="card cc"><div class="th"><svg class="i"><use href="#i-book"/></svg></div><h3>{{ $course->title }}</h3><p>{{ $course->teacher?->name ?? 'مدرس' }} · {{ $course->subject }}</p>
     <div class="prog"><i style="width:{{ (int) data_get($progress, 'progress_percent', 0) }}%"></i></div><p style="margin:6px 0 0">{{ (int) data_get($progress, 'progress_percent', 0) }}٪ تکمیل</p>
     <a class="btn s" href="{{ route('student.courses.show', $course) }}">ادامه یادگیری</a>
    </div>
