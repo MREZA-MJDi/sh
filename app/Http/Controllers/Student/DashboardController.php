@@ -29,13 +29,35 @@ final class DashboardController extends Controller
 
     public function attendance(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
+        $student = $request->user();
+        $start = now()->startOfMonth();
+        $records = Attendance::query()
+            ->where('student_id', $student->id)
+            ->whereBetween('session_date', [$start->toDateString(), now()->toDateString()])
+            ->with(['classroom:id,name', 'session:id,starts_at'])
+            ->get()
+            ->keyBy(fn ($record) => $record->session_date->day);
+
+        $calendar = collect(range(1, now()->daysInMonth))->map(function (int $day) use ($records): array {
+            $record = $records->get($day);
+            return [
+                'day' => $day,
+                'status' => match ($record?->status) {
+                    'present' => 'present', 'late' => 'late', 'absent' => 'absent', default => 'none',
+                },
+            ];
+        });
+
+        $counts = $records->groupBy('status')->map->count();
+        $total = (int) $counts->get('present', 0) + (int) $counts->get('late', 0) + (int) $counts->get('absent', 0);
+        $rate = $total > 0 ? (int) round((($counts->get('present', 0) + $counts->get('late', 0)) / $total) * 100) : null;
 
         return view('student.attendance', [
-            'attendance' => $data['attendance'],
-            'attendance_count' => $data['attendance_count'],
-            'attendance_rate' => $data['attendance_rate'],
-            'classrooms' => $data['classrooms'],
+            'calendar' => $calendar,
+            'monthOffset' => ($start->dayOfWeek + 1) % 7,
+            'monthTitle' => $start->translatedFormat('F Y'),
+            'attendance_count' => $total,
+            'attendance_rate' => $rate,
         ]);
     }
 
