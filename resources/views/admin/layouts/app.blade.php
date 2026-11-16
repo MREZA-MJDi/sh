@@ -14,6 +14,37 @@
 
   @php
     $nav = include resource_path('views/admin/nav.php');
+    $user = auth()->user();
+    $isAdmin = $user?->hasRole('admin') ?? false;
+    $permissionMap = [
+      'admin/students' => ['users.view', 'users.manage', 'students.view.assigned'],
+      'admin/teachers' => ['users.manage'],
+      'admin/parents' => ['users.manage'],
+      'admin/courses' => ['courses.manage', 'courses.view.assigned'],
+      'admin/classes' => ['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'],
+      'admin/online-classes' => ['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'],
+      'admin/recordings' => ['integrations.manage', 'videos.manage.assigned', 'videos.view.assigned'],
+      'admin/attendance' => ['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'],
+      'admin/assignments' => ['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'],
+      'admin/exams' => ['exams.manage'],
+      'admin/parent-messages' => ['messages.view.all'],
+      'admin/meetings' => ['consultations.manage'],
+      'admin/consultations' => ['consultations.manage'],
+      'admin/announcements' => ['announcements.manage', 'announcements.view'],
+      'admin/enrollments' => ['courses.manage', 'users.manage'],
+      'admin/payments' => ['payments.manage'],
+      'admin/resources' => ['resources.manage', 'resources.manage.assigned'],
+    ];
+    $nav['groups'] = collect($nav['groups'])->map(function ($group) use ($user, $isAdmin, $permissionMap) {
+      $group['items'] = collect($group['items'])->filter(function ($item) use ($user, $isAdmin, $permissionMap) {
+        if ($isAdmin) return true;
+        $permissions = $permissionMap[$item['url']] ?? [];
+        return $user && count($permissions) > 0 && $user->hasAnyPermission($permissions);
+      })->values()->all();
+
+      return $group;
+    })->filter(fn ($group) => count($group['items']) > 0)->values()->all();
+
     $activeGroup = $activeItem = null;
     foreach ($nav['groups'] as $gi => $group) {
       foreach ($group['items'] as $ii => $item) {
