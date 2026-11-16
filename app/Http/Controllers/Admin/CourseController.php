@@ -22,8 +22,7 @@ final class CourseController extends Controller
                 'classrooms as active_classrooms_count' => fn ($classrooms) => $classrooms
                     ->where('status', 'active'),
                 'enrollments as active_enrollments_count' => fn ($enrollments) => $enrollments
-                    ->where('status', 'active')
-                    ->where(fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now())),
+                    ->currentlyActive(),
                 'enrollments as pending_payment_enrollments_count' => fn ($enrollments) => $enrollments
                     ->where('status', 'pending_payment'),
             ])
