@@ -99,465 +99,6 @@
 
 
 
-document.addEventListener('DOMContentLoaded', function () {
-
-    const quiz = document.getElementById('homeQuiz');
-
-    if (!quiz) return;
-
-    const questionArea = document.getElementById('quizQuestionArea');
-    const feedbackArea = document.getElementById('quizFeedback');
-
-    const nextButton = document.getElementById('quizNextButton');
-    const retryButton = document.getElementById('quizRetryButton');
-
-    const finalResult = document.getElementById('quizFinalResult');
-    const finalRetryButton = document.getElementById('quizFinalRetryButton');
-
-    const stepLabel = document.getElementById('quizStepLabel');
-    const scoreLabel = document.getElementById('quizScoreLabel');
-
-    const progress = document.getElementById('quizProgress');
-    const progressFill = document.getElementById('quizProgressFill');
-
-    const dots = Array.from(
-        document.querySelectorAll('#quizStepDots span')
-    );
-
-    const questionUrl = quiz.dataset.questionUrl;
-    const answerUrl = quiz.dataset.answerUrl;
-    const csrf = quiz.dataset.csrf;
-
-    const total = 5;
-
-    let currentStep = 1;
-    let score = 0;
-    let locked = false;
-    let loading = false;
-
-    const persianDigits = value =>
-        String(value).replace(/\d/g, digit =>
-            '۰۱۲۳۴۵۶۷۸۹'[digit]
-        );
-
-    function updateProgress() {
-
-        stepLabel.textContent =
-            `مرحله ${persianDigits(currentStep)} از ${persianDigits(total)}`;
-
-        scoreLabel.textContent =
-            `امتیاز: ${persianDigits(score)}`;
-
-        progressFill.style.width =
-            `${((currentStep - 1) / total) * 100}%`;
-
-        progress.setAttribute(
-            'aria-valuenow',
-            String(currentStep - 1)
-        );
-
-        dots.forEach((dot, index) => {
-
-            dot.classList.toggle(
-                'active',
-                index === currentStep - 1
-            );
-
-            dot.classList.toggle(
-                'done',
-                index < currentStep - 1
-            );
-
-        });
-
-    }
-
-    async function loadQuestion(step) {
-
-        loading = true;
-        locked = true;
-
-        currentStep = step;
-
-        updateProgress();
-
-        feedbackArea.hidden = true;
-        nextButton.hidden = true;
-        retryButton.hidden = true;
-        finalResult.hidden = true;
-
-        questionArea.hidden = false;
-
-        questionArea.innerHTML = `
-            <div class="quiz-loading">
-                <span class="quiz-spinner"></span>
-                در حال دریافت سؤال...
-            </div>
-        `;
-
-        try {
-
-            const response = await fetch(
-                `${questionUrl}/${step}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(
-                    result.message || 'دریافت سؤال ناموفق بود.'
-                );
-            }
-
-            renderQuestion(result.question);
-
-            loading = false;
-            locked = false;
-
-        } catch (error) {
-
-            questionArea.innerHTML = `
-                <div class="quiz-feedback error">
-                    <strong>خطا در دریافت سؤال</strong>
-                    <p>${escapeHtml(error.message)}</p>
-                    <button type="button" class="quiz-retry-button" id="quizLoadRetry">
-                        تلاش مجدد
-                    </button>
-                </div>
-            `;
-
-            const loadRetry = document.getElementById('quizLoadRetry');
-
-            loadRetry.addEventListener('click', () => {
-                loadQuestion(currentStep);
-            });
-
-            loading = false;
-            locked = true;
-
-        }
-
-    }
-
-    function renderQuestion(question) {
-
-        const options = Object.entries(question.options);
-
-        questionArea.innerHTML = `
-            <div class="quiz-question-category">
-                ✦ ${escapeHtml(question.category)}
-            </div>
-
-            <h3 class="quiz-question-title">
-                ${escapeHtml(question.question)}
-            </h3>
-
-            <div class="quiz-options" id="quizOptions">
-
-                ${options.map(([key, label]) => `
-                    <button
-                        type="button"
-                        class="quiz-option"
-                        data-answer="${escapeHtml(key)}"
-                    >
-                        <span class="quiz-option-key">
-                            ${escapeHtml(key)}
-                        </span>
-
-                        <span>
-                            ${escapeHtml(label)}
-                        </span>
-                    </button>
-                `).join('')}
-
-            </div>
-        `;
-
-        questionArea
-            .querySelectorAll('.quiz-option')
-            .forEach(button => {
-
-                button.addEventListener('click', function () {
-
-                    submitAnswer(
-                        this.dataset.answer,
-                        this
-                    );
-
-                });
-
-            });
-
-    }
-
-    async function submitAnswer(answer, selectedButton) {
-
-        if (locked || loading) return;
-
-        locked = true;
-
-        const buttons = Array.from(
-            questionArea.querySelectorAll('.quiz-option')
-        );
-
-        buttons.forEach(button => {
-            button.disabled = true;
-        });
-
-        selectedButton.classList.add('selected');
-
-        selectedButton.innerHTML += `
-            <span class="quiz-spinner"></span>
-        `;
-
-        try {
-
-            const response = await fetch(answerUrl, {
-
-                method: 'POST',
-
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrf,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-
-                body: JSON.stringify({
-                    step: currentStep,
-                    answer: answer
-                })
-
-            });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-
-                throw new Error(
-                    result.message || 'بررسی پاسخ ناموفق بود.'
-                );
-
-            }
-
-            if (result.correct) {
-
-                score++;
-
-                selectedButton.classList.remove('selected');
-                selectedButton.classList.add('correct');
-
-                feedbackArea.className =
-                    'quiz-feedback success';
-
-                feedbackArea.innerHTML = `
-                    <strong>✓ آفرین! پاسخ درست بود.</strong>
-                    <p>${escapeHtml(result.explanation)}</p>
-                `;
-
-            } else {
-
-                selectedButton.classList.remove('selected');
-                selectedButton.classList.add('wrong');
-
-                const correctButton = buttons.find(
-                    button =>
-                        button.dataset.answer === result.correct_answer
-                );
-
-                if (correctButton) {
-                    correctButton.classList.add('correct');
-                }
-
-                feedbackArea.className =
-                    'quiz-feedback error';
-
-                feedbackArea.innerHTML = `
-                    <strong>✕ این پاسخ درست نبود.</strong>
-
-                    <p>
-                        پاسخ صحیح:
-                        <b>${escapeHtml(result.correct_label)}</b>
-                    </p>
-
-                    <p style="margin-top:8px">
-                        ${escapeHtml(result.explanation)}
-                    </p>
-                `;
-
-            }
-
-            feedbackArea.hidden = false;
-
-            scoreLabel.textContent =
-                `امتیاز: ${persianDigits(score)}`;
-
-            progressFill.style.width =
-                `${(currentStep / total) * 100}%`;
-
-            progress.setAttribute(
-                'aria-valuenow',
-                String(currentStep)
-            );
-
-            dots[currentStep - 1].classList.add('done');
-            dots[currentStep - 1].classList.remove('active');
-
-            if (result.is_last) {
-
-                nextButton.hidden = true;
-
-                setTimeout(() => {
-                    showFinalResult();
-                }, 1800);
-
-            } else {
-
-                nextButton.hidden = false;
-
-                nextButton.textContent =
-                    'مرحله بعدی ←';
-
-                nextButton.focus();
-
-            }
-
-        } catch (error) {
-
-            buttons.forEach(button => {
-                button.disabled = false;
-                button.classList.remove('selected');
-            });
-
-            selectedButton.classList.remove('selected');
-
-            feedbackArea.className =
-                'quiz-feedback error';
-
-            feedbackArea.innerHTML = `
-                <strong>خطا در بررسی پاسخ</strong>
-                <p>${escapeHtml(error.message)}</p>
-                <p>لطفاً دوباره پاسخ خود را انتخاب کن.</p>
-            `;
-
-            feedbackArea.hidden = false;
-
-            locked = false;
-
-        }
-
-    }
-
-    function showFinalResult() {
-
-        questionArea.hidden = true;
-        feedbackArea.hidden = true;
-        nextButton.hidden = true;
-
-        finalResult.hidden = false;
-
-        document.getElementById('quizFinalScore').textContent =
-            persianDigits(score);
-
-        let title = '';
-        let description = '';
-        let icon = '🏆';
-
-        if (score === 5) {
-
-            title = 'فوق‌العاده بود!';
-            description = 'تمام مراحل را درست پاسخ دادی. تو یک قهرمان واقعی هستی!';
-            icon = '🏆';
-
-        } else if (score >= 4) {
-
-            title = 'عالی عمل کردی!';
-            description = 'عملکردت بسیار خوب بود. فقط کمی تمرین بیشتر لازم داری.';
-            icon = '🌟';
-
-        } else if (score >= 2) {
-
-            title = 'خوب پیش رفتی!';
-            description = 'چند سؤال را درست پاسخ دادی. با تمرین بیشتر بهتر می‌شوی.';
-            icon = '💪';
-
-        } else {
-
-            title = 'شروع خوبی بود!';
-            description = 'مهم این است که یاد می‌گیری. دوباره امتحان کن و پیشرفتت را ببین.';
-            icon = '🚀';
-
-        }
-
-        document.getElementById('quizResultTitle').textContent =
-            title;
-
-        document.getElementById('quizResultDescription').textContent =
-            description;
-
-        document.getElementById('quizResultIcon').textContent =
-            icon;
-
-        stepLabel.textContent = 'آزمون تمام شد';
-
-        progressFill.style.width = '100%';
-
-        progress.setAttribute('aria-valuenow', '5');
-
-        dots.forEach(dot => {
-            dot.classList.remove('active');
-            dot.classList.add('done');
-        });
-
-    }
-
-    function restartQuiz() {
-
-        currentStep = 1;
-        score = 0;
-        locked = false;
-        loading = false;
-
-        updateProgress();
-
-        loadQuestion(1);
-
-    }
-
-    function escapeHtml(value) {
-
-        return String(value ?? '').replace(/[&<>"']/g, character => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        })[character]);
-
-    }
-
-    nextButton.addEventListener('click', function () {
-
-        if (locked && !nextButton.hidden) {
-            loadQuestion(currentStep + 1);
-        }
-
-    });
-
-    retryButton.addEventListener('click', restartQuiz);
-
-    finalRetryButton.addEventListener('click', restartQuiz);
-
-    restartQuiz();
-
-});
 
     @endphp
 
@@ -2122,6 +1663,472 @@ document.addEventListener('DOMContentLoaded', function () {
 {{-- =========================================================
      HERO SLIDER JAVASCRIPT
 ========================================================= --}}
+
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const quiz = document.getElementById('homeQuiz');
+
+    if (!quiz) return;
+
+    const questionArea = document.getElementById('quizQuestionArea');
+    const feedbackArea = document.getElementById('quizFeedback');
+
+    const nextButton = document.getElementById('quizNextButton');
+
+    const finalResult = document.getElementById('quizFinalResult');
+    const finalRetryButton = document.getElementById('quizFinalRetryButton');
+
+    const stepLabel = document.getElementById('quizStepLabel');
+    const scoreLabel = document.getElementById('quizScoreLabel');
+
+    const progress = document.getElementById('quizProgress');
+    const progressFill = document.getElementById('quizProgressFill');
+
+    const dots = Array.from(
+        document.querySelectorAll('#quizStepDots span')
+    );
+
+    const questionUrl = quiz.dataset.questionUrl;
+    const answerUrl = quiz.dataset.answerUrl;
+    const csrf = quiz.dataset.csrf;
+
+    const total = 5;
+
+    let currentStep = 1;
+    let score = 0;
+    let locked = false;
+    let loading = false;
+
+    const persianDigits = value =>
+        String(value).replace(/\d/g, digit =>
+            '۰۱۲۳۴۵۶۷۸۹'[digit]
+        );
+
+    function updateProgress() {
+
+        stepLabel.textContent =
+            `مرحله ${persianDigits(currentStep)} از ${persianDigits(total)}`;
+
+        scoreLabel.textContent =
+            `امتیاز: ${persianDigits(score)}`;
+
+        progressFill.style.width =
+            `${((currentStep - 1) / total) * 100}%`;
+
+        progress.setAttribute(
+            'aria-valuenow',
+            String(currentStep - 1)
+        );
+
+        dots.forEach((dot, index) => {
+
+            dot.classList.toggle(
+                'active',
+                index === currentStep - 1
+            );
+
+            dot.classList.toggle(
+                'done',
+                index < currentStep - 1
+            );
+
+        });
+
+    }
+
+    async function loadQuestion(step) {
+
+        loading = true;
+        locked = true;
+
+        currentStep = step;
+
+        updateProgress();
+
+        feedbackArea.hidden = true;
+        nextButton.hidden = true;
+        retryButton.hidden = true;
+        finalResult.hidden = true;
+
+        questionArea.hidden = false;
+
+        questionArea.innerHTML = `
+            <div class="quiz-loading">
+                <span class="quiz-spinner"></span>
+                در حال دریافت سؤال...
+            </div>
+        `;
+
+        try {
+
+            const response = await fetch(
+                `${questionUrl}/${step}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || 'دریافت سؤال ناموفق بود.'
+                );
+            }
+
+            renderQuestion(result.question);
+
+            loading = false;
+            locked = false;
+
+        } catch (error) {
+
+            questionArea.innerHTML = `
+                <div class="quiz-feedback error">
+                    <strong>خطا در دریافت سؤال</strong>
+                    <p>${escapeHtml(error.message)}</p>
+                    <button type="button" class="quiz-retry-button" id="quizLoadRetry">
+                        تلاش مجدد
+                    </button>
+                </div>
+            `;
+
+            const loadRetry = document.getElementById('quizLoadRetry');
+
+            loadRetry.addEventListener('click', () => {
+                loadQuestion(currentStep);
+            });
+
+            loading = false;
+            locked = true;
+
+        }
+
+    }
+
+    function renderQuestion(question) {
+
+        const options = Object.entries(question.options);
+
+        questionArea.innerHTML = `
+            <div class="quiz-question-category">
+                ✦ ${escapeHtml(question.category)}
+            </div>
+
+            <h3 class="quiz-question-title">
+                ${escapeHtml(question.question)}
+            </h3>
+
+            <div class="quiz-options" id="quizOptions">
+
+                ${options.map(([key, label]) => `
+                    <button
+                        type="button"
+                        class="quiz-option"
+                        data-answer="${escapeHtml(key)}"
+                    >
+                        <span class="quiz-option-key">
+                            ${escapeHtml(key)}
+                        </span>
+
+                        <span>
+                            ${escapeHtml(label)}
+                        </span>
+                    </button>
+                `).join('')}
+
+            </div>
+        `;
+
+        questionArea
+            .querySelectorAll('.quiz-option')
+            .forEach(button => {
+
+                button.addEventListener('click', function () {
+
+                    submitAnswer(
+                        this.dataset.answer,
+                        this
+                    );
+
+                });
+
+            });
+
+    }
+
+    async function submitAnswer(answer, selectedButton) {
+
+        if (locked || loading) return;
+
+        locked = true;
+
+        const buttons = Array.from(
+            questionArea.querySelectorAll('.quiz-option')
+        );
+
+        buttons.forEach(button => {
+            button.disabled = true;
+        });
+
+        selectedButton.classList.add('selected');
+
+        selectedButton.innerHTML += `
+            <span class="quiz-spinner"></span>
+        `;
+
+        try {
+
+            const response = await fetch(answerUrl, {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+
+                body: JSON.stringify({
+                    step: currentStep,
+                    answer: answer
+                })
+
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+
+                throw new Error(
+                    result.message || 'بررسی پاسخ ناموفق بود.'
+                );
+
+            }
+
+            selectedButton.querySelector('.quiz-spinner')?.remove();
+
+            if (result.correct) {
+
+                score++;
+
+                selectedButton.classList.remove('selected');
+                selectedButton.classList.add('correct');
+
+                feedbackArea.className =
+                    'quiz-feedback success';
+
+                feedbackArea.innerHTML = `
+                    <strong>✓ آفرین! پاسخ درست بود.</strong>
+                    <p>${escapeHtml(result.explanation)}</p>
+                `;
+
+            } else {
+
+                selectedButton.classList.remove('selected');
+                selectedButton.classList.add('wrong');
+
+                const correctButton = buttons.find(
+                    button =>
+                        button.dataset.answer === result.correct_answer
+                );
+
+                if (correctButton) {
+                    correctButton.classList.add('correct');
+                }
+
+                feedbackArea.className =
+                    'quiz-feedback error';
+
+                feedbackArea.innerHTML = `
+                    <strong>✕ این پاسخ درست نبود.</strong>
+
+                    <p>
+                        پاسخ صحیح:
+                        <b>${escapeHtml(result.correct_label)}</b>
+                    </p>
+
+                    <p style="margin-top:8px">
+                        ${escapeHtml(result.explanation)}
+                    </p>
+                `;
+
+            }
+
+            feedbackArea.hidden = false;
+
+            scoreLabel.textContent =
+                `امتیاز: ${persianDigits(score)}`;
+
+            progressFill.style.width =
+                `${(currentStep / total) * 100}%`;
+
+            progress.setAttribute(
+                'aria-valuenow',
+                String(currentStep)
+            );
+
+            dots[currentStep - 1].classList.add('done');
+            dots[currentStep - 1].classList.remove('active');
+
+            if (result.is_last) {
+
+                nextButton.hidden = true;
+
+                setTimeout(() => {
+                    showFinalResult();
+                }, 1800);
+
+            } else {
+
+                nextButton.hidden = false;
+
+                nextButton.textContent =
+                    'مرحله بعدی ←';
+
+                nextButton.focus();
+
+            }
+
+        } catch (error) {
+
+            selectedButton.querySelector('.quiz-spinner')?.remove();
+
+            buttons.forEach(button => {
+                button.disabled = false;
+                button.classList.remove('selected');
+            });
+
+            selectedButton.classList.remove('selected');
+
+            feedbackArea.className =
+                'quiz-feedback error';
+
+            feedbackArea.innerHTML = `
+                <strong>خطا در بررسی پاسخ</strong>
+                <p>${escapeHtml(error.message)}</p>
+                <p>لطفاً دوباره پاسخ خود را انتخاب کن.</p>
+            `;
+
+            feedbackArea.hidden = false;
+
+            locked = false;
+
+        }
+
+    }
+
+    function showFinalResult() {
+
+        questionArea.hidden = true;
+        feedbackArea.hidden = true;
+        nextButton.hidden = true;
+
+        finalResult.hidden = false;
+
+        document.getElementById('quizFinalScore').textContent =
+            persianDigits(score);
+
+        let title = '';
+        let description = '';
+        let icon = '🏆';
+
+        if (score === 5) {
+
+            title = 'فوق‌العاده بود!';
+            description = 'تمام مراحل را درست پاسخ دادی. تو یک قهرمان واقعی هستی!';
+            icon = '🏆';
+
+        } else if (score >= 4) {
+
+            title = 'عالی عمل کردی!';
+            description = 'عملکردت بسیار خوب بود. فقط کمی تمرین بیشتر لازم داری.';
+            icon = '🌟';
+
+        } else if (score >= 2) {
+
+            title = 'خوب پیش رفتی!';
+            description = 'چند سؤال را درست پاسخ دادی. با تمرین بیشتر بهتر می‌شوی.';
+            icon = '💪';
+
+        } else {
+
+            title = 'شروع خوبی بود!';
+            description = 'مهم این است که یاد می‌گیری. دوباره امتحان کن و پیشرفتت را ببین.';
+            icon = '🚀';
+
+        }
+
+        document.getElementById('quizResultTitle').textContent =
+            title;
+
+        document.getElementById('quizResultDescription').textContent =
+            description;
+
+        document.getElementById('quizResultIcon').textContent =
+            icon;
+
+        stepLabel.textContent = 'آزمون تمام شد';
+
+        progressFill.style.width = '100%';
+
+        progress.setAttribute('aria-valuenow', '5');
+
+        dots.forEach(dot => {
+            dot.classList.remove('active');
+            dot.classList.add('done');
+        });
+
+    }
+
+    function restartQuiz() {
+
+        currentStep = 1;
+        score = 0;
+        locked = false;
+        loading = false;
+
+        updateProgress();
+
+        loadQuestion(1);
+
+    }
+
+    function escapeHtml(value) {
+
+        return String(value ?? '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        })[character]);
+
+    }
+
+    nextButton.addEventListener('click', function () {
+
+        if (locked && !nextButton.hidden) {
+            loadQuestion(currentStep + 1);
+        }
+
+    });
+
+    finalRetryButton.addEventListener('click', restartQuiz);
+
+    restartQuiz();
+
+});
+</script>
+@endpush
 
 @push('scripts')
 
