@@ -65,9 +65,22 @@ final class PublicSiteController extends Controller
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
 
         if ($search = trim((string) $request->query('q'))) {
-            $query->where(fn ($builder) => $builder->where('title', 'like', '%'.$search.'%')
-                ->orWhere('description', 'like', '%'.$search.'%')
-                ->orWhere('subject', 'like', '%'.$search.'%'));
+            $term = '%'.$search.'%';
+
+            $query->where(function ($builder) use ($term): void {
+                $builder->where('title', 'like', $term)
+                    ->orWhere('description', 'like', $term)
+                    ->orWhere('subject', 'like', $term)
+                    ->orWhereHas('teacher', fn ($teacher) => $teacher
+                        ->where('is_active', true)
+                        ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
+                        ->where('name', 'like', $term))
+                    ->orWhereHas('sections', fn ($sections) => $sections
+                        ->where('status', 'published')
+                        ->whereHas('lessons', fn ($lessons) => $lessons
+                            ->where('status', 'published')
+                            ->where('title', 'like', $term)));
+            });
         }
         if ($subject = $request->query('subject')) $query->where('subject', $subject);
         if ($grade = $request->query('grade')) $query->where('grade', $grade);
