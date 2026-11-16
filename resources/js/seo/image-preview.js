@@ -44,7 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const syncExcerpt = () => {
             const target = root.querySelector('[data-preview-excerpt]');
-            if (target && excerptField) target.textContent = excerptField.value.trim() || 'خلاصه مقاله در این بخش نمایش داده می‌شود.';
+            if (target && excerptField) {
+                const value = excerptField.value.trim();
+                target.textContent = value;
+                target.hidden = value.length === 0;
+            }
         };
         const setPosition = (value) => {
             if (positionInput) positionInput.value = value;
@@ -83,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         excerptField?.addEventListener('input', syncExcerpt);
         const stages = [hero, articleBanner, root.querySelector('.seo-admin-blog-image')].filter(Boolean);
         stages.forEach((stage) => {
+            if (root.dataset.previewKind === 'banner' && stage === articleBanner) return;
             let dragging = false;
             const updateFromPointer = (event) => {
                 const rect = stage.getBoundingClientRect();
