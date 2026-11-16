@@ -63,7 +63,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->actingAs($teacher)
             ->get(route('admin.classes.index'))
             ->assertOk()
-            ->assertSee('کلاس‌ها و اسکای‌روم')
+            ->assertSee('کلاس‌ها')
             ->assertDontSee('کوییز ۲۴')
             ->assertDontSee('آزمون‌ها')
             ->assertDontSee('مدیریت کاربران');
@@ -333,7 +333,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->actingAs($teacher)
             ->get(route('teacher.dashboard'))
             ->assertOk()
-            ->assertSee('کلاس‌ها و فعالیت‌های شما');
+            ->assertSee('فضای کاری مدرس');
     }
 
     public function test_homework_submission_list_is_paginated_instead_of_truncated_at_thirty(): void
