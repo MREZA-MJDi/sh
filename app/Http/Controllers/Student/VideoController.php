@@ -58,8 +58,10 @@ final class VideoController extends Controller
             ->whereHas('course', fn (Builder $course) => $course
                 ->where('status', 'published')
                 ->where(function (Builder $videoDelivery): void {
-                    $videoDelivery->where('delivery_type', 'spotplayer')
-                        ->orWhere('learning_features->recorded_video', true);
+                    $videoDelivery->where(function (Builder $legacy): void {
+                            $legacy->whereNull('learning_features')
+                                ->where('delivery_type', 'spotplayer');
+                        })->orWhere('learning_features->recorded_video', true);
                 })
                 ->whereIn('courses.id', clone $activeCourseIds))
             ->where(function (Builder $scope) use ($student): void {
