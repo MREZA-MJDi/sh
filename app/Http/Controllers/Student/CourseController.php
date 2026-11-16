@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\UpdateLessonProgressRequest;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
+use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\SpotPlayerLicense;
 use App\Models\Lesson;
 use App\Services\CourseProgressService;
@@ -42,6 +44,24 @@ final class CourseController extends Controller
             ->with('teacher:id,name')
             ->firstOrFail();
 
+        $classrooms = Classroom::query()
+            ->where('course_id', $course->id)
+            ->where('status', 'active')
+            ->whereHas('students', fn ($students) => $students->whereKey($request->user()->id))
+            ->with('teacher:id,name')
+            ->withCount('students')
+            ->orderBy('name')
+            ->get(['id', 'course_id', 'teacher_id', 'name', 'schedule', 'meeting_url', 'skyroom_room_id', 'skyroom_status']);
+
+        $upcomingSessions = ClassSession::query()
+            ->whereIn('classroom_id', $classrooms->modelKeys())
+            ->where('status', 'scheduled')
+            ->where('ends_at', '>=', now())
+            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
+            ->orderBy('starts_at')
+            ->limit(8)
+            ->get();
+
         $sections = $course->sections()
             ->where('status', 'published')
             ->orderBy('sort_order')
@@ -69,7 +89,7 @@ final class CourseController extends Controller
                 ->withQueryString()
             : null;
 
-        return view('student.courses.show', compact('course', 'sections', 'selectedSection', 'lessons', 'license'));
+        return view('student.courses.show', compact('course', 'sections', 'selectedSection', 'lessons', 'license', 'classrooms', 'upcomingSessions'));
     }
 
     public function updateProgress(

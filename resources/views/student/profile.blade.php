@@ -1,29 +1,45 @@
-@extends('layouts.app')
-@section('title', 'پروفایل')
+@extends('layouts.student')
+
+@section('title', 'پروفایل من')
+
 @section('content')
-@php $done = collect($m['exams'])->where('status', 'done'); @endphp
-<div class="grid2">
-  <x-card title="اطلاعات حساب">
-    <form method="POST" action="{{ route('student.profile.update') }}">@csrf @method('PUT')
-      <div class="fm">
-        <div><label for="name">نام و نام خانوادگی</label><input class="fld" id="name" name="name" value="{{ old('name', $user['name']) }}"><x-field-error name="name"/></div>
-        <div><label for="phone">موبایل</label><input class="fld" id="phone" name="phone" value="{{ old('phone', $user['phone']) }}"><x-field-error name="phone"/></div>
-        <div><label for="email">ایمیل</label><input class="fld" id="email" name="email" type="email" value="{{ old('email', $user['email']) }}"><x-field-error name="email"/></div>
-        <div><label for="grade">پایه</label><input class="fld" id="grade" value="{{ $user['grade'] }}" disabled></div>
-      </div>
-      <div class="frm"><button class="btn" type="submit">ذخیره‌ی تغییرات</button></div>
-    </form>
-  </x-card>
-  <x-card title="اتصال به کوییز ۲۴">
-    <x-tag>متصل</x-tag>
-    <dl class="dl" style="margin-top:12px"><dt>نام کاربری</dt><dd dir="ltr" style="text-align:end">{{ $user['quiz24'] }}</dd><dt>کد دانش‌آموزی</dt><dd dir="ltr" style="text-align:end">{{ $user['code'] }}</dd></dl>
-    <div class="info" style="margin-top:12px">ورود به آزمون‌های کوییز ۲۴ فقط با ثبت‌نام در سایت آکادمی شیخان ممکن است.</div>
-  </x-card>
-</div>
-<x-card title="نتایج آزمون‌های کوییز ۲۴" id="quiz24">
-  <x-slot:actions><x-tag tone="d">همگام‌سازی خودکار</x-tag></x-slot:actions>
-  <div class="tw"><table class="tbl"><tr><th>آزمون</th><th>درس</th><th>تاریخ</th><th>نمره</th><th>رتبه</th><th></th></tr>
-  @foreach($done as $e)<tr><td><b>{{ $e['title'] }}</b></td><td>{{ $e['course'] }}</td><td>{{ $e['date'] }}</td><td>{{ fa($e['score']) }}</td><td>{{ fa($e['rank']) }} از {{ fa($e['of']) }}</td><td><a class="btn s g" href="{{ route('student.exams.show', $e['id']) }}">جزئیات</a></td></tr>@endforeach
-  </table></div>
-</x-card>
+    <section class="card student-profile-card" aria-labelledby="student-profile-title">
+        <div class="chead">
+            <div>
+                <span class="student-section-eyebrow">حساب کاربری</span>
+                <h2 id="student-profile-title">اطلاعات پروفایل</h2>
+            </div>
+            <span class="pill">حساب دانش‌آموزی</span>
+        </div>
+        <p class="mu">نام و شماره تماس خود را به‌روز نگه دار. ایمیل ورود و پایه آموزشی برای جلوگیری از تغییر ناخواسته در این صفحه فقط‌خواندنی هستند.</p>
+
+        <form method="POST" action="{{ route('student.profile.update') }}" class="student-profile-form">
+            @csrf
+            @method('PUT')
+            <div class="student-profile-form__grid">
+                <div class="student-profile-field">
+                    <label for="profile-name">نام و نام خانوادگی</label>
+                    <input id="profile-name" name="name" value="{{ old('name', $user->name) }}" maxlength="120" required autocomplete="name">
+                    @error('name')<small role="alert">{{ $message }}</small>@enderror
+                </div>
+                <div class="student-profile-field">
+                    <label for="profile-phone">شماره موبایل</label>
+                    <input id="profile-phone" name="phone" value="{{ old('phone', $user->phone) }}" maxlength="30" inputmode="tel" dir="ltr" autocomplete="tel">
+                    @error('phone')<small role="alert">{{ $message }}</small>@enderror
+                </div>
+                <div class="student-profile-field">
+                    <label for="profile-email">ایمیل ورود</label>
+                    <input id="profile-email" value="{{ $user->email }}" dir="ltr" disabled>
+                </div>
+                <div class="student-profile-field">
+                    <label for="profile-grade">پایه تحصیلی</label>
+                    <input id="profile-grade" value="{{ $user->grade ?: 'ثبت نشده' }}" disabled>
+                </div>
+            </div>
+            <div class="student-profile-form__actions">
+                <button class="btn" type="submit">ذخیره تغییرات</button>
+                <a class="btn g" href="{{ route('student.dashboard') }}">بازگشت به داشبورد</a>
+            </div>
+        </form>
+    </section>
 @endsection

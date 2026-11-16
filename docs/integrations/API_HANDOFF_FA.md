@@ -54,9 +54,9 @@
 
 پیاده‌سازی داخلی در این مسیر قرار دارد:
 
-- \`App\\Services\\SpotPlayer\\Contracts\\SpotPlayerGateway\`
-- \`App\\Services\\SpotPlayer\\SpotPlayerService\`
-- \`App\\Services\\SpotPlayer\\UnavailableSpotPlayerGateway\`
+- \`App\Services\SpotPlayer\Contracts\SpotPlayerGateway\`
+- \`App\Services\SpotPlayer\SpotPlayerService\`
+- \`App\Services\SpotPlayer\UnavailableSpotPlayerGateway\`
 
 Gateway آینده باید DTO داخلی را به قرارداد واقعی SpotPlayer تبدیل کند. برای پیاده‌سازی Adapter، موارد زیر از کارفرما/پشتیبانی SpotPlayer دریافت شود.
 
@@ -147,10 +147,10 @@ Adapter باید پاسخ اصلی ارائه‌دهنده را به مدل دا
 
 پیاده‌سازی داخلی در این مسیر قرار دارد:
 
-- \`App\\Services\\Quiz24\\Contracts\\Quiz24Gateway\`
-- \`App\\Services\\Quiz24\\Quiz24Service\`
-- \`App\\Services\\Quiz24\\Quiz24ResultImporter\`
-- \`App\\Services\\Quiz24\\UnavailableQuiz24Gateway\`
+- \`App\Services\Quiz24\Contracts\Quiz24Gateway\`
+- \`App\Services\Quiz24\Quiz24Service\`
+- \`App\Services\Quiz24\Quiz24ResultImporter\`
+- \`App\Services\Quiz24\UnavailableQuiz24Gateway\`
 
 ### اطلاعات اتصال
 
@@ -319,3 +319,47 @@ Adapter باید پاسخ اصلی ارائه‌دهنده را به مدل دا
 
 تنظیمات سرور نیز باید با این سقف هماهنگ شوند؛ از جمله `upload_max_filesize`، `post_max_size`، `max_execution_time`، `max_input_time` و محدودیت بدنه درخواست در وب‌سرور. اگر اندازه واقعی ویدیوها بیشتر است، باید قبل از لانچ آپلود chunked پیاده‌سازی شود، نه اینکه محدودیت PHP/Nginx را بدون طراحی تغییر دهیم.
 
+
+
+## ۹. قرارداد موردنیاز Skyroom
+
+در کد شیخان، قرارداد ارائه‌دهنده در این مسیرها قرار دارد:
+
+- `App\Services\Skyroom\Contracts\SkyroomGateway`
+- `App\Services\Skyroom\SkyroomService`
+- `App\Services\Learning\LiveClassService`
+- `App\Services\Skyroom\UnavailableSkyroomGateway`
+
+Gateway فعلی در وضعیت `contract_missing` است و هیچ درخواست HTTP حدس‌زده‌شده‌ای ارسال نمی‌کند. شناسه اتاق در سطح «کلاس» نگهداری می‌شود، نه در سطح دوره؛ هر جلسه به کلاس تعلق دارد و می‌تواند لینک اختصاصی خودش را داشته باشد.
+
+### عملیات موردنیاز
+
+| عملیات | قرارداد لازم |
+|---|---|
+| بررسی اتصال | Endpoint/روش معتبر برای بررسی دسترسی API |
+| ساخت اتاق | پارامترهای نام اتاق، عنوان، ظرفیت، تنظیمات مهمان و بازگشت شناسه خارجی |
+| ساخت لینک ورود | شناسه اتاق، شناسه پایدار دانش‌آموز، نام نمایشی، نقش، زبان، TTL و URL امضاشده |
+| دریافت حضور | شناسه اتاق/جلسه، بازه زمانی، شناسه شرکت‌کننده، زمان ورود و خروج و مدت حضور |
+| مدیریت اتاق | تغییر عنوان، غیرفعال‌سازی، حذف یا آرشیو؛ در صورت پشتیبانی API |
+
+### اطلاعاتی که باید از Skyroom تحویل شود
+
+1. مستند رسمی API و نسخه آن.
+2. Base URL محیط آزمایشی و عملیاتی.
+3. روش Authentication، هدرها و کلید Sandbox.
+4. Endpoint و نمونه Request/Response واقعی برای ساخت اتاق.
+5. روش تولید لینک ورود کوتاه‌عمر و زمان اعتبار مجاز.
+6. روش نگاشت شناسه دانش‌آموز شیخان به شناسه کاربر Skyroom.
+7. نقش‌های قابل ارسال (مدیر، مدرس، دانش‌آموز) و سطح دسترسی هر نقش.
+8. Endpoint حضور و غیاب، منطقه زمانی، دقت زمان ورود/خروج و نحوه تشخیص قطع و وصل مجدد.
+9. Rate Limit، صفحه‌بندی، Timeout، خطاهای قابل Retry و سیاست Idempotency.
+10. IP allowlist و حساب Sandbox برای تست بدون اطلاعات واقعی دانش‌آموز.
+
+### رفتار فعلی تا زمان تحویل قرارداد
+
+- اگر لینک دستی معتبر روی کلاس یا جلسه ثبت شده باشد، همان لینک طبق پنجره زمانی و عضویت دانش‌آموز استفاده می‌شود.
+- اگر لینک دستی وجود نداشته باشد، ورود فقط زمانی نمایش داده می‌شود که شناسه اتاق یکپارچه‌سازی‌شده و وضعیت آماده وجود داشته باشد.
+- تلاش مدیر برای ساخت اتاق، در نبود قرارداد رسمی به وضعیت قابل‌فهم `waiting_contract` می‌رود؛ خطای Adapter نیز به وضعیت `failed` تبدیل می‌شود و نباید صفحه 500 تولید کند.
+- حضور و غیاب خودکار تا زمان دریافت قرارداد رسمی API فعال نیست؛ ثبت دستی حضور و غیاب داخلی مستقل باقی می‌ماند.
+
+**ساخت اتاق، لینک ورود یا حضور خودکار زمانی عملیاتی اعلام می‌شود که تست Sandbox برای ساخت اتاق، ورود دانش‌آموز، ورود مدرس و دریافت گزارش حضور با داده آزمایشی موفق باشد.**

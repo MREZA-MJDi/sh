@@ -83,12 +83,12 @@ class LocalDemoAccountsTest extends TestCase
         }
     }
 
-    public function test_demo_accounts_are_not_seeded_in_production_even_when_the_flag_is_enabled(): void
+    public function test_demo_accounts_are_not_seeded_in_production_when_the_explicit_flag_is_disabled(): void
     {
         $this->app['env'] = 'production';
 
         config([
-            'demo.enabled' => true,
+            'demo.enabled' => false,
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
@@ -105,6 +105,7 @@ class LocalDemoAccountsTest extends TestCase
 
         config([
             'demo.enabled' => true,
+            'demo.login_cards_enabled' => true,
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
@@ -126,6 +127,7 @@ class LocalDemoAccountsTest extends TestCase
 
         config([
             'demo.enabled' => true,
+            'demo.login_cards_enabled' => false,
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
@@ -138,4 +140,39 @@ class LocalDemoAccountsTest extends TestCase
             ->assertDontSee('parent@sh.local')
             ->assertDontSee('LocalOnlyDemoPassword!2026');
     }
+    public function test_production_demo_login_cards_require_both_explicit_flags(): void
+    {
+        $this->app['env'] = 'production';
+
+        config([
+            'demo.enabled' => true,
+            'demo.login_cards_enabled' => true,
+            'demo.password' => 'Temporary-Demo-2026!',
+        ]);
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('admin@sh.local')
+            ->assertSee('Temporary-Demo-2026!')
+            ->assertDontSee('seo@sh.local');
+    }
+
+    public function test_explicitly_enabled_demo_accounts_can_be_seeded_for_a_production_demo_window(): void
+    {
+        $this->app['env'] = 'production';
+
+        config([
+            'demo.enabled' => true,
+            'demo.password' => 'Temporary-Demo-2026!',
+        ]);
+
+        app(LocalDemoAccountsSeeder::class)->run();
+
+        $this->assertDatabaseHas('users', ['email' => 'admin@sh.local', 'is_active' => true]);
+        $this->assertDatabaseHas('users', ['email' => 'teacher@sh.local', 'is_active' => true]);
+        $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
+        $this->assertDatabaseHas('users', ['email' => 'parent@sh.local', 'is_active' => true]);
+        $this->assertDatabaseMissing('users', ['email' => 'seo@sh.local']);
+    }
+
 }

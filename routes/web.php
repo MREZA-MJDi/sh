@@ -32,6 +32,7 @@ use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardContro
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\JoinClassSessionController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\EnrollFreeCourseController;
@@ -90,6 +91,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
     Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
+    Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');
 
     Route::get('/seo', [SeoDashboardController::class, 'index'])->middleware('permission:seo.manage')->name('seo.index');
     Route::patch('/seo/settings', [SeoDashboardController::class, 'updateSettings'])->middleware('permission:seo.manage')->name('seo.settings.update');
@@ -141,6 +143,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/classes', [ClassroomController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.index');
     Route::post('/classes', [ClassroomController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.store');
+    Route::post('/classes/{classroom}/skyroom-room', [ClassroomController::class, 'ensureSkyroomRoom'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.skyroom-room');
     Route::patch('/classes/{classroom}', [ClassroomController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.update');
     Route::delete('/classes/{classroom}', [ClassroomController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.destroy');
     Route::get('/classes/{classroom}/sessions', [ClassSessionController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.sessions.index');
@@ -214,6 +217,8 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [StudentProfileController::class, 'show'])->middleware('permission:profile.update')->name('profile.edit');
+        Route::put('/profile', [StudentProfileController::class, 'update'])->middleware('permission:profile.update')->name('profile.update');
         Route::post('/class-sessions/{classSession}/join', JoinClassSessionController::class)->middleware('throttle:20,1')->name('class-sessions.join');
 
         Route::middleware('permission:exams.view.own')->group(function (): void {

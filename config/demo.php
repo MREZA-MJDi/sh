@@ -3,15 +3,16 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Local visual-review accounts
+    | Temporary client-demo accounts
     |--------------------------------------------------------------------------
     |
-    | Demo users are never created unless explicitly enabled and the current
-    | application environment is local or testing. Credentials are only sent
-    | to the login view in the local environment.
+    | Demo users are never created unless explicitly enabled. Login cards
+    | require a second explicit flag and may be enabled for a short production
+    | demo window. The SEO role is intentionally excluded from public cards.
     |
     */
     'enabled' => (bool) env('SHIKHAN_DEMO_ACCOUNTS', false),
+    'login_cards_enabled' => (bool) env('SHIKHAN_DEMO_LOGIN_CARDS', false),
     'password' => env('SHIKHAN_DEMO_PASSWORD'),
     'accounts' => [
         [
@@ -19,12 +20,6 @@ return [
             'label' => 'پنل مدیریت',
             'email' => 'admin@sh.local',
             'role' => 'admin',
-        ],
-        [
-            'name' => 'کارشناس سئو آزمایشی',
-            'label' => 'پنل سئو و محتوا',
-            'email' => 'seo@sh.local',
-            'role' => 'seo',
         ],
         [
             'name' => 'مدرس آزمایشی',

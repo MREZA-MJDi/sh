@@ -4,6 +4,11 @@
 @section('page-description', 'ثبت و مدیریت ویدیوهای دوره‌های متصل به SpotPlayer')
 
 @section('content')
+    @php
+        $operationStatusLabels = ['waiting_contract' => 'در انتظار قرارداد سرویس', 'queued' => 'در صف اجرا', 'running' => 'در حال اجرا', 'succeeded' => 'با موفقیت انجام شد', 'failed' => 'نیازمند بررسی', 'cancelled' => 'لغوشده'];
+        $operationStatusTones = ['waiting_contract' => 'panel-badge-warning', 'queued' => '', 'running' => '', 'succeeded' => 'panel-badge-success', 'failed' => 'panel-badge-danger', 'cancelled' => 'panel-badge-warning'];
+        $operationActionLabels = ['sync_course_catalog' => 'دریافت فهرست دوره‌ها', 'verify_course_mapping' => 'بررسی اتصال دوره', 'create_course' => 'ساخت دوره خارجی', 'issue_license' => 'صدور لایسنس', 'revoke_license' => 'ابطال لایسنس'];
+    @endphp
     @if ($teacherView)
         <div class="panel-page-head" data-tone="learning">
             <div><h2>ویدیوهای کلاس</h2><p>ویدیو فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شود.</p></div>
@@ -119,6 +124,29 @@
             </div>
             <div class="panel-pagination">{{ $videos->links() }}</div>
         </section>
+        <section class="panel-card mt-4">
+            <div class="panel-card-title">
+                <div><h3>کارتابل عملیات SpotPlayer</h3><p>درخواست‌ها تا پاسخ معتبر سرویس با وضعیت مشخص نگهداری می‌شوند؛ وضعیت «در حال اجرا» فقط هنگام اجرای واقعی Adapter نمایش داده می‌شود.</p></div>
+            </div>
+            <div class="panel-table-wrap">
+                <table class="panel-table">
+                    <thead><tr><th>عملیات</th><th>شناسه پیگیری</th><th>وضعیت</th><th>آخرین تغییر</th></tr></thead>
+                    <tbody>
+                    @forelse ($operations as $operation)
+                        <tr>
+                            <td>{{ $operationActionLabels[$operation->action] ?? 'عملیات یکپارچه‌سازی' }}</td>
+                            <td dir="ltr">{{ $operation->correlation_id ?: '—' }}</td>
+                            <td><span class="panel-badge {{ $operationStatusTones[$operation->status] ?? 'panel-badge-warning' }}">{{ $operationStatusLabels[$operation->status] ?? 'در حال بررسی' }}</span></td>
+                            <td>{{ $operation->updated_at?->format('Y/m/d H:i') ?? '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="panel-empty">عملیاتی ثبت نشده است.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     @endif
 
 

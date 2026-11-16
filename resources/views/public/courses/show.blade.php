@@ -31,11 +31,16 @@
             </span>
             <span>
                 <svg class="i"><use href="#clock"/></svg>
-                {{ $totalLessons > 0 ? $totalLessons . ' جلسه آموزشی' : 'دوره جامع' }}
+                {{ $totalLessons > 0 ? $totalLessons . ' درس آموزشی' : 'دوره جامع' }}
             </span>
             @if($course->grade)
                 <span class="bd">پایه {{ $course->grade }}</span>
             @endif
+        </div>
+        <div class="mt" aria-label="نوع ارائه و کلاس‌های دوره">
+            <span>شیوه ارائه محتوا: {{ ['spotplayer' => 'ویدیوی آموزشی', 'skyroom' => 'آموزش زنده', 'onsite' => 'آموزش حضوری'][$course->delivery_type] ?? 'ترکیبی' }}</span>
+            <span>{{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال</span>
+            <span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>
         </div>
     </div>
 </div>
@@ -86,7 +91,7 @@
             @endif
 
 
-            <div class="card blk" id="c1">
+            <div class="card blk" id="c1-learning">
                 <h2>در این دوره چه یاد می‌گیری؟</h2>
                 <ul class="learn">
                     <li>
@@ -127,7 +132,7 @@
                         </span>
                         <span class="c-badge">
                             <svg class="i" style="width:14px;height:14px"><use href="#cam"/></svg>
-                            {{ $totalLessons }} جلسه آموزشی
+                            {{ $totalLessons }} درس آموزشی
                         </span>
                     </div>
                 </div>
@@ -337,7 +342,7 @@
             @foreach($relatedCourses as $related)
                 <x-public.academy.course-card :course="$related" />
             @endforeach
-
+        </div>
     </section>
 @endif
 </div>

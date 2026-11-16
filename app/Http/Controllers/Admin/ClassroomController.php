@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\User;
 use App\Services\Admin\ClassroomService;
 use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Learning\LiveClassService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -65,6 +66,28 @@ class ClassroomController extends Controller
         $classrooms->update($request->user(), $classroom, $request->validated());
 
         return back()->with('success', 'کلاس، زمان‌بندی و لینک اسکای‌روم به‌روزرسانی شد.');
+    }
+
+    public function ensureSkyroomRoom(
+        Request $request,
+        Classroom $classroom,
+        ClassroomWorkspaceService $workspace,
+        LiveClassService $liveClasses
+    ): RedirectResponse {
+        abort_unless($request->user()->hasAnyPermission(['classes.manage', 'classes.manage.assigned']), 403);
+
+        $classroom = $workspace->queryFor($request->user())->findOrFail($classroom->id);
+        $roomId = $liveClasses->ensureRoom($classroom);
+
+        if (! $roomId) {
+            $classroom->refresh();
+
+            return back()->with('warning', $classroom->skyroom_status === 'failed'
+                ? 'ساخت اتاق آنلاین ناموفق بود؛ تنظیمات اتصال را بررسی کنید. لینک دستی کلاس همچنان قابل استفاده است.'
+                : 'اتاق خودکار ساخته نشد؛ اتصال Skyroom در انتظار قرارداد رسمی است. لینک دستی کلاس همچنان قابل استفاده است.');
+        }
+
+        return back()->with('success', 'اتاق آنلاین کلاس با شناسه تأییدشده ثبت شد.');
     }
 
     public function destroy(Request $request, Classroom $classroom, ClassroomService $classrooms): RedirectResponse

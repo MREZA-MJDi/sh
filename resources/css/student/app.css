@@ -882,3 +882,17 @@ body, body.parent-page, body.student-page {
 .student-page .toast.warning {
     color:#89500f; background:#fff0d9; border:1px solid #f0d5ad; border-inline-start:4px solid #b96b18;
 }
+
+
+/* Student profile */
+.student-profile-card{max-width:920px}
+.student-profile-form{margin-top:22px}
+.student-profile-form__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.student-profile-field{display:grid;gap:8px;min-width:0}
+.student-profile-field label{font-size:13px;font-weight:700;color:var(--brand-ink)}
+.student-profile-field input{width:100%;min-height:46px;border:1px solid var(--brand-line);border-radius:12px;padding:10px 13px;background:var(--brand-card);color:var(--brand-ink);font:inherit;outline:none}
+.student-profile-field input:focus{border-color:var(--brand-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-primary) 15%,transparent)}
+.student-profile-field input:disabled{opacity:.72;background:var(--brand-primary-soft);cursor:not-allowed}
+.student-profile-field small{color:var(--brand-red);font-size:12px}
+.student-profile-form__actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+@media(max-width:640px){.student-profile-form__grid{grid-template-columns:1fr}}

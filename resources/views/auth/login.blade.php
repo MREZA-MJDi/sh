@@ -11,11 +11,11 @@
     <div style="display:grid;gap:7px">
         @foreach ($demoAccounts as $account)
             <button type="button" data-demo-account data-demo-email="{{ $account['email'] }}" data-demo-password="{{ $demoPassword }}" style="display:flex;justify-content:space-between;gap:10px;padding:9px;border:1px solid var(--ac-line);border-radius:9px;background:var(--ac-bg);color:var(--ac-ink);font:inherit;cursor:pointer">
-                <strong>{{ $account['label'] }}</strong><small dir="ltr">{{ $account['email'] }}</small>
+                <span style="display:grid;gap:4px;text-align:right"><strong>{{ $account['label'] }}</strong><small dir="ltr">{{ $account['email'] }}</small></span><small dir="ltr" style="white-space:nowrap">رمز: {{ $demoPassword }}</small>
             </button>
         @endforeach
     </div>
-    <p class="ac-muted" style="font-size:11px;margin:8px 0 0">این حساب‌ها فقط در محیط توسعه نمایش داده می‌شوند.</p>
+    <p class="ac-muted" style="font-size:11px;margin:8px 0 0">این حساب‌های نمایشی با فعال‌سازی صریح مدیر سامانه نمایش داده می‌شوند؛ پس از جلسه نمایش، دسترسی نمایشی را غیرفعال کنید.</p>
 </section>
 @endif
 <div style="border-top:1px solid var(--ac-line);margin-top:20px;padding-top:16px;font-size:13px">حساب دانش‌آموزی نداری؟ <a class="ac-link" href="{{ route('register') }}">ثبت‌نام کن</a></div></div></section></main><script>

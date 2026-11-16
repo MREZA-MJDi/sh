@@ -12,6 +12,15 @@
         @endcanany
     </div>
 
+    <section class="panel-card mb-4" data-tone="learning">
+        <div class="panel-card-title"><div><h3>کلاس با جلسه چه تفاوتی دارد؟</h3><p>کلاس یک گروه آموزشی پایدار است؛ جلسه هر نوبت برگزاری آن گروه است.</p></div></div>
+        <div class="panel-grid panel-grid-3">
+            <div><strong>دوره مرتبط</strong><p class="panel-muted">محتوای آموزشی و سرفصل‌ها</p></div>
+            <div><strong>کلاس</strong><p class="panel-muted">مدرس، دانش‌آموزان و برنامه هفتگی</p></div>
+            <div><strong>جلسه آنلاین / حضوری</strong><p class="panel-muted">زمان شروع و پایان، لینک ورود و حضور همان نوبت</p></div>
+        </div>
+    </section>
+
     <section class="panel-card">
         <div class="panel-card-title">
             <div><h3>فهرست کلاس‌ها</h3><p>لینک اسکای‌روم و برنامه زمانی هر کلاس</p></div>
@@ -35,8 +44,27 @@
                             @if ($classroom->meeting_url)
                                 <a href="{{ $classroom->meeting_url }}" target="_blank" rel="noopener noreferrer" dir="ltr">ورود به اسکای‌روم ↗</a>
                             @else
-                                <span class="panel-muted">لینک ثبت نشده</span>
+                                <span class="panel-muted">لینک دستی ثبت نشده</span>
                             @endif
+                            <div class="panel-muted" style="margin-top:6px">
+                                @if ($classroom->skyroom_status === 'ready')
+                                    اتاق Skyroom تأیید شده
+                                @elseif ($classroom->skyroom_status === 'waiting_contract')
+                                    ساخت خودکار در انتظار قرارداد API
+                                @elseif ($classroom->skyroom_status === 'failed')
+                                    خطای اتصال؛ نیازمند بررسی
+                                @else
+                                    اتاق خودکار هنوز ساخته نشده
+                                @endif
+                            </div>
+                            @canany(['classes.manage', 'classes.manage.assigned'])
+                                @if (! $classroom->skyroom_room_id)
+                                    <form method="POST" action="{{ route('admin.classes.skyroom-room', $classroom) }}" style="margin-top:6px">
+                                        @csrf
+                                        <button class="panel-btn panel-btn-secondary panel-btn-sm" type="submit">آماده‌سازی اتاق آنلاین</button>
+                                    </form>
+                                @endif
+                            @endcanany
                         </td>
                         @canany(['classes.manage', 'classes.manage.assigned'])
                             <td><div style="display:flex;gap:6px;flex-wrap:wrap"><a class="panel-btn panel-btn-sm" href="{{ route('admin.classes.sessions.index', $classroom) }}">جلسه‌ها</a><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="class-edit-{{ $classroom->id }}" data-drawer-title="ویرایش کلاس">ویرایش</button></div></td>

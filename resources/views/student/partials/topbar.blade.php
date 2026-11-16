@@ -37,7 +37,7 @@
         <x-icon name="moon"/>
     </button>
 
-    <a class="ib pr" href="{{ $dashboardAnchor('overview') }}" aria-label="رفتن به کارتابل دانش‌آموز">
+    <a class="ib pr" href="{{ route('student.profile.edit') }}" aria-label="پروفایل من">
         <x-icon name="user"/>
     </a>
 </header>
