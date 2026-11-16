@@ -1,6 +1,6 @@
 <?php
 
-namespace App\\Services\\Skyroom\\Contracts;
+namespace App\Services\Skyroom\Contracts;
 
 final readonly class SkyroomRoomCommand
 {
