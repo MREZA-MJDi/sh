@@ -93,8 +93,7 @@ final class CourseController extends Controller
     {
         return CourseEnrollment::query()
             ->where('student_id', $request->user()->id)
-            ->where('status', 'active')
-            ->where(fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->currentlyActive()
             ->whereHas('course', fn ($course) => $course->where('status', 'published'))
             ->select('course_id');
     }
