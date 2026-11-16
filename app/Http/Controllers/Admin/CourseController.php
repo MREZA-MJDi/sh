@@ -56,8 +56,9 @@ final class CourseController extends Controller
             'drafts' => Course::query()->whereIn('id', clone $visibleCourseIds)->where('status', 'draft')->count(),
         ];
         $canManage = $user->hasPermissionTo('courses.manage');
+        $canManageContent = $user->hasAnyPermission(['courses.manage', 'courses.content.manage.assigned']);
 
-        return view('admin.courses.index', compact('courses', 'teachers', 'stats', 'canManage', 'teacherView'));
+        return view('admin.courses.index', compact('courses', 'teachers', 'stats', 'canManage', 'canManageContent', 'teacherView'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
