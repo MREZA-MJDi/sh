@@ -53,6 +53,10 @@ final class GuardianDashboardChildSelectionTest extends TestCase
             ->assertSee('class="parent-page"', false)
             ->assertSee('data-theme-toggle', false)
             ->assertDontSee('class="student-page"', false);
+
+        $parentLayout = file_get_contents(resource_path('views/layouts/parent.blade.php'));
+        $this->assertIsString($parentLayout);
+        $this->assertStringNotContainsString('resources/css/student/app.css', $parentLayout);
     }
 
     /**
