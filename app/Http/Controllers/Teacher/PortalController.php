@@ -80,7 +80,7 @@ final class PortalController extends Controller
             'name' => $student->name,
             'status' => $records->get($student->id)?->status,
             'note' => $records->get($student->id)?->note,
-            'joined_at' => $records->get($student->id)?->joined_at?->format('Y-m-d\\TH:i'),
+            'joined_at' => $records->get($student->id)?->joined_at?->format('Y-m-d\TH:i'),
             'attended_minutes' => $records->get($student->id)?->attended_minutes,
         ]) ?? collect();
 
