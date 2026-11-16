@@ -32,6 +32,7 @@ use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardContro
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\JoinClassSessionController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\EnrollFreeCourseController;
