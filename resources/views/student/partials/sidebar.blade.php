@@ -8,6 +8,7 @@
             ['تکالیف', 'i-task', 'student/homework'],
             ['آزمون‌ها', 'i-exam', 'student/exams'],
             ['جزوه‌ها و منابع', 'i-file', 'student/resources'],
+            ['کتابخانه و خریدها', 'i-cart', 'student/library'],
         ]],
         ['ارتباط', [['پیام به مدرس‌ها', 'i-msg', 'student/messages']]],
         ['عملکرد و حساب', [
