@@ -65,12 +65,16 @@
           <td>@forelse($submission->files as $file)<small>{{ $file->original_name }}</small>@empty<span class="adm-muted">بدون فایل</span>@endforelse</td>
           <td>{{ $submission->score === null ? '—' : number_format((float) $submission->score, 2).' از ۲۰' }}<small>{{ $submission->feedback ?: 'بدون بازخورد' }}</small></td>
           <td>
-            <form method="POST" action="{{ route('admin.homework.review', $submission) }}" class="adm-stack">
-              @csrf @method('PATCH')
-              <input class="adm-input" type="number" name="score" min="0" max="20" step="0.25" value="{{ $submission->score }}" placeholder="نمره از ۲۰">
-              <textarea class="adm-input" name="feedback" rows="2" maxlength="30000" placeholder="بازخورد مدرس" required>{{ $submission->feedback }}</textarea>
-              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">ثبت بررسی</button>
-            </form>
+            @if(auth()->user()->hasPermissionTo('homework.grade'))
+              <form method="POST" action="{{ route('admin.homework.review', $submission) }}" class="adm-stack">
+                @csrf @method('PATCH')
+                <input class="adm-input" type="number" name="score" min="0" max="20" step="0.25" value="{{ $submission->score }}" placeholder="نمره از ۲۰">
+                <textarea class="adm-input" name="feedback" rows="2" maxlength="30000" placeholder="بازخورد مدرس" required>{{ $submission->feedback }}</textarea>
+                <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">ثبت بررسی</button>
+              </form>
+            @else
+              <span class="adm-muted">دسترسی تصحیح برای این حساب فعال نیست.</span>
+            @endif
           </td>
         </tr>
       @empty
