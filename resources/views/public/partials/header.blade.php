@@ -1,14 +1,6 @@
 @php
     $cartCount = count(session('public_cart', []));
     $user = auth()->user();
-    $currentDashboard = match (true) {
-        $user?->hasRole('admin') => route('admin.dashboard'),
-        $user?->hasRole('seo') => route('admin.seo.index'),
-        $user?->hasRole('teacher') => route('teacher.dashboard'),
-        $user?->hasRole('student') => route('student.dashboard'),
-        $user?->hasRole('parent') => route('guardian.dashboard'),
-        default => null,
-    };
 @endphp
 
 <header class="nv">
@@ -106,7 +98,7 @@
 <div class="card ddm" id="pm">
     @guest
         <a href="{{ route('login') }}">
-            <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#login"/></svg></div>
+            <div class="ic" style="background:var(--pri)"><svg class="i"><use href="#user"/></svg></div>
             <div><b>ورود به حساب</b><small>برای دسترسی به میز کار وارد شوید</small></div>
         </a>
         <a href="{{ route('register') }}">
