@@ -76,9 +76,12 @@ final class CourseLearningProgressTest extends TestCase
         $this->assertSame(1, (int) $summary->completed_lessons);
         $this->assertSame(50, (int) $summary->progress_percent);
 
-        $this->actingAs($student)
-            ->get(route('student.dashboard'))
-            ->assertOk()
+        $response = $this->actingAs($student)->get(route('student.dashboard'));
+        $compiledView = storage_path('framework/views/67c7f54455d9f7d0bbd86eccd6fa48a0.php');
+        if (is_file($compiledView)) {
+            $compiledLines = file($compiledView);
+        }
+        $response->assertOk()
             ->assertSee('پیشرفت دوره‌های من')
             ->assertSee('دوره پیشرفت');
 
