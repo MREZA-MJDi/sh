@@ -1,18 +1,35 @@
 @extends('teacher.layouts.app')
 @section('title', 'کلاس آنلاین')
 @section('content')
-<h2>جلسات آنلاین پیش‌رو</h2>
+@php
+    $providerNames = ['skyroom' => 'اسکای‌روم', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی'];
+    $firstSession = $sessions->getCollection()->first();
+    $currentProvider = $firstSession?->meeting_provider ?? 'link';
+@endphp
+<h2>کلاس آنلاین</h2>
 <div class="g">
- @forelse ($sessions as $session)
-  <section class="c"><h3>{{ $session->title ?: $session->classroom?->name }}</h3>
-   <p>{{ $session->classroom?->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }} تا {{ $session->ends_at?->format('H:i') }}</p>
-   @if ($session->meeting_url)<a class="b" href="{{ $session->meeting_url }}" target="_blank" rel="noopener">ورود به کلاس</a>
-   @elseif ($session->classroom?->meeting_url)<a class="b" href="{{ $session->classroom->meeting_url }}" target="_blank" rel="noopener">ورود به کلاس</a>
-   @else<i class="bd am">لینک جلسه هنوز ثبت نشده است</i>@endif
-  </section>
- @empty
-  <section class="c"><p>جلسه‌ی آنلاینی برای آینده ثبت نشده است.</p></section>
- @endforelse
- {{ $sessions->links() }}
+    <div class="g g2">
+        <section class="c"><h3>سرویس کلاس</h3>
+            <div class="chips"><span class="chip">{{ $providerNames[$currentProvider] ?? $currentProvider }}</span></div>
+            <div class="frame"><div>اتاق کلاس<br><small>{{ $firstSession?->classroom?->name ?? 'جلسه‌ای برای نمایش وجود ندارد' }}</small></div></div>
+        </section>
+        <section class="c"><h3>روش اتصال</h3>
+            <div class="row"><div>۱. هر کلاس یک اتاق دارد<small>شناسه اتاق از تنظیمات همان جلسه خوانده می‌شود</small></div></div>
+            <div class="row"><div>۲. لینک ورود اختصاصی<small>لینک هر جلسه از تنظیمات ثبت‌شده در Backend دریافت می‌شود</small></div></div>
+            <div class="row"><div>۳. بازه زمانی<small>جلسات فقط در محدوده زمانی تعریف‌شده فعال هستند</small></div></div>
+        </section>
+        <section class="c"><h3>زمان‌بندی کلاس‌ها و لینک‌ها</h3>
+            @forelse ($sessions as $session)
+                <div class="row"><div>{{ $session->title ?: $session->classroom?->name }} <i class="bd bl">{{ $providerNames[$session->meeting_provider] ?? $session->meeting_provider }}</i><small>{{ $session->starts_at?->format('Y/m/d H:i') }} · {{ $session->classroom?->name }}</small></div>
+                    @if ($session->meeting_url)<a class="b s" href="{{ $session->meeting_url }}" target="_blank" rel="noopener">ورود</a>
+                    @elseif ($session->classroom?->meeting_url)<a class="b s" href="{{ $session->classroom->meeting_url }}" target="_blank" rel="noopener">ورود</a>
+                    @else<i class="bd am">لینک ثبت نشده</i>@endif
+                </div>
+            @empty
+                <p>جلسه‌ای برای آینده ثبت نشده است.</p>
+            @endforelse
+        </section>
+    </div>
+    {{ $sessions->links() }}
 </div>
 @endsection
