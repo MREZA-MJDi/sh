@@ -92,11 +92,11 @@ class PublicSiteTest extends TestCase
 
         $homeView = app(\App\Http\Controllers\PublicSiteController::class)->home();
         $this->assertTrue($homeView->getData()['courses']->contains('title', 'دوره منتشرشده'));
-        $this->assertTrue($homeView->getData()['banners']->contains('title', 'بنر صفحه اصلی'));
+        $this->assertTrue($homeView->getData()['homeBanners']->contains('title', 'بنر صفحه اصلی'));
 
         $response = $this->get(route('home'))->assertOk();
         $response->assertViewIs('public.home.index')
-            ->assertViewHas('banners', fn ($banners) => $banners->contains('title', 'بنر صفحه اصلی'))
+            ->assertViewHas('homeBanners', fn ($banners) => $banners->contains('title', 'بنر صفحه اصلی'))
             ->assertSee('homeHero')
             ->assertSee('بنر صفحه اصلی');
         $response
