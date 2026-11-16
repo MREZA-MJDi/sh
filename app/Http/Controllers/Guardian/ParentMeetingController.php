@@ -24,6 +24,8 @@ final class ParentMeetingController extends Controller
             ->orderBy('users.name')
             ->get(['users.id', 'users.name', 'users.grade']);
 
+        $selectedChild = $children->firstWhere('id', $request->integer('child')) ?? $children->first();
+
         $meetings = ParentMeeting::query()
             ->where('guardian_id', $guardian->id)
             ->whereIn('student_id', $children->modelKeys())
@@ -35,14 +37,14 @@ final class ParentMeetingController extends Controller
 
         $classrooms = Classroom::query()
             ->where('status', 'active')
-            ->whereHas('students', fn (Builder $students) => $students->whereIn('users.id', $children->modelKeys()))
+            ->whereHas('students', fn (Builder $students) => $students->whereKey($selectedChild?->id ?? 0))
             ->with('course:id,title')
             ->orderBy('name')
             ->get(['id', 'name', 'course_id']);
 
         return view('parent.meetings', [
             'kids' => $children,
-            'kid' => $children->first(),
+            'kid' => $selectedChild,
             'meetings' => $meetings,
             'classrooms' => $classrooms,
         ]);
