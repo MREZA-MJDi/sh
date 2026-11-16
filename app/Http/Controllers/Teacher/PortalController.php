@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Http\Requests\Admin\StoreAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\ClassSession;
 use App\Models\Homework;
+use App\Models\MessageReply;
+use App\Models\User;
+use App\Notifications\MessageActivityNotification;
 use App\Models\ParentMeeting;
 use App\Services\Admin\AttendanceService;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\MessageWorkspaceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -152,4 +157,29 @@ final class PortalController extends Controller
 
         return view('teacher.messages', compact('conversations', 'selectedMessage'));
     }
+    public function reply(
+        ReplyMessageRequest $request,
+        \App\Models\Message $message,
+        MessageWorkspaceService $workspace
+    ): RedirectResponse {
+        $message = $workspace->findVisible($request->user(), $message->id);
+
+        MessageReply::query()->create([
+            'message_id' => $message->id,
+            'sender_id' => $request->user()->id,
+            'body' => $request->validated('body'),
+        ]);
+
+        $message->update(['status' => 'answered', 'replied_at' => now()]);
+        $otherParticipantId = (int) $message->sender_id === (int) $request->user()->id
+            ? $message->recipient_id
+            : $message->sender_id;
+        User::query()->find($otherParticipantId)?->notify(
+            new MessageActivityNotification($message, 'پاسخ جدیدی در گفت‌وگوی شما ثبت شد.')
+        );
+
+        return redirect()->route('teacher.messages.index', ['message' => $message->id])
+            ->with('success', 'پاسخ شما ثبت شد.');
+    }
+
 }
