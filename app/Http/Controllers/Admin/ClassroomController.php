@@ -69,7 +69,7 @@ class ClassroomController extends Controller
     {
         $classrooms->create($request->user(), $request->validated());
 
-        return back()->with('success', 'کلاس و لینک ورود آنلاین آن با موفقیت ثبت شد.');
+        return back()->with('success', 'گروه آموزشی و اعضای آن با موفقیت ثبت شدند؛ برنامه جلسات را از بخش جلسات مدیریت کنید.');
     }
 
     public function update(
