@@ -19,7 +19,7 @@
 
     @foreach ($nav['groups'] as $gi => $group)
       <details class="adm-nav-group" data-tone="{{ $group['tone'] }}" open>
-        <summary><span class="adm-nav-dot"></span>{{ $group['label'] }}<x-admin.icon name="chev"/></summary>
+        <summary data-admin-nav-group-toggle><span class="adm-nav-dot"></span>{{ $group['label'] }}<x-admin.icon name="chev"/></summary>
         <div class="adm-nav-items">
           @foreach ($group['items'] as $item)
             <a class="adm-nav-link {{ request()->is($item['url'], $item['url'].'/*') ? 'is-active' : '' }}" href="{{ url($item['url']) }}" data-tone="{{ $group['tone'] }}">
