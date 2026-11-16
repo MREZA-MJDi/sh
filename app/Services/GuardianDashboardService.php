@@ -6,7 +6,6 @@ use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Consultation;
-use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
@@ -14,6 +13,7 @@ use App\Models\LearningResource;
 use App\Models\Message;
 use App\Models\ParentMeeting;
 use App\Models\User;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 

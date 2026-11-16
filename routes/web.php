@@ -33,16 +33,10 @@ use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultation
 use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
-use App\Http\Controllers\Student\JoinClassSessionController;
-use App\Http\Controllers\Student\CourseController as StudentCourseController;
-use App\Http\Controllers\Student\EnrollFreeCourseController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
-use App\Http\Controllers\Student\VideoController as StudentVideoController;
-use App\Http\Controllers\Student\SpotPlayerLicenseController as StudentSpotPlayerLicenseController;
 use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomeworkSubmissionController;
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
-use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use App\Http\Controllers\Teacher\ConsultationController as TeacherConsultationController;
 use Illuminate\Support\Facades\Route;
@@ -221,7 +215,6 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
         Route::get('/profile', [StudentProfileController::class, 'show'])->middleware('permission:profile.update')->name('profile.edit');
         Route::put('/profile', [StudentProfileController::class, 'update'])->middleware('permission:profile.update')->name('profile.update');
-        Route::post('/class-sessions/{classSession}/join', JoinClassSessionController::class)->middleware('throttle:20,1')->name('class-sessions.join');
 
         Route::middleware('permission:exams.view.own')->group(function (): void {
             Route::get('/exams', [StudentExamController::class, 'index'])->name('exams.index');
@@ -231,22 +224,6 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
         });
         Route::post('/exams/{exam}/start', [StudentExamController::class, 'start'])->middleware('permission:exams.attempt')->name('exams.start');
         Route::post('/exam-attempts/{attempt}/submit', [StudentExamController::class, 'submit'])->middleware('permission:exams.attempt')->name('exam-attempts.submit');
-        Route::middleware('permission:videos.view.enrolled')->group(function (): void {
-            Route::get('/videos', [StudentVideoController::class, 'index'])->name('videos.index');
-            Route::get('/videos/{video}', [StudentVideoController::class, 'show'])->name('videos.show');
-            Route::get('/videos/{video}/stream', [StudentVideoController::class, 'stream'])->name('videos.stream');
-        });
-
-        Route::middleware('permission:lessons.view')->group(function (): void {
-            Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
-            Route::post('/courses/{course}/spotplayer-license', [StudentSpotPlayerLicenseController::class, 'store'])->middleware('throttle:3,1')->name('courses.spotplayer-license.store');
-        Route::post('/courses/{course}/enroll-free', EnrollFreeCourseController::class)->middleware('throttle:10,1')->name('courses.enroll-free');
-            Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
-            Route::patch('/courses/{course}/lessons/{lesson}/progress', [StudentCourseController::class, 'updateProgress'])
-                ->middleware('permission:lessons.progress')->name('courses.lessons.progress');
-        });
-        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
-
         Route::middleware('permission:homework.submit')->group(function (): void {
             Route::post('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'store'])->name('homework.submissions.store');
             Route::delete('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'destroy'])->name('homework.submissions.destroy');
@@ -284,7 +261,6 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
         Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
         Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
-        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])->middleware('permission:resources.view.enrolled')->name('resources.download');
     });
 
 Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])
@@ -325,3 +301,6 @@ Route::middleware(['auth', 'role:parent'])
         Route::post('/{message}/replies', [PortalMessageController::class, 'reply'])->middleware('permission:messages.send.own')->name('reply');
         Route::delete('/{message}', [PortalMessageController::class, 'destroy'])->middleware('permission:messages.send.own')->name('destroy');
     });
+
+// Learning routes are maintained separately but share the canonical web controllers and policies.
+require __DIR__.'/learning.php';

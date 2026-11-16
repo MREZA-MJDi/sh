@@ -6,29 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassSession;
 use App\Models\Classroom;
 use App\Services\Learning\LiveClassService;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 final class JoinClassSessionController extends Controller
 {
-    public function __invoke(Request $request, ClassSession $classSession, LiveClassService $liveClasses): RedirectResponse
+    public function __invoke(Request $request, ClassSession $classSession, LiveClassService $liveClasses, LearningAccessService $access): RedirectResponse
     {
         $student = $request->user();
 
         $classroom = Classroom::query()
             ->whereKey($classSession->classroom_id)
-            ->where('status', 'active')
-            ->whereHas('students', fn ($query) => $query->whereKey($student->id))
-            ->where(function ($access) use ($student): void {
-                $access->whereNull('classrooms.course_id')
-                    ->orWhereHas('course', fn ($course) => $course
-                        ->where('status', 'published')
-                        ->whereHas('enrollments', fn ($enrollments) => $enrollments
-                            ->where('student_id', $student->id)
-                            ->where('status', 'active')
-                            ->where(fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now()))));
-            })
+            ->whereIn('classrooms.id', $access->activeClassroomIds($student))
             ->firstOrFail();
 
         abort_unless($classSession->status === 'scheduled' && $classSession->session_type === 'online', 404);

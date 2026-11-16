@@ -9,7 +9,8 @@
         <svg class="i"><use href="#arrl"/></svg>
     </button>
 
-    @forelse($homeBanners as $index => $banner)
+    @if($homeBanners->isNotEmpty())
+    @foreach($homeBanners as $index => $banner)
             <div class="sl {{ $index === 0 ? 'on' : '' }}" style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}">
                 @if($banner->image_path)
                     <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
@@ -37,7 +38,8 @@
                     <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
                 </div>
             </div>
-    @empty
+    @endforeach
+    @else
         <div class="sl on">
             <div style="position:relative;z-index:2">
                 <span class="bd">{{ $homeContent['hero_badge'] }}</span>
@@ -49,7 +51,7 @@
                 </div>
             </div>
         </div>
-    @endforelse
+    @endif
 
     <div class="dots" id="heroDots" {!! $homeBanners->count() < 2 ? 'hidden' : '' !!}></div>
 </header>
@@ -123,7 +125,8 @@
         </div>
         <div class="g4">
             {{-- دوره‌های واقعی دیتابیس --}}
-            @forelse(($courses ?? collect()) as $homeCourse)
+            @if(($courses ?? collect())->isNotEmpty())
+            @foreach($courses as $homeCourse)
                 <article class="card cc">
                     @php
                         $homeCourseGradients = [
@@ -162,12 +165,13 @@
                         </div>
                     </div>
                 </article>
-            @empty
+            @endforeach
+            @else
                 <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
                     <p style="margin:0;color:var(--mute)">در حال حاضر دوره‌ای برای نمایش منتشر نشده است.</p>
                     <a class="btn s" style="margin-top:12px" href="{{ route('public.courses.index') }}">مشاهده فهرست دوره‌ها</a>
                 </div>
-            @endforelse
+            @endif
 
 
         </div>

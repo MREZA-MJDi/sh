@@ -6,11 +6,13 @@ use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\User;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CourseEnrollmentService
 {
+    public function __construct(private readonly LearningAccessService $learningAccess) {}
     public function syncClassroomRoster(Classroom $classroom): void
     {
         $classroom->loadMissing('course');
@@ -202,14 +204,6 @@ class CourseEnrollmentService
 
     public function hasActiveAccess(User $student, Course $course): bool
     {
-        if ($course->status !== 'published' || ! $student->is_active || ! $student->hasRole('student')) {
-            return false;
-        }
-
-        return CourseEnrollment::query()
-            ->where('student_id', $student->id)
-            ->where('course_id', $course->id)
-            ->currentlyActive()
-            ->exists();
+        return $this->learningAccess->hasCourseAccess($student, $course);
     }
 }

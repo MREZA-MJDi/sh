@@ -1,35 +1,62 @@
 <?php
 
-use App\Http\Controllers\Admin\ChunkUploadController;
-use App\Http\Controllers\Admin\LearningAdminController;
-use App\Http\Controllers\Learning\CourseController;
-use App\Http\Controllers\Learning\EnrollmentController;
-use App\Http\Controllers\Learning\JoinClassController;
-use App\Http\Controllers\Learning\LessonController;
+use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
+use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\EnrollFreeCourseController;
+use App\Http\Controllers\Student\JoinClassSessionController;
+use App\Http\Controllers\Student\SpotPlayerLicenseController as StudentSpotPlayerLicenseController;
+use App\Http\Controllers\Student\VideoController as StudentVideoController;
 use Illuminate\Support\Facades\Route;
 
-// در انتهای routes/web.php:  require __DIR__.'/learning.php';
+/*
+|--------------------------------------------------------------------------
+| Learning routes
+|--------------------------------------------------------------------------
+|
+| Public course discovery and course detail remain owned by PublicSiteController
+| in web.php. This file contains only authenticated learning actions and does
+| not register a second /courses/{slug} route or a parallel enrollment model.
+|
+*/
 
-// ---------- عمومی / دانش‌آموز ----------
-Route::get('courses/{slug}', [CourseController::class, 'show'])->name('courses.show');
+Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
+    ->prefix('student')
+    ->name('student.')
+    ->group(function (): void {
+        Route::post('/class-sessions/{classSession}/join', JoinClassSessionController::class)
+            ->middleware('throttle:20,1')
+            ->name('class-sessions.join');
 
-Route::middleware('auth')->group(function () {
-    Route::post('courses/{slug}/enroll', EnrollmentController::class)->name('courses.enroll')->middleware('throttle:10,1');
-    Route::get('courses/{slug}/access-status', [CourseController::class, 'accessStatus'])->name('courses.access-status')->middleware('throttle:60,1');
-    Route::get('courses/{slug}/join', JoinClassController::class)->name('courses.join')->middleware('throttle:20,1');
-    Route::get('courses/{slug}/lessons/{lesson}', [LessonController::class, 'show'])->name('lessons.show');
-    Route::post('courses/{slug}/lessons/{lesson}/complete', [LessonController::class, 'toggleComplete'])->name('lessons.complete');
-});
+        Route::middleware('permission:videos.view.enrolled')->group(function (): void {
+            Route::get('/videos', [StudentVideoController::class, 'index'])->name('videos.index');
+            Route::get('/videos/{video}', [StudentVideoController::class, 'show'])->name('videos.show');
+            Route::get('/videos/{video}/stream', [StudentVideoController::class, 'stream'])->name('videos.stream');
+        });
 
-// ---------- ادمین ----------
-// نام مجوز را با مجوز واقعی پروژه عوض کن.
-Route::middleware(['auth', 'can:courses.manage'])->prefix('admin')->name('admin.')->group(function () {
-    Route::post('uploads/chunk', [ChunkUploadController::class, 'chunk'])->name('uploads.chunk');
-    Route::post('uploads/complete', [ChunkUploadController::class, 'complete'])->name('uploads.complete');
+        Route::middleware('permission:lessons.view')->group(function (): void {
+            Route::get('/courses', [StudentCourseController::class, 'index'])->name('courses.index');
+            Route::post('/courses/{course}/spotplayer-license', [StudentSpotPlayerLicenseController::class, 'store'])
+                ->middleware('throttle:3,1')
+                ->name('courses.spotplayer-license.store');
+            Route::post('/courses/{course}/enroll-free', EnrollFreeCourseController::class)
+                ->middleware('throttle:10,1')
+                ->name('courses.enroll-free');
+            Route::get('/courses/{course}', [StudentCourseController::class, 'show'])->name('courses.show');
+            Route::patch('/courses/{course}/lessons/{lesson}/progress', [StudentCourseController::class, 'updateProgress'])
+                ->middleware('permission:lessons.progress')
+                ->name('courses.lessons.progress');
+        });
 
-    Route::get('courses/{course}/teaser-status', [LearningAdminController::class, 'teaserStatus'])->name('courses.teaser.status');
-    Route::delete('courses/{course}/teaser', [LearningAdminController::class, 'destroyTeaser'])->name('courses.teaser.destroy');
+        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])
+            ->middleware('permission:resources.view.enrolled')
+            ->name('resources.download');
+    });
 
-    Route::post('licenses/{license}/retry', [LearningAdminController::class, 'retryLicense'])->name('licenses.retry');
-    Route::post('lessons/{lesson}/video/retry', [LearningAdminController::class, 'retryLessonVideo'])->name('lessons.video.retry');
-});
+Route::middleware(['auth', 'role:parent'])
+    ->prefix('parent')
+    ->name('guardian.')
+    ->group(function (): void {
+        Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])
+            ->middleware('permission:resources.view.enrolled')
+            ->name('resources.download');
+    });
