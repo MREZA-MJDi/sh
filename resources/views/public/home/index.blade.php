@@ -11,8 +11,7 @@
         <svg class="i"><use href="#arrl"/></svg>
     </button>
 
-    @if($banners->isNotEmpty())
-        @foreach($banners as $index => $banner)
+    @foreach($banners as $index => $banner)
             <div class="sl {{ $index === 0 ? 'on' : '' }}" style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}">
                 @if($banner->image_path)
                     <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
@@ -40,8 +39,7 @@
                     <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
                 </div>
             </div>
-        @endforeach
-    @endif
+    @endforeach
 
     <div class="dots" id="heroDots"></div>
 </header>
@@ -403,7 +401,6 @@
         </div>
     </div>
 </section>
-@endif
 @endif
 
 {{-- بنر اقدام به ثبت‌نام (CTA) --}}
