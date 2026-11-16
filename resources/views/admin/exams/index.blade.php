@@ -100,7 +100,7 @@
 @endsection
 
 @push('modals')
-<x-admin.modal id="exam-modal" title="آزمون جدید" size="lg" :action="url('admin/exams')">
+<x-admin.modal :demo="false" id="exam-modal" title="آزمون جدید" size="lg" :action="url('admin/exams')">
   <x-admin.legend title="اطلاعات آزمون" desc="آزمون می‌تواند به یک دوره، یک کلاس یا هر دو متصل شود."/>
   <x-admin.input label="عنوان آزمون" name="title" wide required/>
   <x-admin.textarea label="توضیحات" name="description" wide/>
