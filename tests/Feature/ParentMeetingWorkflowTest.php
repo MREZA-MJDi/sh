@@ -62,6 +62,11 @@ final class ParentMeetingWorkflowTest extends TestCase
         ]);
         $classroom->students()->attach($student->id);
 
+        $this->actingAs($teacher)
+            ->get(route('admin.parent-meetings.index'))
+            ->assertOk()
+            ->assertSee('جلسات اولیا');
+
         $this->actingAs($teacher)->post(route('admin.parent-meetings.store'), [
             'classroom_id' => $classroom->id,
             'student_id' => $student->id,
