@@ -44,10 +44,15 @@
                 <span class="bd">پایه {{ $course->grade }}</span>
             @endif
         </div>
-        <div class="mt" aria-label="نوع ارائه و کلاس‌های دوره">
-            <span>شیوه ارائه محتوا: {{ ['spotplayer' => 'ویدیوی آموزشی', 'skyroom' => 'آموزش زنده', 'onsite' => 'آموزش حضوری'][$course->delivery_type] ?? 'ترکیبی' }}</span>
+        <div class="mt" aria-label="امکانات و شیوه ارائه دوره">
+            @if($features['recorded_video'] ?? false)<span>آموزش ویدیویی</span>@endif
+            @if($features['live_class'] ?? false)<span>کلاس آنلاین</span>@endif
+            @if($features['resources'] ?? false)<span>منابع آموزشی</span>@endif
+            @if($features['assignments'] ?? false)<span>تکلیف و تمرین</span>@endif
+            @if($features['exams'] ?? false)<span>آزمون و کوییز</span>@endif
+            @if($features['projects'] ?? false)<span>پروژه مرحله‌ای</span>@endif
             <span>{{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال</span>
-            <span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>
+            @if($features['live_class'] ?? false)<span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>@endif
         </div>
     </div>
 </div>
