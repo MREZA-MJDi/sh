@@ -69,7 +69,7 @@
       </tbody>
     </table>
   </div>
-  @if($videos->hasPages())<x-slot:footer>{{ $videos->links() }}</x-slot:footer>@endif
+  <x-slot:footer>{{ $videos->links() }}</x-slot:footer>
 </x-admin.panel>
 
 @if(!$teacherView)
@@ -119,7 +119,7 @@
         </tbody>
       </table>
     </div>
-    @if($licenses->hasPages())<x-slot:footer>{{ $licenses->links() }}</x-slot:footer>@endif
+    <x-slot:footer>{{ $licenses->links() }}</x-slot:footer>
   </x-admin.panel>
 
   <x-admin.panel title="تاریخچه عملیات یکپارچه‌سازی" flush>
