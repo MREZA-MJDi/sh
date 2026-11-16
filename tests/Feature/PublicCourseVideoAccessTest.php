@@ -102,7 +102,7 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertSee('تماشای ویدیوهای دوره')
             ->assertSee('course-video-dialog')
             ->assertSee('جلسه اول دوره')
-            ->assertSee('https://player.example.test/embed/provider-video-1', false);
+            ->assertSee(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => SpotPlayerVideo::query()->where('course_id', $course->id)->value('id')]), false);
     }
 
     public function test_student_without_enrollment_does_not_receive_the_player_even_with_a_provider_license(): void
@@ -130,6 +130,29 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertOk()
             ->assertDontSee('تماشای ویدیوهای دوره')
             ->assertDontSee('course-video-dialog');
+    }
+
+    public function test_every_play_request_rechecks_enrollment_and_license_before_redirecting_to_provider(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+        $this->attachActiveProviderVideo($student, $course);
+        $video = SpotPlayerVideo::query()->where('course_id', $course->id)->firstOrFail();
+
+        $this->actingAs($student)
+            ->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertRedirect('https://player.example.test/embed/provider-video-1')
+            ->assertHeader('Cache-Control', 'private, no-store, max-age=0');
+
+        CourseEnrollment::query()
+            ->where('student_id', $student->id)
+            ->where('course_id', $course->id)
+            ->update(['expires_at' => now()->subSecond()]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertForbidden();
     }
 
     public function test_revoked_provider_license_does_not_receive_the_player(): void
