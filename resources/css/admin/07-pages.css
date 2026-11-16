@@ -1,0 +1,84 @@
+/* ───────── dashboard ───────── */
+.adm-bars{display:flex;align-items:flex-end;gap:14px;height:190px}
+.adm-bars>div{flex:1;height:100%;display:grid;grid-template-rows:1fr auto;justify-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.adm-bars .adm-bar{align-self:end;width:100%;max-width:44px;border-radius:9px 9px 3px 3px;background:var(--tone-soft);border-top:3px solid var(--tone);position:relative}
+.adm-bars .adm-bar b{position:absolute;top:-24px;inset-inline:0;text-align:center;font-size:11.5px;color:var(--ink)}
+.adm-todo{display:grid}
+.adm-todo a{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--line)}
+.adm-todo a:first-child{border-top:0}
+.adm-todo a:hover{background:var(--surface-2)}
+.adm-todo .adm-stat-ico{width:38px;height:38px;border-radius:11px}
+.adm-todo strong{margin-inline-start:auto;font-size:18px;font-weight:800;color:var(--tone)}
+.adm-session{display:flex;align-items:center;gap:14px;padding:13px 20px;border-top:1px solid var(--line)}
+.adm-session:first-child{border-top:0}
+.adm-session-time{width:62px;text-align:center;font-weight:800;line-height:1.4;padding:6px 0;border-radius:var(--r-sm);background:var(--tone-soft);color:var(--tone)}
+.adm-session-time small{display:block;font-weight:500;font-size:11px}
+.adm-session.is-live .adm-session-time{background:var(--bad);color:#fff}
+
+/* ───────── cards: courses / classes / resources ───────── */
+.adm-card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.adm-card-cover{position:relative;height:124px;padding:12px;display:flex;justify-content:space-between;align-items:flex-start;color:#fff;background:linear-gradient(135deg,#3b5bdb,#24364f)}
+.adm-card[data-c="2"] .adm-card-cover{background:linear-gradient(135deg,#28776d,#24364f)}
+.adm-card[data-c="3"] .adm-card-cover{background:linear-gradient(135deg,#e0902a,#c2410c)}
+.adm-card[data-c="4"] .adm-card-cover{background:linear-gradient(135deg,#0284c7,#24364f)}
+.adm-card-cover>.adm-icon{position:absolute;inset-inline-end:14px;bottom:-8px;width:88px;height:88px;opacity:.2;stroke-width:1.4}
+.adm-card-body{display:grid;gap:10px;padding:16px;flex:1;align-content:start}
+.adm-card-body h3{font-size:16px;font-weight:800}
+.adm-card-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px dashed var(--line)}
+.adm-meta{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.adm-meta span{display:inline-flex;gap:5px;align-items:center}
+.adm-meta .adm-icon{width:15px;height:15px}
+.adm-price{font-weight:800;color:var(--primary);font-size:15px}
+.adm-price s{font-weight:500;color:var(--muted);font-size:12px;margin-inline-start:6px}
+.adm-price.is-free{color:var(--ok)}
+.adm-card.is-class{border-inline-start:4px solid var(--primary)}
+.adm-card.is-class[data-c="2"]{border-inline-start-color:#28776d}
+.adm-card.is-class[data-c="3"]{border-inline-start-color:var(--gold)}
+.adm-card.is-class .adm-card-body{padding:18px}
+.adm-card-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.adm-card-title p{font-size:12px;color:var(--muted)}
+
+/* ───────── course builder ───────── */
+.adm-chapter{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.adm-chapter-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--surface-2);cursor:pointer}
+.adm-chapter-head h3{font-size:15px;font-weight:800}
+.adm-chapter-no{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;background:var(--tone,var(--primary));color:#fff}
+.adm-chapter.is-collapsed .adm-chapter-body{display:none}
+.adm-lesson{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--line);background:var(--surface)}
+.adm-lesson.is-dragging{opacity:.45}
+.adm-lesson.is-over{box-shadow:inset 0 3px 0 var(--primary)}
+.adm-lesson small{display:block;color:var(--muted)}
+.adm-lesson-ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--ok-soft);color:var(--ok)}
+.adm-lesson-ico.is-paid{background:var(--warn-soft);color:var(--warn)}
+.adm-grip{color:var(--muted);cursor:grab;display:grid}
+.adm-video{aspect-ratio:16/9;border-radius:var(--r);display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#1a2a52,#0b1220)}
+.adm-video .adm-icon{width:44px;height:44px;fill:currentColor;opacity:.9}
+
+/* ───────── attendance ───────── */
+.adm-marks{display:inline-flex;border:1px solid var(--line-strong);border-radius:99px;overflow:hidden;background:var(--surface)}
+.adm-marks label{position:relative;display:block}
+.adm-marks input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.adm-marks span{display:block;padding:3px 13px;font-size:12.5px;font-weight:700;color:var(--muted);border-inline-start:1px solid var(--line)}
+.adm-marks label:first-child span{border-inline-start:0}
+.adm-marks input:focus-visible+span{outline:2px solid var(--primary);outline-offset:-2px}
+.adm-marks [data-m=present] input:checked+span{background:var(--ok-soft);color:var(--ok)}
+.adm-marks [data-m=absent] input:checked+span{background:var(--bad-soft);color:var(--bad)}
+.adm-marks [data-m=late] input:checked+span{background:var(--warn-soft);color:var(--warn)}
+.adm-marks [data-m=excused] input:checked+span{background:var(--info-soft);color:var(--info)}
+.adm-tally{display:flex;gap:10px;flex-wrap:wrap}
+.adm-tally div{display:flex;gap:8px;align-items:center;padding:6px 14px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--line);font-size:12.5px}
+.adm-tally b{font-size:17px}
+.adm-tally [data-t=present] b{color:var(--ok)}.adm-tally [data-t=absent] b{color:var(--bad)}.adm-tally [data-t=late] b{color:var(--warn)}.adm-tally [data-t=excused] b{color:var(--info)}
+.adm-score{width:84px;text-align:center}
+
+/* ───────── inbox / messages ───────── */
+.adm-msg-snippet{max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12.5px}
+tr.is-unread td:first-child{box-shadow:inset 3px 0 0 var(--tone,var(--primary))}
+tr.is-unread .adm-msg-title{font-weight:800}
+
+/* ───────── resources ───────── */
+.adm-doc-ico{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:var(--tone-soft);color:var(--tone)}
+.adm-doc-ico .adm-icon{width:24px;height:24px}
+.adm-side-list{display:grid}
+.adm-side-list>div{display:flex;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid var(--line)}
+.adm-side-list>div:first-child{border-top:0}

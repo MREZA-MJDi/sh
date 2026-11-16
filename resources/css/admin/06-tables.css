@@ -1,0 +1,20 @@
+.adm-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+.adm-toolbar .adm-search-field{flex:1;min-width:200px;max-width:360px}
+.adm-toolbar .adm-select{width:auto;min-width:150px}
+.adm-toolbar .adm-input[type=date],.adm-toolbar .adm-input[type=time]{width:auto}
+.adm-toolbar-end{margin-inline-start:auto;display:flex;gap:10px;align-items:center}
+.adm-table-wrap{overflow:auto}
+.adm-table{width:100%;border-collapse:collapse}
+.adm-table th{text-align:start;font-size:12px;font-weight:700;color:var(--muted);padding:10px 20px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
+.adm-table td{padding:13px 20px;border-top:1px solid var(--line);vertical-align:middle}
+.adm-table tbody tr:first-child td{border-top:0}
+.adm-table tbody tr:hover td{background:var(--surface-2)}
+.adm-table td small{display:block;color:var(--muted);font-size:12px}
+.adm-table .is-end{text-align:end}
+.adm-table .is-nowrap{white-space:nowrap}
+.adm-table-compact th,.adm-table-compact td{padding:9px 14px}
+.adm-row-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:nowrap}
+.adm-copy{display:inline-flex;align-items:center;gap:6px;max-width:200px;padding:2px 10px;border:1px dashed var(--line-strong);border-radius:99px;font-size:12px;color:var(--ink-2);background:var(--surface-2)}
+.adm-copy span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr}
+.adm-copy .adm-icon{width:14px;height:14px}
+.adm-copy:hover{border-color:var(--primary);color:var(--primary)}

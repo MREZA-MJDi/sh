@@ -1,0 +1,71 @@
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:80px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.8 var(--font);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,ul,ol,dl,dd,figure{margin:0}
+ul,ol{padding:0;list-style:none}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+img,svg{max-width:100%}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.adm-icon{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.adm-muted{color:var(--muted)}
+.adm-hide{display:none!important}
+.adm-grow{flex:1;min-width:0}
+.adm-num{font-variant-numeric:tabular-nums}
+.adm-ltr{direction:ltr;unicode-bidi:plaintext;text-align:start}
+.adm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
+/* ───────── colourful icons: each icon has its own colour (--ic); tiles use white ───────── */
+.adm-icon{stroke:var(--ic,currentColor)}
+.adm-icon[data-ic=home]{--ic:#6366f1}
+.adm-icon[data-ic=book]{--ic:#f59e0b}
+.adm-icon[data-ic=cls]{--ic:#8b5cf6}
+.adm-icon[data-ic=live]{--ic:#ef4444}
+.adm-icon[data-ic=video]{--ic:#ec4899}
+.adm-icon[data-ic=users]{--ic:#f97316}
+.adm-icon[data-ic=user]{--ic:#f97316}
+.adm-icon[data-ic=teacher]{--ic:#14b8a6}
+.adm-icon[data-ic=family]{--ic:#f43f5e}
+.adm-icon[data-ic=check]{--ic:#22c55e}
+.adm-icon[data-ic=file]{--ic:#3b82f6}
+.adm-icon[data-ic=exam]{--ic:#6366f1}
+.adm-icon[data-ic=msg]{--ic:#a855f7}
+.adm-icon[data-ic=chat]{--ic:#a855f7}
+.adm-icon[data-ic=bell]{--ic:#f59e0b}
+.adm-icon[data-ic=lib]{--ic:#14b8a6}
+.adm-icon[data-ic=card]{--ic:#10b981}
+.adm-icon[data-ic=cal]{--ic:#3b82f6}
+.adm-icon[data-ic=clock]{--ic:#0ea5e9}
+.adm-icon[data-ic=search]{--ic:#64748b}
+.adm-icon[data-ic=plus]{--ic:#22c55e}
+.adm-icon[data-ic=edit]{--ic:#3b82f6}
+.adm-icon[data-ic=trash]{--ic:#ef4444}
+.adm-icon[data-ic=eye]{--ic:#0ea5e9}
+.adm-icon[data-ic=moon]{--ic:#6366f1}
+.adm-icon[data-ic=menu]{--ic:#64748b}
+.adm-icon[data-ic=x]{--ic:#64748b}
+.adm-icon[data-ic=grip]{--ic:#94a3b8}
+.adm-icon[data-ic=lock]{--ic:#f59e0b}
+.adm-icon[data-ic=up]{--ic:#3b82f6}
+.adm-icon[data-ic=down]{--ic:#3b82f6}
+.adm-icon[data-ic=tag]{--ic:#f97316}
+.adm-icon[data-ic=link]{--ic:#0ea5e9}
+.adm-icon[data-ic=copy]{--ic:#64748b}
+.adm-icon[data-ic=chev]{--ic:#94a3b8}
+.adm-icon[data-ic=alert]{--ic:#f59e0b}
+.adm-icon[data-ic=play]{--ic:#ef4444}
+.adm-icon[data-ic=logout]{--ic:#64748b}
+.adm-icon[data-ic=phone]{--ic:#22c55e}
+.adm-icon[data-ic=chart]{--ic:#6366f1}
+.adm-icon[data-ic=box]{--ic:#f59e0b}
+.adm-icon[data-ic=send]{--ic:#3b82f6}
+.adm-icon[data-ic=refresh]{--ic:#0ea5e9}
+.adm-stat-ico .adm-icon,.adm-pagehead-ico .adm-icon,.adm-card-cover>.adm-icon,.adm-doc-ico .adm-icon,.adm-chapter-no .adm-icon{--ic:#fff!important}
+.adm-btn-primary .adm-icon,.adm-btn:not([class*="adm-btn-"]) .adm-icon{--ic:var(--primary-ink)!important}
+.adm-stat-ico,.adm-pagehead-ico,.adm-doc-ico{background:linear-gradient(135deg,var(--tone),var(--tone-lt));color:#fff;box-shadow:0 6px 14px -8px var(--tone)}
+.adm-flags{display:inline-flex;gap:4px}
+.adm-flag{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface-2);opacity:.3;filter:grayscale(1)}
+.adm-flag.is-on{opacity:1;filter:none}
+.adm-flag .adm-icon{width:16px;height:16px}
