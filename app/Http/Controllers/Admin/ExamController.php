@@ -22,10 +22,22 @@ class ExamController extends Controller
         $classroomOptions = $classrooms->queryFor($user)->orderBy('name')->get(['id', 'name']);
         $courseOptions = $classrooms->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
 
+        $teacherView = $classrooms->isTeacher($user);
+        $pageRows = $records->getCollection();
+
+        $stats = [
+            'total' => $records->total(),
+            'upcoming' => $pageRows->whereIn('status', ['scheduled', 'published'])->count(),
+            'quiz24' => $pageRows->where('provider', 'quiz24')->count(),
+            'drafts' => $pageRows->where('status', 'draft')->count(),
+        ];
+
         return view('admin.exams.index', [
             'exams' => $records,
             'classrooms' => $classroomOptions,
             'courses' => $courseOptions,
+            'teacherView' => $teacherView,
+            'stats' => $stats,
         ]);
     }
 
