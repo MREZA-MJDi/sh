@@ -20,6 +20,7 @@ final class CourseController extends Controller
     {
         $courses = $workspace->coursesQueryFor(auth()->user())
             ->with('teacher')
+            ->withCount(['sections'])
             ->withCount([
                 'classrooms as active_classrooms_count' => fn ($classrooms) => $classrooms
                     ->where('status', 'active'),
