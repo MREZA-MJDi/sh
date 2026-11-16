@@ -12,6 +12,15 @@
         @endcan
     </div>
 
+    <section class="panel-card mb-4" data-tone="learning">
+        <div class="panel-card-title"><div><h3>ساختار آموزشی شیخان</h3><p>این سه سطح به هم مرتبط‌اند، اما جای یکدیگر را نمی‌گیرند.</p></div></div>
+        <div class="panel-grid panel-grid-3">
+            <div><strong>۱. دوره</strong><p class="panel-muted">بسته آموزشی، سرفصل‌ها، درس‌ها، قیمت و شیوه ارائه محتوا</p></div>
+            <div><strong>۲. کلاس</strong><p class="panel-muted">گروه اجرایی دانش‌آموزان با مدرس، عضویت و برنامه هفتگی</p></div>
+            <div><strong>۳. جلسه</strong><p class="panel-muted">هر نوبت مشخص برگزاری کلاس؛ آنلاین یا حضوری، با زمان و وضعیت مستقل</p></div>
+        </div>
+    </section>
+
     <section class="panel-grid panel-grid-3">
         <x-admin::stat label="دوره‌های این فهرست" :value="number_format($courses->total())" note="بر اساس دسترسی شما" accent="#7b8cff"/>
         <x-admin::stat label="دسترسی‌های ثبت‌شده" :value="number_format($courses->sum('active_enrollments_count'))" note="دسترسی‌های فعال و معتبر" accent="#0b8f80"/>
