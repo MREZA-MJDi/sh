@@ -231,8 +231,8 @@ function initChildSwitcher() {
 }
 
 function initDashboardNavigation() {
-    const links = $('[data-dashboard-nav-target]');
-    if (!links.length || typeof window.IntersectionObserver === 'undefined') {
+    const links = Array.from(document.querySelectorAll('[data-dashboard-nav-target]'));
+    if (links.length === 0 || typeof window.IntersectionObserver === 'undefined') {
         return;
     }
 

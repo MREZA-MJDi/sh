@@ -15,7 +15,8 @@
         } catch (error) {
             // Theme persistence is optional when browser storage is unavailable.
         }
-    </script>\n    @vite(['resources/css/student/app.css', 'resources/css/shared/typography.css', 'resources/js/student/app.js'])
+    </script>
+    @vite(['resources/css/student/app.css', 'resources/css/shared/typography.css', 'resources/js/student/app.js'])
     @stack('head')
 </head>
 <body class="student-page">
