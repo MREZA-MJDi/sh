@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -24,6 +25,15 @@ class CourseEnrollment extends Model
             'granted_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
+    }
+
+    public function scopeCurrentlyActive(Builder $query): Builder
+    {
+        return $query
+            ->where('status', 'active')
+            ->where(fn (Builder $expiry) => $expiry
+                ->whereNull('expires_at')
+                ->orWhere('expires_at', '>', now()));
     }
 
     public function course(): BelongsTo
