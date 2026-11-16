@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
