@@ -153,6 +153,6 @@
   <x-admin.select label="وضعیت دوره" name="status" :options="$statuses" required/>
 </x-admin.modal>
 
-<x-admin.confirm id="course-del" title="حذف دوره" text="حذف فقط برای دوره بدون سابقه آموزشی، ثبت‌نام و محتوای وابسته مجاز است؛ در غیر این صورت دوره باید بایگانی شود."/>
+<x-admin.confirm :demo="false" id="course-del" title="حذف دوره" text="حذف فقط برای دوره بدون سابقه آموزشی، ثبت‌نام و محتوای وابسته مجاز است؛ در غیر این صورت دوره باید بایگانی شود."/>
 @endif
 @endpush
