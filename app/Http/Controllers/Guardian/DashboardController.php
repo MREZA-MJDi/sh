@@ -71,13 +71,14 @@ final class DashboardController extends Controller
     public function attendance(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
-        $records = $data['attendance_calendar']->keyBy(fn ($record) => Carbon::parse($record->session_date)->day);
+        $records = $data['attendance_calendar']->groupBy(fn ($record) => Carbon::parse($record->session_date)->day);
         $start = now()->startOfMonth();
         $days = collect(range(1, now()->daysInMonth))->map(function (int $day) use ($records): array {
-            $record = $records->get($day);
-            $status = match ($record?->status) {
-                'present' => 'p', 'absent' => 'a', 'late' => 'l', default => 'future',
-            };
+            $dayRecords = $records->get($day, collect());
+            $statuses = $dayRecords->pluck('status');
+            $status = $statuses->contains('absent') ? 'a'
+                : ($statuses->contains('late') ? 'l'
+                : ($statuses->contains('present') ? 'p' : 'future'));
             return ['day' => $day, 'status' => $status, 'today' => $day === now()->day];
         });
 
