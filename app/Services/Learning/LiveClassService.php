@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Services\\Learning;
+namespace App\Services\Learning;
 
-use App\\Models\\Classroom;
-use App\\Models\\User;
-use App\\Services\\Skyroom\\SkyroomService;
+use App\Models\Classroom;
+use App\Models\User;
+use App\Services\Skyroom\SkyroomService;
 
 /**
  * Application-facing live-class facade.
