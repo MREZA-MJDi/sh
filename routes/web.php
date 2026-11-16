@@ -40,6 +40,7 @@ use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomework
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use App\Http\Controllers\Teacher\ConsultationController as TeacherConsultationController;
+use App\Http\Controllers\Teacher\PortalController as TeacherPortalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
@@ -218,6 +219,13 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/homework', [StudentDashboardController::class, 'homework'])->middleware('permission:homework.submit')->name('homework.index');
+        Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->middleware('permission:dashboard.view')->name('attendance');
+        Route::get('/results', [StudentDashboardController::class, 'results'])->middleware('permission:exams.view.own')->name('results');
+        Route::get('/resources', [StudentDashboardController::class, 'resources'])->middleware('permission:resources.view.enrolled')->name('resources.index');
+        Route::get('/library', [StudentDashboardController::class, 'library'])->middleware('permission:dashboard.view')->name('library');
+        Route::get('/live-classes', [StudentDashboardController::class, 'liveClasses'])->middleware('permission:dashboard.view')->name('live-classes');
+        Route::get('/achievements', [StudentDashboardController::class, 'achievements'])->middleware('permission:dashboard.view')->name('achievements');
         Route::get('/profile', [StudentProfileController::class, 'show'])->middleware('permission:profile.update')->name('profile.edit');
         Route::put('/profile', [StudentProfileController::class, 'update'])->middleware('permission:profile.update')->name('profile.update');
 
@@ -247,8 +255,18 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->prefix('teacher')
     ->name('teacher.')
     ->group(function (): void {
-        // Compatibility URL only: teachers use the exact same admin dashboard, layout and views.
+        // Independent teacher portal backed by the teacher-scoped dashboard service.
         Route::get('/', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/classes', [TeacherPortalController::class, 'classes'])->middleware('permission:classes.view.assigned')->name('classes');
+        Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
+        Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
+        Route::get('/attendance', [TeacherPortalController::class, 'attendance'])->middleware('permission:attendance.view.assigned')->name('attendance');
+        Route::post('/attendance', [TeacherPortalController::class, 'storeAttendance'])->middleware('permission:attendance.manage.assigned')->name('attendance.store');
+        Route::get('/live', [TeacherPortalController::class, 'live'])->middleware('permission:classes.view.assigned')->name('live');
+        Route::patch('/live/{session}', [TeacherPortalController::class, 'updateLiveSession'])->middleware('permission:classes.manage.assigned')->name('live.update');
+        Route::get('/meetings', [TeacherPortalController::class, 'meetings'])->middleware('permission:classes.view.assigned')->name('meetings');
+        Route::get('/messages', [TeacherPortalController::class, 'messages'])->middleware('permission:messages.view.assigned')->name('messages.index');
+        Route::post('/messages/{message}/reply', [TeacherPortalController::class, 'reply'])->middleware('permission:messages.reply')->name('messages.reply');
         Route::middleware('permission:consultations.create')->group(function (): void {
             Route::get('/consultations', [TeacherConsultationController::class, 'index'])->name('consultations.index');
             Route::post('/consultations', [TeacherConsultationController::class, 'store'])->middleware('throttle:5,1')->name('consultations.store');
@@ -264,6 +282,9 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/attendance', [GuardianDashboardController::class, 'attendance'])->name('attendance');
+        Route::get('/exams', [GuardianDashboardController::class, 'exams'])->name('exams');
+        Route::get('/homework', [GuardianDashboardController::class, 'homework'])->name('homework');
         Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
         Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
     });

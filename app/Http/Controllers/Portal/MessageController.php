@@ -37,10 +37,21 @@ final class MessageController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('shared.messages.index', [
+        $selectedMessage = $request->filled('message')
+            ? $this->accessibleMessage($request, Message::query()->findOrFail($request->integer('message')))
+            : $messages->getCollection()->first();
+
+        if ($selectedMessage) {
+            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+        }
+
+        return view($request->user()->hasRole('parent') ? 'parent.messages' : 'student.messages', [
             'messages' => $messages,
+            'selectedMessage' => $selectedMessage,
             'children' => $children,
             'selected_child' => $selectedChild,
+            'kids' => $children,
+            'kid' => $selectedChild,
             'student' => $student,
         ]);
     }
@@ -53,10 +64,12 @@ final class MessageController extends Controller
 
         $recipients = $this->availableRecipients($student, $access);
 
-        return view('shared.messages.create', [
+        return view($request->user()->hasRole('parent') ? 'parent.message-create' : 'student.message-create', [
             'student' => $student,
             'children' => $children,
             'selected_child' => $selectedChild,
+            'kids' => $children,
+            'kid' => $selectedChild,
             'recipients' => $recipients,
         ]);
     }
@@ -94,13 +107,19 @@ final class MessageController extends Controller
         $message = $this->accessibleMessage($request, $message)
             ->load(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
 
+        if ($request->user()->hasRole('parent')) {
+            $request->merge(['child' => $message->student_id]);
+        }
+
         [$student, $children, $selectedChild] = $this->context($request);
 
-        return view('shared.messages.show', [
+        return view($request->user()->hasRole('parent') ? 'parent.message-show' : 'student.message-show', [
             'message' => $message,
             'student' => $student,
             'children' => $children,
             'selected_child' => $selectedChild,
+            'kids' => $children,
+            'kid' => $selectedChild,
         ]);
     }
 

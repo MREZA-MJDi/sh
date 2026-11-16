@@ -12,7 +12,7 @@ final class ProfileController extends Controller
 {
     public function show(Request $request): View
     {
-        return view('student.profile', ['user' => $request->user()]);
+        return view('student.profile', ['student' => $request->user()]);
     }
 
     public function update(UpdateProfileRequest $request): RedirectResponse

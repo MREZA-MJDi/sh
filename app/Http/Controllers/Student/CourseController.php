@@ -28,7 +28,7 @@ final class CourseController extends Controller
         $pageCourseIds = $courses->getCollection()->pluck('id')->all();
         $progressByCourse = $progress->forStudent($request->user(), $pageCourseIds)->keyBy('id');
 
-        return view('student.courses.index', compact('courses', 'progressByCourse'));
+        return view('student.courses', compact('courses', 'progressByCourse'));
     }
 
     public function show(Request $request, int $course, LearningAccessService $access): RedirectResponse

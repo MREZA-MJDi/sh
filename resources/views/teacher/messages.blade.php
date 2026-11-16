@@ -1,31 +1,38 @@
 @extends('teacher.layouts.app')
-
 @section('title', 'پیام‌های اولیا')
-
 @section('content')
 <h2>پیام‌های اولیا</h2>
 <div class="chat">
-    <section class="c"><h3>گفت‌وگوها</h3>
-        @forelse (($conversations ?? []) as $c)
-            <a class="row" href="?c={{ data_get($c, 'id') }}"><div>{{ data_get($c, 'name') }}<small>{{ data_get($c, 'last') }}</small></div>
-                @if ((int) data_get($c, 'unread', 0) > 0)<i class="bd {{ data_get($c, 'complaint') ? 'rd' : 'pk' }}">{{ data_get($c, 'unread') }}</i>@endif
+    <section class="c"><div class="chead"><h3>گفت‌وگوها</h3><a class="b s" href="{{ route('teacher.messages.create') }}">پیام جدید</a></div>
+        @forelse ($conversations as $conversation)
+            <a class="row" href="{{ route('teacher.messages.index', ['message' => $conversation->id]) }}">
+                <div>{{ $conversation->subject }}<small>{{ $conversation->student?->name ?? $conversation->sender?->name }} · {{ $conversation->created_at?->format('Y/m/d H:i') }}</small></div>
+                <i class="bd {{ $conversation->status === 'open' ? 'am' : 'gn' }}">{{ $conversation->status }}</i>
             </a>
         @empty
             <p>گفت‌وگویی نیست.</p>
         @endforelse
+        {{ $conversations->links() }}
     </section>
 
-    <section class="c"><h3>{{ $conversationTitle ?? '' }}</h3>
-        <div class="msgs">
-            @foreach (($messages ?? []) as $m)
-                <div class="m {{ data_get($m, 'mine') ? 'me2' : '' }}">{{ data_get($m, 'text') }}</div>
-            @endforeach
-        </div>
-        <form class="send" method="POST" action="{{ url('teacher/messages/'.($conversationId ?? '').'/send') }}">
-            @csrf
-            <input name="message" placeholder="پیام خود را بنویسید…" autocomplete="off" required>
-            <button class="b" type="submit">ارسال پیام</button>
-        </form>
+    <section class="c"><h3>{{ $selectedMessage?->subject ?? 'گفت‌وگو' }}</h3>
+        @if ($selectedMessage)
+            <div class="msgs">
+                <div class="m">{{ $selectedMessage->sender?->name }}: {{ $selectedMessage->body }}</div>
+                @foreach ($selectedMessage->replies as $reply)
+                    <div class="m {{ $reply->sender_id === auth()->id() ? 'me2' : '' }}">{{ $reply->sender?->name }}: {{ $reply->body }}</div>
+                @endforeach
+            </div>
+            @if (!in_array($selectedMessage->status, ['closed', 'deleted'], true))
+                <form class="send" method="POST" action="{{ route('teacher.messages.reply', $selectedMessage) }}">
+                    @csrf
+                    <textarea name="body" required maxlength="30000" placeholder="پاسخ خود را بنویسید…"></textarea>
+                    <button class="b" type="submit">ارسال پاسخ</button>
+                </form>
+            @endif
+        @else
+            <p>برای مشاهده جزئیات، یک گفت‌وگو را انتخاب کنید.</p>
+        @endif
     </section>
 </div>
 @endsection
