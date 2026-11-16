@@ -40,7 +40,7 @@ final class VideoController extends Controller
     private function findAccessibleVideo(User $student, int $videoId): SpotPlayerVideo
     {
         return $this->accessibleVideos($student)
-            ->with(['course:id,title,delivery_type,spotplayer_course_id', 'classroom:id,name'])
+            ->with(['course:id,title,slug,delivery_type,spotplayer_course_id', 'classroom:id,name'])
             ->findOrFail($videoId);
     }
 
