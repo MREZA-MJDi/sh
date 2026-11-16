@@ -84,7 +84,7 @@ class SeoSetting extends Model
             'articles_title' => 'تازه‌ترین مقاله‌ها',
             'articles_description' => 'مطالب آموزشی و نکته‌های کاربردی آکادمی.',
             'blog_page_title' => 'مجله شیخان',
-            'blog_page_description' => 'نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی آکادمی.',
+            'blog_page_description' => '',
             'courses_page_title' => 'دوره‌های آموزشی',
             'courses_page_description' => 'بر اساس پایه تحصیلی و درس، دوره مناسب خودت را انتخاب کن.',
             'teachers_page_title' => 'مدرسان شیخان',
