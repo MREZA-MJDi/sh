@@ -101,6 +101,24 @@
  </div>
 
  <div class="row">
+  <div class="card" id="exam-results">
+   <div class="chead"><h2>نتایج و بازخورد آزمون‌ها</h2><a class="pill" href="{{ url('student/exams') }}">همه نتایج</a></div>
+   @forelse($results as $result)
+    <div class="trk">
+     <div>
+      <b>{{ $result->exam?->title ?? 'آزمون' }}</b>
+      <span>{{ number_format((float) $result->score, 2) }} از {{ number_format((float) $result->max_score, 2) }} · {{ $result->synced_at?->format('Y/m/d H:i') ?? 'ثبت‌شده' }}</span>
+      @if($result->feedback)<p>{{ $result->feedback }}</p>@endif
+     </div>
+     <span class="tag">کارنامه</span>
+    </div>
+   @empty
+    <p>هنوز نتیجه‌ای برای نمایش ثبت نشده است.</p>
+   @endforelse
+  </div>
+ </div>
+
+ <div class="row">
   <div class="card" id="resources">
    <div class="chead"><h2>جزوه‌ها و منابع</h2><a class="pill" href="{{ route('student.resources.index') }}">همه منابع</a></div>
    @forelse (($resources ?? collect()) as $resource)
