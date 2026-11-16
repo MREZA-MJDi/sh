@@ -51,13 +51,13 @@ final class CourseController extends Controller
             ->with('teacher:id,name')
             ->withCount('students')
             ->orderBy('name')
-            ->get(['id', 'course_id', 'teacher_id', 'name', 'schedule', 'meeting_url']);
+            ->get(['id', 'course_id', 'teacher_id', 'name', 'schedule', 'meeting_url', 'skyroom_room_id', 'skyroom_status']);
 
         $upcomingSessions = ClassSession::query()
             ->whereIn('classroom_id', $classrooms->modelKeys())
             ->where('status', 'scheduled')
             ->where('ends_at', '>=', now())
-            ->with('classroom:id,name')
+            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
             ->orderBy('starts_at')
             ->limit(8)
             ->get();
