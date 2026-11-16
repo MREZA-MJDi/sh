@@ -5,7 +5,7 @@
  <div class="g3">
   @forelse (($resources ?? collect()) as $resource)
    <div class="card cc"><div class="th"><svg class="i"><use href="{{ url('student/i-file') }}"/></svg></div><h3>{{ $resource->title }}</h3><p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }} · {{ $resource->kind }}</p>
-    @if ($resource->file_path)<a class="btn s" href="{{ route('student.resources.download', $resource) }}">دریافت منبع</a>@else<span class="tag">فایل ندارد</span>@endif
+    @if ($resource->file_path && $resource->downloadable)<a class="btn s" href="{{ route('student.resources.download', $resource) }}">دریافت منبع</a>@elseif ($resource->file_path)<span class="tag">دریافت این منبع غیرفعال است</span>@else<span class="tag">فایل ندارد</span>@endif
    </div>
   @empty
    <p>منبع منتشرشده‌ای برای شما وجود ندارد.</p>
