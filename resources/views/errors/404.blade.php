@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'صفحه پیدا نشد')
+@section('code', 'ERROR 404')
+@section('heading', 'این صفحه پیدا نشد')
+@section('message', 'ممکن است نشانی تغییر کرده باشد یا این صفحه دیگر منتشر نباشد. از مسیرهای اصلی آکادمی ادامه دهید.')
