@@ -27,11 +27,7 @@
         <p>@yield('message', 'این وضعیت ثبت شده است. می‌توانید به صفحه اصلی برگردید و دوباره تلاش کنید.')</p>
         <div class="actions">
             <a href="{{ url('/') }}">صفحه اصلی</a>
-            @auth
-                <a class="secondary" href="{{ route('dashboard.redirect') }}">پنل من</a>
-            @else
-                <a class="secondary" href="{{ route('login') }}">ورود به حساب</a>
-            @endauth
+
         </div>
     </main>
 </body>
