@@ -34,11 +34,16 @@
             </a>
 
         @endcanany
-        @canany(['classes.manage.assigned', 'classes.view.assigned'])
+        @can('classes.manage.assigned')
             <a data-tone="people" href="{{ route('admin.parent-meetings.index') }}" class="panel-nav-link {{ request()->routeIs('admin.parent-meetings.*') ? 'is-active' : '' }}">
                 <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-parents"/></svg></span><span>جلسات اولیا</span>
             </a>
-        @endcanany
+        @endcan
+        @can('consultations.create')
+            <a data-tone="talk" href="{{ route('teacher.consultations.index') }}" class="panel-nav-link {{ request()->routeIs('teacher.consultations.*') ? 'is-active' : '' }}">
+                <span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-phone"/></svg></span><span>مشاوره با مدیریت</span>
+            </a>
+        @endcan
 
     </nav>
     <div class="panel-sidebar-footer">
