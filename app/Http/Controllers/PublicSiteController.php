@@ -157,6 +157,7 @@ final class PublicSiteController extends Controller
                 ->where('student_id', $request->user()->id)
                 ->where('course_id', $course->id)
                 ->where('status', 'active')
+                ->whereNull('revoked_at')
                 ->whereNotNull('external_license_id')
                 ->whereNotNull('license_key')
                 ->latest('id')
@@ -216,6 +217,7 @@ final class PublicSiteController extends Controller
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
             ->where('status', 'active')
+            ->whereNull('revoked_at')
             ->whereNotNull('external_license_id')
             ->whereNotNull('license_key')
             ->first();
