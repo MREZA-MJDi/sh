@@ -40,6 +40,7 @@ use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomework
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use App\Http\Controllers\Teacher\ConsultationController as TeacherConsultationController;
+use App\Http\Controllers\Teacher\PortalController as TeacherPortalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
@@ -255,6 +256,12 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->group(function (): void {
         // Compatibility URL only: teachers use the exact same admin dashboard, layout and views.
         Route::get('/', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/classes', [TeacherPortalController::class, 'classes'])->middleware('permission:classes.view.assigned')->name('classes');
+        Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
+        Route::get('/attendance', [TeacherPortalController::class, 'attendance'])->middleware('permission:attendance.view.assigned')->name('attendance');
+        Route::get('/live', [TeacherPortalController::class, 'live'])->middleware('permission:classes.view.assigned')->name('live');
+        Route::get('/meetings', [TeacherPortalController::class, 'meetings'])->middleware('permission:classes.view.assigned')->name('meetings');
+        Route::get('/messages', [TeacherPortalController::class, 'messages'])->middleware('permission:messages.view.assigned')->name('messages.index');
         Route::middleware('permission:consultations.create')->group(function (): void {
             Route::get('/consultations', [TeacherConsultationController::class, 'index'])->name('consultations.index');
             Route::post('/consultations', [TeacherConsultationController::class, 'store'])->middleware('throttle:5,1')->name('consultations.store');
