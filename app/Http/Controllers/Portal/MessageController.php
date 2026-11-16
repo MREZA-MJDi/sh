@@ -98,6 +98,10 @@ final class MessageController extends Controller
         $message = $this->accessibleMessage($request, $message)
             ->load(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
 
+        if ($request->user()->hasRole('parent')) {
+            $request->merge(['child' => $message->student_id]);
+        }
+
         [$student, $children, $selectedChild] = $this->context($request);
 
         return view($request->user()->hasRole('parent') ? 'parent.message-show' : 'student.message-show', [
