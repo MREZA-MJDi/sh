@@ -181,4 +181,23 @@ final class PortalController extends Controller
             ->with('success', 'پاسخ شما ثبت شد.');
     }
 
+    public function updateLiveSession(Request $request, int $session, ClassroomWorkspaceService $workspace): RedirectResponse
+    {
+        $data = $request->validate([
+            'meeting_provider' => ['required', 'in:skyroom,bbb,link'],
+            'meeting_url' => ['nullable', 'url', 'max:2048'],
+        ]);
+
+        $record = ClassSession::query()
+            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->findOrFail($session);
+
+        $record->update([
+            'meeting_provider' => $data['meeting_provider'],
+            'meeting_url' => $data['meeting_url'] ?? null,
+        ]);
+
+        return back()->with('success', 'تنظیمات اتصال این جلسه ذخیره شد.');
+    }
+
 }
