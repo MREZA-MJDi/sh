@@ -78,7 +78,7 @@ final class PortalController extends Controller
         $students = $classroom?->students->map(fn ($student) => [
             'id' => $student->id,
             'name' => $student->name,
-            'status' => $records->get($student->id)?->status ?? 'present',
+            'status' => $records->get($student->id)?->status,
             'note' => $records->get($student->id)?->note,
         ]) ?? collect();
 
