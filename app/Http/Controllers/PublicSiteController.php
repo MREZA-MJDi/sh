@@ -170,7 +170,7 @@ final class PublicSiteController extends Controller
                 ->where('status', 'active')
                 ->whereNotNull('embed_url')
                 ->orderBy('id')
-                ->get(['id', 'title'])
+                ->get(['id', 'title', 'embed_url'])
                 ->filter(function (SpotPlayerVideo $video) use ($allowedEmbedHosts): bool {
                     $parts = parse_url((string) $video->embed_url);
                     $host = strtolower((string) ($parts['host'] ?? ''));
