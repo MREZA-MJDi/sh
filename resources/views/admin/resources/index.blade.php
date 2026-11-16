@@ -32,7 +32,7 @@
                         <td>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</td>
                         <td>{{ ['public'=>'عمومی','authenticated'=>'کاربران واردشده','enrolled'=>'اعضای دوره/کلاس'][$resource->visibility] ?? $resource->visibility }}</td>
                         <td><x-admin::badge :variant="$resource->status === 'published' ? 'success' : 'warning'">{{ ['published'=>'منتشرشده','draft'=>'پیش‌نویس','archived'=>'بایگانی'][$resource->status] ?? $resource->status }}</x-admin.badge></td>
-                        <td>@if($resource->file_path)<span class="panel-muted">ذخیره خصوصی · بدون لینک دریافت</span>@else<span class="panel-muted">فایل ندارد</span>@endif</td>
+                        <td>@if($resource->file_path)<a href="{{ route('admin.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت خصوصی' : 'مشاهده PDF' }}</a>@else<span class="panel-muted">فایل ندارد</span>@endif</td>
                         @canany(['resources.manage', 'resources.manage.assigned'])
                             <td class="panel-table-actions">
                                 <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="resource-edit-{{ $resource->id }}" data-drawer-title="ویرایش منبع">ویرایش</button>
@@ -55,7 +55,7 @@
                             <div class="panel-field"><label>قیمت (تومان)</label><input class="panel-input" type="number" name="price" min="0" value="{{ $resource->price }}"></div>
                             <div class="panel-field"><label>سطح دسترسی</label><select class="panel-select" name="visibility">@unless($teacherView)<option value="public" @selected($resource->visibility === 'public')>عمومی</option>@endunless<option value="authenticated" @selected($resource->visibility === 'authenticated')>کاربران واردشده</option><option value="enrolled" @selected($resource->visibility === 'enrolled')>اعضای دوره/کلاس</option></select></div>
                             <div class="panel-field"><label>زمان انتشار (اختیاری)</label><input class="panel-input" type="datetime-local" name="release_at" value="{{ $resource->release_at?->format('Y-m-d\\TH:i') }}"></div>
-                            <p class="panel-muted">فایل در فضای خصوصی نگهداری می‌شود و مسیر دریافت مستقیم برای کاربران ندارد.</p>
+                            <input type="hidden" name="downloadable" value="0"><label class="panel-checkbox"><input type="checkbox" name="downloadable" value="1" @checked($resource->downloadable)> اجازه دریافت فایل (در صورت غیرفعال بودن، PDF فقط در مرورگر باز می‌شود)</label>
                             <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach (['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($resource->status === $key)>{{ $label }}</option>@endforeach</select></div>
                             <div class="panel-field"><label>جایگزینی فایل (اختیاری)</label><input class="panel-input" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"><span class="panel-muted">فایل قبلی پس از ذخیره موفق جایگزین می‌شود.</span></div>
                         </x-admin.drawer-form>
@@ -80,7 +80,7 @@
             <div class="panel-field"><label>قیمت (تومان)</label><input class="panel-input" type="number" name="price" min="0" value="0"></div>
             <div class="panel-field"><label>سطح دسترسی</label><select class="panel-select" name="visibility">@unless($teacherView)<option value="public">عمومی</option>@endunless<option value="authenticated">کاربران واردشده</option><option value="enrolled" selected>اعضای دوره/کلاس</option></select></div>
             <div class="panel-field"><label>زمان انتشار (اختیاری)</label><input class="panel-input" type="datetime-local" name="release_at" value="{{ old('release_at') }}"></div>
-            <p class="panel-muted">فایل در فضای خصوصی نگهداری می‌شود و مسیر دریافت مستقیم برای کاربران ندارد.</p>
+            <input type="hidden" name="downloadable" value="0"><label class="panel-checkbox"><input type="checkbox" name="downloadable" value="1" checked> اجازه دریافت فایل (در صورت غیرفعال بودن، PDF فقط در مرورگر باز می‌شود)</label>
             <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status"><option value="draft">پیش‌نویس</option><option value="published">منتشرشده</option></select></div>
             <div class="panel-field"><label>فایل</label><input class="panel-input" type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"></div>
         </x-admin.drawer-form>
