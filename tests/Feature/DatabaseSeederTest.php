@@ -45,8 +45,8 @@ final class DatabaseSeederTest extends TestCase
             'demo.password' => 'Production-Demo-Only-2026!',
         ]);
 
-        $this->seed(DatabaseSeeder::class);
-        $this->seed(DatabaseSeeder::class);
+        app(DatabaseSeeder::class)->run();
+        app(DatabaseSeeder::class)->run();
 
         $this->assertDatabaseHas('users', ['email' => 'teacher@sh.local', 'is_active' => true]);
         $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
