@@ -30,6 +30,11 @@
       'admin/exams' => ['exams.manage'],
       'admin/quiz24' => ['integrations.manage'],
       'admin/contact-messages' => ['messages.view.all'],
+      'admin/parent-meetings' => ['classes.manage', 'classes.manage.assigned'],
+      'admin/seo' => ['seo.manage'],
+      'admin/seo/articles' => ['seo.manage'],
+      'admin/seo/banners' => ['seo.manage'],
+      'admin/seo/testimonials' => ['seo.manage'],
       'admin/messages' => ['messages.view.all', 'messages.view.assigned'],
       'admin/consultations' => ['consultations.manage'],
       'admin/announcements' => ['announcements.manage', 'announcements.view'],
@@ -39,8 +44,8 @@
     ];
     $nav['groups'] = collect($nav['groups'])->map(function ($group) use ($user, $isAdmin, $permissionMap) {
       $group['items'] = collect($group['items'])->filter(function ($item) use ($user, $isAdmin, $permissionMap) {
-        if ($isAdmin) return true;
         $permissions = $permissionMap[$item['url']] ?? [];
+        if ($isAdmin && count($permissions) === 0) return true;
         return $user && count($permissions) > 0 && $user->hasAnyPermission($permissions);
       })->values()->all();
 
