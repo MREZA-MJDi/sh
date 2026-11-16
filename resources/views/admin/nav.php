@@ -23,7 +23,8 @@ return [
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
             ['label' => 'پیام‌های اولیا', 'url' => 'admin/messages', 'icon' => 'msg'],
             ['label' => 'پیام‌های تماس', 'url' => 'admin/contact-messages', 'icon' => 'inbox'],
-            ['label' => 'مشاوره‌ها و جلسات', 'url' => 'admin/consultations', 'icon' => 'chat'],
+            ['label' => 'جلسات اولیا و مدرس', 'url' => 'admin/parent-meetings', 'icon' => 'calendar'],
+            ['label' => 'مشاوره‌ها', 'url' => 'admin/consultations', 'icon' => 'chat'],
             ['label' => 'اعلان‌ها', 'url' => 'admin/announcements', 'icon' => 'bell'],
         ]],
         ['label' => 'ثبت‌نام و فروش', 'tone' => 'shop', 'items' => [
