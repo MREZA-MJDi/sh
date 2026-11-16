@@ -1,9 +1,14 @@
-@extends('layouts.panel')
+@extends('admin.layouts.app')
 
 @section('page-title', 'کوییز ۲۴')
 @section('page-description', 'مدیریت آزمون‌های مرتبط، نگاشت دانش‌آموز و همگام‌سازی نتایج')
 
 @section('content')
+    @php
+        $operationStatusLabels = ['waiting_contract' => 'در انتظار قرارداد سرویس', 'queued' => 'در صف اجرا', 'running' => 'در حال اجرا', 'succeeded' => 'با موفقیت انجام شد', 'failed' => 'نیازمند بررسی', 'cancelled' => 'لغوشده'];
+        $operationStatusTones = ['waiting_contract' => 'warning', 'queued' => 'info', 'running' => 'info', 'succeeded' => 'success', 'failed' => 'danger', 'cancelled' => 'muted'];
+        $operationActionLabels = ['sync_exam_catalog' => 'دریافت فهرست آزمون‌ها', 'verify_exam_mapping' => 'بررسی اتصال آزمون', 'create_exam' => 'ساخت آزمون خارجی', 'sync_exam_results' => 'دریافت نتایج آزمون', 'create_student_launch_url' => 'ساخت لینک ورود دانش‌آموز'];
+    @endphp
     <section class="panel-card mb-4">
         <div class="panel-card-title">
             <div><h3>وضعیت وب‌سرویس Quiz24</h3><p>هسته داخلی آماده است اما قرارداد API و دسترسی واقعی هنوز تحویل نشده است.</p></div>
@@ -108,9 +113,9 @@
                 <tbody>
                 @forelse ($operations as $operation)
                     <tr>
-                        <td>{{ $operation->action }}</td>
+                        <td>{{ $operationActionLabels[$operation->action] ?? 'عملیات یکپارچه‌سازی' }}</td>
                         <td>{{ class_basename($operation->entity_type ?? '—') }} #{{ $operation->entity_id ?? '—' }}</td>
-                        <td><span class="panel-badge panel-badge-warning">{{ $operation->status }}</span></td>
+                        <td><span class="panel-badge panel-badge-{{ $operationStatusTones[$operation->status] ?? 'warning' }}">{{ $operationStatusLabels[$operation->status] ?? 'در حال بررسی' }}</span></td>
                         <td dir="ltr">{{ $operation->correlation_id ?: '—' }}</td>
                         <td>{{ $operation->created_at?->format('Y-m-d H:i') }}</td>
                     </tr>
