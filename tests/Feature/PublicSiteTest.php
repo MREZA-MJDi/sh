@@ -92,6 +92,7 @@ class PublicSiteTest extends TestCase
 
         $homeView = app(\App\Http\Controllers\PublicSiteController::class)->home();
         $this->assertTrue($homeView->getData()['courses']->contains('title', 'دوره منتشرشده'));
+        $this->assertTrue($homeView->getData()['banners']->contains('title', 'بنر صفحه اصلی'));
 
         $this->get(route('home'))
             ->assertOk()
