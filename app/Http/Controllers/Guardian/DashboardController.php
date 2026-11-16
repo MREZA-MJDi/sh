@@ -1,12 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers\\Guardian;
+namespace App\Http\Controllers\Guardian;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Services\\GuardianDashboardService;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\View\\View;
+use App\Http\Controllers\Controller;
+use App\Services\GuardianDashboardService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\View\View;
 
 final class DashboardController extends Controller
 {
