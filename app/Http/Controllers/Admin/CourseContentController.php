@@ -33,7 +33,9 @@ final class CourseContentController extends Controller
             ])
             ->findOrFail($course);
 
-        return view('admin.courses.content', compact('course'));
+        $teacherView = $workspace->isTeacher(request()->user());
+
+        return view('admin.courses.content', compact('course', 'teacherView'));
     }
 
     public function storeSection(Request $request, int $course, ClassroomWorkspaceService $workspace): RedirectResponse
