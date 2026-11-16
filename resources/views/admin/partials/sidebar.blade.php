@@ -73,7 +73,7 @@
 
         {{-- SEO is a separate internal workspace. The client/admin role must never see this entry. --}}
         @can('seo.manage')
-            <button type="button" class="panel-nav-heading" data-tone="system" data-admin-nav-group-toggle aria-expanded="false">فضای کاری سئو</button>
+            <button type="button" class="panel-nav-heading" data-tone="system" data-admin-nav-group-toggle aria-expanded="false">محتوا و بهینه‌سازی</button>
             <a data-tone="system" href="{{ route('admin.seo.index') }}" class="panel-nav-link {{ request()->routeIs('admin.seo.*') ? 'is-active' : '' }}"><span class="panel-nav-icon"><svg class="admin-icon"><use href="#admin-star"/></svg></span><span>مدیریت سئو</span></a>
         @endcan
     </nav>
