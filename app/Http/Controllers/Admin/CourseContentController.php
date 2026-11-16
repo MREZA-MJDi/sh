@@ -22,6 +22,14 @@ final class CourseContentController extends Controller
                 'sections' => fn ($sections) => $sections
                     ->orderBy('sort_order')->orderBy('id')
                     ->with(['lessons' => fn ($lessons) => $lessons->orderBy('sort_order')->orderBy('id')]),
+                'classrooms' => fn ($classrooms) => $classrooms
+                    ->with('teacher:id,name')
+                    ->withCount(['students', 'sessions'])
+                    ->orderBy('name'),
+            ])
+            ->withCount([
+                'classrooms as active_classrooms_count' => fn ($classrooms) => $classrooms->where('status', 'active'),
+                'enrollments as active_enrollments_count' => fn ($enrollments) => $enrollments->currentlyActive(),
             ])
             ->findOrFail($course);
 
