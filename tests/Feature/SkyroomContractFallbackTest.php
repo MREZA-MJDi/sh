@@ -41,26 +41,26 @@ final class SkyroomContractFallbackTest extends TestCase
         ]);
 
         $this->app->instance(
-            \\App\\Services\\Skyroom\\Contracts\\SkyroomGateway::class,
-            new class implements \\App\\Services\\Skyroom\\Contracts\\SkyroomGateway {
-                public function health(): \\App\\Services\\Integrations\\Contracts\\IntegrationHealth
+            \App\Services\Skyroom\Contracts\SkyroomGateway::class,
+            new class implements \App\Services\Skyroom\Contracts\SkyroomGateway {
+                public function health(): \App\Services\Integrations\Contracts\IntegrationHealth
                 {
-                    return new \\App\\Services\\Integrations\\Contracts\\IntegrationHealth(true, 'ready', 'متصل');
+                    return new \App\Services\Integrations\Contracts\IntegrationHealth(true, 'ready', 'متصل');
                 }
 
-                public function createRoom(\\App\\Services\\Skyroom\\Contracts\\SkyroomRoomCommand $command): string
+                public function createRoom(\App\Services\Skyroom\Contracts\SkyroomRoomCommand $command): string
                 {
-                    throw new \\App\\Services\\Integrations\\IntegrationException('Provider timeout');
+                    throw new \App\Services\Integrations\IntegrationException('Provider timeout');
                 }
 
-                public function createLoginUrl(\\App\\Services\\Skyroom\\Contracts\\SkyroomLoginCommand $command): string
+                public function createLoginUrl(\App\Services\Skyroom\Contracts\SkyroomLoginCommand $command): string
                 {
-                    throw new \\App\\Services\\Integrations\\IntegrationException('Provider timeout');
+                    throw new \App\Services\Integrations\IntegrationException('Provider timeout');
                 }
 
-                public function fetchAttendance(string $externalMeetingId, \\DateTimeImmutable $from, \\DateTimeImmutable $to): iterable
+                public function fetchAttendance(string $externalMeetingId, \DateTimeImmutable $from, \DateTimeImmutable $to): iterable
                 {
-                    throw new \\App\\Services\\Integrations\\IntegrationException('Provider timeout');
+                    throw new \App\Services\Integrations\IntegrationException('Provider timeout');
                 }
             }
         );
