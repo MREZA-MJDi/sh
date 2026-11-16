@@ -32,7 +32,7 @@
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
      <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ $session->session_type === 'onsite' ? 'حضوری' : 'آنلاین' }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
      @if ($session->session_type === 'online')
-      <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="ورود به کلاس"><svg class="i"><use href="#i-play"/></svg></button></form>
+      <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="پیوستن به کلاس آنلاین"><svg class="i"><use href="#i-play"/></svg></button></form>
      @else
       <span class="tag">حضوری</span>
      @endif
@@ -54,6 +54,9 @@
      <div class="th" style="background:linear-gradient(160deg,#c3d2dd,#6f8fb3)"></div>
      <div><b>{{ $homework->title }}</b><span>{{ $homework->classroom?->name }} · {{ $homework->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت' }}</span></div>
      <span class="tag">{{ $homework->submitted_by_student_count ? 'ارسال‌شده' : 'در انتظار' }}</span>
+     @if ($homework->submissions->first()?->score !== null)
+      <span class="tag">نمره: {{ strtr(rtrim(rtrim(number_format((float) $homework->submissions->first()->score, 2, '.', ''), '0'), '.'), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از ۲۰</span>
+     @endif
      @if ($homework->submissions->first()?->feedback)
       <p>نتیجه بررسی مدرس: {{ $homework->submissions->first()->feedback }}</p>
      @endif
@@ -65,9 +68,9 @@
  </div>
  <div class="row">
   <div class="card">
-   <div class="chead"><h2>پیشرفت دوره‌ها</h2><a class="pill" href="{{ url('student/courses') }}">همه</a></div>
+   <div class="chead"><h2>پیشرفت دوره‌های من</h2><a class="pill" href="{{ url('student/courses') }}">همه</a></div>
    @forelse ($courseItems as $course)
-    <div class="trk"><div><b>{{ data_get($course, 'title') }}</b><span>{{ data_get($course, 'completed_lessons', 0) }} از {{ data_get($course, 'total_lessons', 0) }} درس</span></div><div class="prog"><i style="width:{{ (int) data_get($course, 'progress_percent', 0) }}%"></i></div></div>
+    <div class="trk"><div><b>{{ data_get($course, 'title') }}</b><span>{{ strtr((string) data_get($course, 'completed_lessons', 0), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} از {{ strtr((string) data_get($course, 'total_lessons', 0), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']) }} درس تکمیل‌شده</span></div><div class="prog"><i style="width:{{ (int) data_get($course, 'progress_percent', 0) }}%"></i></div></div>
    @empty
     <p>دوره‌ی فعالی برای نمایش وجود ندارد.</p>
    @endforelse
