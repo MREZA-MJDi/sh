@@ -110,6 +110,42 @@ class PublicSiteTest extends TestCase
             ->assertDontSee('مقاله پیش‌نویس');
     }
 
+    public function test_homepage_exposes_quiz_api_urls_on_the_element_read_by_its_script(): void
+    {
+        $response = $this->get(route('home'))->assertOk();
+        $html = $response->getContent();
+
+        $this->assertStringContainsString(
+            'id="homeQuiz"'.' data-question-url="'.url('/home-quiz/question').'"',
+            $html
+        );
+        $this->assertStringContainsString(
+            'data-answer-url="'.route('public.home.quiz.answer').'"',
+            $html
+        );
+        $this->assertStringNotContainsString(
+            'class="home-quiz-card" data-question-url=',
+            $html
+        );
+    }
+
+    public function test_home_quiz_serves_all_five_questions_without_exposing_answers(): void
+    {
+        for ($step = 1; $step <= 5; $step++) {
+            $response = $this->get(route('public.home.quiz.question', ['step' => $step]))
+                ->assertOk()
+                ->assertJsonPath('success', true)
+                ->assertJsonPath('step', $step)
+                ->assertJsonPath('total', 5)
+                ->assertJsonStructure([
+                    'question' => ['id', 'category', 'question', 'options'],
+                ]);
+
+            $this->assertArrayNotHasKey('answer', $response->json('question'));
+            $this->assertArrayNotHasKey('explanation', $response->json('question'));
+        }
+    }
+
     public function test_homepage_renders_without_published_courses(): void
     {
         Course::query()->where('status', 'published')->delete();
