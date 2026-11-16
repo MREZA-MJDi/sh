@@ -71,4 +71,46 @@ final class StudentCourseClassScheduleTest extends TestCase
             ->assertSee('ورود به کلاس')
             ->assertSee(route('student.class-sessions.join', $session));
     }
+    public function test_student_does_not_see_join_action_when_online_session_has_no_ready_room(): void
+    {
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره بدون اتاق',
+            'slug' => 'course-without-room',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'skyroom',
+            'status' => 'published',
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس در انتظار اتاق',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+        ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه بدون لینک',
+            'session_type' => 'online',
+            'starts_at' => now()->subMinute(),
+            'ends_at' => now()->addMinutes(50),
+            'meeting_provider' => 'skyroom',
+            'status' => 'scheduled',
+            'created_by' => $teacher->id,
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('student.courses.show', $course))
+            ->assertOk()
+            ->assertSee('لینک ورود هنوز آماده نیست')
+            ->assertDontSee('ورود به کلاس');
+    }
+
 }
