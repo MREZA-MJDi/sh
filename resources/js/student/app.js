@@ -232,7 +232,7 @@ function initChildSwitcher() {
 
 function initDashboardNavigation() {
     const links = $('[data-dashboard-nav-target]');
-    if (!links.length || typeof window.IntersectionObserver === 'undefined') {
+    if (links.length === 0 || typeof window.IntersectionObserver === 'undefined') {
         return;
     }
 
