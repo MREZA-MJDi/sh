@@ -19,11 +19,15 @@ final class SessionController extends Controller
 {
     public function create(): View
     {
-        $showDemoAccounts = app()->environment('local') && config('demo.enabled');
+        $demoPassword = config('demo.password');
+        $showDemoAccounts = config('demo.enabled')
+            && config('demo.login_cards_enabled')
+            && is_string($demoPassword)
+            && mb_strlen($demoPassword) >= 12;
 
         return view('auth.login', [
             'demoAccounts' => $showDemoAccounts ? config('demo.accounts', []) : [],
-            'demoPassword' => $showDemoAccounts ? config('demo.password') : null,
+            'demoPassword' => $showDemoAccounts ? $demoPassword : null,
         ]);
     }
 
