@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('title', 'نشست منقضی شد')
+@section('code', 'ERROR 419')
+@section('heading', 'نشست شما منقضی شده است')
+@section('message', 'برای حفظ امنیت، این درخواست دیگر معتبر نیست. دوباره وارد حساب شوید و عملیات را تکرار کنید.')
