@@ -37,8 +37,17 @@ final class MessageController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $selectedMessage = $request->filled('message')
+            ? $this->accessibleMessage($request, Message::query()->findOrFail($request->integer('message')))
+            : $messages->getCollection()->first();
+
+        if ($selectedMessage) {
+            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+        }
+
         return view($request->user()->hasRole('parent') ? 'parent.messages' : 'student.messages', [
             'messages' => $messages,
+            'selectedMessage' => $selectedMessage,
             'children' => $children,
             'selected_child' => $selectedChild,
             'kids' => $children,
