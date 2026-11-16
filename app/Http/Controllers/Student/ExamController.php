@@ -15,7 +15,7 @@ final class ExamController extends Controller
 {
     public function index(Request $request, StudentExamService $exams): View
     {
-        return view('student.exams.index', [
+        return view('student.exams', [
             'exams' => $exams->query($request->user())->paginate(12)->withQueryString(),
         ]);
     }
