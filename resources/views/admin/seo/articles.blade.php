@@ -45,7 +45,7 @@
         <input type="hidden" name="image_position" value="{{ old('image_position', '50% 50%') }}" data-image-position>
         <div class="seo-admin-live-preview" data-seo-image-preview data-preview-kind="article">
             <div class="seo-admin-section-head"><div><h3>پیش‌نمایش کارت مقاله در صفحه اصلی</h3><p>اندازه‌ی قاب تصویر دقیقاً نسبت ۱۶:۹ کارت عمومی است. برای تنظیم نقطه‌ی برش، تصویر را با ماوس یا لمس بکش.</p></div></div>
-            <article class="seo-admin-blog-card"><div class="seo-admin-blog-image"><img data-preview-image alt="" hidden><span data-preview-placeholder>پیش‌نمایش تصویر مقاله</span></div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ old('title', 'عنوان مقاله') }}</strong><p data-preview-excerpt>{{ old('excerpt', 'خلاصه مقاله در این بخش نمایش داده می‌شود.') }}</p></div></article>
+            <article class="seo-admin-blog-card"><div class="seo-admin-blog-image"><img data-preview-image alt="" hidden><span data-preview-placeholder>پیش‌نمایش تصویر مقاله</span></div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ old('title', 'عنوان مقاله') }}</strong><p data-preview-excerpt hidden>{{ old('excerpt') }}</p></div></article>
             <p class="seo-admin-field-hint" data-preview-dimensions>نسبت تصویر ۱۶:۹ · object-fit: cover · نمایش در کارت صفحه اصلی</p>
         </div>
         <div class="seo-admin-section-head"><div><h3>تنظیمات اختصاصی موتور جست‌وجو</h3><p>در صورت خالی‌بودن عنوان یا توضیح، از عنوان مقاله و خلاصه یا تنظیمات پیش‌فرض سایت استفاده می‌شود.</p></div></div>
@@ -100,7 +100,7 @@
                                     <div class="seo-admin-section-head"><div><h3>پیش‌نمایش کارت مقاله در صفحه اصلی</h3><p>نسبت ۱۶:۹ و برش مشابه کارت عمومی؛ تصویر را بکش تا نقطه‌ی کانونی تنظیم شود.</p></div></div>
                                     <article class="seo-admin-blog-card"><div class="seo-admin-blog-image">
                                         @if($article->featured_image_path)<img data-preview-image src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="object-position: {{ $article->image_position ?? '50% 50%' }}">@else<img data-preview-image alt="" hidden><span data-preview-placeholder>برای این مقاله هنوز تصویر شاخص ثبت نشده است.</span>@endif
-                                    </div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ $article->title }}</strong><p data-preview-excerpt>{{ $article->excerpt ?: 'خلاصه مقاله در این بخش نمایش داده می‌شود.' }}</p></div></article>
+                                    </div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ $article->title }}</strong><p data-preview-excerpt @if(blank($article->excerpt)) hidden @endif>{{ $article->excerpt }}</p></div></article>
                                     <p class="seo-admin-field-hint">نسبت تصویر ۱۶:۹ · object-fit: cover · نمایش در کارت صفحه اصلی</p>
                                 </div>
                                 <button class="panel-btn" type="submit">ذخیره تغییرات مقاله</button>
