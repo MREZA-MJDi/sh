@@ -41,10 +41,14 @@
 
     <div class="prem">
         <h4>کلاس بعدی</h4>
-        <p>{{ $nextSession?->classroom?->name ?? 'کلاس برنامه‌ریزی‌شده‌ای ندارید' }}</p>
+        <p>{{ $nextSession?->title ?: ($nextSession?->classroom?->name ?? 'کلاس برنامه‌ریزی‌شده‌ای ندارید') }}</p>
         @if ($nextSession)
             <p>{{ $nextSession->starts_at?->format('Y/m/d H:i') }}</p>
-            <form method="POST" action="{{ route('student.class-sessions.join', $nextSession) }}">@csrf<button class="btn s" type="submit">ورود به کلاس</button></form>
+            @if ($nextSession->session_type === 'online')
+                <form method="POST" action="{{ route('student.class-sessions.join', $nextSession) }}">@csrf<button class="btn s" type="submit">ورود به کلاس آنلاین</button></form>
+            @else
+                <span class="tag">جلسه حضوری</span>
+            @endif
         @endif
         <form method="POST" action="{{ url('logout') }}">@csrf<button type="submit">خروج</button></form>
     </div>
