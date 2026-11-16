@@ -73,4 +73,25 @@ class Course extends Model
     {
         return $this->hasMany(SpotPlayerVideo::class);
     }
+
+    /**
+     * Backward-compatible feature policy: explicit matrix values always win;
+     * legacy courses retain their former delivery defaults until configured.
+     */
+    public function featureEnabled(string $feature): bool
+    {
+        $features = $this->learning_features;
+
+        if (is_array($features) && array_key_exists($feature, $features)) {
+            return (bool) $features[$feature];
+        }
+
+        return match ($feature) {
+            'recorded_video' => $this->delivery_type === 'spotplayer',
+            'live_class' => $this->delivery_type === 'skyroom',
+            'resources', 'assignments', 'exams' => true,
+            'projects' => false,
+            default => false,
+        };
+    }
 }
