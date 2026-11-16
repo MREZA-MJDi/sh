@@ -176,18 +176,19 @@
                     @endforelse
                 </div>
 
-                <div class="student-session-list" aria-label="جلسه‌های آنلاین">
+                <div class="student-session-list" aria-label="جلسه‌های پیش‌رو">
                     @forelse ($upcoming_sessions as $session)
                         @php
                             $sessionJoinUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
                             $hasJoinTarget = filled($sessionJoinUrl)
                                 || (filled($session->classroom?->skyroom_room_id) && $session->classroom?->skyroom_status === 'ready');
-                            $sessionJoinable = $session->starts_at->lte(now()->addMinutes(15))
+                            $sessionJoinable = $session->session_type === 'online'
+                                && $session->starts_at->lte(now()->addMinutes(15))
                                 && $session->ends_at?->gte(now())
                                 && $hasJoinTarget;
                         @endphp
                         <article class="student-class-item">
-                            <span class="student-class-item__icon"><x-icon name="video"/></span>
+                            <span class="student-class-item__icon"><x-icon name="{{ $session->session_type === 'online' ? 'video' : 'map-pin' }}"/></span>
                             <div class="student-class-item__body">
                                 <h3>{{ $session->title }}</h3>
                                 <p>{{ $session->classroom?->name ?? 'کلاس آموزشی' }}</p>
@@ -198,12 +199,14 @@
                                     @csrf
                                     <button class="btn s" type="submit">ورود به کلاس</button>
                                 </form>
+                            @elseif ($session->session_type !== 'online')
+                                <span class="tag">حضوری</span>
                             @else
                                 <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? 'ورود نزدیک زمان شروع فعال می‌شود' : 'لینک ورود هنوز آماده نیست' }}</span>
                             @endif
                         </article>
                     @empty
-                        <p class="mu">جلسه آنلاین فعالی برای کلاس‌های شما زمان‌بندی نشده است.</p>
+                        <p class="mu">جلسه‌ای برای کلاس‌های شما زمان‌بندی نشده است.</p>
                     @endforelse
                 </div>
             </section>
