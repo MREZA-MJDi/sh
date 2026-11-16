@@ -142,7 +142,7 @@ final class PublicSiteController extends Controller
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess'));
+        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess', 'upcomingOnlineSessionCount'));
     }
 
     public function teachers(Request $request): View
