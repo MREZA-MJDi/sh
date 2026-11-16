@@ -265,6 +265,7 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::get('/live', [TeacherPortalController::class, 'live'])->middleware('permission:classes.view.assigned')->name('live');
         Route::patch('/live/{session}', [TeacherPortalController::class, 'updateLiveSession'])->middleware('permission:classes.manage.assigned')->name('live.update');
         Route::get('/meetings', [TeacherPortalController::class, 'meetings'])->middleware('permission:classes.view.assigned')->name('meetings');
+        Route::patch('/meetings/{meeting}', [TeacherPortalController::class, 'updateMeeting'])->middleware('permission:classes.manage.assigned')->name('meetings.update');
         Route::get('/messages', [TeacherPortalController::class, 'messages'])->middleware('permission:messages.view.assigned')->name('messages.index');
         Route::post('/messages/{message}/reply', [TeacherPortalController::class, 'reply'])->middleware('permission:messages.reply')->name('messages.reply');
         Route::middleware('permission:consultations.create')->group(function (): void {
