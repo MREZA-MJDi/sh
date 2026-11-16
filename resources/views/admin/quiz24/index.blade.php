@@ -59,7 +59,7 @@
       @endforelse
     </tbody>
   </table></div>
-  @if($exams->hasPages())<x-slot:footer>{{ $exams->links() }}</x-slot:footer>@endif
+  <x-slot:footer>{{ $exams->links() }}</x-slot:footer>
 </x-admin.panel>
 
 <x-admin.panel title="شرکت‌کنندگان و نتایج نیازمند تطبیق" desc="شناسه خارجی باید به یک حساب فعال دانش‌آموز متصل شود؛ نتیجه پس از تطبیق وارد کارنامه می‌شود." flush>
@@ -94,7 +94,7 @@
       @endforelse
     </tbody>
   </table></div>
-  @if($unmatched->hasPages())<x-slot:footer>{{ $unmatched->links() }}</x-slot:footer>@endif
+  <x-slot:footer>{{ $unmatched->links() }}</x-slot:footer>
 </x-admin.panel>
 
 <x-admin.panel title="تاریخچه عملیات Quiz24" flush>
