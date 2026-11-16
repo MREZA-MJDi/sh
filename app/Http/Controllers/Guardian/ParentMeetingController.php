@@ -40,7 +40,12 @@ final class ParentMeetingController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'course_id']);
 
-        return view('guardian.meetings.index', compact('children', 'meetings', 'classrooms'));
+        return view('parent.meetings', [
+            'kids' => $children,
+            'kid' => $children->first(),
+            'meetings' => $meetings,
+            'classrooms' => $classrooms,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
