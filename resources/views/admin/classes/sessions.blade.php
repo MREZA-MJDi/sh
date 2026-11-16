@@ -91,5 +91,5 @@
   <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
   <p class="adm-muted" style="grid-column:1/-1">برای جلسه آنلاین، ثبت زمان‌بندی به لینک خارجی وابسته نیست. تا پیش از آماده‌شدن اتصال Skyroom، جلسه ذخیره می‌شود اما دکمه ورود دانش‌آموز نمایش داده نمی‌شود.</p>
 </x-admin.modal>
-<x-admin.confirm id="session-delete" title="حذف جلسه" text="جلسه دارای سابقه حضور یا کلیک ورود حذف نمی‌شود؛ آن را لغو کنید تا سوابق حفظ شود."/>
+<x-admin.confirm :demo="false" id="session-delete" title="حذف جلسه" text="جلسه دارای سابقه حضور یا کلیک ورود حذف نمی‌شود؛ آن را لغو کنید تا سوابق حفظ شود."/>
 @endpush
