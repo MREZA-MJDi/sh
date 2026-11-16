@@ -3,7 +3,7 @@
 @section('title', 'داشبورد')
 
 @section('content')
-<h2>سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h2>
+<h2>فضای کاری مدرس · سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h2>
 <div class="g">
     <div class="g g4">
         <div class="st am"><b>{{ $stats['classes_today'] }}</b><span>کلاس‌های تحت مدیریت</span><small>{{ $stats['classes_today_note'] }}</small></div>
