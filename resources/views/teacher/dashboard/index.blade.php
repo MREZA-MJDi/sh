@@ -145,9 +145,9 @@
     </section>
 
     <section class="teacher-dashboard__actions">
-        @canany(['classes.view.assigned', 'classes.manage.assigned'])
+        @can('classes.manage.assigned')
             <a class="admin-quick-action" href="{{ route('admin.parent-meetings.index') }}"><span class="admin-quick-action-icon">♧</span><span>جلسات اولیا</span></a>
-        @endcanany
+        @endcan
         @can('resources.manage.assigned')
             <a class="admin-quick-action" href="{{ route('admin.resources.index') }}"><span class="admin-quick-action-icon">▧</span><span>منابع آموزشی</span></a>
         @endcan
