@@ -62,6 +62,7 @@ final class DashboardController extends Controller
             ->map(fn ($submission) => [
                 'teacher' => $submission->reviewer?->name ?? 'مدرس',
                 'text' => $submission->feedback,
+                'score' => $submission->score,
                 'type' => 'feedback',
             ]);
 
