@@ -248,7 +248,7 @@
                         <article style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--ln);flex-wrap:wrap">
                             <div style="min-width:220px;flex:1">
                                 <strong style="display:block">{{ $session->title }}</strong>
-                                <span class="mu" style="font-size:13px">{{ $session->classroom?->name ?? 'گروه کلاسی' }}</span>
+                                <span class="mu" style="font-size:13px">{{ $session->can_join ? ($session->classroom?->name ?? 'گروه آموزشی شما') : 'گروه آموزشی' }}</span>
                                 <div style="margin-top:5px;font-size:13px;color:var(--mute)">
                                     {{ $session->starts_at?->translatedFormat('l d F Y، H:i') }}
                                     @if($session->ends_at) — {{ $session->ends_at->translatedFormat('H:i') }} @endif
