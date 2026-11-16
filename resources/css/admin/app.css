@@ -15,7 +15,7 @@ body.admin-body {
     --adm-sidebar:var(--brand-sidebar); --adm-sidebar-muted:var(--brand-sidebar-muted);
     --adm-shadow:var(--brand-shadow);
     margin:0; min-height:100dvh; background:var(--adm-bg); color:var(--adm-ink);
-    font:14px/1.8 Vazirmatn,Tahoma,sans-serif; color-scheme:light;
+    font:14px/1.8 Vazirmatn Variable,Tahoma,sans-serif; color-scheme:light;
 }
 html:has(body.admin-body[data-theme="dark"]) { color-scheme:dark; }
 body.admin-body[data-theme="dark"], html[data-admin-theme="dark"] body.admin-body {
