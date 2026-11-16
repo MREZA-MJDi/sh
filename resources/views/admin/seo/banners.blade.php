@@ -44,9 +44,9 @@
             <div class="seo-admin-section-head"><div><h3>پیش‌نمایش واقعی بنر</h3><p>محل نمایش را تغییر بده؛ قاب زیر متناسب با نمایش عمومی همان جایگاه عوض می‌شود. روی تصویر بکش تا نقطه کانونی برش تنظیم شود.</p></div></div>
             <div class="seo-admin-preview-hero" data-preview-hero>
                 <img data-preview-image alt="" hidden>
-                <div class="seo-admin-preview-hero-copy"><span>ویژه دانش‌آموزان شیخان</span><h2 data-preview-title>{{ old('title', 'عنوان بنر') }}</h2><p>آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای منتشرشده.</p><span class="seo-admin-preview-cta">مشاهده اطلاعات</span></div>
+                <div class="seo-admin-preview-hero-copy"><span>{{ $settings->home_sections['hero_badge'] ?? '' }}</span><h2 data-preview-title>{{ old('title', 'عنوان بنر') }}</h2><p>{{ $settings->home_sections['hero_description'] ?? '' }}</p><div class="seo-admin-preview-actions"><span class="seo-admin-preview-cta">{{ $settings->home_sections['hero_primary_label'] ?? '' }}</span><span class="seo-admin-preview-cta seo-admin-preview-cta-secondary">{{ $settings->home_sections['hero_secondary_label'] ?? '' }}</span></div></div>
             </div>
-            <div class="seo-admin-preview-article-banner" data-preview-article-banner hidden><img data-preview-article-image alt="" hidden><span data-preview-article-title>{{ old('title', 'عنوان بنر') }}</span></div>
+            <div class="seo-admin-preview-article-banner" data-preview-article-banner hidden><img data-preview-article-image alt="" hidden></div>
             <p class="seo-admin-field-hint" data-preview-dimensions>نمایش صفحه اصلی: تصویر پس‌زمینه تمام‌عرض با ارتفاع متناسب با صفحه و پوشش بصری متن</p>
         </div>
         <label class="seo-admin-check"><input type="checkbox" name="open_in_new_tab" value="1" @checked(old('open_in_new_tab'))><span><strong>بازکردن لینک در زبانه جدید</strong><br><small>برای لینک خارجی از ویژگی امن noopener استفاده می‌شود.</small></span></label>
@@ -86,9 +86,9 @@
                                     <div class="seo-admin-section-head"><div><h3>پیش‌نمایش محل انتشار</h3><p>قاب واقعی جایگاه انتخاب‌شده؛ برای تغییر نقطه‌ی برش تصویر را بکش.</p></div></div>
                                     <div class="seo-admin-preview-hero" data-preview-hero>
                                         <img data-preview-image src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}">
-                                        <div class="seo-admin-preview-hero-copy"><span>ویژه دانش‌آموزان شیخان</span><h2 data-preview-title>{{ $banner->title }}</h2><p>آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای منتشرشده.</p><span class="seo-admin-preview-cta">مشاهده اطلاعات</span></div>
+                                        <div class="seo-admin-preview-hero-copy"><span>{{ $settings->home_sections['hero_badge'] ?? '' }}</span><h2 data-preview-title>{{ $banner->title }}</h2><p>{{ $settings->home_sections['hero_description'] ?? '' }}</p><div class="seo-admin-preview-actions"><span class="seo-admin-preview-cta">{{ $settings->home_sections['hero_primary_label'] ?? '' }}</span><span class="seo-admin-preview-cta seo-admin-preview-cta-secondary">{{ $settings->home_sections['hero_secondary_label'] ?? '' }}</span></div></div>
                                     </div>
-                                    <div class="seo-admin-preview-article-banner" data-preview-article-banner hidden><img data-preview-article-image src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}"><span data-preview-article-title>{{ $banner->title }}</span></div>
+                                    <div class="seo-admin-preview-article-banner" data-preview-article-banner hidden><img data-preview-article-image src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}"></div>
                                     <p class="seo-admin-field-hint" data-preview-dimensions>پیش‌نمایش مطابق محل نمایش انتخاب‌شده</p>
                                 </div>
                                 <button class="panel-btn" type="submit">ذخیره تغییرات</button>
