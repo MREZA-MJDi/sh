@@ -16,7 +16,7 @@
 
 <x-admin.page-head tone="users" icon="users" :title="$roleLabel" desc="مدیریت حساب‌ها، وضعیت و ارتباط آموزشی">
   @if($canManage)
-    <x-admin.btn icon="plus" data-modal-open="user-modal">افزودن {{ $role === 'student' ? 'دانش‌آموز' : ($role === 'teacher' ? 'مدرس' : 'ولی') }}</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="user-modal">{{ $role === 'teacher' ? 'ساخت مدرس' : ($role === 'student' ? 'افزودن دانش‌آموز' : 'افزودن ولی') }}</x-admin.btn>
   @endif
 </x-admin.page-head>
 
@@ -105,9 +105,10 @@
     <x-admin.textarea label="یادداشت پروفایل" name="profile_note" wide/>
     <x-admin.select label="وضعیت حساب" name="status" :options="['active' => 'فعال', 'pending' => 'در انتظار تأیید']" required/>
     <x-admin.chips label="دوره‌های تخصیص‌یافته" name="course_ids" :options="$courseOptions"/>
-    <x-admin.chips label="گروه‌های دسترسی" name="teacher_access" :options="$teacherAccessOptions"/>
+    <x-admin.chips label="دسترسی‌ها" name="teacher_access" :options="$teacherAccessOptions"/>
+    <div class="wide"><b>گروه‌های دسترسی مدرس</b><ul class="adm-list">@foreach($teacherAccessGroups as $group)<li>{{ $group['label'] }}</li>@endforeach</ul></div>
   @else
-    <div class="wide" data-student-lookup data-endpoint="{{ route('admin.lookups.students') }}">
+    <div class="wide" data-student-lookup data-remote-lookup data-endpoint="{{ route('admin.lookups.students') }}">
       <label class="adm-label" for="parent-student-search">جستجوی فرزند بر اساس نام یا شماره تماس</label>
       <div class="adm-actions">
         <input id="parent-student-search" type="search" class="adm-input" data-student-lookup-input minlength="2" maxlength="80" placeholder="حداقل دو حرف وارد کنید">
@@ -119,7 +120,7 @@
         <input type="hidden" name="child_ids[]" value="{{ $child->id }}">
         <span class="adm-chip">{{ $child->name }}</span>
       @endforeach
-      <p class="adm-muted">فهرست کامل دانش‌آموزان بارگذاری نمی‌شود؛ فقط نتیجه جستجوی شما و حداکثر ۲۰ مورد نمایش داده می‌شود.</p>
+      <p class="adm-muted">حداقل دو حرف وارد کنید. فهرست کامل دانش‌آموزان بارگذاری نمی‌شود؛ فقط نتیجه جستجوی شما و حداکثر ۲۰ مورد نمایش داده می‌شود.</p>
     </div>
   @endif
   <x-admin.legend title="امنیت حساب"/>
