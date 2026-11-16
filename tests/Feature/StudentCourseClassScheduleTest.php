@@ -113,4 +113,46 @@ final class StudentCourseClassScheduleTest extends TestCase
             ->assertDontSee('ورود به کلاس');
     }
 
+    public function test_student_dashboard_shows_onsite_sessions_without_a_join_button(): void
+    {
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره حضوری نمونه',
+            'slug' => 'onsite-sample-course',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس حضوری صبح',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+        ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه حضوری اول',
+            'session_type' => 'onsite',
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
+            'status' => 'scheduled',
+            'created_by' => $teacher->id,
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('student.dashboard'))
+            ->assertOk()
+            ->assertSee('جلسه حضوری اول')
+            ->assertSee('حضوری')
+            ->assertDontSee('ورود به کلاس');
+    }
+
 }
