@@ -21,6 +21,7 @@ final class PublicSiteController extends Controller
     public function home(): View
     {
         $settings = SeoSetting::current();
+        $homeContent = is_array($settings->home_sections) ? $settings->home_sections : SeoSetting::defaultHomeSections();
         $banners = SeoBanner::query()->active()->where('placement', 'home_hero')
             ->orderBy('sort_order')->orderBy('id')->get();
 
@@ -51,7 +52,7 @@ final class PublicSiteController extends Controller
             'enrollments' => CourseEnrollment::query()->where('status', 'active')->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
-        return view('public.home.index', compact('settings', 'banners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
+        return view('public.home.index', compact('settings', 'homeContent', 'banners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
     }
 
     public function courses(Request $request): View
