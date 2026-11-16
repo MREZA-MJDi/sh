@@ -15,7 +15,7 @@ final class EnrollFreeCourseController extends Controller
         $enrollments->enrollFreeCourse($request->user(), $course);
 
         return redirect()
-            ->route('student.courses.show', $course)
+            ->route('public.courses.show', $course->slug)
             ->with('success', 'ثبت‌نام رایگان انجام شد؛ دوره به فهرست دوره‌های شما اضافه شد.');
     }
 }
