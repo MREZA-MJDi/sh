@@ -10,7 +10,22 @@
 <div class="g">
     <div class="g g2">
         <section class="c"><h3>سرویس کلاس</h3>
-            <div class="chips"><span class="chip">{{ $providerNames[$currentProvider] ?? $currentProvider }}</span></div>
+            @if ($firstSession)
+                <form method="POST" action="{{ route('teacher.live.update', $firstSession) }}">
+                    @csrf @method('PATCH')
+                    <label>سرویس جلسه</label>
+                    <div class="chips">
+                        @foreach ($providerNames as $key => $label)
+                            <label class="chip"><input type="radio" name="meeting_provider" value="{{ $key }}" @checked($currentProvider === $key)>{{ $label }}</label>
+                        @endforeach
+                    </div>
+                    <label>لینک جلسه</label>
+                    <input type="url" name="meeting_url" value="{{ $firstSession->meeting_url }}" placeholder="https://...">
+                    <button class="b s" type="submit">ذخیره اتصال</button>
+                </form>
+            @else
+                <span class="chip">جلسه‌ای برای تنظیم وجود ندارد</span>
+            @endif
             <div class="frame"><div>اتاق کلاس<br><small>{{ $firstSession?->classroom?->name ?? 'جلسه‌ای برای نمایش وجود ندارد' }}</small></div></div>
         </section>
         <section class="c"><h3>روش اتصال</h3>
