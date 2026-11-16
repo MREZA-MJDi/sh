@@ -135,14 +135,14 @@
 @endsection
 
 @push('modals')
-<x-admin.modal id="section-modal" title="فصل جدید" size="md" :action="route('admin.courses.sections.store', $course)">
+<x-admin.modal :demo="false" id="section-modal" title="فصل جدید" size="md" :action="route('admin.courses.sections.store', $course)">
   <x-admin.input label="عنوان فصل" name="title" wide required/>
   <x-admin.textarea label="توضیحات فصل" name="description" wide/>
   <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
   <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" required/>
 </x-admin.modal>
 
-<x-admin.modal id="lesson-modal" title="درس جدید" size="md" :action="url('admin/course-sections/0/lessons')">
+<x-admin.modal :demo="false" id="lesson-modal" title="درس جدید" size="md" :action="url('admin/course-sections/0/lessons')">
   <x-admin.input label="عنوان درس" name="title" wide required/>
   <x-admin.textarea label="متن / توضیحات درس" name="body" wide/>
   <x-admin.input label="مدت (دقیقه)" name="duration_minutes" type="number" min="0" max="600"/>
