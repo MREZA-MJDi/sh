@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="robots" content="noindex, nofollow, noarchive">
   <title>@yield('title') — پنل مدیریت آکادمی شیخان</title>
   <script>try{var t=localStorage.getItem('adm-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
   @vite(['resources/css/admin/app.css', 'resources/js/admin/app.js'])
