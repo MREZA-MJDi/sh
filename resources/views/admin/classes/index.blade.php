@@ -44,8 +44,25 @@
                             @if ($classroom->meeting_url)
                                 <a href="{{ $classroom->meeting_url }}" target="_blank" rel="noopener noreferrer" dir="ltr">ورود به اسکای‌روم ↗</a>
                             @else
-                                <span class="panel-muted">لینک ثبت نشده</span>
+                                <span class="panel-muted">لینک دستی ثبت نشده</span>
                             @endif
+                            <div class="panel-muted" style="margin-top:6px">
+                                @if ($classroom->skyroom_status === 'ready')
+                                    اتاق Skyroom تأیید شده
+                                @elseif ($classroom->skyroom_status === 'waiting_contract')
+                                    ساخت خودکار در انتظار قرارداد API
+                                @else
+                                    اتاق خودکار هنوز ساخته نشده
+                                @endif
+                            </div>
+                            @canany(['classes.manage', 'classes.manage.assigned'])
+                                @if (! $classroom->skyroom_room_id)
+                                    <form method="POST" action="{{ route('admin.classes.skyroom-room', $classroom) }}" style="margin-top:6px">
+                                        @csrf
+                                        <button class="panel-btn panel-btn-secondary panel-btn-sm" type="submit">آماده‌سازی اتاق آنلاین</button>
+                                    </form>
+                                @endif
+                            @endcanany
                         </td>
                         @canany(['classes.manage', 'classes.manage.assigned'])
                             <td><div style="display:flex;gap:6px;flex-wrap:wrap"><a class="panel-btn panel-btn-sm" href="{{ route('admin.classes.sessions.index', $classroom) }}">جلسه‌ها</a><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="class-edit-{{ $classroom->id }}" data-drawer-title="ویرایش کلاس">ویرایش</button></div></td>
