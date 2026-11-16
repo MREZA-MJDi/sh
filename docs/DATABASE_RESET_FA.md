@@ -2,7 +2,7 @@
 
 ## بازسازی کامل دیتابیس توسعه
 
-> **هشدار:** دستور `migrate:fresh` تمام جدول‌ها و داده‌های دیتابیس انتخاب‌شده را حذف می‌کند. فقط روی دیتابیس توسعه‌ای که از آن نسخه پشتیبان داری اجرا کن؛ هرگز روی دیتابیس واقعی/Production اجرا نکن.
+ > **هشدار جدی:** دستور `migrate:fresh` تمام جدول‌ها و داده‌های دیتابیس انتخاب‌شده را حذف می‌کند. روی دیتابیس مشتری واقعی اجرا نکن؛ فقط روی دیتابیس Demo مستقل و قابل حذف، پس از تأیید مالک داده اجرا شود.
 
 در فایل `.env` محیط محلی:
 
@@ -67,6 +67,41 @@ php artisan up
 ```dotenv
 SHIKHAN_DEMO_ACCOUNTS=false
 SHIKHAN_DEMO_LOGIN_CARDS=false
+```
+
+
+## Production نمایشی (فقط دیتابیس مستقل و قابل حذف)
+
+اگر سرور یک دیتابیس جداگانه برای نمایش به کارفرما دارد و عمداً می‌خواهی پس از reset حساب‌ها و داده‌های نمایشی از نو ساخته شوند، محتوای آکادمی در Production نیز با دو فلگ صریح فعال می‌شود:
+
+```dotenv
+SHIKHAN_DEMO_ACCOUNTS=true
+SHIKHAN_DEMO_LOGIN_CARDS=true
+SHIKHAN_DEMO_PASSWORD=یک-رمز-قوی-و-موقت-حداقل-۱۲-کاراکتر
+SHIKHAN_SEED_ACADEMY_CONTENT=true
+```
+
+پس از بررسی `DB_DATABASE` و اطمینان از اینکه دیتابیس فقط مخصوص Demo است، یک دستور همه مراحل را انجام می‌دهد؛ نیازی به اجرای جداگانه `db:seed` نیست:
+
+```bash
+php artisan optimize:clear
+php artisan migrate:fresh --seed --force
+php artisan optimize:clear
+php artisan config:cache
+```
+
+Seederها با کلیدهای پایدار و `updateOrCreate` قابل اجرای مجدد هستند. حساب‌های نمونه، دوره‌ها، کلاس‌ها، سرفصل‌ها و داده‌های آموزشی فقط وقتی ساخته می‌شوند که هر دو فلگ `SHIKHAN_DEMO_ACCOUNTS` و `SHIKHAN_SEED_ACADEMY_CONTENT` روشن باشند. برای مخفی ماندن کارت ورود، `SHIKHAN_DEMO_LOGIN_CARDS=false` بماند.
+
+پس از پایان جلسه، هر سه فلگ `SHIKHAN_DEMO_ACCOUNTS`، `SHIKHAN_DEMO_LOGIN_CARDS` و `SHIKHAN_SEED_ACADEMY_CONTENT` را خاموش کن و رمز موقت را عوض کن. این تنظیمات را روی دیتابیس واقعی مشتری فعال نکن.
+
+## Production واقعی
+
+در دیتابیس واقعی از `migrate:fresh` استفاده نکن؛ فقط migrationهای افزایشی و Seeder نقش/مجوز را اجرا کن. فلگ‌های محتوای نمایشی باید خاموش باشند:
+
+```dotenv
+SHIKHAN_DEMO_ACCOUNTS=false
+SHIKHAN_DEMO_LOGIN_CARDS=false
+SHIKHAN_SEED_ACADEMY_CONTENT=false
 ```
 
 ## نکته سازگاری Migration جلسات اولیا
