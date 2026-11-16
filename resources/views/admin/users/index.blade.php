@@ -106,14 +106,104 @@
     <x-admin.chips label="دوره‌های تخصیص‌یافته" name="course_ids" :options="$courseOptions"/>
     <x-admin.chips label="گروه‌های دسترسی" name="teacher_access" :options="$teacherAccessOptions"/>
   @else
-    <p class="adm-muted" style="grid-column:1/-1">برای اتصال فرزندان، شناسه حساب دانش‌آموز را در فیلدهای زیر وارد کنید. فهرست کامل دانش‌آموزان به‌صورت پیش‌فرض بارگذاری نمی‌شود.</p>
-    <x-admin.input label="شناسه دانش‌آموز اول" name="child_ids[]" type="number"/>
-    <x-admin.input label="شناسه دانش‌آموز دوم" name="child_ids[]" type="number"/>
-    <x-admin.input label="شناسه دانش‌آموز سوم" name="child_ids[]" type="number"/>
+    <div class="wide" data-student-lookup data-endpoint="{{ route('admin.lookups.students') }}">
+      <label class="adm-label" for="parent-student-search">جستجوی فرزند بر اساس نام یا شماره تماس</label>
+      <div class="adm-actions">
+        <input id="parent-student-search" type="search" class="adm-input" data-student-lookup-input minlength="2" maxlength="80" placeholder="حداقل دو حرف وارد کنید">
+        <button type="button" class="adm-btn adm-btn-line" data-student-lookup-search>جستجو</button>
+      </div>
+      <div data-student-lookup-results aria-live="polite"></div>
+      <div data-student-lookup-selected class="adm-actions"></div>
+      @foreach($selectedChildren as $child)
+        <input type="hidden" name="child_ids[]" value="{{ $child->id }}">
+        <span class="adm-chip">{{ $child->name }}</span>
+      @endforeach
+      <p class="adm-muted">فهرست کامل دانش‌آموزان بارگذاری نمی‌شود؛ فقط نتیجه جستجوی شما و حداکثر ۲۰ مورد نمایش داده می‌شود.</p>
+    </div>
   @endif
   <x-admin.legend title="امنیت حساب"/>
   <x-admin.input label="گذرواژه اولیه (حداقل ۱۲ کاراکتر)" name="password" type="password" required autocomplete="new-password"/>
   <x-admin.input label="تکرار گذرواژه" name="password_confirmation" type="password" required autocomplete="new-password"/>
 </x-admin.modal>
 @endif
+
+@if($role === 'parent' && $canManage)
+<script>
+(() => {
+  const root = document.querySelector('[data-student-lookup]');
+  if (!root) return;
+  const input = root.querySelector('[data-student-lookup-input]');
+  const search = root.querySelector('[data-student-lookup-search]');
+  const results = root.querySelector('[data-student-lookup-results]');
+  const selected = root.querySelector('[data-student-lookup-selected]');
+  const endpoint = root.dataset.endpoint;
+  const chosen = new Set(Array.from(root.querySelectorAll('input[name="child_ids[]"]')).map((el) => el.value));
+
+  const addStudent = (student) => {
+    if (chosen.has(String(student.id))) return;
+    chosen.add(String(student.id));
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'child_ids[]';
+    hidden.value = student.id;
+    const chip = document.createElement('span');
+    chip.className = 'adm-chip';
+    chip.textContent = student.label + (student.meta ? ' · ' + student.meta : '');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'adm-btn adm-btn-line adm-btn-sm';
+    remove.textContent = 'حذف';
+    remove.addEventListener('click', () => {
+      chosen.delete(String(student.id));
+      hidden.remove();
+      chip.remove();
+      remove.remove();
+    });
+    selected.append(hidden, chip, remove);
+  };
+
+  search?.addEventListener('click', async () => {
+    const query = input?.value?.trim() || '';
+    if (query.length < 2) {
+      results.textContent = 'برای جستجو حداقل دو حرف وارد کنید.';
+      return;
+    }
+    results.textContent = 'در حال جستجو…';
+    try {
+      const response = await fetch(endpoint + '?q=' + encodeURIComponent(query), {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      });
+      if (!response.ok) throw new Error('جستجو انجام نشد.');
+      const payload = await response.json();
+      results.replaceChildren();
+      if (!payload.data.length) {
+        results.textContent = 'دانش‌آموزی پیدا نشد.';
+        return;
+      }
+      payload.data.forEach((student) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'adm-btn adm-btn-line adm-btn-sm';
+        button.textContent = student.label + (student.meta ? ' · ' + student.meta : '');
+        button.disabled = chosen.has(String(student.id));
+        button.addEventListener('click', () => {
+          addStudent(student);
+          button.disabled = true;
+        });
+        results.append(button);
+      });
+      if (payload.has_more) {
+        const more = document.createElement('small');
+        more.textContent = 'بیش از ۲۰ نتیجه وجود دارد؛ جستجو را دقیق‌تر کنید.';
+        results.append(more);
+      }
+    } catch (error) {
+      results.textContent = error.message || 'خطا در جستجوی دانش‌آموز.';
+    }
+  });
+})();
+</script>
+@endif
+
 @endpush
