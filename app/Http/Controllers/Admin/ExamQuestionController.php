@@ -49,6 +49,7 @@ final class ExamQuestionController extends Controller
     {
         abort_unless($workspace->owns($request->user(), $exam), 404);
         abort_unless((int) $question->exam_id === (int) $exam->id, 404);
+        abort_if($exam->provider === 'quiz24' && in_array($exam->integration_status, ['active', 'connected'], true), 422);
         abort_if($exam->attempts()->exists(), 422, 'برای حفظ سوابق، پس از شروع آزمون امکان حذف سؤال وجود ندارد.');
 
         if ($question->answers()->exists()) {
