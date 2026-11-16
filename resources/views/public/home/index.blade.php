@@ -123,10 +123,10 @@
         </div>
         <div class="g4">
             {{-- دوره‌های واقعی دیتابیس --}}
-            @foreach($courses as $course)
+            @forelse(($homeCourses ?? collect()) as $homeCourse)
                 <article class="card cc">
                     @php
-                        $courseGradients = [
+                        $homeCourseGradients = [
                             'ریاضی' => ['linear-gradient(135deg,#2563eb,#7c3aed)', 'chart'],
                             'فیزیک' => ['linear-gradient(135deg,#0d9488,#0f766e)', 'rocket'],
                             'شیمی' => ['linear-gradient(135deg,#f97316,#db2777)', 'pen'],
@@ -134,35 +134,40 @@
                             'زبان' => ['linear-gradient(135deg,#0891b2,#2563eb)', 'lang'],
                             'ادبیات' => ['linear-gradient(135deg,#7c3aed,#db2777)', 'pen'],
                         ];
-                        $courseStyle = $courseGradients[$course->subject ?? ''] ?? ['linear-gradient(135deg,#0d9488,#1e3a8a)', 'cap'];
-                        $courseLessonsCount = (int) $course->sections->sum('lessons_count');
+                        $homeCourseStyle = $homeCourseGradients[$homeCourse->subject ?? ''] ?? ['linear-gradient(135deg,#0d9488,#1e3a8a)', 'cap'];
+                        $homeCourseLessonsCount = (int) $homeCourse->sections->sum('lessons_count');
                     @endphp
-                    <a class="th" href="{{ route('public.courses.show', $course->slug) }}" style="background:{{ $courseStyle[0] }}" aria-label="مشاهده {{ $course->title }}">
-                        <svg class="i"><use href="#{{ $courseStyle[1] }}"/></svg>
-                        <span class="bd {{ $course->type === 'free' ? 'bd-free' : '' }}">{{ $course->type === 'free' ? 'رایگان' : ($course->grade ? 'پایه '.$course->grade : ($course->subject ?: 'ویژه')) }}</span>
+                    <a class="th" href="{{ route('public.courses.show', $homeCourse->slug) }}" style="background:{{ $homeCourseStyle[0] }}" aria-label="مشاهده {{ $homeCourse->title }}">
+                        <svg class="i"><use href="#{{ $homeCourseStyle[1] }}"/></svg>
+                        <span class="bd {{ $homeCourse->type === 'free' ? 'bd-free' : '' }}">{{ $homeCourse->type === 'free' ? 'رایگان' : ($homeCourse->grade ? 'پایه '.$homeCourse->grade : ($homeCourse->subject ?: 'ویژه')) }}</span>
                     </a>
                     <div class="cb">
-                        <h3><a href="{{ route('public.courses.show', $course->slug) }}">{{ $course->title }}</a></h3>
-                        @if($course->teacher)
-                            <small style="color:var(--mute);margin-bottom:8px;display:block">مدرس: {{ $course->teacher->name }}</small>
+                        <h3><a href="{{ route('public.courses.show', $homeCourse->slug) }}">{{ $homeCourse->title }}</a></h3>
+                        @if($homeCourse->teacher)
+                            <small style="color:var(--mute);margin-bottom:8px;display:block">مدرس: {{ $homeCourse->teacher->name }}</small>
                         @endif
                         <div class="mt">
-                            <span><svg class="i"><use href="#clock"/></svg>{{ $courseLessonsCount > 0 ? $courseLessonsCount.' درس' : 'دوره آموزشی' }}</span>
-                            <span><svg class="i"><use href="#user"/></svg>{{ number_format($course->enrollments_count ?? 0) }} ثبت‌نام فعال</span>
+                            <span><svg class="i"><use href="#clock"/></svg>{{ $homeCourseLessonsCount > 0 ? $homeCourseLessonsCount.' درس' : 'دوره آموزشی' }}</span>
+                            <span><svg class="i"><use href="#user"/></svg>{{ number_format($homeCourse->enrollments_count ?? 0) }} ثبت‌نام فعال</span>
                         </div>
                         <div class="pr">
                             <div>
-                                @if($course->type === 'free')
+                                @if($homeCourse->type === 'free')
                                     <b style="color:var(--pri)">رایگان</b>
                                 @else
-                                    <b>{{ number_format((int) $course->price) }}</b><small>تومان</small>
+                                    <b>{{ number_format((int) $homeCourse->price) }}</b><small>تومان</small>
                                 @endif
                             </div>
-                            <a class="btn s" href="{{ route('public.courses.show', $course->slug) }}">مشاهده</a>
+                            <a class="btn s" href="{{ route('public.courses.show', $homeCourse->slug) }}">مشاهده</a>
                         </div>
                     </div>
                 </article>
-            @endforeach
+            @empty
+                <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
+                    <p style="margin:0;color:var(--mute)">در حال حاضر دوره‌ای برای نمایش منتشر نشده است.</p>
+                    <a class="btn s" style="margin-top:12px" href="{{ route('public.courses.index') }}">مشاهده فهرست دوره‌ها</a>
+                </div>
+            @endforelse
 
 
         </div>
