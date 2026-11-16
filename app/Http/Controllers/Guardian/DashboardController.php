@@ -61,6 +61,7 @@ final class DashboardController extends Controller
         $data['teacherNotes'] = $data['reviewed_homework']->filter(fn ($submission) => filled($submission->feedback))
             ->map(fn ($submission) => [
                 'teacher' => $submission->reviewer?->name ?? 'مدرس',
+                'homework' => $submission->homework?->title,
                 'text' => $submission->feedback,
                 'score' => $submission->score,
                 'type' => 'feedback',
