@@ -7,6 +7,13 @@
 @section('content')
 @php
     $teacher = $course->teacher;
+    $learningBenefits = [];
+    if ($features['recorded_video'] ?? false) $learningBenefits[] = 'آموزش ویدیویی فصل‌به‌فصل با دسترسی کنترل‌شده';
+    if ($features['live_class'] ?? false) $learningBenefits[] = 'جلسات آنلاین زمان‌بندی‌شده و پیگیری حضور در کلاس';
+    if ($features['resources'] ?? false) $learningBenefits[] = 'جزوه‌ها، فایل‌ها و منابع تکمیلی آموزشی';
+    if ($features['assignments'] ?? false) $learningBenefits[] = 'تمرین، تکلیف و بازخورد مدرس';
+    if ($features['exams'] ?? false) $learningBenefits[] = 'آزمون و کوییز با ثبت نتیجه در کارنامه';
+    if ($features['projects'] ?? false) $learningBenefits[] = 'پروژه‌های مرحله‌ای و ارزیابی پیشرفت';
 @endphp
 
 {{-- سربرگ مشخصات دوره --}}
@@ -50,6 +57,7 @@
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
+        @if($features['live_class'] ?? false)<a href="#live-sessions">برنامه کلاس‌ها</a>@endif
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
@@ -91,35 +99,19 @@
             @endif
 
 
-            <div class="card blk" id="c1-learning">
-                <h2>در این دوره چه یاد می‌گیری؟</h2>
-                <ul class="learn">
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>آموزش مفهومی و سرفصل‌به‌سرفصل کتاب درسی</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>حل مسئله و تسلط بر تیپ‌های مختلف سؤالات امتحانی</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>تکنیک‌های تست‌زنی و مدیریت زمان ویژه کنکور</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>بررسی و تحلیل نمونه سؤالات سال‌های اخیر</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>رفع اشکال مستمر و ارتباط با تیم آموزشی</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>آزمون‌های مرحله‌ای همراه با کارنامه و پاسخ تشریحی</span>
-                    </li>
-                </ul>
-            </div>
+            @if(count($learningBenefits))
+                <div class="card blk" id="c1-learning">
+                    <h2>امکانات آموزشی این دوره</h2>
+                    <ul class="learn">
+                        @foreach($learningBenefits as $benefit)
+                            <li>
+                                <svg class="i"><use href="#chk"/></svg>
+                                <span>{{ $benefit }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             {{-- بخش ۲: سرفصل‌ها و جلسات دوره --}}
             <div class="card blk" id="c2">
@@ -230,6 +222,47 @@
                     </div>
                 @endif
             </div>
+
+            @if($features['live_class'] ?? false)
+                <section class="card blk" id="live-sessions">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+                        <div>
+                            <h2 style="margin:0 0 6px">برنامه کلاس‌های آنلاین</h2>
+                            <p class="mu" style="margin:0">زمان‌بندی گروه‌های فعال این دوره؛ ورود به جلسه فقط برای اعضای مجاز همان کلاس فعال است.</p>
+                        </div>
+                        <span class="c-badge">{{ number_format($upcomingSessions->count()) }} جلسه پیش‌رو</span>
+                    </div>
+                    @forelse($upcomingSessions as $session)
+                        @php
+                            $directMeetingUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+                        @endphp
+                        <article style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--ln);flex-wrap:wrap">
+                            <div style="min-width:220px;flex:1">
+                                <strong style="display:block">{{ $session->title }}</strong>
+                                <span class="mu" style="font-size:13px">{{ $session->classroom?->name ?? 'گروه کلاسی' }}</span>
+                                <div style="margin-top:5px;font-size:13px;color:var(--mute)">
+                                    {{ $session->starts_at?->translatedFormat('l d F Y، H:i') }}
+                                    @if($session->ends_at) — {{ $session->ends_at->translatedFormat('H:i') }} @endif
+                                </div>
+                            </div>
+                            @if(auth()->check() && auth()->user()->hasRole('student') && $session->can_join && filled($directMeetingUrl))
+                                <form method="POST" action="{{ route('student.class-sessions.join', $session) }}" target="_blank" rel="noopener">
+                                    @csrf
+                                    <button type="submit" class="btn s">ورود به کلاس</button>
+                                </form>
+                            @elseif(auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
+                                <span class="lesson-lock-label">اتصال Skyroom در انتظار فعال‌سازی سرویس</span>
+                            @elseif(auth()->check() && auth()->user()->hasRole('student') && $hasCourseAccess)
+                                <span class="lesson-lock-label">برای ورود، عضویت در گروه این کلاس لازم است</span>
+                            @else
+                                <span class="lesson-lock-label">پس از ثبت‌نام و تخصیص گروه فعال می‌شود</span>
+                            @endif
+                        </article>
+                    @empty
+                        <div class="lesson-empty">هنوز جلسه‌ای برای گروه‌های این دوره زمان‌بندی نشده است. برنامه کلاس پس از ثبت توسط آموزش در همین صفحه نمایش داده می‌شود.</div>
+                    @endforelse
+                </section>
+            @endif
 
             {{-- بخش ۳: مدرس دوره --}}
             @if($teacher)
