@@ -81,3 +81,23 @@
 .adm-panel.is-flush>.adm-panel-body{padding:0}
 .adm-panel-foot{padding:12px 20px;border-top:1px solid var(--line);border-radius:0 0 var(--r-lg) var(--r-lg)}
 .adm-panel[data-tone]{border-top:3px solid var(--tone)}
+
+
+/* compact desktop sidebar */
+.adm-sidebar-mini-toggle{margin-inline-start:auto;width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:transparent;color:var(--side-ink);cursor:pointer}
+.adm-sidebar-mini-toggle .adm-icon{width:16px;height:16px}
+.adm-shell.is-mini{--side-w:82px}
+.adm-shell.is-mini .adm-sidebar{padding-inline:8px}
+.adm-shell.is-mini .adm-brand{justify-content:center;padding-inline:0}
+.adm-shell.is-mini .adm-brand>span:not(.adm-brand-mark){display:none}
+.adm-shell.is-mini .adm-brand-mark{width:42px;height:42px}
+.adm-shell.is-mini .adm-nav-group>summary{justify-content:center;padding-inline:0;font-size:0}
+.adm-shell.is-mini .adm-nav-group>summary .adm-icon{display:none}
+.adm-shell.is-mini .adm-nav-dot{width:7px;height:7px}
+.adm-shell.is-mini .adm-nav-link{justify-content:center;padding-inline:8px;font-size:0}
+.adm-shell.is-mini .adm-nav-link .adm-icon{width:21px;height:21px}
+.adm-shell.is-mini .adm-nav-link .adm-count{display:none}
+.adm-shell.is-mini .adm-side-foot{justify-content:center}
+.adm-shell.is-mini .adm-side-foot>div{display:none}
+.adm-shell.is-mini .adm-sidebar-mini-toggle{margin-inline:auto}
+@media(max-width:900px){.adm-shell.is-mini{--side-w:var(--side-w)}}
