@@ -37,15 +37,15 @@ final class DashboardController extends Controller
             ->whereBetween('session_date', [$start->toDateString(), now()->toDateString()])
             ->with(['classroom:id,name', 'session:id,starts_at'])
             ->get()
-            ->keyBy(fn ($record) => $record->session_date->day);
+            ->groupBy(fn ($record) => $record->session_date->day);
 
         $calendar = collect(range(1, now()->daysInMonth))->map(function (int $day) use ($records): array {
-            $record = $records->get($day);
+            $statuses = $records->get($day, collect())->pluck('status');
             return [
                 'day' => $day,
-                'status' => match ($record?->status) {
-                    'present' => 'present', 'late' => 'late', 'absent' => 'absent', default => 'none',
-                },
+                'status' => $statuses->contains('absent') ? 'absent'
+                    : ($statuses->contains('late') ? 'late'
+                    : ($statuses->contains('present') ? 'present' : 'none')),
             ];
         });
 
