@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCourseRequest;
 use App\Http\Requests\Admin\UpdateCourseRequest;
 use App\Models\Course;
+use App\Models\CourseEnrollment;
+use App\Models\Lesson;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
@@ -35,7 +37,15 @@ final class CourseController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return view('admin.courses.index', compact('courses', 'teachers'));
+        $stats = [
+            'courses' => Course::query()->count(),
+            'published' => Course::query()->where('status', 'published')->count(),
+            'students' => CourseEnrollment::query()->currentlyActive()->distinct('student_id')->count('student_id'),
+            'lessons' => Lesson::query()->whereHas('section.course')->count(),
+            'drafts' => Course::query()->where('status', 'draft')->count(),
+        ];
+
+        return view('admin.courses.index', compact('courses', 'teachers', 'stats'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
