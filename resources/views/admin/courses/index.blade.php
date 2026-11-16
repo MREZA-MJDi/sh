@@ -42,15 +42,10 @@
   <div class="adm-grid adm-cols-3" data-filter-list>
     @forelse ($courses as $course)
       @php
-        $legacyFeatureDefaults = [
-          'recorded_video' => $course->delivery_type === 'spotplayer',
-          'live_class' => $course->delivery_type === 'skyroom',
-          'resources' => true,
-          'assignments' => true,
-          'exams' => true,
-          'projects' => false,
-        ];
-        $features = array_replace($legacyFeatureDefaults, $course->learning_features ?? []);
+        $features = [];
+        foreach ($featureLabels as $key => $label) {
+          $features[$key] = $course->featureEnabled($key);
+        }
         $teacherName = $course->teacher?->name ?? 'مدرس تعیین نشده';
         $fill = [
           'title' => $course->title,
