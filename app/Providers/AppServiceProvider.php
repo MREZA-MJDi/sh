@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(SpotPlayerGateway::class, UnavailableSpotPlayerGateway::class);
-        $this->app->bind(Quiz24Gateway::class, UnavailableQuiz24Gateway::class);
+        $this->app->bind(Quiz24Gateway::class, UnavailableQuiz24Gateway::class);\n        $this->app->bind(SkyroomGateway::class, UnavailableSkyroomGateway::class);
     }
 
     public function boot(): void
