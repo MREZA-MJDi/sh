@@ -10,10 +10,13 @@
   $courseOptions = $courses->pluck('title', 'id')->all();
   $teacherAccessOptions = collect($teacherAccessGroups)->mapWithKeys(fn ($group, $key) => [$key => $group['label']])->all();
   $createAction = route('admin.'.$rolePlural[$role].'.store');
+  $canManage = ! $teacherView && auth()->user()->hasPermissionTo('users.manage');
 @endphp
 
 <x-admin.page-head tone="users" icon="users" :title="$roleLabel" desc="مدیریت حساب‌ها، وضعیت و ارتباط آموزشی">
-  <x-admin.btn icon="plus" data-modal-open="user-modal">افزودن {{ $role === 'student' ? 'دانش‌آموز' : ($role === 'teacher' ? 'مدرس' : 'ولی') }}</x-admin.btn>
+  @if($canManage)
+    <x-admin.btn icon="plus" data-modal-open="user-modal">افزودن {{ $role === 'student' ? 'دانش‌آموز' : ($role === 'teacher' ? 'مدرس' : 'ولی') }}</x-admin.btn>
+  @endif
 </x-admin.page-head>
 
 <div class="adm-stats">
@@ -64,12 +67,16 @@
           <td>{{ \Illuminate\Support\Str::limit($associations ?: 'بدون تخصیص', 90) }}</td>
           <td><x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
           <td><div class="adm-actions">
-            <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="user-modal" data-title="ویرایش کاربر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="$updateAction" data-method="PATCH">ویرایش</x-admin.btn>
-            <form method="POST" action="{{ route('admin.users.status', $user) }}">
-              @csrf @method('PATCH')
-              <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
-              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">{{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button>
-            </form>
+            @if($canManage && $role !== 'parent')
+              <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="user-modal" data-title="ویرایش کاربر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="$updateAction" data-method="PATCH">ویرایش</x-admin.btn>
+            @endif
+            @if($canManage)
+              <form method="POST" action="{{ route('admin.users.status', $user) }}">
+                @csrf @method('PATCH')
+                <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
+                <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">{{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button>
+              </form>
+            @endif
           </div></td>
         </tr>
       @empty
@@ -82,6 +89,7 @@
 @endsection
 
 @push('modals')
+@if($canManage)
 <x-admin.modal :demo="false" id="user-modal" title="ایجاد حساب جدید" size="lg" :action="$createAction">
   <x-admin.legend title="اطلاعات حساب"/>
   <x-admin.input label="نام و نام خانوادگی" name="name" wide required/>
@@ -107,4 +115,5 @@
   <x-admin.input label="گذرواژه اولیه (حداقل ۱۲ کاراکتر)" name="password" type="password" required autocomplete="new-password"/>
   <x-admin.input label="تکرار گذرواژه" name="password_confirmation" type="password" required autocomplete="new-password"/>
 </x-admin.modal>
+@endif
 @endpush
