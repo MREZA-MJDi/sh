@@ -13,6 +13,67 @@
         </div>
     </section>
 
+    <section class="card student-course-classrooms" aria-labelledby="course-classrooms-title">
+        <div class="chead">
+            <div>
+                <span class="student-section-eyebrow">برنامه اجرایی دوره</span>
+                <h2 id="course-classrooms-title">کلاس‌ها و جلسه‌های من</h2>
+            </div>
+            <span class="pill">{{ number_format($classrooms->count()) }} گروه آموزشی</span>
+        </div>
+        <p class="mu">دوره، محتوای آموزشی و مسیر یادگیری است؛ کلاس، گروهی از دانش‌آموزان با مدرس و برنامه مشخص است؛ هر جلسه، یک نوبت برگزاری آنلاین یا حضوری همان کلاس است.</p>
+
+        @forelse ($classrooms as $classroom)
+            <article class="student-course-classroom" style="padding:14px 0;border-top:1px solid var(--line, #e7eaf0)">
+                <div class="student-course-lesson__head">
+                    <div>
+                        <h3>{{ $classroom->name }}</h3>
+                        <span class="mu">مدرس: {{ $classroom->teacher?->name ?? 'تعیین نشده' }} · {{ number_format($classroom->students_count) }} دانش‌آموز</span>
+                    </div>
+                    <span class="tag d">فعال</span>
+                </div>
+                @php
+                    $days = ['sat'=>'شنبه','sun'=>'یکشنبه','mon'=>'دوشنبه','tue'=>'سه‌شنبه','wed'=>'چهارشنبه','thu'=>'پنجشنبه','fri'=>'جمعه'];
+                    $scheduleDays = collect($classroom->schedule['days'] ?? [])->map(fn ($day) => $days[$day] ?? $day)->implode('، ');
+                @endphp
+                <p class="mu" style="margin:6px 0 0">برنامه هفتگی: {{ $scheduleDays ?: 'طبق جلسه‌های ثبت‌شده' }}{{ filled($classroom->schedule['time'] ?? null) ? ' · ساعت '.$classroom->schedule['time'] : '' }}</p>
+            </article>
+        @empty
+            <div class="empty">هنوز کلاسی برای این دوره به حساب شما تخصیص داده نشده است.</div>
+        @endforelse
+
+        <div style="margin-top:14px">
+            <h3 style="font-size:15px">جلسه‌های پیش‌رو</h3>
+            @forelse ($upcomingSessions as $session)
+                @php
+                    $joinAvailable = $session->session_type === 'online'
+                        && $session->status === 'scheduled'
+                        && $session->ends_at
+                        && $session->starts_at->lte(now()->addMinutes(15))
+                        && $session->ends_at->gte(now());
+                @endphp
+                <div class="student-course-lesson__head" style="padding:10px 0;border-top:1px solid var(--line, #e7eaf0)">
+                    <div>
+                        <strong>{{ $session->title }}</strong>
+                        <span class="mu">{{ $session->classroom?->name }} · {{ $session->session_type === 'online' ? 'آنلاین' : 'حضوری' }} · {{ \App\Support\PersianDate::format($session->starts_at, 'l، d F، H:i') }}</span>
+                    </div>
+                    @if ($joinAvailable)
+                        <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">
+                            @csrf
+                            <button class="btn s" type="submit">ورود به کلاس</button>
+                        </form>
+                    @elseif ($session->session_type === 'online')
+                        <span class="tag w">ورود در زمان جلسه</span>
+                    @else
+                        <span class="tag">حضوری</span>
+                    @endif
+                </div>
+            @empty
+                <div class="empty">جلسه زمان‌بندی‌شده‌ای برای نمایش وجود ندارد.</div>
+            @endforelse
+        </div>
+    </section>
+
     @if ($course->delivery_type === 'spotplayer')
         <section class="card student-course-license" aria-labelledby="course-license-title">
             <div class="chead"><div><span class="student-section-eyebrow">دسترسی ویدیو</span><h2 id="course-license-title">لایسنس SpotPlayer</h2></div>
