@@ -81,9 +81,18 @@ final class DashboardController extends Controller
             return ['day' => $day, 'status' => $status, 'today' => $day === now()->day];
         });
 
+        $monthBreakdown = $data['attendance_calendar']->groupBy('status')->map->count();
+        $monthTotal = (int) $monthBreakdown->get('present', 0) + (int) $monthBreakdown->get('late', 0) + (int) $monthBreakdown->get('absent', 0);
+        $monthAttendance = [
+            'present' => (int) $monthBreakdown->get('present', 0),
+            'late' => (int) $monthBreakdown->get('late', 0),
+            'absent' => (int) $monthBreakdown->get('absent', 0),
+            'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : 0,
+        ];
+
         return view('parent.attendance', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'attendance' => $this->attendanceSummary($data),
+            'attendance' => $monthAttendance,
             'calendar' => $days, 'monthOffset' => ($start->dayOfWeek + 1) % 7,
             'monthTitle' => $start->translatedFormat('F Y'),
             'absencePattern' => $data['attendance_breakdown']->get('absent', 0).' غیبت ثبت‌شده',
