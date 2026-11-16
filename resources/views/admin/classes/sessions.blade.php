@@ -73,9 +73,7 @@
       </tbody>
     </table>
   </div>
-  @if($sessions->hasPages())
-    <x-slot:footer>{{ $sessions->links() }}</x-slot:footer>
-  @endif
+  <x-slot:footer>{{ $sessions.links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
 
