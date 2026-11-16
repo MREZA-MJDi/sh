@@ -12,7 +12,7 @@ class SeoArticle extends Model
     use SanitizesRichText;
 
     protected $fillable = [
-        'author_id', 'title', 'slug', 'excerpt', 'body', 'featured_image_path',
+        'author_id', 'title', 'slug', 'excerpt', 'body', 'featured_image_path', 'image_position',
         'image_alt', 'meta_title', 'meta_description', 'canonical_url',
         'og_image_path', 'keywords', 'status', 'published_at',
     ];

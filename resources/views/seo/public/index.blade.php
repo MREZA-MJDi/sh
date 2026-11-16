@@ -1,7 +1,7 @@
 @extends('public.layouts.academy')
 
-@section('title', 'مجله و مقالات آموزشی' . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
-@section('description', $settings->default_description ?? 'مجموعه مقالات آموزشی، روش‌های مطالعه، برنامه‌ریزی کنکور و تحلیل دروس در آکادمی شیخان')
+@section('title', ($settings->home_sections['blog_page_title'] ?? 'مجله شیخان') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
+@section('description', filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description)
 @section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
 @section('content')
@@ -9,8 +9,8 @@
     <div class="pgh">
         <div class="c">
             <div class="bc"><a href="{{ route('home') }}">خانه</a> ‹ مقالات</div>
-            <h1>مجله شیخان</h1>
-            <p>{{ $settings->default_description ?: 'نکته‌های مطالعه، مسیر تحصیلی و آموزش‌های تخصصی کنکور' }}</p>
+            <h1>{{ $settings->home_sections['blog_page_title'] ?? 'مجله شیخان' }}</h1>
+            <p>{{ filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description }}</p>
         </div>
     </div>
 
@@ -54,7 +54,7 @@
             <a class="card feat" href="{{ route('seo.articles.show', $featured->slug) }}">
                 <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
                     @if($featured->featured_image_path)
-                        <img src="{{ Storage::disk('public')->url($featured->featured_image_path) }}" alt="{{ $featured->title }}" loading="lazy">
+                        <img src="{{ Storage::disk('public')->url($featured->featured_image_path) }}" alt="{{ $featured->image_alt ?: $featured->title }}" style="object-position: {{ $featured->image_position ?? '50% 50%' }}" loading="lazy">
                     @else
                         <svg class="i"><use href="#pen"/></svg>
                     @endif
@@ -90,7 +90,7 @@
                 <a class="card cc" href="{{ route('seo.articles.show', $article->slug) }}">
                     <div class="th" style="background:{{ $bgGrad }}">
                         @if($article->featured_image_path)
-                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->title }}" loading="lazy">
+                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="object-position: {{ $article->image_position ?? '50% 50%' }}" loading="lazy">
                         @else
                             <svg class="i"><use href="#pen"/></svg>
                         @endif
@@ -118,14 +118,6 @@
             {{ $articles->links() }}
         </div>
 
-        {{-- Newsletter CTA Box --}}
-        <div class="cta" style="margin-top:48px">
-            <h2>خبرنامه تحصیلی شیخان</h2>
-            <p>هفته‌ای یک ایمیل با گزیده مهم‌ترین روش‌های مطالعه، بودجه‌بندی آزمون‌ها و جزوات اساتید برتر.</p>
-            <div style="max-width:440px;margin:auto;display:flex;gap:8px">
-                <input class="inp" style="margin:0" placeholder="ایمیل خود را وارد کنید...">
-                <button type="button" class="btn w" onclick="alert('ایمیل شما با موفقیت در خبرنامه شیخان ثبت شد.')">عضویت</button>
-            </div>
-        </div>
+
     </div>
 @endsection

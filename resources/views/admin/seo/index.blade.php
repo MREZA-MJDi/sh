@@ -71,11 +71,37 @@
         <div class="panel-form-grid">
             <div class="panel-field"><label for="organization_name">نام سازمان</label><input id="organization_name" class="panel-input" name="organization_name" value="{{ old('organization_name', $settings->organization_name) }}" maxlength="180"></div>
             <div class="panel-field"><label for="organization_url">نشانی سازمان</label><input id="organization_url" class="panel-input" type="url" name="organization_url" value="{{ old('organization_url', $settings->organization_url) }}" dir="ltr"></div>
-            <div class="panel-field"><label for="default_og_image">تصویر پیش‌فرض Open Graph</label><input id="default_og_image" class="panel-input" type="file" name="default_og_image" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">ترجیحاً تصویر ۱۲۰۰×۶۳۰ پیکسل، حداکثر ۴ مگابایت.</small>
-                @if($settings->default_og_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($settings->default_og_image_path) }}" alt="تصویر پیش‌فرض شبکه‌های اجتماعی"><span class="panel-muted">تصویر فعلی ذخیره شده است.</span></div>@endif
+            <div class="panel-field">
+                <label for="default_og_image">تصویر پیش‌فرض Open Graph</label>
+                <div class="seo-admin-asset-preview seo-admin-asset-preview--og" data-seo-asset-preview data-asset-kind="og">
+                    <input id="default_og_image" class="panel-input" type="file" name="default_og_image" accept="image/jpeg,image/png,image/webp" data-asset-file>
+                    <div class="seo-admin-asset-preview__stage">
+                        @if($settings->default_og_image_path)
+                            <img class="seo-admin-asset-preview__image" data-asset-image src="{{ Storage::disk('public')->url($settings->default_og_image_path) }}" alt="تصویر پیش‌فرض شبکه‌های اجتماعی">
+                        @else
+                            <img class="seo-admin-asset-preview__image" data-asset-image alt="پیش‌نمایش تصویر Open Graph" hidden>
+                            <span data-asset-empty>پیش‌نمایش ۱۲۰۰×۶۳۰</span>
+                        @endif
+                    </div>
+                    <small class="seo-admin-field-hint">ترجیحاً تصویر ۱۲۰۰×۶۳۰ پیکسل، حداکثر ۴ مگابایت.</small>
+                    <small class="seo-admin-field-hint" data-asset-status>برای مشاهده‌ی پیش‌نمایش، تصویر را انتخاب کنید.</small>
+                </div>
             </div>
-            <div class="panel-field"><label for="organization_logo">لوگوی سازمان</label><input id="organization_logo" class="panel-input" type="file" name="organization_logo" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">تصویر واضح و مربعی برای معرفی ناشر.</small>
-                @if($settings->organization_logo_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($settings->organization_logo_path) }}" alt="لوگوی سازمان"><span class="panel-muted">لوگوی فعلی ذخیره شده است.</span></div>@endif
+            <div class="panel-field">
+                <label for="organization_logo">لوگوی سازمان</label>
+                <div class="seo-admin-asset-preview seo-admin-asset-preview--logo" data-seo-asset-preview data-asset-kind="logo">
+                    <input id="organization_logo" class="panel-input" type="file" name="organization_logo" accept="image/jpeg,image/png,image/webp" data-asset-file>
+                    <div class="seo-admin-asset-preview__stage">
+                        @if($settings->organization_logo_path)
+                            <img class="seo-admin-asset-preview__image" data-asset-image src="{{ Storage::disk('public')->url($settings->organization_logo_path) }}" alt="لوگوی سازمان">
+                        @else
+                            <img class="seo-admin-asset-preview__image" data-asset-image alt="پیش‌نمایش لوگوی سازمان" hidden>
+                            <span data-asset-empty>پیش‌نمایش لوگو در هدر</span>
+                        @endif
+                    </div>
+                    <small class="seo-admin-field-hint">تصویر در قاب ۱۵۰×۵۶ پیکسل و با حفظ نسبت اصلی نمایش داده می‌شود.</small>
+                    <small class="seo-admin-field-hint" data-asset-status>برای مشاهده‌ی پیش‌نمایش، تصویر را انتخاب کنید.</small>
+                </div>
             </div>
         </div>
 
@@ -85,6 +111,149 @@
             <div class="panel-field"><label for="social_instagram">اینستاگرام</label><input id="social_instagram" class="panel-input" type="url" name="social_links[instagram]" value="{{ old('social_links.instagram', $settings->social_links['instagram'] ?? '') }}" placeholder="https://instagram.com/..." dir="ltr"></div>
             <div class="panel-field"><label for="social_telegram">تلگرام</label><input id="social_telegram" class="panel-input" type="url" name="social_links[telegram]" value="{{ old('social_links.telegram', $settings->social_links['telegram'] ?? '') }}" placeholder="https://t.me/..." dir="ltr"></div>
             <div class="panel-field"><label for="social_linkedin">لینکدین</label><input id="social_linkedin" class="panel-input" type="url" name="social_links[linkedin]" value="{{ old('social_links.linkedin', $settings->social_links['linkedin'] ?? '') }}" placeholder="https://linkedin.com/..." dir="ltr"></div>
+            <div class="panel-field"><label for="social_youtube">یوتیوب</label><input id="social_youtube" class="panel-input" type="url" name="social_links[youtube]" value="{{ old('social_links.youtube', $settings->social_links['youtube'] ?? '') }}" placeholder="https://youtube.com/..." dir="ltr"></div>
+            <div class="panel-field"><label for="social_x">X</label><input id="social_x" class="panel-input" type="url" name="social_links[x]" value="{{ old('social_links.x', $settings->social_links['x'] ?? '') }}" placeholder="https://x.com/..." dir="ltr"></div>
+        </div>
+
+        <div class="seo-admin-section-head"><div><h3>محتوای فوتر و نماد اعتماد</h3><p>متن معرفی، لینک‌های قابل نمایش در فوتر و تصویر نماد اعتماد از این بخش مدیریت می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label for="footer_description">متن معرفی فوتر</label><textarea id="footer_description" class="panel-textarea" name="footer_description" maxlength="500">{{ old('footer_description', $settings->footer_description) }}</textarea></div>
+            <div class="panel-field">
+                <label for="trust_badge">تصویر نماد اعتماد</label>
+                <div class="seo-admin-asset-preview seo-admin-asset-preview--trust" data-seo-asset-preview data-asset-kind="trust">
+                    <input id="trust_badge" class="panel-input" type="file" name="trust_badge" accept="image/jpeg,image/png,image/webp" data-asset-file>
+                    <div class="seo-admin-asset-preview__stage">
+                        @if($settings->trust_badge_path)
+                            <img class="seo-admin-asset-preview__image" data-asset-image src="{{ Storage::disk('public')->url($settings->trust_badge_path) }}" alt="نماد اعتماد فعلی">
+                        @else
+                            <img class="seo-admin-asset-preview__image" data-asset-image alt="پیش‌نمایش نماد اعتماد" hidden>
+                            <span data-asset-empty>پیش‌نمایش نماد اعتماد</span>
+                        @endif
+                    </div>
+                    <small class="seo-admin-field-hint">قاب نمایش در فوتر ۱۲۰×۷۶ پیکسل است؛ PNG شفاف یا WebP پیشنهاد می‌شود.</small>
+                    <small class="seo-admin-field-hint" data-asset-status>برای مشاهده‌ی پیش‌نمایش، تصویر را انتخاب کنید.</small>
+                </div>
+            </div>
+        </div>
+        <div class="seo-admin-section-head"><div><h3>لینک‌های فوتر</h3><p>حداکثر ۸ لینک؛ مسیر داخلی مانند /contact یا نشانی کامل HTTPS.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 8; $i++)
+                <div class="panel-field"><label for="footer-link-label-{{ $i }}">عنوان لینک {{ $i + 1 }}</label><input id="footer-link-label-{{ $i }}" class="panel-input" name="footer_links[{{ $i }}][label]" value="{{ old("footer_links.$i.label", $settings->footer_links[$i]['label'] ?? '') }}" maxlength="80"></div>
+                <div class="panel-field"><label for="footer-link-url-{{ $i }}">نشانی لینک {{ $i + 1 }}</label><input id="footer-link-url-{{ $i }}" class="panel-input" name="footer_links[{{ $i }}][url]" value="{{ old("footer_links.$i.url", $settings->footer_links[$i]['url'] ?? '') }}" maxlength="2048" dir="ltr"></div>
+            @endfor
+        </div>
+
+        @php($homeContent = $settings->home_sections ?? [])
+        <div class="seo-admin-section-head"><div><h3>محتوای صفحه اصلی</h3><p>متن‌های ثابت صفحه اصلی از اینجا ذخیره می‌شوند؛ آمار، دوره‌ها، مدرس‌ها، مقاله‌ها و نظرها همچنان از داده‌های واقعی دیتابیس خوانده می‌شوند.</p></div><span class="seo-admin-status">محتوای عمومی</span></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label>نشان بالای هیرو</label><input class="panel-input" name="home_sections[hero_badge]" value="{{ old('home_sections.hero_badge', $homeContent['hero_badge'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>متن توضیح هیرو</label><textarea class="panel-textarea" name="home_sections[hero_description]" maxlength="500">{{ old('home_sections.hero_description', $homeContent['hero_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه اصلی هیرو</label><input class="panel-input" name="home_sections[hero_primary_label]" value="{{ old('home_sections.hero_primary_label', $homeContent['hero_primary_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>متن دکمه راهنمایی هیرو</label><input class="panel-input" name="home_sections[hero_secondary_label]" value="{{ old('home_sections.hero_secondary_label', $homeContent['hero_secondary_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>عنوان دسته‌بندی‌ها</label><input class="panel-input" name="home_sections[categories_title]" value="{{ old('home_sections.categories_title', $homeContent['categories_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>برچسب دسته‌بندی‌ها</label><input class="panel-input" name="home_sections[categories_eyebrow]" value="{{ old('home_sections.categories_eyebrow', $homeContent['categories_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب دوره‌های تازه</label><input class="panel-input" name="home_sections[latest_courses_eyebrow]" value="{{ old('home_sections.latest_courses_eyebrow', $homeContent['latest_courses_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>عنوان دوره‌های تازه</label><input class="panel-input" name="home_sections[latest_courses_title]" value="{{ old('home_sections.latest_courses_title', $homeContent['latest_courses_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح دوره‌های تازه</label><textarea class="panel-textarea" name="home_sections[latest_courses_description]" maxlength="500">{{ old('home_sections.latest_courses_description', $homeContent['latest_courses_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان دوره‌های محبوب</label><input class="panel-input" name="home_sections[popular_courses_title]" value="{{ old('home_sections.popular_courses_title', $homeContent['popular_courses_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح دوره‌های محبوب</label><textarea class="panel-textarea" name="home_sections[popular_courses_description]" maxlength="500">{{ old('home_sections.popular_courses_description', $homeContent['popular_courses_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>برچسب مراحل یادگیری</label><input class="panel-input" name="home_sections[steps_eyebrow]" value="{{ old('home_sections.steps_eyebrow', $homeContent['steps_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب دوره‌های محبوب</label><input class="panel-input" name="home_sections[popular_courses_eyebrow]" value="{{ old('home_sections.popular_courses_eyebrow', $homeContent['popular_courses_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب پنل‌های اختصاصی</label><input class="panel-input" name="home_sections[panels_eyebrow]" value="{{ old('home_sections.panels_eyebrow', $homeContent['panels_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب مدرسان</label><input class="panel-input" name="home_sections[teachers_eyebrow]" value="{{ old('home_sections.teachers_eyebrow', $homeContent['teachers_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>عنوان بخش مدرسان</label><input class="panel-input" name="home_sections[teachers_title]" value="{{ old('home_sections.teachers_title', $homeContent['teachers_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح بخش مدرسان</label><textarea class="panel-textarea" name="home_sections[teachers_description]" maxlength="500">{{ old('home_sections.teachers_description', $homeContent['teachers_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>برچسب مقاله‌ها</label><input class="panel-input" name="home_sections[articles_eyebrow]" value="{{ old('home_sections.articles_eyebrow', $homeContent['articles_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>برچسب نظرها</label><input class="panel-input" name="home_sections[testimonials_eyebrow]" value="{{ old('home_sections.testimonials_eyebrow', $homeContent['testimonials_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>عنوان مراحل یادگیری</label><input class="panel-input" name="home_sections[steps_title]" value="{{ old('home_sections.steps_title', $homeContent['steps_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح مراحل یادگیری</label><textarea class="panel-textarea" name="home_sections[steps_description]" maxlength="500">{{ old('home_sections.steps_description', $homeContent['steps_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان پنل‌های اختصاصی</label><input class="panel-input" name="home_sections[panels_title]" value="{{ old('home_sections.panels_title', $homeContent['panels_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح پنل‌های اختصاصی</label><textarea class="panel-textarea" name="home_sections[panels_description]" maxlength="500">{{ old('home_sections.panels_description', $homeContent['panels_description'] ?? '') }}</textarea></div>
+        <div class="seo-admin-section-head"><div><h3>کارت‌های نقش‌ها</h3><p>متن چهار کارت معرفی پنل‌ها در صفحه عمومی.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label>عنوان کارت {{ $i + 1 }}</label><input class="panel-input" name="home_sections[panel_cards][{{ $i }}][title]" value="{{ old("home_sections.panel_cards.$i.title", $homeContent['panel_cards'][$i]['title'] ?? '') }}" maxlength="180"></div>
+                <div class="panel-field"><label>توضیح کارت {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[panel_cards][{{ $i }}][body]" maxlength="500">{{ old("home_sections.panel_cards.$i.body", $homeContent['panel_cards'][$i]['body'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
+        <div class="seo-admin-section-head"><div><h3>بخش مزیت‌های آکادمی</h3><p>عنوان، توضیح، دکمه‌ها و شش کارت مزیت از این بخش کنترل می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label>برچسب مزیت‌ها</label><input class="panel-input" name="home_sections[benefits_eyebrow]" value="{{ old('home_sections.benefits_eyebrow', $homeContent['benefits_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>عنوان مزیت‌ها</label><input class="panel-input" name="home_sections[benefits_title]" value="{{ old('home_sections.benefits_title', $homeContent['benefits_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح مزیت‌ها</label><textarea class="panel-textarea" name="home_sections[benefits_description]" maxlength="500">{{ old('home_sections.benefits_description', $homeContent['benefits_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه دوره‌ها</label><input class="panel-input" name="home_sections[benefits_primary_label]" value="{{ old('home_sections.benefits_primary_label', $homeContent['benefits_primary_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>متن دکمه مشاوره</label><input class="panel-input" name="home_sections[benefits_secondary_label]" value="{{ old('home_sections.benefits_secondary_label', $homeContent['benefits_secondary_label'] ?? '') }}" maxlength="80"></div>
+        </div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 6; $i++)
+                <div class="panel-field"><label>عنوان مزیت {{ $i + 1 }}</label><input class="panel-input" name="home_sections[benefits][{{ $i }}][title]" value="{{ old("home_sections.benefits.$i.title", $homeContent['benefits'][$i]['title'] ?? '') }}" maxlength="180"></div>
+                <div class="panel-field"><label>توضیح مزیت {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[benefits][{{ $i }}][body]" maxlength="500">{{ old("home_sections.benefits.$i.body", $homeContent['benefits'][$i]['body'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
+
+            <div class="panel-field"><label>عنوان نظرهای دانش‌آموزان</label><input class="panel-input" name="home_sections[testimonials_title]" value="{{ old('home_sections.testimonials_title', $homeContent['testimonials_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>برچسب نظرهای دانش‌آموزان</label><input class="panel-input" name="home_sections[testimonials_eyebrow]" value="{{ old('home_sections.testimonials_eyebrow', $homeContent['testimonials_eyebrow'] ?? '') }}" maxlength="120"></div>
+        <div class="seo-admin-section-head"><div><h3>محتوای صفحات عمومی</h3><p>تیتر و توضیحات صفحات دوره‌ها، مدرسان، تماس و سبد خرید از این بخش مدیریت می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            <div class="panel-field"><label>عنوان صفحه دوره‌ها</label><input class="panel-input" name="home_sections[courses_page_title]" value="{{ old('home_sections.courses_page_title', $homeContent['courses_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه دوره‌ها</label><textarea class="panel-textarea" name="home_sections[courses_page_description]" maxlength="500">{{ old('home_sections.courses_page_description', $homeContent['courses_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان صفحه مدرسان</label><input class="panel-input" name="home_sections[teachers_page_title]" value="{{ old('home_sections.teachers_page_title', $homeContent['teachers_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه مدرسان</label><textarea class="panel-textarea" name="home_sections[teachers_page_description]" maxlength="500">{{ old('home_sections.teachers_page_description', $homeContent['teachers_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان دعوت به همکاری مدرس</label><input class="panel-input" name="home_sections[teachers_cta_title]" value="{{ old('home_sections.teachers_cta_title', $homeContent['teachers_cta_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح دعوت به همکاری مدرس</label><textarea class="panel-textarea" name="home_sections[teachers_cta_body]" maxlength="500">{{ old('home_sections.teachers_cta_body', $homeContent['teachers_cta_body'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه همکاری مدرس</label><input class="panel-input" name="home_sections[teachers_cta_label]" value="{{ old('home_sections.teachers_cta_label', $homeContent['teachers_cta_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>عنوان صفحه تماس</label><input class="panel-input" name="home_sections[contact_page_title]" value="{{ old('home_sections.contact_page_title', $homeContent['contact_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه تماس</label><textarea class="panel-textarea" name="home_sections[contact_page_description]" maxlength="500">{{ old('home_sections.contact_page_description', $homeContent['contact_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان کارت پشتیبانی</label><input class="panel-input" name="home_sections[contact_support_title]" value="{{ old('home_sections.contact_support_title', $homeContent['contact_support_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>متن کارت پشتیبانی</label><textarea class="panel-textarea" name="home_sections[contact_support_body]" maxlength="500">{{ old('home_sections.contact_support_body', $homeContent['contact_support_body'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان FAQ تماس</label><input class="panel-input" name="home_sections[contact_faq_title]" value="{{ old('home_sections.contact_faq_title', $homeContent['contact_faq_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>عنوان صفحه سبد خرید</label><input class="panel-input" name="home_sections[cart_page_title]" value="{{ old('home_sections.cart_page_title', $homeContent['cart_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه سبد خرید</label><textarea class="panel-textarea" name="home_sections[cart_page_description]" maxlength="500">{{ old('home_sections.cart_page_description', $homeContent['cart_page_description'] ?? '') }}</textarea></div>
+        </div>
+        <div class="seo-admin-section-head"><div><h3>موضوع‌های فرم تماس</h3><p>گزینه‌های انتخاب موضوع پیام از دیتابیس خوانده می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label>موضوع {{ $i + 1 }}</label><input class="panel-input" name="home_sections[contact_topics][{{ $i }}]" value="{{ old("home_sections.contact_topics.$i", $homeContent['contact_topics'][$i] ?? '') }}" maxlength="80"></div>
+            @endfor
+        </div>
+        <div class="seo-admin-section-head"><div><h3>سؤالات متداول صفحه تماس</h3><p>سؤال‌ها و پاسخ‌ها از همین پنل کنترل می‌شوند.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 2; $i++)
+                <div class="panel-field"><label>سؤال {{ $i + 1 }}</label><input class="panel-input" name="home_sections[contact_faq_items][{{ $i }}][question]" value="{{ old("home_sections.contact_faq_items.$i.question", $homeContent['contact_faq_items'][$i]['question'] ?? '') }}" maxlength="240"></div>
+                <div class="panel-field"><label>پاسخ {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[contact_faq_items][{{ $i }}][answer]" maxlength="1200">{{ old("home_sections.contact_faq_items.$i.answer", $homeContent['contact_faq_items'][$i]['answer'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
+            <div class="panel-field"><label>عنوان صفحه آرشیو بلاگ</label><input class="panel-input" name="home_sections[blog_page_title]" value="{{ old('home_sections.blog_page_title', $homeContent['blog_page_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح صفحه آرشیو بلاگ</label><textarea class="panel-textarea" name="home_sections[blog_page_description]" maxlength="500">{{ old('home_sections.blog_page_description', $homeContent['blog_page_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان مقاله‌های صفحه اصلی</label><input class="panel-input" name="home_sections[articles_title]" value="{{ old('home_sections.articles_title', $homeContent['articles_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>توضیح مقاله‌های صفحه اصلی</label><textarea class="panel-textarea" name="home_sections[articles_description]" maxlength="500">{{ old('home_sections.articles_description', $homeContent['articles_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>عنوان CTA</label><input class="panel-input" name="home_sections[cta_title]" value="{{ old('home_sections.cta_title', $homeContent['cta_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>متن CTA</label><textarea class="panel-textarea" name="home_sections[cta_body]" maxlength="500">{{ old('home_sections.cta_body', $homeContent['cta_body'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه CTA</label><input class="panel-input" name="home_sections[cta_label]" value="{{ old('home_sections.cta_label', $homeContent['cta_label'] ?? '') }}" maxlength="80"></div>
+            <div class="panel-field"><label>عنوان FAQ</label><input class="panel-input" name="home_sections[faq_title]" value="{{ old('home_sections.faq_title', $homeContent['faq_title'] ?? '') }}" maxlength="180"></div>
+            <div class="panel-field"><label>برچسب FAQ</label><input class="panel-input" name="home_sections[faq_eyebrow]" value="{{ old('home_sections.faq_eyebrow', $homeContent['faq_eyebrow'] ?? '') }}" maxlength="120"></div>
+            <div class="panel-field"><label>توضیح FAQ</label><textarea class="panel-textarea" name="home_sections[faq_description]" maxlength="500">{{ old('home_sections.faq_description', $homeContent['faq_description'] ?? '') }}</textarea></div>
+            <div class="panel-field"><label>متن دکمه FAQ</label><input class="panel-input" name="home_sections[faq_cta_label]" value="{{ old('home_sections.faq_cta_label', $homeContent['faq_cta_label'] ?? '') }}" maxlength="80"></div>
+        </div>
+        <div class="seo-admin-section-head"><div><h3>برچسب آمار صفحه اصلی</h3><p>مقادیر عددی آمار از دیتابیس می‌آیند؛ فقط عنوان هر شاخص را تغییر بده.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label>عنوان شاخص {{ $i + 1 }}</label><input class="panel-input" name="home_sections[stats_labels][{{ $i }}]" value="{{ old("home_sections.stats_labels.$i", $homeContent['stats_labels'][$i] ?? '') }}" maxlength="80" required></div>
+            @endfor
+        </div>
+        <div class="seo-admin-section-head"><div><h3>چهار مرحله مسیر یادگیری</h3><p>عنوان و توضیح هر کارت در صفحه اصلی قابل ویرایش است.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 4; $i++)
+                <div class="panel-field"><label>عنوان مرحله {{ $i + 1 }}</label><input class="panel-input" name="home_sections[steps][{{ $i }}][title]" value="{{ old("home_sections.steps.$i.title", $homeContent['steps'][$i]['title'] ?? '') }}" maxlength="180"></div>
+                <div class="panel-field"><label>توضیح مرحله {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[steps][{{ $i }}][body]" maxlength="500">{{ old("home_sections.steps.$i.body", $homeContent['steps'][$i]['body'] ?? '') }}</textarea></div>
+            @endfor
+        </div>
+        <div class="seo-admin-section-head"><div><h3>سؤالات متداول صفحه اصلی</h3><p>پنج سؤال و پاسخ قابل مدیریت برای بازدیدکنندگان.</p></div></div>
+        <div class="panel-form-grid">
+            @for($i = 0; $i < 5; $i++)
+                <div class="panel-field"><label>سؤال {{ $i + 1 }}</label><input class="panel-input" name="home_sections[faq_items][{{ $i }}][question]" value="{{ old("home_sections.faq_items.$i.question", $homeContent['faq_items'][$i]['question'] ?? '') }}" maxlength="240"></div>
+                <div class="panel-field"><label>پاسخ {{ $i + 1 }}</label><textarea class="panel-textarea" name="home_sections[faq_items][{{ $i }}][answer]" maxlength="1200">{{ old("home_sections.faq_items.$i.answer", $homeContent['faq_items'][$i]['answer'] ?? '') }}</textarea></div>
+            @endfor
         </div>
 
         <div class="seo-admin-section-head"><div><h3>تأیید مالکیت موتورهای جست‌وجو</h3><p>کدها بدون تغییر در بخش head صفحات عمومی درج می‌شوند.</p></div></div>

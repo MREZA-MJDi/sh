@@ -73,7 +73,7 @@ body.parent-page {
   margin:0;
   background:var(--bg);
   color:var(--tx);
-  font:400 14px/1.7 Vazirmatn,Tahoma,sans-serif;
+  font:400 14px/1.7 Vazirmatn Variable,Tahoma,sans-serif;
 }
 
 button {

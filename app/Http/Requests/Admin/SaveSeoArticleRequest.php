@@ -26,6 +26,7 @@ class SaveSeoArticleRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:500'],
             'body' => ['required', 'string', 'max:100000'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'image_position' => ['nullable', 'regex:/^(100|[1-9]?\d)%\s+(100|[1-9]?\d)%$/'],
             'image_alt' => ['nullable', 'string', 'max:180'],
             'meta_title' => ['nullable', 'string', 'max:180'],
             'meta_description' => ['nullable', 'string', 'max:320'],

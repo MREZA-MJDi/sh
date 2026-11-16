@@ -15,6 +15,7 @@ class ExampleTest extends TestCase
             ->get('/')
             ->assertOk()
             ->assertDontSee('مسیر یادگیری هوشمند')
-            ->assertSee('کوییز ۳۰ ثانیه‌ای');
+            ->assertSee('پنل‌های اختصاصی')
+            ->assertDontSee('کوییز ۳۰ ثانیه‌ای');
     }
 }

@@ -12,7 +12,11 @@
                 <tbody>
                 @forelse ($consultations as $consultation)
                     <tr>
-                        <td><strong>{{ $consultation->requester->name ?? 'کاربر حذف‌شده' }}</strong><div class="panel-muted">{{ $consultation->requester->phone ?? $consultation->requester->email ?? '' }}</div></td>
+                        <td>
+                            <strong>{{ $consultation->topic ?: 'درخواست مشاوره' }}</strong>
+                            <div class="panel-muted">{{ $consultation->requester->name ?? 'کاربر حذف‌شده' }} · {{ $consultation->requester->phone ?? $consultation->requester->email ?? '' }}</div>
+                            @if($consultation->notes)<small class="panel-muted">{{ \Illuminate\Support\Str::limit(strip_tags($consultation->notes), 140) }}</small>@endif
+                        </td>
                         <td>{{ $consultation->student->name ?? '—' }}</td>
                         <td>{{ ['phone'=>'تلفنی','in_person'=>'حضوری','ticket'=>'تیکت'][$consultation->type] ?? $consultation->type }}</td>
                         <td>{{ $consultation->desired_at?->format('Y-m-d H:i') ?? '—' }}</td>

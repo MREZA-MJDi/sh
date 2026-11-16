@@ -30,8 +30,9 @@ final class AuthenticationService
     public function dashboardRouteName(User $user): ?string
     {
         return match (true) {
+            $user->hasRole('admin') => 'admin.dashboard',
             $user->hasRole('seo') => 'admin.seo.index',
-            $user->hasRole(['admin', 'teacher']) => 'admin.dashboard',
+            $user->hasRole('teacher') => 'teacher.dashboard',
             $user->hasRole('student') => 'student.dashboard',
             $user->hasRole('parent') => 'guardian.dashboard',
             default => null,

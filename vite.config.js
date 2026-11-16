@@ -7,13 +7,14 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/shared/typography.css',
                 'resources/css/public-academy.css',
                 'resources/js/app.js',
                 'resources/css/admin/app.css',
                 'resources/js/admin/app.js',
                 'resources/css/student/app.css',
                 'resources/css/parent/app.css',
-                'resources/css/seo/public.css',
+                'resources/css/teacher/app.css',
                 'resources/css/admin/seo.css',
                 'resources/js/student/app.js',
                 'resources/js/parent/app.js',

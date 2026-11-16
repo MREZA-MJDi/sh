@@ -63,10 +63,14 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->actingAs($teacher)
             ->get(route('admin.classes.index'))
             ->assertOk()
-            ->assertSee('کلاس‌ها و اسکای‌روم')
+            ->assertSee('کلاس‌ها')
             ->assertDontSee('کوییز ۲۴')
             ->assertDontSee('آزمون‌ها')
             ->assertDontSee('مدیریت کاربران');
+
+        $this->actingAs($teacher)
+            ->get(route('admin.dashboard'))
+            ->assertRedirect(route('teacher.dashboard'));
 
         $this->actingAs($teacher)
             ->get(route('admin.exams.index'))
@@ -158,6 +162,8 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->assertTrue($teacher->hasPermissionTo('dashboard.view'));
         $this->assertTrue($teacher->hasPermissionTo('profile.update'));
         $this->assertTrue($teacher->hasPermissionTo('announcements.view'));
+        $this->assertTrue($teacher->hasPermissionTo('consultations.create'));
+        $this->actingAs($teacher)->get(route('teacher.consultations.index'))->assertOk();
         $this->actingAs($teacher)->get(route('teacher.dashboard'))->assertOk();
         $this->assertTrue($teacher->hasPermissionTo('classes.manage.assigned'));
         $this->assertTrue($teacher->hasPermissionTo('exams.manage.assigned'));
@@ -329,7 +335,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->actingAs($teacher)
             ->get(route('teacher.dashboard'))
             ->assertOk()
-            ->assertSee('کلاس‌ها و فعالیت‌های شما');
+            ->assertSee('فضای کاری مدرس');
     }
 
     public function test_homework_submission_list_is_paginated_instead_of_truncated_at_thirty(): void
@@ -401,6 +407,76 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->get(route('student.exams.index'))
             ->assertOk()
             ->assertSee('آزمون کلاس بدون انتخاب مجدد دوره');
+    }
+
+    public function test_teacher_uses_dedicated_shell_and_consultation_requests_appear_in_admin_inbox(): void
+    {
+        $teacher = $this->teacherWithPermissions(['consultations.create', 'messages.view.assigned']);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.dashboard'))
+            ->assertOk()
+            ->assertSee('teacher-sidebar')
+            ->assertSee('فضای کاری مدرس')
+            ->assertDontSee('مدیریت کاربران');
+
+        $desiredAt = now()->addDays(2)->format('Y-m-d H:i');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.consultations.store'), [
+                'type' => 'phone',
+                'topic' => 'هماهنگی جلسه با مدیریت',
+                'contact_phone' => '09120000011',
+                'desired_at' => $desiredAt,
+                'body' => 'برای هماهنگی برنامه کلاس و منابع آموزشی درخواست جلسه دارم.',
+            ])
+            ->assertRedirect(route('teacher.consultations.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('consultations', [
+            'requester_id' => $teacher->id,
+            'topic' => 'هماهنگی جلسه با مدیریت',
+            'contact_phone' => '09120000011',
+            'status' => 'pending',
+        ]);
+
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.consultations.index'))
+            ->assertOk()
+            ->assertSee('هماهنگی جلسه با مدیریت')
+            ->assertSee('برای هماهنگی برنامه کلاس و منابع آموزشی درخواست جلسه دارم.');
+    }
+
+    public function test_teacher_can_send_an_internal_message_that_appears_in_admin_inbox(): void
+    {
+        $teacher = $this->teacherWithPermissions(['messages.view.assigned']);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.messages.store'), [
+                'target' => 'admin',
+                'subject' => 'درخواست هماهنگی برنامه آموزشی',
+                'body' => 'برای هماهنگی برنامه آموزشی کلاس‌ها نیاز به بررسی مدیریت دارم.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('messages', [
+            'sender_id' => $teacher->id,
+            'recipient_id' => $admin->id,
+            'student_id' => null,
+            'parent_id' => null,
+            'subject' => 'درخواست هماهنگی برنامه آموزشی',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.messages.index'))
+            ->assertOk()
+            ->assertSee('درخواست هماهنگی برنامه آموزشی')
+            ->assertSee('برای هماهنگی برنامه آموزشی کلاس‌ها نیاز به بررسی مدیریت دارم.');
     }
 
 }

@@ -117,7 +117,8 @@ final class SessionController extends Controller
 
         $user->forceFill(['last_login_at' => now()])->save();
 
-        return redirect()->intended(route($dashboardRoute));
+        // Ignore stale intended URLs from another role's protected workspace.
+        return redirect()->route($dashboardRoute);
     }
 
     public function register(): View

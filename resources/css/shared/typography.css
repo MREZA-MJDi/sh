@@ -1,0 +1,15 @@
+@import "@fontsource-variable/vazirmatn/wght.css";
+
+:root {
+    --font-family-ui: "Vazirmatn Variable", Tahoma, sans-serif;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-family-ui);
+    font-feature-settings: "ss01";
+}

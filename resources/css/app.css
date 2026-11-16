@@ -10,7 +10,7 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Vazirmatn', Tahoma, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Vazirmatn Variable', Tahoma, ui-sans-serif, system-ui, sans-serif;
 }
 
 html { scroll-behavior: smooth; }

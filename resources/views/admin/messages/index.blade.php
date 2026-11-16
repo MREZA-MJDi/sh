@@ -4,7 +4,15 @@
 @section('page-description', 'کارتابل پیام‌های کاربران و پاسخ‌گویی متمرکز')
 
 @section('content')
-    <section class="panel-page-head" data-tone="talk"><div><h2>کارتابل پیام‌ها</h2><p>گفت‌وگوهای مرتبط با حساب و کلاس‌های شما</p></div>@if(auth()->user()->hasRole('teacher'))<a class="panel-btn" href="{{ route('teacher.messages.create') }}">＋ پیام جدید</a>@endif</section>
+    <section class="panel-page-head" data-tone="talk">
+        <div><h2>کارتابل پیام‌ها</h2><p>گفت‌وگوهای مرتبط با حساب و کلاس‌های شما</p></div>
+        @if(auth()->user()->hasRole('teacher'))
+            <div class="flex flex-wrap gap-2">
+                <a class="panel-btn panel-btn-secondary" href="{{ route('teacher.consultations.index') }}">درخواست مشاوره</a>
+                <a class="panel-btn" href="{{ route('teacher.messages.create') }}">＋ پیام جدید</a>
+            </div>
+        @endif
+    </section>
     <section class="panel-grid panel-grid-2">
         <article class="panel-card">
             <div class="panel-card-title"><div><h3>کارتابل</h3><p>پیام‌های اصلی و وضعیت پاسخ</p></div></div>

@@ -1,36 +1,34 @@
 @extends('public.layouts.academy')
 @section('title', $settings->site_name.' | آموزش آنلاین')
 @section('content')
-@if($banners->isNotEmpty())
 <header class="hero" id="homeHero">
-    <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
+    <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی" style="{{ $homeBanners->count() < 2 ? 'display:none' : '' }}">
         <svg class="i"><use href="#arrr"/></svg>
     </button>
-    <button class="arr l" type="button" data-hero-dir="-1" aria-label="قبلی">
+    <button class="arr l" type="button" data-hero-dir="-1" aria-label="قبلی" style="{{ $homeBanners->count() < 2 ? 'display:none' : '' }}">
         <svg class="i"><use href="#arrl"/></svg>
     </button>
 
-    @if($banners->isNotEmpty())
-        @foreach($banners as $index => $banner)
+    @forelse($homeBanners as $index => $banner)
             <div class="sl {{ $index === 0 ? 'on' : '' }}" style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}">
                 @if($banner->image_path)
-                    <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text ?: $banner->title }}">
+                    <img class="sl-banner-bg" src="{{ Storage::disk('public')->url($banner->image_path) }}" style="object-position: {{ $banner->image_position ?? '50% 50%' }}" alt="{{ $banner->alt_text ?: $banner->title }}">
                 @endif
                 <div style="position:relative;z-index:2">
-                    <span class="bd">ویژه دانش‌آموزان شیخان</span>
+                    <span class="bd">{{ $homeContent['hero_badge'] }}</span>
                     <h1>{{ $banner->title }}</h1>
-                    <p>آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای منتشرشده.</p>
+                    <p>{{ $homeContent['hero_description'] }}</p>
                     <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
                         @if($banner->target_url)
                             <a class="btn" href="{{ $banner->target_url }}" @if($banner->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>
-                                مشاهده اطلاعات <svg class="i"><use href="#arrl"/></svg>
+                                {{ $homeContent['hero_primary_label'] }} <svg class="i"><use href="#arrl"/></svg>
                             </a>
                         @else
                             <a class="btn" href="{{ route('public.courses.index') }}">
-                                مشاهده دوره‌ها <svg class="i"><use href="#arrl"/></svg>
+                                {{ $homeContent['hero_primary_label'] }} <svg class="i"><use href="#arrl"/></svg>
                             </a>
                         @endif
-                        <a class="btn o" href="#quiz">پیدا کردن مسیر من</a>
+                        <a class="btn o" href="{{ route('public.contact') }}">{{ $homeContent['hero_secondary_label'] }}</a>
                     </div>
                 </div>
                 <div class="vis" style="position:relative;z-index:2">
@@ -39,35 +37,28 @@
                     <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
                 </div>
             </div>
-        @endforeach
-    @endif
-
-    <div class="dots" id="heroDots"></div>
-</header>
-@endif
-<section id="quiz" style="background:var(--sf);padding:64px 0">
-    <div class="c">
-        <div class="qz">
-            <div>
-                <span class="eyebrow">کوییز ۳۰ ثانیه‌ای</span>
-                <h2 style="font-size:32px;line-height:1.5;margin:8px 0;font-weight:800">کدام مسیر برای تو مناسب‌تر است؟</h2>
-                <p style="color:var(--mute);line-height:1.8">به سه سؤال کوتاه پاسخ بده تا دوره و مسیر آموزشی متناسب با پایه و نیازت را ببینی.</p>
-            </div>
-            <div class="card qbox">
-                <div class="qbar"><i id="qb"></i></div>
-                <small id="qc" style="color:var(--mute);display:block;margin-bottom:6px;font-size:13px"></small>
-                <p id="qt" style="font-weight:700;font-size:18px;margin:8px 0 12px;color:var(--ink)"></p>
-                <div id="qo"></div>
+    @empty
+        <div class="sl on">
+            <div style="position:relative;z-index:2">
+                <span class="bd">{{ $homeContent['hero_badge'] }}</span>
+                <h1>{{ $settings->site_name ?? 'آکادمی شیخان' }}</h1>
+                <p>{{ $homeContent['hero_description'] }}</p>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
+                    <a class="btn" href="{{ route('public.courses.index') }}">{{ $homeContent['hero_primary_label'] }} <svg class="i"><use href="#arrl"/></svg></a>
+                    <a class="btn o" href="{{ route('public.contact') }}">{{ $homeContent['hero_secondary_label'] }}</a>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    @endforelse
+
+    <div class="dots" id="heroDots" {!! $homeBanners->count() < 2 ? 'hidden' : '' !!}></div>
+</header>
 <section style="padding:64px 0">
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">دسته‌بندی‌ها</span>
-                <h2>موضوع مورد علاقه‌ات را انتخاب کن</h2>
+                <span class="eyebrow">{{ $homeContent['categories_eyebrow'] }}</span>
+                <h2>{{ $homeContent['categories_title'] }}</h2>
             </div>
         </div>
         <div class="g6">
@@ -100,19 +91,19 @@
         <div class="g">
             <div>
                 <b>{{ number_format($stats['enrollments']) }}</b>
-                <span>ثبت‌نام فعال</span>
+                <span>{{ $homeContent['stats_labels'][0] }}</span>
             </div>
             <div>
                 <b>{{ number_format($stats['lessons']) }}</b>
-                <span>درس منتشرشده</span>
+                <span>{{ $homeContent['stats_labels'][1] }}</span>
             </div>
             <div>
                 <b>{{ number_format($stats['teachers']) }}</b>
-                <span>مدرس متخصص</span>
+                <span>{{ $homeContent['stats_labels'][2] }}</span>
             </div>
             <div>
                 <b>{{ number_format($stats['courses']) }}</b>
-                <span>دوره منتشرشده</span>
+                <span>{{ $homeContent['stats_labels'][3] }}</span>
             </div>
         </div>
     </div>
@@ -122,9 +113,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">جدیدترین‌ها</span>
-                <h2>دوره‌های تازه</h2>
-                <p>تازه‌ترین آموزش‌های منتشر شده در آکادمی شیخان</p>
+                <span class="eyebrow">{{ $homeContent['latest_courses_eyebrow'] }}</span>
+                <h2>{{ $homeContent['latest_courses_title'] }}</h2>
+                <p>{{ $homeContent['latest_courses_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('public.courses.index') }}">
                 مشاهده همه
@@ -182,9 +173,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">انتخاب دانشجوها</span>
-                <h2>پرطرفدارترین دوره‌ها</h2>
-                <p>محبوب‌ترین دوره‌ها بر اساس استقبال و ثبت‌نام دانش‌آموزان</p>
+                <span class="eyebrow">{{ $homeContent['popular_courses_eyebrow'] }}</span>
+                <h2>{{ $homeContent['popular_courses_title'] }}</h2>
+                <p>{{ $homeContent['popular_courses_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('public.courses.index', ['sort' => 'popular']) }}">
                 مشاهده پرفروش‌ترین‌ها
@@ -241,32 +232,20 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">مسیر یادگیری</span>
-                <h2>چهار قدم تا تسلط</h2>
-                <p>فرآیند اصولی یادگیری در آکادمی شیخان</p>
+                <span class="eyebrow">{{ $homeContent['steps_eyebrow'] }}</span>
+                <h2>{{ $homeContent['steps_title'] }}</h2>
+                <p>{{ $homeContent['steps_description'] }}</p>
             </div>
         </div>
         <div class="g4">
-            <div class="card stp">
-                <div class="n">۱</div>
-                <h3>انتخاب مسیر</h3>
-                <p>هدفت را بگو تا دوره و برنامه مطالعاتی پیشنهادی بگیری.</p>
-            </div>
-            <div class="card stp">
-                <div class="n">۲</div>
-                <h3>آموزش مرحله‌ای</h3>
-                <p>هر درس را با ویدیوهای تدوین‌شده و سرفصل‌های معین یاد بگیر.</p>
-            </div>
-            <div class="card stp">
-                <div class="n">۳</div>
-                <h3>تمرین و آزمون</h3>
-                <p>با تمرین‌های مستمر و آزمون‌های استاندارد آموخته‌هایت را بسنج.</p>
-            </div>
-            <div class="card stp">
-                <div class="n">۴</div>
-                <h3>پیگیری و پشتیبانی</h3>
-                <p>سؤال بپرس، رفع اشکال کن و با نظارت مدرس به نتیجه برس.</p>
-            </div>
+            @foreach($homeContent['steps'] as $index => $step)
+                @continue(blank($step['title'] ?? '') && blank($step['body'] ?? ''))
+                <div class="card stp">
+                    <div class="n">{{ ['۱', '۲', '۳', '۴'][$index] ?? ($index + 1) }}</div>
+                    <h3>{{ $step['title'] ?? '' }}</h3>
+                    <p>{{ $step['body'] ?? '' }}</p>
+                </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -276,44 +255,26 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">پنل‌های اختصاصی</span>
-                <h2>هر نقش، یک پنل مخصوص خودش</h2>
-                <p>پس از ورود، دسترسی تو بر اساس نقش حساب مشخص می‌شود.</p>
+                <span class="eyebrow">{{ $homeContent['panels_eyebrow'] ?? 'پنل‌های اختصاصی' }}</span>
+                <h2>{{ $homeContent['panels_title'] }}</h2>
+                <p>{{ $homeContent['panels_description'] }}</p>
             </div>
         </div>
+        @php($panelRoutes = [route('student.dashboard'), route('teacher.dashboard'), route('guardian.dashboard'), route('admin.dashboard')])
+        @php($panelIcons = ['cap', 'pen', 'user', 'chart'])
+        @php($panelColors = ['linear-gradient(135deg,#0d9488,#0f766e)', 'linear-gradient(135deg,#f97316,#db2777)', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)'])
         <div class="g4">
-            <a class="card pn" href="{{ route('student.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-                    <svg class="i"><use href="#cap"/></svg>
-                </div>
-                <h3>پنل دانش‌آموز</h3>
-                <p>دوره‌ها، تکالیف، آزمون‌های آنلاین و پیگیری رشد تحصیلی.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
-            <a class="card pn" href="{{ route('teacher.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                    <svg class="i"><use href="#pen"/></svg>
-                </div>
-                <h3>پنل مدرس</h3>
-                <p>مدیریت دوره‌ها، ثبت نمرات، پاسخ به سؤالات و بررسی تکالیف.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
-            <a class="card pn" href="{{ route('guardian.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                    <svg class="i"><use href="#user"/></svg>
-                </div>
-                <h3>پنل والدین</h3>
-                <p>گزارش پیشرفت درسی، ثبت حضور و غیاب و وضعیت تحصیلی فرزند.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
-            <a class="card pn" href="{{ route('admin.dashboard') }}">
-                <div class="ic" style="background:linear-gradient(135deg,#0891b2,#2563eb)">
-                    <svg class="i"><use href="#chart"/></svg>
-                </div>
-                <h3>پنل مدیریت</h3>
-                <p>نظارت بر کاربران، انتشار دوره‌ها، گزارش‌های مالی و پشتیبانی.</p>
-                <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
-            </a>
+            @foreach($homeContent['panel_cards'] as $index => $panelCard)
+                @continue(blank($panelCard['title'] ?? '') && blank($panelCard['body'] ?? ''))
+                <a class="card pn" href="{{ $panelRoutes[$index] ?? route('home') }}">
+                    <div class="ic" style="background:{{ $panelColors[$index] ?? $panelColors[0] }}">
+                        <svg class="i"><use href="#{{ $panelIcons[$index] ?? 'cap' }}"/></svg>
+                    </div>
+                    <h3>{{ $panelCard['title'] ?? '' }}</h3>
+                    <p>{{ $panelCard['body'] ?? '' }}</p>
+                    <span class="go">ورود به پنل <svg class="i"><use href="#arrl"/></svg></span>
+                </a>
+            @endforeach
         </div>
     </div>
 </section>
@@ -322,7 +283,7 @@
 @if($testimonials->isNotEmpty())
 <section style="padding:64px 0">
     <div class="c">
-        <div class="sh"><div><span class="eyebrow">نظرهای ثبت‌شده</span><h2>تجربه دانش‌آموزان</h2></div></div>
+        <div class="sh"><div><span class="eyebrow">{{ $homeContent['testimonials_eyebrow'] }}</span><h2>{{ $homeContent['testimonials_title'] }}</h2></div></div>
         <div class="g3">
             @foreach($testimonials as $testimonial)
                 <article class="card ts">
@@ -342,9 +303,9 @@
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">مدرسان برتر</span>
-                <h2>با مدرس‌های شیخان آشنا شو</h2>
-                <p>یادگیری از اساتید باسابقه و متخصص در هر رشته</p>
+                <span class="eyebrow">{{ $homeContent['teachers_eyebrow'] }}</span>
+                <h2>{{ $homeContent['teachers_title'] }}</h2>
+                <p>{{ $homeContent['teachers_description'] }}</p>
             </div>
             <a class="btn o s" style="color:var(--pri)" href="{{ route('public.teachers.index') }}">
                 همه مدرسان
@@ -377,171 +338,88 @@
 </section>
 @endif
 
-{{-- چرا شیخان؟ --}}
+{{-- مزیت‌های آکادمی؛ متن و کارت‌ها از تنظیمات سئو --}}
 <section style="padding:64px 0">
     <div class="c">
         <div class="why">
             <div>
-                <span class="eyebrow">چرا شیخان؟</span>
-                <h2>آموزشی که تا رسیدن به نتیجه کنارت می‌ماند</h2>
-                <p>در آموزشگاه شیخان فقط ویدیو نمی‌بینی؛ تمرین می‌کنی، بازخورد می‌گیری و رشدت را قدم‌به‌قدم می‌بینی.</p>
+                <span class="eyebrow">{{ $homeContent['benefits_eyebrow'] }}</span>
+                <h2>{{ $homeContent['benefits_title'] }}</h2>
+                <p>{{ $homeContent['benefits_description'] }}</p>
                 <div style="display:flex;gap:12px;flex-wrap:wrap">
-                    <a class="btn" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها</a>
-                    <a class="btn o" style="color:var(--pri)" href="{{ route('public.contact') }}">مشاوره رایگان</a>
+                    <a class="btn" href="{{ route('public.courses.index') }}">{{ $homeContent['benefits_primary_label'] }}</a>
+                    <a class="btn o" style="color:var(--pri)" href="{{ route('public.contact') }}">{{ $homeContent['benefits_secondary_label'] }}</a>
                 </div>
             </div>
+            @php($benefitIcons = ['award', 'cam', 'chart', 'user', 'pen', 'help'])
+            @php($benefitColors = ['linear-gradient(135deg,#0d9488,#0f766e)', 'linear-gradient(135deg,#f97316,#db2777)', 'linear-gradient(135deg,#2563eb,#7c3aed)', 'linear-gradient(135deg,#0891b2,#2563eb)', 'linear-gradient(135deg,#7c3aed,#db2777)', 'linear-gradient(135deg,#16a34a,#0d9488)'])
             <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#0d9488,#0f766e)">
-                        <svg class="i"><use href="#award"/></svg>
+                @foreach($homeContent['benefits'] as $index => $benefit)
+                    @continue(blank($benefit['title'] ?? '') && blank($benefit['body'] ?? ''))
+                    <div class="card wf">
+                        <div class="ic" style="background:{{ $benefitColors[$index] ?? $benefitColors[0] }}">
+                            <svg class="i"><use href="#{{ $benefitIcons[$index] ?? 'cap' }}"/></svg>
+                        </div>
+                        <h3>{{ $benefit['title'] ?? '' }}</h3>
+                        <p>{{ $benefit['body'] ?? '' }}</p>
                     </div>
-                    <h3>مدرسان منتخب</h3>
-                    <p>مدرس‌های باسابقه و بررسی‌شده برای هر درس و پایه.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                        <svg class="i"><use href="#cam"/></svg>
-                    </div>
-                    <h3>دسترسی همیشگی</h3>
-                    <p>جلسه‌ها را هر زمان و هر چندبار که خواستی آنلاین ببین.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                        <svg class="i"><use href="#chart"/></svg>
-                    </div>
-                    <h3>پیگیری رشد تحصیلی</h3>
-                    <p>نمودار پیشرفت و آزمون‌ها در پنل اختصاصی دانشجو.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#0891b2,#2563eb)">
-                        <svg class="i"><use href="#user"/></svg>
-                    </div>
-                    <h3>گزارش برای والدین</h3>
-                    <p>پیشرفت، آزمون‌ها و حضور فرزند در پنل والدین.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#7c3aed,#db2777)">
-                        <svg class="i"><use href="#pen"/></svg>
-                    </div>
-                    <h3>آزمون و تمرین</h3>
-                    <p>تمرین منظم با سنجش دقیق و بازخورد مستقیم مدرس.</p>
-                </div>
-                <div class="card wf">
-                    <div class="ic" style="background:linear-gradient(135deg,#16a34a,#0d9488)">
-                        <svg class="i"><use href="#help"/></svg>
-                    </div>
-                    <h3>پشتیبانی سریع</h3>
-                    <p>پاسخ سؤال‌های درسی‌ات در سریع‌ترین زمان ممکن.</p>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
 </section>
 
+@if($articles->isNotEmpty())
 {{-- مجله شیخان (مقالات سئو) --}}
 <section style="background:var(--sf);padding:64px 0">
     <div class="c">
         <div class="sh">
             <div>
-                <span class="eyebrow">مجله شیخان</span>
-                <h2>تازه‌ترین مقالات آموزشی</h2>
-                <p>نکته‌های مطالعه، برنامه‌ریزی درسی و آمادگی کنکور</p>
+                <span class="eyebrow">{{ $homeContent['articles_eyebrow'] }}</span>
+                <h2>{{ $homeContent['articles_title'] }}</h2>
+                <p>{{ $homeContent['articles_description'] }}</p>
             </div>
-            <a class="btn o s" style="color:var(--pri)" href="{{ route('seo.articles.index') }}">
-                همه مقالات
-            </a>
+            <a class="btn o s" style="color:var(--pri)" href="{{ route('seo.articles.index') }}">همه مقالات</a>
         </div>
         <div class="g3">
-            @if($articles->isNotEmpty())
-                @foreach($articles as $article)
-                    <article class="card cc">
-                        @if($article->featured_image_path)
-                            <a class="th" href="{{ route('seo.articles.show', $article->slug) }}">
-                                <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;height:100%;object-fit:cover">
-                            </a>
-                        @else
-                            <a class="th" href="{{ route('seo.articles.show', $article->slug) }}" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
-                                <svg class="i"><use href="#pen"/></svg>
-                                <span class="bd bd-article">مقاله</span>
-                            </a>
-                        @endif
-                        <div class="cb">
-                            <h3>
-                                <a href="{{ route('seo.articles.show', $article->slug) }}">
-                                    {{ $article->title }}
-                                </a>
-                            </h3>
-                            <div class="mt">
-                                <span>{{ $article->published_at ? $article->published_at->format('Y/m/d') : 'امروز' }}</span>
-                                <span>۶ دقیقه مطالعه</span>
-                            </div>
-                            <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                                {{ Str::limit(strip_tags($article->excerpt ?: $article->content ?? ''), 95) }}
-                            </p>
-                            <div class="pr">
-                                <a class="btn s" href="{{ route('seo.articles.show', $article->slug) }}">
-                                    ادامه مطلب
-                                </a>
-                            </div>
+            @foreach($articles as $article)
+                <article class="card cc">
+                    @if($article->featured_image_path)
+                        <a class="th" href="{{ route('seo.articles.show', $article->slug) }}">
+                            <img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="width:100%;height:100%;object-fit:cover;object-position: {{ $article->image_position ?? '50% 50%' }}" loading="lazy">
+                        </a>
+                    @else
+                        <a class="th" href="{{ route('seo.articles.show', $article->slug) }}" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
+                            <svg class="i"><use href="#pen"/></svg>
+                            <span class="bd bd-article">مقاله</span>
+                        </a>
+                    @endif
+                    <div class="cb">
+                        <h3><a href="{{ route('seo.articles.show', $article->slug) }}">{{ $article->title }}</a></h3>
+                        <div class="mt">
+                            <span>{{ $article->published_at?->format('Y/m/d') }}</span>
+                            <span>{{ max(1, (int) ceil(mb_strlen(strip_tags($article->body ?? ''), 'UTF-8') / 700)) }} دقیقه مطالعه</span>
                         </div>
-                    </article>
-                @endforeach
-            @else
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
-                        <svg class="i"><use href="#pen"/></svg>
-                        <span class="bd">روش مطالعه</span>
-                    </div>
-                    <div class="cb">
-                        <h3>چطور برای کنکور برنامه مطالعاتی واقعی بنویسیم؟</h3>
-                        <div class="mt"><span>۱۴ آبان</span><span>۸ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            برنامه‌ای که در روزهای سخت هم قابل اجرا باشد، از برنامه‌ای که فقط روی کاغذ عالی است بهتر است.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
+                        @if($article->excerpt)
+                            <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">{{ Str::limit(strip_tags($article->excerpt), 95) }}</p>
+                        @endif
+                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.show', $article->slug) }}">ادامه مطلب</a></div>
                     </div>
                 </article>
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">
-                        <svg class="i"><use href="#chart"/></svg>
-                        <span class="bd">کنکور</span>
-                    </div>
-                    <div class="cb">
-                        <h3>ریاضی کنکور را از کجا و با چه مباحثی شروع کنیم؟</h3>
-                        <div class="mt"><span>۱۰ آبان</span><span>۶ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            بررسی زنجیره پیش‌نیازهای ریاضیات و بودجه‌بندی تست‌های پرامتیاز در آزمون سراسری.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
-                <article class="card cc">
-                    <div class="th" style="background:linear-gradient(135deg,#f97316,#db2777)">
-                        <svg class="i"><use href="#clock"/></svg>
-                        <span class="bd">سلامت و تمرکز</span>
-                    </div>
-                    <div class="cb">
-                        <h3>خواب شب امتحان و راه‌های افزایش بازدهی حافظه</h3>
-                        <div class="mt"><span>۷ آبان</span><span>۵ دقیقه مطالعه</span></div>
-                        <p style="color:var(--mute);font-size:13px;line-height:1.8;margin:0 0 14px">
-                            روش‌های کاربردی برای کاهش استرس، تثبیت مطالب در حافظه بلندمدت و استراحت هدفمند.
-                        </p>
-                        <div class="pr"><a class="btn s" href="{{ route('seo.articles.index') }}">ادامه مطلب</a></div>
-                    </div>
-                </article>
-            @endif
+            @endforeach
         </div>
     </div>
 </section>
+@endif
 
 {{-- بنر اقدام به ثبت‌نام (CTA) --}}
 <section style="padding:64px 0">
     <div class="c">
         <div class="cta">
-            <h2>اولین جلسه را رایگان ببین</h2>
-            <p>بدون نیاز به ثبت کارت بانکی و بدون تعهد، تدریس اساتید شیخان را بررسی کن.</p>
+            <h2>{{ $homeContent['cta_title'] }}</h2>
+            <p>{{ $homeContent['cta_body'] }}</p>
             <a class="btn w" href="{{ route('public.courses.index') }}">
-                شروع یادگیری <svg class="i"><use href="#arrl"/></svg>
+                {{ $homeContent['cta_label'] }} <svg class="i"><use href="#arrl"/></svg>
             </a>
         </div>
     </div>
@@ -552,34 +430,21 @@
     <div class="c">
         <div class="faq">
             <div>
-                <span class="eyebrow">سؤالات متداول</span>
-                <h2 style="font-size:30px;line-height:1.6;margin:8px 0;font-weight:800">قبل از شروع، این‌ها را بدان</h2>
+                <span class="eyebrow">{{ $homeContent['faq_eyebrow'] }}</span>
+                <h2 style="font-size:30px;line-height:1.6;margin:8px 0;font-weight:800">{{ $homeContent['faq_title'] }}</h2>
                 <p style="color:var(--mute);margin:0 0 20px;line-height:1.9">
-                    جواب سؤالت اینجا نبود؟ تیم پشتیبانی شیخان همیشه برای راهنمایی در کنارت است.
+                    {{ $homeContent['faq_description'] }}
                 </p>
-                <a class="btn" href="{{ route('public.contact') }}">تماس با پشتیبانی</a>
+                <a class="btn" href="{{ route('public.contact') }}">{{ $homeContent['faq_cta_label'] }}</a>
             </div>
             <div>
-                <details open>
-                    <summary>چطور در دوره‌ها ثبت‌نام کنم؟</summary>
-                    <div class="fa">با شماره موبایل وارد شو، دوره مدنظرت را انتخاب و ثبت‌نام کن. دسترسی به جلسات بلافاصله در پنل دانش‌آموز فعال می‌شود.</div>
-                </details>
-                <details>
-                    <summary>تا کی به ویدیوها و محتوای دوره دسترسی دارم؟</summary>
-                    <div class="fa">دسترسی به دوره‌های خریداری‌شده همیشگی است و می‌توانی هر زمان و هر چندبار که خواستی جلسه‌ها را مرور کنی.</div>
-                </details>
-                <details>
-                    <summary>اگر در مورد درس‌ها سؤال داشتم چطور بپرسم؟</summary>
-                    <div class="fa">از طریق پنل کاربری یا سامانه پشتیبانی اختصاصی هر دوره می‌توانی مستقیماً از مدرس سؤال بپرسی و رفع اشکال کنی.</div>
-                </details>
-                <details>
-                    <summary>والدین چطور پیشرفت فرزندشان را پیگیری می‌کنند؟</summary>
-                    <div class="fa">در پنل اختصاصی والدین، گزارش حضور در کلاس‌ها، نمرات آزمون‌ها و نمودار رشد تحصیلی در یک نگاه قابل مشاهده است.</div>
-                </details>
-                <details>
-                    <summary>آیا آزمون‌ها دارای کارنامه و پاسخ تشریحی هستند؟</summary>
-                    <div class="fa">بله، بلافاصله پس از اتمام آزمون، کارنامه تحلیلی به همراه پاسخ تشریحی تک‌تک سؤالات در پنل قرار می‌گیرد.</div>
-                </details>
+                @foreach($homeContent['faq_items'] as $index => $item)
+                    @continue(blank($item['question'] ?? '') && blank($item['answer'] ?? ''))
+                    <details @if($index === 0) open @endif>
+                        <summary>{{ $item['question'] ?? '' }}</summary>
+                        <div class="fa">{{ $item['answer'] ?? '' }}</div>
+                    </details>
+                @endforeach
             </div>
         </div>
     </div>
@@ -644,116 +509,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     startAutoplay();
 
-    // Quiz Interactive Logic
-    (function () {
-        const qb = document.getElementById('qb');
-        const qc = document.getElementById('qc');
-        const qt = document.getElementById('qt');
-        const qo = document.getElementById('qo');
-        if (!qb || !qc || !qt || !qo) return;
-
-        const baseCoursesUrl = "{{ route('public.courses.index') }}";
-
-        const questions = [
-            {
-                title: "پایه یا مقطع تحصیلی‌ات چیست؟",
-                options: [
-                    { label: "پایه دهم", grade: "دهم" },
-                    { label: "پایه یازدهم", grade: "یازدهم" },
-                    { label: "پایه دوازدهم", grade: "دوازدهم" },
-                    { label: "پایه سیزدهم (کنکور)", grade: "کنکور" }
-                ]
-            },
-            {
-                title: "بیشتر در چه درسی نیاز به تقویت داری؟",
-                options: [
-                    { label: "ریاضی و حسابان", subject: "ریاضی" },
-                    { label: "فیزیک تخصصی", subject: "فیزیک" },
-                    { label: "شیمی و زیست‌شناسی", subject: "شیمی" },
-                    { label: "زبان انگلیسی و عمومی", subject: "زبان" }
-                ]
-            },
-            {
-                title: "هدف اصلی‌ات از شرکت در دوره چیست؟",
-                options: [
-                    { label: "تسلط بر تست‌زنی و رتبه برتر کنکور", goal: "test" },
-                    { label: "نمره ۲۰ امتحان نهایی و تشریحی", goal: "final" },
-                    { label: "یادگیری مفهومی و حل مسئله از صفر", goal: "concept" },
-                    { label: "جمع‌بندی سریع و مرور شب امتحان", goal: "review" }
-                ]
-            }
-        ];
-
-        let currentStep = 0;
-        let userAnswers = {};
-
-        function renderQuiz() {
-            const progress = (currentStep / questions.length) * 100;
-            qb.style.width = progress + "%";
-
-            if (currentStep >= questions.length) {
-                qc.textContent = "";
-                qt.textContent = "";
-
-                const subject = userAnswers.subject || "ریاضی";
-                const grade = userAnswers.grade || "کنکور";
-                const targetUrl = `${baseCoursesUrl}?subject=${encodeURIComponent(subject)}&grade=${encodeURIComponent(grade)}`;
-
-                qo.innerHTML = `
-                    <div class="res">
-                        <div class="big">
-                            <svg class="i" style="width:34px;height:34px"><use href="#award"/></svg>
-                        </div>
-                        <b style="font-size:18px;display:block;margin-bottom:6px">مسیر پیشنهادی تو آماده است!</b>
-                        <p style="color:var(--mute);margin:4px 0 16px;font-size:15px">
-                            دوره تخصصی <strong>${subject}</strong> ویژه <strong>${grade}</strong>
-                        </p>
-                        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-                            <a class="btn" href="${targetUrl}">
-                                مشاهده دوره‌های مرتبط <svg class="i"><use href="#arrl"/></svg>
-                            </a>
-                            <button class="btn o s" style="color:var(--pri)" type="button" id="qaBtn">
-                                شروع دوباره
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('qaBtn')?.addEventListener('click', function () {
-                    currentStep = 0;
-                    userAnswers = {};
-                    renderQuiz();
-                });
-                return;
-            }
-
-            const q = questions[currentStep];
-            qc.textContent = `سؤال ${currentStep + 1} از ${questions.length}`;
-            qt.textContent = q.title;
-
-            const letters = ["الف", "ب", "ج", "د"];
-            qo.innerHTML = q.options.map((opt, i) => `
-                <button class="opt" type="button" data-idx="${i}">
-                    <b>${letters[i] || (i + 1)}</b>
-                    <span>${opt.label}</span>
-                </button>
-            `).join('');
-
-            qo.querySelectorAll('.opt').forEach((btn, idx) => {
-                btn.addEventListener('click', function () {
-                    const selectedOpt = q.options[idx];
-                    if (selectedOpt.grade) userAnswers.grade = selectedOpt.grade;
-                    if (selectedOpt.subject) userAnswers.subject = selectedOpt.subject;
-                    if (selectedOpt.goal) userAnswers.goal = selectedOpt.goal;
-
-                    currentStep++;
-                    renderQuiz();
-                });
-            });
-        }
-
-        renderQuiz();
-    })();
 });
 </script>
 @endpush

@@ -29,19 +29,25 @@
         @csrf
         <div class="seo-admin-section-head"><div><h3>ایجاد مقاله جدید</h3><p>فیلدهای دارای ستاره الزامی‌اند. محتوای HTML پیش از ذخیره‌سازی پاک‌سازی می‌شود.</p></div><span class="seo-admin-status">فرم ایجاد</span></div>
         <div class="panel-form-grid">
-            <div class="panel-field"><label for="seo-article-title">عنوان مقاله *</label><input id="seo-article-title" class="panel-input" name="title" value="{{ old('title') }}" required maxlength="180"></div>
+            <div class="panel-field"><label for="seo-article-title">عنوان مقاله *</label><input id="seo-article-title" class="panel-input" name="title" value="{{ old('title') }}" required maxlength="180" data-image-title></div>
             <div class="panel-field"><label for="seo-article-slug">نشانی کوتاه (Slug)</label><input id="seo-article-slug" class="panel-input" name="slug" value="{{ old('slug') }}" maxlength="190" dir="ltr" placeholder="article-url"><small class="seo-admin-field-hint">در صورت خالی‌بودن، از عنوان ساخته می‌شود.</small></div>
-            <div class="panel-field"><label for="seo-article-excerpt">خلاصه مقاله</label><textarea id="seo-article-excerpt" class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500">{{ old('excerpt') }}</textarea></div>
+            <div class="panel-field"><label for="seo-article-excerpt">خلاصه مقاله</label><textarea id="seo-article-excerpt" class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500" data-image-excerpt>{{ old('excerpt') }}</textarea></div>
             <div class="panel-field"><label for="seo-article-body">متن کامل مقاله *</label><textarea id="seo-article-body" class="panel-textarea seo-admin-richtext" name="body" data-rich-text required maxlength="100000">{{ old('body') }}</textarea><small class="seo-admin-field-hint">از تیترها، فهرست‌ها، لینک‌ها، جدول و تصویرهای درون‌متنی مجاز استفاده کن.</small></div>
         </div>
 
         <div class="seo-admin-section-head"><div><h3>تصاویر و دسترس‌پذیری</h3><p>تصویر شاخص برای صفحه مقاله و تصویر OG برای اشتراک‌گذاری؛ متن جایگزین برای تصویر شاخص الزامی است.</p></div></div>
         <div class="panel-form-grid">
-            <div class="panel-field"><label for="seo-featured-image">تصویر شاخص</label><input id="seo-featured-image" class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">JPG، PNG یا WebP؛ حداکثر ۵ مگابایت.</small></div>
+            <div class="panel-field"><label for="seo-featured-image">تصویر شاخص</label><input id="seo-featured-image" class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp" data-image-file><small class="seo-admin-field-hint">کارت مقاله در صفحه اصلی با نسبت ۱۶:۹ نمایش داده می‌شود؛ JPG، PNG یا WebP تا ۵ مگابایت.</small></div>
             <div class="panel-field"><label for="seo-image-alt">متن جایگزین تصویر (Alt)</label><input id="seo-image-alt" class="panel-input" name="image_alt" value="{{ old('image_alt') }}" maxlength="180"></div>
             <div class="panel-field"><label for="seo-og-image">تصویر Open Graph</label><input id="seo-og-image" class="panel-input" type="file" name="og_image" accept="image/jpeg,image/png,image/webp"><small class="seo-admin-field-hint">پیشنهاد: ۱۲۰۰×۶۳۰ پیکسل.</small></div>
         </div>
 
+        <input type="hidden" name="image_position" value="{{ old('image_position', '50% 50%') }}" data-image-position>
+        <div class="seo-admin-live-preview" data-seo-image-preview data-preview-kind="article">
+            <div class="seo-admin-section-head"><div><h3>پیش‌نمایش کارت مقاله در صفحه اصلی</h3><p>اندازه‌ی قاب تصویر دقیقاً نسبت ۱۶:۹ کارت عمومی است. برای تنظیم نقطه‌ی برش، تصویر را با ماوس یا لمس بکش.</p></div></div>
+            <article class="seo-admin-blog-card"><div class="seo-admin-blog-image"><img data-preview-image alt="" hidden><span data-preview-placeholder>پیش‌نمایش تصویر مقاله</span></div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ old('title', 'عنوان مقاله') }}</strong><p data-preview-excerpt hidden>{{ old('excerpt') }}</p></div></article>
+            <p class="seo-admin-field-hint" data-preview-dimensions>نسبت تصویر ۱۶:۹ · object-fit: cover · نمایش در کارت صفحه اصلی</p>
+        </div>
         <div class="seo-admin-section-head"><div><h3>تنظیمات اختصاصی موتور جست‌وجو</h3><p>در صورت خالی‌بودن عنوان یا توضیح، از عنوان مقاله و خلاصه یا تنظیمات پیش‌فرض سایت استفاده می‌شود.</p></div></div>
         <div class="panel-form-grid">
             <div class="panel-field"><label for="seo-meta-title">عنوان متا</label><input id="seo-meta-title" class="panel-input" name="meta_title" value="{{ old('meta_title') }}" maxlength="180"></div>
@@ -76,12 +82,12 @@
                             <form method="POST" action="{{ route('admin.seo.articles.update', $article) }}" enctype="multipart/form-data">
                                 @csrf @method('PATCH')
                                 <div class="panel-form-grid">
-                                    <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $article->title }}" required maxlength="180"></div>
+                                    <div class="panel-field"><label>عنوان</label><input class="panel-input" name="title" value="{{ $article->title }}" required maxlength="180" data-image-title></div>
                                     <div class="panel-field"><label>Slug</label><input class="panel-input" name="slug" value="{{ $article->slug }}" dir="ltr" maxlength="190"></div>
-                                    <div class="panel-field"><label>خلاصه</label><textarea class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500">{{ $article->excerpt }}</textarea></div>
+                                    <div class="panel-field"><label>خلاصه</label><textarea class="panel-textarea" name="excerpt" data-rich-text-ignore maxlength="500" data-image-excerpt>{{ $article->excerpt }}</textarea></div>
                                     <div class="panel-field"><label>متن مقاله</label><textarea class="panel-textarea seo-admin-richtext" name="body" data-rich-text required maxlength="100000">{{ $article->body }}</textarea></div>
-                                    <div class="panel-field"><label>تصویر شاخص جدید</label><input class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp">@if($article->featured_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}"><span class="panel-muted">تصویر فعلی</span></div>@endif</div>
-                                    <div class="panel-field"><label>متن جایگزین</label><input class="panel-input" name="image_alt" value="{{ $article->image_alt }}" maxlength="180"></div>
+                                    <div class="panel-field"><label>تصویر شاخص جدید</label><input class="panel-input" type="file" name="featured_image" accept="image/jpeg,image/png,image/webp" data-image-file>@if($article->featured_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}"><span class="panel-muted">تصویر فعلی</span></div>@endif</div>
+                                    <div class="panel-field"><label>متن جایگزین</label><input class="panel-input" name="image_alt" value="{{ $article->image_alt }}" maxlength="180"><input type="hidden" name="image_position" value="{{ $article->image_position ?? '50% 50%' }}" data-image-position></div>
                                     <div class="panel-field"><label>عنوان متا</label><input class="panel-input" name="meta_title" value="{{ $article->meta_title }}" maxlength="180"></div>
                                     <div class="panel-field"><label>توضیح متا</label><textarea class="panel-textarea" name="meta_description" data-rich-text-ignore maxlength="320">{{ $article->meta_description }}</textarea></div>
                                     <div class="panel-field"><label>کلیدواژه‌ها</label><input class="panel-input" name="keywords" value="{{ implode(', ', $article->keywords ?? []) }}" maxlength="1000"></div>
@@ -89,6 +95,13 @@
                                     <div class="panel-field"><label>تصویر OG جدید</label><input class="panel-input" type="file" name="og_image" accept="image/jpeg,image/png,image/webp">@if($article->og_image_path)<div class="seo-admin-image-preview"><img src="{{ Storage::disk('public')->url($article->og_image_path) }}" alt="تصویر اشتراک‌گذاری مقاله"><span class="panel-muted">تصویر فعلی</span></div>@endif</div>
                                     <div class="panel-field"><label>وضعیت</label><select class="panel-select" name="status">@foreach(['draft'=>'پیش‌نویس','published'=>'منتشرشده','scheduled'=>'زمان‌بندی‌شده','archived'=>'بایگانی'] as $key=>$label)<option value="{{ $key }}" @selected($article->status === $key)>{{ $label }}</option>@endforeach</select></div>
                                     <div class="panel-field"><label>زمان انتشار</label><input class="panel-input" type="datetime-local" name="published_at" value="{{ $article->published_at?->format('Y-m-d\\TH:i') }}"></div>
+                                </div>
+                                <div class="seo-admin-live-preview" data-seo-image-preview data-preview-kind="article">
+                                    <div class="seo-admin-section-head"><div><h3>پیش‌نمایش کارت مقاله در صفحه اصلی</h3><p>نسبت ۱۶:۹ و برش مشابه کارت عمومی؛ تصویر را بکش تا نقطه‌ی کانونی تنظیم شود.</p></div></div>
+                                    <article class="seo-admin-blog-card"><div class="seo-admin-blog-image">
+                                        @if($article->featured_image_path)<img data-preview-image src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" style="object-position: {{ $article->image_position ?? '50% 50%' }}">@else<img data-preview-image alt="" hidden><span data-preview-placeholder>برای این مقاله هنوز تصویر شاخص ثبت نشده است.</span>@endif
+                                    </div><div class="seo-admin-blog-copy"><strong data-preview-title>{{ $article->title }}</strong><p data-preview-excerpt @if(blank($article->excerpt)) hidden @endif>{{ $article->excerpt }}</p></div></article>
+                                    <p class="seo-admin-field-hint">نسبت تصویر ۱۶:۹ · object-fit: cover · نمایش در کارت صفحه اصلی</p>
                                 </div>
                                 <button class="panel-btn" type="submit">ذخیره تغییرات مقاله</button>
                             </form>

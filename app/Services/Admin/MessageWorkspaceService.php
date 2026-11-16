@@ -27,7 +27,16 @@ final class MessageWorkspaceService
             ->select('student_id');
 
         return $query
-            ->whereIn('student_id', $studentIds)
+            ->where(function (Builder $scope) use ($studentIds, $user): void {
+                $scope->whereIn('student_id', $studentIds)
+                    ->orWhere(function (Builder $internal) use ($user): void {
+                        $internal->whereNull('student_id')
+                            ->where(function (Builder $participants) use ($user): void {
+                                $participants->where('sender_id', $user->id)
+                                    ->orWhere('recipient_id', $user->id);
+                            });
+                    });
+            })
             ->where(function (Builder $participants) use ($user): void {
                 $participants->where('sender_id', $user->id)
                     ->orWhere('recipient_id', $user->id);

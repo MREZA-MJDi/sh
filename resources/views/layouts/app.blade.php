@@ -6,10 +6,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow, noarchive">
 <title>@yield('title', 'کارتابل') · {{ $m['academy']['name'] }}</title>
-<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>\n@vite(['resources/css/app.css', 'resources/css/shared/typography.css', 'resources/js/app.js'])
 @stack('head')
 </head>
 <body>
