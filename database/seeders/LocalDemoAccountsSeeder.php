@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
+/** Creates temporary demo accounts only when the explicit demo flag is enabled. */
 final class LocalDemoAccountsSeeder extends Seeder
 {
     public function run(): void
