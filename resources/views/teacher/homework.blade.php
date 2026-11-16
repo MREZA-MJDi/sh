@@ -1,32 +1,33 @@
 @extends('teacher.layouts.app')
 @section('title', 'تکالیف')
 @section('content')
-<h2>تکالیف و بررسی پاسخ‌ها</h2>
-<div class="g">
- @forelse ($homework as $item)
-  <section class="c">
-   <h3>{{ $item->title }}</h3>
-   <p>{{ $item->classroom?->name }} · مهلت: {{ $item->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت' }} · {{ $item->submissions_count }} ارسال</p>
-   @forelse ($item->submissions as $submission)
-    <div class="row"><div>{{ $submission->student?->name }}<small>{{ $submission->submitted_at?->format('Y/m/d H:i') }} · {{ $submission->status }}</small></div>
-     @if ($submission->status === 'submitted')
-      <form method="POST" action="{{ route('teacher.homework.review', $submission) }}" class="inline">
-       @csrf @method('PATCH')
-       <input type="number" name="score" min="0" max="20" step="0.25" placeholder="نمره">
-       <input type="text" name="feedback" placeholder="بازخورد" required>
-       <button class="b s" type="submit">ثبت بررسی</button>
-      </form>
-     @else
-      <i class="bd gn">{{ $submission->score ?? 'بررسی‌شده' }}</i>
-     @endif
-    </div>
-   @empty
-    <p>هنوز پاسخی ارسال نشده است.</p>
-   @endforelse
-  </section>
- @empty
-  <section class="c"><p>تکلیفی برای کلاس‌های تحت مدیریت شما ثبت نشده است.</p></section>
- @endforelse
- {{ $homework->links() }}
+<h2>تکالیف</h2>
+<div class="g g2">
+    <section class="c"><h3>تکلیف‌های ثبت‌شده</h3>
+        @forelse ($homework as $item)
+            <div class="row"><div>{{ $item->title }}<small>{{ $item->classroom?->name }} · مهلت: {{ $item->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت' }}</small></div>
+                <div class="pr"><u style="width:{{ min(100, $item->submissions_count * 100 / max($item->classroom?->students_count ?? 1, 1)) }}%"></u></div>
+                <i class="bd bl">{{ $item->submissions_count }} ارسال</i>
+            </div>
+        @empty
+            <p>تکلیفی برای کلاس‌های تحت مدیریت شما ثبت نشده است.</p>
+        @endforelse
+        {{ $homework->links() }}
+    </section>
+
+    <section class="c"><h3>نمره‌دهی سریع</h3>
+        @php $submissions = $homework->getCollection()->flatMap(fn ($item) => $item->submissions)->where('status', 'submitted'); @endphp
+        @forelse ($submissions as $submission)
+            <form method="POST" action="{{ route('teacher.homework.review', $submission) }}" class="row">
+                @csrf @method('PATCH')
+                <div>{{ $submission->student?->name }}<small>{{ $submission->homework?->title }}</small></div>
+                <input class="grade" type="number" min="0" max="20" step="0.25" name="score" value="{{ $submission->score }}" placeholder="نمره">
+                <input type="text" name="feedback" maxlength="30000" required placeholder="بازخورد">
+                <button class="b s" type="submit">ثبت</button>
+            </form>
+        @empty
+            <p>موردی برای نمره‌دهی در این صفحه نیست.</p>
+        @endforelse
+    </section>
 </div>
 @endsection
