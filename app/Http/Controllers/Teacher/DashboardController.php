@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
-use App\Models\Consultation;
 use App\Models\HomeworkSubmission;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\DashboardService;
