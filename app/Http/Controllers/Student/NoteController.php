@@ -19,7 +19,7 @@ final class NoteController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('student.notes.index', compact('notes'));
+        return view('student.notes', compact('notes'));
     }
 
     public function store(StoreStudentNoteRequest $request): RedirectResponse
