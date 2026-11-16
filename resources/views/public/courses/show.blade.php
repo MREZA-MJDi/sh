@@ -345,5 +345,82 @@
         </div>
     </section>
 @endif
+
+    @if ($canWatchCourseVideos)
+        <button
+            type="button"
+            id="course-video-launcher"
+            class="btn"
+            style="position:fixed;z-index:80;inset-inline-end:24px;bottom:24px;box-shadow:0 12px 32px rgba(15,23,42,.22)"
+            aria-haspopup="dialog"
+            aria-controls="course-video-dialog"
+        >
+            <svg class="i"><use href="#play"/></svg>
+            تماشای ویدیوهای دوره
+        </button>
+
+        <dialog id="course-video-dialog" style="width:min(920px,calc(100% - 24px));max-width:920px;border:0;border-radius:20px;padding:0;box-shadow:0 24px 80px rgba(15,23,42,.32)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--ln,#e5e7eb)">
+                <strong>ویدیوهای {{ $course->title }}</strong>
+                <button type="button" id="course-video-close" class="btn g s" aria-label="بستن پنجره پخش">بستن</button>
+            </div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;padding:16px">
+                <div style="min-width:0">
+                    <div style="aspect-ratio:16/9;background:#0f172a;border-radius:12px;overflow:hidden">
+                        <iframe
+                            id="course-video-frame"
+                            title="پخش ویدیوی دوره"
+                            src="about:blank"
+                            style="width:100%;height:100%;border:0"
+                            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                            allowfullscreen
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            sandbox="allow-scripts allow-same-origin allow-presentation"
+                        ></iframe>
+                    </div>
+                    <p class="mu" style="font-size:12px;margin:10px 0 0">پخش فقط با ثبت‌نام فعال و لایسنس معتبر ارائه‌دهنده فعال می‌شود.</p>
+                </div>
+                <nav aria-label="فهرست ویدیوهای دوره" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow:auto">
+                    @foreach ($playableVideos as $video)
+                        <button
+                            type="button"
+                            class="btn g s course-video-choice"
+                            data-player-url="{{ $video->embed_url }}"
+                            style="justify-content:flex-start;text-align:right;white-space:normal"
+                        >{{ $video->title }}</button>
+                    @endforeach
+                </nav>
+            </div>
+        </dialog>
+        <script>
+            (() => {
+                const dialog = document.getElementById('course-video-dialog');
+                const launcher = document.getElementById('course-video-launcher');
+                const close = document.getElementById('course-video-close');
+                const frame = document.getElementById('course-video-frame');
+                if (!dialog || !launcher || !close || !frame) return;
+
+                launcher.addEventListener('click', () => {
+                    dialog.showModal();
+                    const firstVideo = dialog.querySelector('[data-player-url]');
+                    if (firstVideo) frame.src = firstVideo.dataset.playerUrl;
+                });
+                dialog.querySelectorAll('[data-player-url]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        frame.src = button.dataset.playerUrl;
+                    });
+                });
+                const closeDialog = () => {
+                    dialog.close();
+                    frame.src = 'about:blank';
+                };
+                close.addEventListener('click', closeDialog);
+                dialog.addEventListener('click', (event) => {
+                    if (event.target === dialog) closeDialog();
+                });
+                dialog.addEventListener('close', () => { frame.src = 'about:blank'; });
+            })();
+        </script>
+    @endif
 </div>
 @endsection
