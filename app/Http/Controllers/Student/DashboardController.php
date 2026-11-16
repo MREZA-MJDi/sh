@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\CourseEnrollment;
+use App\Models\Enrollment;
 use App\Services\StudentDashboardService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -109,4 +111,24 @@ final class DashboardController extends Controller
             'results' => $data['results'],
         ]);
     }
+    public function library(Request $request): View
+    {
+        $student = $request->user();
+        $purchases = Enrollment::query()
+            ->where('user_id', $student->id)
+            ->with(['course:id,title,slug,subject,grade', 'license'])
+            ->latest('created_at')
+            ->paginate(12)
+            ->withQueryString();
+
+        $accesses = CourseEnrollment::query()
+            ->where('student_id', $student->id)
+            ->currentlyActive()
+            ->with('course:id,title,slug,subject,grade')
+            ->latest('granted_at')
+            ->get();
+
+        return view('student.library', compact('purchases', 'accesses'));
+    }
+
 }
