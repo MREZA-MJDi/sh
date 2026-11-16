@@ -54,9 +54,9 @@
 
 پیاده‌سازی داخلی در این مسیر قرار دارد:
 
-- \`App\\Services\\SpotPlayer\\Contracts\\SpotPlayerGateway\`
-- \`App\\Services\\SpotPlayer\\SpotPlayerService\`
-- \`App\\Services\\SpotPlayer\\UnavailableSpotPlayerGateway\`
+- \`App\Services\SpotPlayer\Contracts\SpotPlayerGateway\`
+- \`App\Services\SpotPlayer\SpotPlayerService\`
+- \`App\Services\SpotPlayer\UnavailableSpotPlayerGateway\`
 
 Gateway آینده باید DTO داخلی را به قرارداد واقعی SpotPlayer تبدیل کند. برای پیاده‌سازی Adapter، موارد زیر از کارفرما/پشتیبانی SpotPlayer دریافت شود.
 
@@ -147,10 +147,10 @@ Adapter باید پاسخ اصلی ارائه‌دهنده را به مدل دا
 
 پیاده‌سازی داخلی در این مسیر قرار دارد:
 
-- \`App\\Services\\Quiz24\\Contracts\\Quiz24Gateway\`
-- \`App\\Services\\Quiz24\\Quiz24Service\`
-- \`App\\Services\\Quiz24\\Quiz24ResultImporter\`
-- \`App\\Services\\Quiz24\\UnavailableQuiz24Gateway\`
+- \`App\Services\Quiz24\Contracts\Quiz24Gateway\`
+- \`App\Services\Quiz24\Quiz24Service\`
+- \`App\Services\Quiz24\Quiz24ResultImporter\`
+- \`App\Services\Quiz24\UnavailableQuiz24Gateway\`
 
 ### اطلاعات اتصال
 
@@ -325,10 +325,10 @@ Adapter باید پاسخ اصلی ارائه‌دهنده را به مدل دا
 
 در کد شیخان، قرارداد ارائه‌دهنده در این مسیرها قرار دارد:
 
-- `App\\Services\\Skyroom\\Contracts\\SkyroomGateway`
-- `App\\Services\\Skyroom\\SkyroomService`
-- `App\\Services\\Learning\\LiveClassService`
-- `App\\Services\\Skyroom\\UnavailableSkyroomGateway`
+- `App\Services\Skyroom\Contracts\SkyroomGateway`
+- `App\Services\Skyroom\SkyroomService`
+- `App\Services\Learning\LiveClassService`
+- `App\Services\Skyroom\UnavailableSkyroomGateway`
 
 Gateway فعلی در وضعیت `contract_missing` است و هیچ درخواست HTTP حدس‌زده‌شده‌ای ارسال نمی‌کند. شناسه اتاق در سطح «کلاس» نگهداری می‌شود، نه در سطح دوره؛ هر جلسه به کلاس تعلق دارد و می‌تواند لینک اختصاصی خودش را داشته باشد.
 
