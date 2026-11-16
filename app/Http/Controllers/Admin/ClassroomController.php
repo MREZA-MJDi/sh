@@ -14,6 +14,7 @@ use App\Services\Learning\LiveClassService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class ClassroomController extends Controller
 {
