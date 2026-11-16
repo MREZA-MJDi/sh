@@ -180,9 +180,11 @@
                     @forelse ($upcoming_sessions as $session)
                         @php
                             $sessionJoinUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+                            $hasJoinTarget = filled($sessionJoinUrl)
+                                || (filled($session->classroom?->skyroom_room_id) && $session->classroom?->skyroom_status === 'ready');
                             $sessionJoinable = $session->starts_at->lte(now()->addMinutes(15))
                                 && $session->ends_at?->gte(now())
-                                && filled($sessionJoinUrl);
+                                && $hasJoinTarget;
                         @endphp
                         <article class="student-class-item">
                             <span class="student-class-item__icon"><x-icon name="video"/></span>
@@ -197,7 +199,7 @@
                                     <button class="btn s" type="submit">ورود به کلاس</button>
                                 </form>
                             @else
-                                <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? 'ورود نزدیک زمان شروع فعال می‌شود' : 'لینک ورود ثبت نشده' }}</span>
+                                <span class="tag">{{ $session->starts_at->gt(now()->addMinutes(15)) ? 'ورود نزدیک زمان شروع فعال می‌شود' : 'لینک ورود هنوز آماده نیست' }}</span>
                             @endif
                         </article>
                     @empty
