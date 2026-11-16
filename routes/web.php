@@ -254,7 +254,7 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->prefix('teacher')
     ->name('teacher.')
     ->group(function (): void {
-        // Compatibility URL only: teachers use the exact same admin dashboard, layout and views.
+        // Independent teacher portal backed by the teacher-scoped dashboard service.
         Route::get('/', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/classes', [TeacherPortalController::class, 'classes'])->middleware('permission:classes.view.assigned')->name('classes');
         Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
