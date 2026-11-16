@@ -30,7 +30,6 @@
       'admin/exams' => ['exams.manage'],
       'admin/messages' => ['messages.view.all', 'messages.view.assigned'],
       'admin/consultations' => ['consultations.manage'],
-      'admin/consultations' => ['consultations.manage'],
       'admin/announcements' => ['announcements.manage', 'announcements.view'],
       'admin/enrollments' => ['courses.manage', 'users.manage'],
       'admin/payments' => ['payments.manage'],
