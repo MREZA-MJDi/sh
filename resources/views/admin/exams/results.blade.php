@@ -33,6 +33,6 @@
       </tbody>
     </table>
   </div>
-  @if($results->hasPages())<x-slot:footer>{{ $results->links() }}</x-slot:footer>@endif
+  <x-slot:footer>{{ $results.links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
