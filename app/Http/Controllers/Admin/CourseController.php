@@ -51,7 +51,7 @@ final class CourseController extends Controller
                 ->currentlyActive()
                 ->distinct('student_id')
                 ->count('student_id'),
-            'lessons' => Lesson::query()->whereHas('section', fn ($sections) => $sections
+            'lessons' => Lesson::query()->where('status', 'published')->whereHas('section', fn ($sections) => $sections
                 ->whereIn('course_id', clone $visibleCourseIds))->count(),
             'drafts' => Course::query()->whereIn('id', clone $visibleCourseIds)->where('status', 'draft')->count(),
         ];
