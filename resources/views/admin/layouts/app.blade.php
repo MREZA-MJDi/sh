@@ -28,6 +28,8 @@
       'admin/attendance' => ['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'],
       'admin/homework' => ['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'],
       'admin/exams' => ['exams.manage'],
+      'admin/quiz24' => ['integrations.manage'],
+      'admin/contact-messages' => ['messages.view.all'],
       'admin/messages' => ['messages.view.all', 'messages.view.assigned'],
       'admin/consultations' => ['consultations.manage'],
       'admin/announcements' => ['announcements.manage', 'announcements.view'],
