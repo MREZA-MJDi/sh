@@ -19,9 +19,7 @@
 </x-admin.page-head>
 
 @if($classroom->skyroom_status === 'waiting_contract')
-  <x-admin.alert tone="warn" title="اتصال Skyroom هنوز فعال نشده">
-    برنامه‌ریزی و ثبت جلسه‌ها در شیخان فعال است. لینک ورود پس از دریافت قرارداد و تأیید اتصال سرویس در دسترس قرار می‌گیرد.
-  </x-admin.alert>
+  <x-admin.panel title="اتصال Skyroom هنوز فعال نشده" desc="برنامه‌ریزی و ثبت جلسه‌ها در شیخان فعال است. لینک ورود پس از دریافت قرارداد و تأیید اتصال سرویس در دسترس قرار می‌گیرد." data-tone="shop"/>
 @endif
 
 <div class="adm-stats">
