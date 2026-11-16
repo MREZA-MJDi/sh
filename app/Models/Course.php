@@ -12,7 +12,7 @@ class Course extends Model
     protected $fillable = [
         'title', 'slug', 'description', 'subject', 'grade', 'teacher_id',
         'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
-        'integration_status', 'integration_note',
+        'integration_status', 'integration_note', 'learning_features',
         'teaser_original_path', 'teaser_path', 'teaser_poster_path', 'teaser_status', 'teaser_error',
     ];
 
