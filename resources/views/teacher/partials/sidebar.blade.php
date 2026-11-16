@@ -10,7 +10,7 @@
         ['teacher/meetings', 'جلسات', '🤝'],
     ];
 @endphp
-<div>
+<div class="teacher-sidebar">
     <div class="me">
         <div class="av">{{ mb_substr((string) data_get($t, 'name', ''), 0, 1) }}</div>
         <div>{{ data_get($t, 'name') }}<small>{{ data_get($t, 'subject') }}</small></div>
