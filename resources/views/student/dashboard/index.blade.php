@@ -33,7 +33,7 @@
             $nextAction = [
                 'eyebrow' => 'منابع آموزشی',
                 'title' => 'برای شروع، منابع آموزشی را ببین',
-                'description' => 'جزوه‌ها و فایل‌هایی که برای حساب تو منتشر شده‌اند از این بخش قابل دریافت هستند.',
+                'description' => 'اطلاعات منابع آموزشی مرتبط با کلاس‌هایت در این بخش نمایش داده می‌شود.',
                 'label' => 'مشاهده منابع',
                 'href' => '#resources',
                 'icon' => 'file',
@@ -405,10 +405,12 @@
                         <h3>{{ $resource->title }}</h3>
                         <p>{{ $resource->kind }}</p>
                         <span class="mu">{{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}</span>
-                        @if ($resource->file_path && $resource->is_free)
-                            <a class="btn g s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت منبع' : 'مشاهده PDF' }}</a>
-                        @elseif (! $resource->is_free)
+                        @if (! $resource->is_free)
                             <span class="tag w">نیازمند خرید</span>
+                        @elseif ($resource->file_path)
+                            <span class="tag">دریافت مستقیم غیرفعال است</span>
+                        @else
+                            <span class="tag">رایگان</span>
                         @endif
                     </article>
                 @empty
