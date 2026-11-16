@@ -94,9 +94,13 @@ class PublicSiteTest extends TestCase
         $this->assertTrue($homeView->getData()['courses']->contains('title', 'دوره منتشرشده'));
         $this->assertTrue($homeView->getData()['banners']->contains('title', 'بنر صفحه اصلی'));
 
-        $this->get(route('home'))
-            ->assertOk()
-            ->assertSee('بنر صفحه اصلی')
+        $response = $this->get(route('home'))->assertOk();
+        $this->assertStringContainsString(
+            'بنر صفحه اصلی',
+            $response->getContent(),
+            'بنر در پاسخ صفحه اصلی رندر نشد. خروجی: '.strip_tags(substr($response->getContent(), 0, 3000))
+        );
+        $response
             ->assertDontSee('بنر غیرفعال')
             ->assertSee('دوره منتشرشده')
             ->assertDontSee('دوره پیش‌نویس')
