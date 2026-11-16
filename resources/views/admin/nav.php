@@ -12,17 +12,17 @@ return [
         ['label' => 'آموزش', 'tone' => 'edu', 'items' => [
             ['label' => 'دوره‌ها', 'url' => 'admin/courses', 'icon' => 'book'],
             ['label' => 'کلاس‌ها', 'url' => 'admin/classes', 'icon' => 'cls'],
-            ['label' => 'کلاس‌های آنلاین', 'url' => 'admin/online-classes', 'icon' => 'live'],
-            ['label' => 'ویدیوهای ضبط‌شده', 'url' => 'admin/recordings', 'icon' => 'video'],
+            ['label' => 'کلاس‌های آنلاین', 'url' => 'admin/classes', 'icon' => 'live'],
+            ['label' => 'ویدیوهای ضبط‌شده', 'url' => 'admin/spotplayer', 'icon' => 'video'],
         ]],
         ['label' => 'پیگیری و ارزیابی', 'tone' => 'track', 'items' => [
             ['label' => 'حضور و غیاب', 'url' => 'admin/attendance', 'icon' => 'check'],
-            ['label' => 'تکالیف', 'url' => 'admin/assignments', 'icon' => 'file'],
+            ['label' => 'تکالیف', 'url' => 'admin/homework', 'icon' => 'file'],
             ['label' => 'آزمون‌ها', 'url' => 'admin/exams', 'icon' => 'exam'],
         ]],
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
-            ['label' => 'پیام‌های اولیا', 'url' => 'admin/parent-messages', 'icon' => 'msg', 'badge' => 5],
-            ['label' => 'جلسات با اولیا', 'url' => 'admin/meetings', 'icon' => 'cal'],
+            ['label' => 'پیام‌های اولیا', 'url' => 'admin/messages', 'icon' => 'msg', 'badge' => 5],
+            ['label' => 'جلسات با اولیا', 'url' => 'admin/consultations', 'icon' => 'cal'],
             ['label' => 'مشاوره‌ها', 'url' => 'admin/consultations', 'icon' => 'chat'],
             ['label' => 'اعلان‌ها', 'url' => 'admin/announcements', 'icon' => 'bell'],
         ]],
