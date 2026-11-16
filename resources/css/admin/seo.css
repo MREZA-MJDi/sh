@@ -70,3 +70,8 @@ body.admin-body .seo-admin-blog-copy p{margin:8px 0 0;color:var(--adm-muted);fon
 @media(max-width:700px){body.admin-body .seo-admin-preview-hero{min-height:0;height:auto;padding:50px 20px 70px}body.admin-body .seo-admin-preview-hero-copy{max-width:100%;text-align:center}}
 
 body.admin-body .seo-admin-field-hint.is-warning{color:#b45309;font-weight:800}
+
+body.admin-body .seo-admin-preview-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+body.admin-body .seo-admin-preview-cta-secondary{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45)}
+body.admin-body .seo-admin-preview-article-banner{height:auto!important;min-height:0!important;display:block!important;border-radius:14px;overflow:hidden;background:transparent}
+body.admin-body .seo-admin-preview-article-banner img{display:block;width:100%;height:auto;max-height:none;object-fit:contain;border-radius:14px}
