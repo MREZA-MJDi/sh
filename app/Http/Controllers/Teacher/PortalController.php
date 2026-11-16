@@ -142,6 +142,14 @@ final class PortalController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('teacher.messages', compact('conversations'));
+        $selectedMessage = $request->filled('message')
+            ? $messages->findVisible($request->user(), $request->integer('message'))
+            : $conversations->getCollection()->first();
+
+        if ($selectedMessage) {
+            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+        }
+
+        return view('teacher.messages', compact('conversations', 'selectedMessage'));
     }
 }
