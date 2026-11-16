@@ -31,11 +31,16 @@
             </span>
             <span>
                 <svg class="i"><use href="#clock"/></svg>
-                {{ $totalLessons > 0 ? $totalLessons . ' جلسه آموزشی' : 'دوره جامع' }}
+                {{ $totalLessons > 0 ? $totalLessons . ' درس آموزشی' : 'دوره جامع' }}
             </span>
             @if($course->grade)
                 <span class="bd">پایه {{ $course->grade }}</span>
             @endif
+        </div>
+        <div class="mt" aria-label="نوع ارائه و کلاس‌های دوره">
+            <span>شیوه ارائه محتوا: {{ ['spotplayer' => 'ویدیوی آموزشی', 'skyroom' => 'آموزش زنده', 'onsite' => 'آموزش حضوری'][$course->delivery_type] ?? 'ترکیبی' }}</span>
+            <span>{{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال</span>
+            <span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>
         </div>
     </div>
 </div>
