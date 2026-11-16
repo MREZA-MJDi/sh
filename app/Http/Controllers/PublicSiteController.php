@@ -170,7 +170,7 @@ final class PublicSiteController extends Controller
                 ->where('status', 'active')
                 ->whereNotNull('embed_url')
                 ->orderBy('id')
-                ->get(['id', 'title', 'embed_url'])
+                ->get(['id', 'title'])
                 ->filter(function (SpotPlayerVideo $video) use ($allowedEmbedHosts): bool {
                     $parts = parse_url((string) $video->embed_url);
                     $host = strtolower((string) ($parts['host'] ?? ''));
@@ -193,6 +193,57 @@ final class PublicSiteController extends Controller
             ])->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])->latest()->limit(3)->get();
 
         return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess', 'upcomingOnlineSessionCount', 'canWatchCourseVideos', 'playableVideos'));
+    }
+
+    public function playCourseVideo(
+        Request $request,
+        string $slug,
+        int $video,
+        CourseEnrollmentService $enrollments
+    ): RedirectResponse {
+        $student = $request->user();
+
+        abort_unless($student && $student->is_active && $student->hasRole('student'), 403);
+
+        $course = Course::query()
+            ->where('status', 'published')
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        abort_unless($enrollments->hasActiveAccess($student, $course), 403);
+
+        $license = SpotPlayerLicense::query()
+            ->where('student_id', $student->id)
+            ->where('course_id', $course->id)
+            ->where('status', 'active')
+            ->whereNotNull('external_license_id')
+            ->whereNotNull('license_key')
+            ->first();
+
+        abort_unless($license, 403);
+
+        $courseVideo = SpotPlayerVideo::query()
+            ->where('id', $video)
+            ->where('course_id', $course->id)
+            ->where('status', 'active')
+            ->whereNotNull('embed_url')
+            ->firstOrFail();
+
+        $parts = parse_url((string) $courseVideo->embed_url);
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $allowedHosts = array_map('strtolower', config('services.spotplayer.embed_hosts', []));
+
+        abort_unless(
+            ($parts['scheme'] ?? null) === 'https'
+                && $host !== ''
+                && in_array($host, $allowedHosts, true),
+            403
+        );
+
+        return redirect()->away($courseVideo->embed_url)
+            ->header('Cache-Control', 'private, no-store, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Referrer-Policy', 'strict-origin-when-cross-origin');
     }
 
     public function teachers(Request $request): View
