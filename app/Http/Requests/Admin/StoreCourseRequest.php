@@ -13,12 +13,20 @@ class StoreCourseRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $features = $this->input('learning_features', []);
         $allowed = ['recorded_video', 'live_class', 'resources', 'assignments', 'exams', 'projects'];
+        $legacyDefaults = [
+            'recorded_video' => $this->input('delivery_type') === 'spotplayer',
+            'live_class' => $this->input('delivery_type') === 'skyroom',
+            'resources' => true,
+            'assignments' => true,
+            'exams' => true,
+            'projects' => false,
+        ];
+        $features = $this->input('learning_features', []);
 
         $this->merge([
             'learning_features' => array_replace(
-                array_fill_keys($allowed, false),
+                $legacyDefaults,
                 is_array($features) ? array_intersect_key($features, array_flip($allowed)) : []
             ),
         ]);
