@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Providers;
+namespace App\Providers;
 
-use App\\Auth\\LegacyAwareUserProvider;
-use App\\Services\\Quiz24\\Contracts\\Quiz24Gateway;
-use App\\Services\\Quiz24\\UnavailableQuiz24Gateway;
-use App\\Services\\Skyroom\\Contracts\\SkyroomGateway;
-use App\\Services\\Skyroom\\UnavailableSkyroomGateway;
-use App\\Services\\SpotPlayer\\Contracts\\SpotPlayerGateway;
-use App\\Services\\SpotPlayer\\UnavailableSpotPlayerGateway;
-use Illuminate\\Support\\Facades\\Auth;
-use Illuminate\\Support\\Facades\\Blade;
-use Illuminate\\Support\\Facades\\Gate;
-use Illuminate\\Support\\ServiceProvider;
+use App\Auth\LegacyAwareUserProvider;
+use App\Services\Quiz24\Contracts\Quiz24Gateway;
+use App\Services\Quiz24\UnavailableQuiz24Gateway;
+use App\Services\Skyroom\Contracts\SkyroomGateway;
+use App\Services\Skyroom\UnavailableSkyroomGateway;
+use App\Services\SpotPlayer\Contracts\SpotPlayerGateway;
+use App\Services\SpotPlayer\UnavailableSpotPlayerGateway;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
