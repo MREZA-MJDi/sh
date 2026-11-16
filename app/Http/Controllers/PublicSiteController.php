@@ -144,14 +144,10 @@ final class PublicSiteController extends Controller
             ->limit(8)
             ->get();
 
-        $features = array_replace([
-            'recorded_video' => $course->delivery_type === 'spotplayer',
-            'live_class' => $course->delivery_type === 'skyroom',
-            'resources' => true,
-            'assignments' => true,
-            'exams' => true,
-            'projects' => false,
-        ], $course->learning_features ?? []);
+        $features = [];
+        foreach (['recorded_video', 'live_class', 'resources', 'assignments', 'exams', 'projects'] as $feature) {
+            $features[$feature] = $course->featureEnabled($feature);
+        }
 
         $activeClassroomIds = $request->user()?->hasRole('student')
             ? $learningAccess->activeClassroomIds($request->user())->pluck('classrooms.id')->map(fn ($id) => (int) $id)->all()
