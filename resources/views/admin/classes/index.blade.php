@@ -51,6 +51,8 @@
                                     اتاق Skyroom تأیید شده
                                 @elseif ($classroom->skyroom_status === 'waiting_contract')
                                     ساخت خودکار در انتظار قرارداد API
+                                @elseif ($classroom->skyroom_status === 'failed')
+                                    خطای اتصال؛ نیازمند بررسی
                                 @else
                                     اتاق خودکار هنوز ساخته نشده
                                 @endif
