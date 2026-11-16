@@ -29,7 +29,7 @@ final class PublicSiteController extends Controller
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
-            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
         $popularCourses = (clone $courseQuery)->orderByDesc('enrollments_count')->latest()->limit(6)->get();
@@ -49,7 +49,7 @@ final class PublicSiteController extends Controller
             'teachers' => User::query()->where('is_active', true)->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))->count(),
             'lessons' => Lesson::query()->where('status', 'published')->whereHas('section', fn ($sections) => $sections
                 ->where('status', 'published')->whereHas('course', fn ($courses) => $courses->where('status', 'published')))->count(),
-            'enrollments' => CourseEnrollment::query()->where('status', 'active')->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
+            'enrollments' => CourseEnrollment::query()->currentlyActive()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
         return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
@@ -62,7 +62,7 @@ final class PublicSiteController extends Controller
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
-            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')]);
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
 
         if ($search = trim((string) $request->query('q'))) {
             $term = '%'.$search.'%';
@@ -108,7 +108,7 @@ final class PublicSiteController extends Controller
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note')])
-            ->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])
+            ->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])
             ->firstOrFail();
 
         // The public curriculum is a preview, not an unbounded dump of every
@@ -140,7 +140,7 @@ final class PublicSiteController extends Controller
                 'teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name'),
                 'sections' => fn ($sections) => $sections->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
-            ])->withCount(['enrollments' => fn ($query) => $query->where('status', 'active')])->latest()->limit(3)->get();
+            ])->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])->latest()->limit(3)->get();
 
         return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess'));
     }
@@ -187,7 +187,7 @@ final class PublicSiteController extends Controller
                     ->where('status', 'published')
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])
-            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->where('status', 'active')])
+            ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()])
             ->latest()->limit(12)
             ->get();
 
