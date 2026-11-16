@@ -43,6 +43,18 @@ final class GuardianDashboardChildSelectionTest extends TestCase
             ->assertDontSee('وضعیت آموزشی دانش‌آموز محرمانه');
     }
 
+    public function test_guardian_dashboard_uses_its_own_shell_and_exposes_theme_control(): void
+    {
+        $guardian = $this->userWithRole('parent');
+
+        $this->actingAs($guardian)
+            ->get(route('guardian.dashboard'))
+            ->assertOk()
+            ->assertSee('class="parent-page"', false)
+            ->assertSee('data-theme-toggle', false)
+            ->assertDontSee('class="student-page"', false);
+    }
+
     /**
      * @param array<string, mixed> $attributes
      */
