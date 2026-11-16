@@ -88,6 +88,7 @@ class LearningResourceController extends Controller
 
     public function download(LearningResource $resource, ClassroomWorkspaceService $workspace): never
     {
+        $this->authorizeResourceAccess($resource, $workspace);
         abort(404);
     }
 
