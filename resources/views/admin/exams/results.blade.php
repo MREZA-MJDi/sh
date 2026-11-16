@@ -33,6 +33,6 @@
       </tbody>
     </table>
   </div>
-  <x-slot:footer>{{ $results.links() }}</x-slot:footer>
+  <x-slot:footer>{{ $results->links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
