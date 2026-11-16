@@ -30,8 +30,12 @@
    @forelse ($sessions as $session)
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
-     <div><b>{{ $session->classroom?->name ?? 'کلاس' }}</b><span>{{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
-     <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="ورود به کلاس"><svg class="i"><use href="#i-play"/></svg></button></form>
+     <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ $session->session_type === 'onsite' ? 'حضوری' : 'آنلاین' }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
+     @if ($session->session_type === 'online')
+      <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="ورود به کلاس"><svg class="i"><use href="#i-play"/></svg></button></form>
+     @else
+      <span class="tag">حضوری</span>
+     @endif
     </div>
    @empty
     <p>جلسه‌ی برنامه‌ریزی‌شده‌ای برای شما ثبت نشده است.</p>
