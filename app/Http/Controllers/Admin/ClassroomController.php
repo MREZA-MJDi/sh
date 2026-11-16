@@ -79,7 +79,7 @@ class ClassroomController extends Controller
     ): RedirectResponse {
         $classrooms->update($request->user(), $classroom, $request->validated());
 
-        return back()->with('success', 'کلاس، زمان‌بندی و لینک اسکای‌روم به‌روزرسانی شد.');
+        return back()->with('success', 'اطلاعات گروه آموزشی، اعضا و برنامه هفتگی به‌روزرسانی شد.');
     }
 
     public function ensureSkyroomRoom(
