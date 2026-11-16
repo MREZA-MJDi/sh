@@ -32,21 +32,32 @@ final class CourseController extends Controller
             ->latest()
             ->paginate(12);
 
-        $teachers = User::query()
-            ->whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $user = auth()->user();
+        $teacherView = $workspace->isTeacher($user);
+        $teachers = $teacherView
+            ? collect([$user])
+            : User::query()
+                ->whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name']);
 
+        $visibleCourseIds = $workspace->coursesQueryFor($user)->select('courses.id');
         $stats = [
-            'courses' => Course::query()->count(),
-            'published' => Course::query()->where('status', 'published')->count(),
-            'students' => CourseEnrollment::query()->currentlyActive()->distinct('student_id')->count('student_id'),
-            'lessons' => Lesson::query()->whereHas('section.course')->count(),
-            'drafts' => Course::query()->where('status', 'draft')->count(),
+            'courses' => (clone $visibleCourseIds)->count(),
+            'published' => Course::query()->whereIn('id', clone $visibleCourseIds)->where('status', 'published')->count(),
+            'students' => CourseEnrollment::query()
+                ->whereIn('course_id', clone $visibleCourseIds)
+                ->currentlyActive()
+                ->distinct('student_id')
+                ->count('student_id'),
+            'lessons' => Lesson::query()->whereHas('section', fn ($sections) => $sections
+                ->whereIn('course_id', clone $visibleCourseIds))->count(),
+            'drafts' => Course::query()->whereIn('id', clone $visibleCourseIds)->where('status', 'draft')->count(),
         ];
+        $canManage = $user->hasPermissionTo('courses.manage');
 
-        return view('admin.courses.index', compact('courses', 'teachers', 'stats'));
+        return view('admin.courses.index', compact('courses', 'teachers', 'stats', 'canManage', 'teacherView'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
