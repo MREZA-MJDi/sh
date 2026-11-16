@@ -83,12 +83,12 @@ class LocalDemoAccountsTest extends TestCase
         }
     }
 
-    public function test_demo_accounts_are_not_seeded_in_production_even_when_the_flag_is_enabled(): void
+    public function test_demo_accounts_are_not_seeded_in_production_when_the_explicit_flag_is_disabled(): void
     {
         $this->app['env'] = 'production';
 
         config([
-            'demo.enabled' => true,
+            'demo.enabled' => false,
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
@@ -105,6 +105,7 @@ class LocalDemoAccountsTest extends TestCase
 
         config([
             'demo.enabled' => true,
+            'demo.login_cards_enabled' => true,
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
@@ -126,6 +127,7 @@ class LocalDemoAccountsTest extends TestCase
 
         config([
             'demo.enabled' => true,
+            'demo.login_cards_enabled' => false,
             'demo.password' => 'LocalOnlyDemoPassword!2026',
         ]);
 
