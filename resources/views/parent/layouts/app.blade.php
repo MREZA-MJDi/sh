@@ -6,7 +6,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title', 'پنل اولیا') · پنل اولیا</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ asset('css/parent.css') }}">
+@vite(['resources/css/parent/parent.css', 'resources/js/parent/parent.js'])
 <script>try{var d=document.documentElement,t=localStorage.getItem('pa-theme'),p=localStorage.getItem('pa-pal');if(t)d.dataset.theme=t;if(p)d.dataset.pal=p}catch(e){}</script>
 @stack('head')
 </head>
@@ -21,7 +21,7 @@
 </div>
 
 <div id="t" role="status"></div>
-<script src="{{ asset('js/parent.js') }}" defer></script>
+
 @stack('scripts')
 </body>
 </html>
