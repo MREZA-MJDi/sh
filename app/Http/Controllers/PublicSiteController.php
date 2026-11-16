@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContactMessage;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
+use App\Models\ClassSession;
 use App\Models\Lesson;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
@@ -108,8 +109,20 @@ final class PublicSiteController extends Controller
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note')])
-            ->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])
+            ->withCount([
+                'enrollments' => fn ($query) => $query->currentlyActive(),
+                'classrooms as active_classrooms_count' => fn ($classes) => $classes->where('status', 'active'),
+            ])
             ->firstOrFail();
+
+        $upcomingOnlineSessionCount = ClassSession::query()
+            ->where('session_type', 'online')
+            ->where('status', 'scheduled')
+            ->where('starts_at', '>=', now())
+            ->whereHas('classroom', fn ($classrooms) => $classrooms
+                ->where('course_id', $course->id)
+                ->where('status', 'active'))
+            ->count();
 
         // The public curriculum is a preview, not an unbounded dump of every
         // lesson. Keep sections and per-section lesson previews paginated/bounded.
