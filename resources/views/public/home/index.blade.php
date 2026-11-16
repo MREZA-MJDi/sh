@@ -1764,7 +1764,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         feedbackArea.hidden = true;
         nextButton.hidden = true;
-        retryButton.hidden = true;
         finalResult.hidden = true;
 
         questionArea.hidden = false;
