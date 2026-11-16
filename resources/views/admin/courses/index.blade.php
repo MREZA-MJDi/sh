@@ -14,7 +14,7 @@
 
     <section class="panel-grid panel-grid-3">
         <x-admin::stat label="دوره‌های این فهرست" :value="number_format($courses->total())" note="بر اساس دسترسی شما" accent="#7b8cff"/>
-        <x-admin::stat label="دسترسی‌های ثبت‌شده" :value="number_format($courses->sum('enrollments_count'))" note="ثبت‌نام‌های دوره‌ها" accent="#0b8f80"/>
+        <x-admin::stat label="دسترسی‌های ثبت‌شده" :value="number_format($courses->sum('active_enrollments_count'))" note="دسترسی‌های فعال و معتبر" accent="#0b8f80"/>
         <x-admin::stat label="دوره‌های پولی" :value="number_format($courses->getCollection()->where('type', 'paid')->count())" note="در صفحهٔ جاری" accent="#f0a21a"/>
     </section>
 
@@ -29,8 +29,15 @@
                         <td><strong>{{ $course->title }}</strong><div class="panel-muted">{{ $course->subject ?: 'بدون درس' }} · {{ $course->grade ?: 'بدون پایه' }}</div></td>
                         <td>{{ $course->teacher?->name ?? '—' }}</td>
                         <td>{{ $course->type === 'paid' ? 'پولی' : 'رایگان' }}<div class="panel-muted">{{ $course->type === 'paid' ? number_format($course->price).' تومان' : 'رایگان' }}</div></td>
-                        <td>{{ number_format($course->classrooms_count) }}</td>
-                        <td>{{ number_format($course->enrollments_count) }}</td>
+                        <td>{{ number_format($course->active_classrooms_count) }}</td>
+                        <td>
+                            {{ number_format($course->active_enrollments_count) }}
+                            @can('courses.manage')
+                                @if ($course->pending_payment_enrollments_count > 0)
+                                    <div class="panel-muted">{{ number_format($course->pending_payment_enrollments_count) }} در انتظار پرداخت</div>
+                                @endif
+                            @endcan
+                        </td>
                         <td>{{ ['spotplayer'=>'SpotPlayer','skyroom'=>'اسکای‌روم','onsite'=>'حضوری'][$course->delivery_type] ?? $course->delivery_type }}</td>
                         <td><x-admin::badge :variant="$course->status === 'published' ? 'success' : 'warning'">{{ ['draft'=>'پیش‌نویس','published'=>'منتشرشده','archived'=>'بایگانی'][$course->status] ?? $course->status }}</x-admin.badge>
                             @if ($course->delivery_type === 'spotplayer')<div class="panel-muted">{{ $course->integration_status === 'ready' ? 'اتصال تأییدشده' : 'در انتظار تأیید سرویس' }}</div>@endif
@@ -39,7 +46,15 @@
                             <td><a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.content', $course) }}">مدیریت درس‌ها</a></td>
                         @endcanany
                         @can('courses.manage')
-                            <td><button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button> <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.teaser', $course) }}">مدیریت تیزر</a></td>
+                            <td>
+                                <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button>
+                                <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.teaser', $course) }}">مدیریت تیزر</a>
+                                <form method="POST" action="{{ route('admin.courses.destroy', $course) }}" style="display:inline" data-confirm="حذف دوره فقط زمانی انجام می‌شود که کلاس، ثبت‌نام یا محتوای وابسته نداشته باشد. ادامه می‌دهید؟">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="panel-btn panel-btn-danger panel-btn-sm" type="submit">حذف</button>
+                                </form>
+                            </td>
                         @endcan
                     </tr>
                     @can('courses.manage')

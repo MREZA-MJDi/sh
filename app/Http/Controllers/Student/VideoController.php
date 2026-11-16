@@ -72,10 +72,7 @@ final class VideoController extends Controller
     {
         $activeCourseIds = CourseEnrollment::query()
             ->where('student_id', $student->id)
-            ->where('status', 'active')
-            ->where(fn (Builder $expiry) => $expiry
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>', now()))
+            ->currentlyActive()
             ->select('course_id');
 
         return SpotPlayerVideo::query()

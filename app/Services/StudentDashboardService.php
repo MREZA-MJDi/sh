@@ -167,10 +167,7 @@ final class StudentDashboardService
                         ->where('status', 'published')
                         ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
                             ->where('student_id', $student->id)
-                            ->where('status', 'active')
-                            ->where(fn (Builder $expiry) => $expiry
-                                ->whereNull('expires_at')
-                                ->orWhere('expires_at', '>', now()))));
+                            ->currentlyActive()));
             })
             ->select('classrooms.id');
     }
@@ -179,10 +176,7 @@ final class StudentDashboardService
     {
         return CourseEnrollment::query()
             ->where('student_id', $student->id)
-            ->where('status', 'active')
-            ->where(fn (Builder $expiry) => $expiry
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>', now()))
+            ->currentlyActive()
             ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
             ->select('course_id');
     }

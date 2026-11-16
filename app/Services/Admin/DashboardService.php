@@ -41,7 +41,7 @@ final class DashboardService
             ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->whereHas('enrolledClasses', fn ($classes) => $classes->whereIn('classrooms.id', $classroomIds))
                     ->orWhereHas('courseEnrollments', fn ($enrollments) => $enrollments
-                        ->whereIn('course_id', $courseIds)->where('status', 'active'));
+                        ->whereIn('course_id', $courseIds)->currentlyActive());
             }));
 
         $weeklyAttendanceQuery = Attendance::query()
