@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 final class JoinClassSessionController extends Controller
 {
-    public function __invoke(Request $request, ClassSession $classSession): RedirectResponse
+    public function __invoke(Request $request, ClassSession $classSession, LiveClassService $liveClasses): RedirectResponse
     {
         $student = $request->user();
 
@@ -39,6 +39,9 @@ final class JoinClassSessionController extends Controller
         }
 
         $url = $classSession->meeting_url ?: $classroom->meeting_url;
+        if (blank($url) && $classSession->meeting_provider === 'skyroom') {
+            $url = $liveClasses->joinUrl($student, $classroom);
+        }
         $scheme = is_string($url) ? parse_url($url, PHP_URL_SCHEME) : null;
         if (! filter_var($url, FILTER_VALIDATE_URL) || ! in_array($scheme, ['http', 'https'], true)) {
             return back()->withErrors(['join' => 'لینک معتبر ورود برای این جلسه ثبت نشده است.']);
