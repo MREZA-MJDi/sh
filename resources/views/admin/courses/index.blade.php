@@ -49,7 +49,7 @@
                             <td>
                                 <button class="panel-btn panel-btn-secondary panel-btn-sm" type="button" data-admin-drawer-open="course-edit-{{ $course->id }}" data-drawer-title="ویرایش دوره">ویرایش</button>
                                 <a class="panel-btn panel-btn-secondary panel-btn-sm" href="{{ route('admin.courses.teaser', $course) }}">مدیریت تیزر</a>
-                                <form method="POST" action="{{ route('admin.courses.destroy', $course) }}" class="inline-form" data-confirm="حذف دوره فقط زمانی انجام می‌شود که کلاس، ثبت‌نام یا محتوای وابسته نداشته باشد. ادامه می‌دهید؟">
+                                <form method="POST" action="{{ route('admin.courses.destroy', $course) }}" style="display:inline" data-confirm="حذف دوره فقط زمانی انجام می‌شود که کلاس، ثبت‌نام یا محتوای وابسته نداشته باشد. ادامه می‌دهید؟">
                                     @csrf
                                     @method('DELETE')
                                     <button class="panel-btn panel-btn-danger panel-btn-sm" type="submit">حذف</button>
