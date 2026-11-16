@@ -20,9 +20,11 @@ final class JoinClassSessionController extends Controller
         $classroom = Classroom::query()
             ->whereKey($classSession->classroom_id)
             ->whereIn('classrooms.id', $access->activeClassroomIds($student))
+            ->with('course')
             ->firstOrFail();
 
         abort_unless($classSession->status === 'scheduled' && $classSession->session_type === 'online', 404);
+        abort_unless(! $classroom->course || $classroom->course->featureEnabled('live_class'), 403);
 
         if (! $classSession->ends_at
             || $classSession->starts_at->gt(now()->addMinutes(15))
