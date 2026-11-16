@@ -46,7 +46,7 @@
                 <form method="POST" action="{{ route('login.store') }}">
                     @csrf
                     <label for="email">ایمیل، شماره موبایل یا شناسه حساب</label>
-                    <input class="ac-field" id="email" name="email" type="text" value="{{ old('email') }}" autocomplete="username" required autofocus>
+                    <input class="ac-field" id="email" name="email" type="text" value="{{ old('email') }}" autocomplete="username" required @if(($activeTab ?? 'login') === 'login') autofocus @endif>
                     <label for="password">گذرواژه</label>
                     <input class="ac-field" id="password" name="password" type="password" autocomplete="current-password" required>
                     <label class="auth-remember"><input type="checkbox" name="remember" value="1" @checked(old('remember'))> مرا به خاطر بسپار</label>
