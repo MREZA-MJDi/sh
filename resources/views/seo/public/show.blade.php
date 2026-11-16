@@ -167,7 +167,7 @@
                                 <a class="rel-art-item" href="{{ route('seo.articles.show', $rel->slug) }}">
                                     <div class="rel-th">
                                         @if($rel->featured_image_path)
-                                            <img src="{{ Storage::disk('public')->url($rel->featured_image_path) }}" alt="{{ $rel->title }}" loading="lazy">
+                                            <img src="{{ Storage::disk('public')->url($rel->featured_image_path) }}" alt="{{ $rel->title }}" style="object-position: {{ $rel->image_position ?? '50% 50%' }}" loading="lazy">
                                         @else
                                             <svg class="i"><use href="#pen"/></svg>
                                         @endif
