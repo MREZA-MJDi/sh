@@ -13,7 +13,11 @@ class DatabaseSeeder extends Seeder
             LocalDemoAccountsSeeder::class,
         ]);
 
-        if (app()->environment(['local', 'testing'])) {
+        $productionDemoSeedEnabled = app()->environment('production')
+            && config('demo.enabled')
+            && config('demo.seed_academic_content');
+
+        if (app()->environment(['local', 'testing']) || $productionDemoSeedEnabled) {
             $this->call(AcademicPortalContentSeeder::class);
         }
     }
