@@ -1,31 +1,15 @@
 @extends('teacher.layouts.app')
-
 @section('title', 'پیام‌های اولیا')
-
 @section('content')
-<h2>پیام‌های اولیا</h2>
-<div class="chat">
-    <section class="c"><h3>گفت‌وگوها</h3>
-        @forelse (($conversations ?? []) as $c)
-            <a class="row" href="?c={{ data_get($c, 'id') }}"><div>{{ data_get($c, 'name') }}<small>{{ data_get($c, 'last') }}</small></div>
-                @if ((int) data_get($c, 'unread', 0) > 0)<i class="bd {{ data_get($c, 'complaint') ? 'rd' : 'pk' }}">{{ data_get($c, 'unread') }}</i>@endif
-            </a>
-        @empty
-            <p>گفت‌وگویی نیست.</p>
-        @endforelse
-    </section>
-
-    <section class="c"><h3>{{ $conversationTitle ?? '' }}</h3>
-        <div class="msgs">
-            @foreach (($messages ?? []) as $m)
-                <div class="m {{ data_get($m, 'mine') ? 'me2' : '' }}">{{ data_get($m, 'text') }}</div>
-            @endforeach
-        </div>
-        <form class="send" method="POST" action="{{ url('teacher/messages/'.($conversationId ?? '').'/send') }}">
-            @csrf
-            <input name="message" placeholder="پیام خود را بنویسید…" autocomplete="off" required>
-            <button class="b" type="submit">ارسال پیام</button>
-        </form>
-    </section>
+<h2>پیام‌های مرتبط با کلاس‌های من</h2>
+<div class="g">
+ <section class="c"><div class="chead"><h3>گفت‌وگوها</h3><a class="b" href="{{ route('teacher.messages.create') }}">پیام جدید</a></div>
+  @forelse ($conversations as $conversation)
+   <div class="row"><div>{{ $conversation->subject }}<small>{{ $conversation->student?->name ?? $conversation->sender?->name }} · {{ $conversation->created_at?->format('Y/m/d H:i') }}</small><p>{{ \\Illuminate\\Support\\Str::limit(strip_tags($conversation->body), 180) }}</p></div><i class="bd {{ $conversation->status === 'open' ? 'am' : 'gn' }}">{{ $conversation->status }}</i></div>
+  @empty
+   <p>پیامی برای کلاس‌های تحت مدیریت شما ثبت نشده است.</p>
+  @endforelse
+  {{ $conversations->links() }}
+ </section>
 </div>
 @endsection
