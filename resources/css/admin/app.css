@@ -419,3 +419,47 @@ body.admin-body .panel-lookup-chip button {
     line-height:1;
     cursor:pointer;
 }
+
+/* Shared admin interaction and feedback states */
+body.admin-body .panel-card { border-radius:16px; }
+body.admin-body .panel-card-title h3,
+body.admin-body .panel-card h2 { color:var(--adm-ink); letter-spacing:-.01em; }
+body.admin-body .panel-stat { border-top-width:3px; }
+body.admin-body .panel-badge { border:1px solid var(--adm-line); border-radius:999px; }
+body.admin-body .panel-alert { padding:12px 15px; border-radius:12px; font-weight:600; }
+body.admin-body .panel-alert-error,
+body.admin-body .alert-danger { border-color:var(--adm-red); color:var(--adm-red); background:var(--adm-red-soft); }
+body.admin-body .panel-alert-success,
+body.admin-body .alert-success { border-color:var(--adm-teal); color:var(--adm-teal); background:var(--adm-teal-soft); }
+body.admin-body .panel-field:has(.is-invalid) label,
+body.admin-body .panel-field:has([aria-invalid="true"]) label { color:var(--adm-red); }
+body.admin-body .panel-input.is-invalid,
+body.admin-body .panel-select.is-invalid,
+body.admin-body .panel-textarea.is-invalid,
+body.admin-body .panel-input[aria-invalid="true"],
+body.admin-body .panel-select[aria-invalid="true"],
+body.admin-body .panel-textarea[aria-invalid="true"] {
+    border-color:var(--adm-red);
+    background:var(--adm-red-soft);
+}
+body.admin-body .invalid-feedback,
+body.admin-body .panel-field-error,
+body.admin-body .form-error,
+body.admin-body .field-error { display:block; margin-top:4px; color:var(--adm-red); font-size:12px; font-weight:600; }
+body.admin-body .panel-error-summary {
+    margin:0 0 16px; padding:13px 16px; border:1px solid var(--adm-red);
+    border-radius:12px; color:var(--adm-red); background:var(--adm-red-soft);
+}
+body.admin-body .panel-empty { padding:24px 14px; color:var(--adm-muted); text-align:center; }
+body.admin-body .panel-table-wrap { overflow-x:auto; border:1px solid var(--adm-line); border-radius:12px; }
+body.admin-body .panel-table { min-width:640px; }
+body.admin-body .panel-table th { color:var(--adm-muted); background:var(--adm-bg); font-weight:800; }
+body.admin-body .panel-table td { border-color:var(--adm-line); }
+body.admin-body .panel-btn { border-radius:10px; }
+body.admin-body .panel-btn-danger { color:var(--adm-red); background:var(--adm-red-soft); }
+body.admin-body :where(input,select,textarea):disabled,
+body.admin-body button:disabled { opacity:.58; cursor:not-allowed; }
+body.admin-body :where(a,button,input,select,textarea):focus-visible {
+    outline:3px solid color-mix(in srgb,var(--adm-primary) 22%,transparent);
+    outline-offset:2px;
+}

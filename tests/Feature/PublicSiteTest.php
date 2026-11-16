@@ -193,6 +193,55 @@ class PublicSiteTest extends TestCase
         $this->get(route('public.courses.show', $course->slug))->assertNotFound();
     }
 
+
+    public function test_public_course_curriculum_is_bounded_and_sections_are_paginated(): void
+    {
+        $course = Course::create([
+            'title' => 'دوره با سرفصل‌های زیاد',
+            'slug' => 'many-sections-course',
+            'type' => 'paid',
+            'price' => 1250000,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $firstSection = null;
+        for ($sectionIndex = 1; $sectionIndex <= 9; $sectionIndex++) {
+            $section = $course->sections()->create([
+                'title' => 'سرفصل صفحه‌بندی '.$sectionIndex,
+                'status' => 'published',
+                'sort_order' => $sectionIndex,
+            ]);
+
+            if ($sectionIndex === 1) {
+                $firstSection = $section;
+                for ($lessonIndex = 1; $lessonIndex <= 21; $lessonIndex++) {
+                    $section->lessons()->create([
+                        'title' => sprintf('درس پیش‌نمایش %02d', $lessonIndex),
+                        'status' => 'published',
+                        'sort_order' => $lessonIndex,
+                    ]);
+                }
+            } else {
+                $section->lessons()->create([
+                    'title' => 'درس سرفصل '.$sectionIndex,
+                    'status' => 'published',
+                ]);
+            }
+        }
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('سرفصل صفحه‌بندی 1')
+            ->assertSee('درس پیش‌نمایش 20')
+            ->assertDontSee('درس پیش‌نمایش 21')
+            ->assertDontSee('سرفصل صفحه‌بندی 9');
+
+        $this->get(route('public.courses.show', ['slug' => $course->slug, 'sections_page' => 2]))
+            ->assertOk()
+            ->assertSee('سرفصل صفحه‌بندی 9');
+    }
+
     public function test_public_teacher_directory_only_lists_active_teacher_accounts(): void
     {
         $role = Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
@@ -242,8 +291,8 @@ class PublicSiteTest extends TestCase
         $published = Course::create([
             'title' => 'دوره سبد خرید',
             'slug' => 'cart-course',
-            'type' => 'free',
-            'price' => 0,
+            'type' => 'paid',
+            'price' => 1250000,
             'delivery_type' => 'onsite',
             'status' => 'published',
         ]);
@@ -251,8 +300,8 @@ class PublicSiteTest extends TestCase
         $draft = Course::create([
             'title' => 'دوره پیش‌نویس سبد',
             'slug' => 'draft-cart-course',
-            'type' => 'free',
-            'price' => 0,
+            'type' => 'paid',
+            'price' => 1250000,
             'delivery_type' => 'onsite',
             'status' => 'draft',
         ]);

@@ -233,3 +233,31 @@ body.admin-body .seo-admin-section[data-tone] {
 }
 body.admin-body .seo-admin-section[data-tone] .seo-admin-section-head h3 { color:var(--tone-ink); }
 body.admin-body .seo-admin-status[data-tone] { color:var(--tone-ink); background:var(--tone-soft); }
+/* Academy identity override: navy, burgundy, pearl and restrained semantic states. */
+body.admin-body.admin-body {
+    --tone-people:#465c76;
+    --tone-learning:#7d263f;
+    --tone-work:#687386;
+    --tone-presence:#28776d;
+    --tone-talk:#7d263f;
+    --tone-library:#53647a;
+    --tone-system:#34475e;
+}
+body.admin-body.admin-body[data-theme="dark"],
+html[data-admin-theme="dark"] body.admin-body.admin-body {
+    --tone-people:#a7b8cc;
+    --tone-learning:#d18a9c;
+    --tone-work:#a6b1bf;
+    --tone-presence:#69c5b5;
+    --tone-talk:#d18a9c;
+    --tone-library:#9eafc4;
+    --tone-system:#91a4ba;
+}
+body.admin-body.admin-body[data-theme="dark"] .panel-hero,
+html[data-admin-theme="dark"] body.admin-body.admin-body .panel-hero {
+    background:linear-gradient(120deg,#17263b,#5b263a);
+}
+body.admin-body.admin-body .panel-nav-heading { color:var(--adm-sidebar-muted); }
+body.admin-body.admin-body .panel-card[data-tone] {
+    background:linear-gradient(180deg,var(--tone-soft),var(--adm-card) 110px);
+}

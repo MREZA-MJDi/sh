@@ -168,6 +168,57 @@ final class CourseLearningProgressTest extends TestCase
         ])->assertNotFound();
     }
 
+
+    public function test_paid_course_stays_locked_until_verified_payment_and_unlocks_after_grant(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        [$course, $classroom] = $this->courseAndClassroom($teacher);
+
+        $course->update(['type' => 'paid', 'price' => 1250000]);
+        $section = CourseSection::query()->create([
+            'course_id' => $course->id,
+            'title' => 'محتوای پولی',
+            'status' => 'published',
+        ]);
+        Lesson::query()->create([
+            'course_section_id' => $section->id,
+            'title' => 'درس قفل‌شده',
+            'status' => 'published',
+        ]);
+
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $this->assertDatabaseHas('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'status' => 'pending_payment',
+            'source' => 'classroom',
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('قفل‌شده')
+            ->assertSee('دوره پولی');
+
+        $this->get(route('student.courses.show', $course))->assertNotFound();
+
+        app(CourseEnrollmentService::class)->grantAfterVerifiedPayment(
+            $student,
+            $course->fresh(),
+            'verified-test-payment-001'
+        );
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('محتوای دوره در دسترس است');
+
+        $this->get(route('student.courses.show', $course))->assertOk();
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

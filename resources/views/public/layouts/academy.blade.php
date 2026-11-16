@@ -7,6 +7,7 @@
         $seoCanonical = trim((string) $__env->yieldContent('canonical', $canonicalBase . (request()->getPathInfo() === '/' ? '' : request()->getPathInfo())));
         $seoTitle = trim((string) $__env->yieldContent('title', ($settings->default_title ?? 'شیخان') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'پلتفرم آموزش آنلاین')));
         $seoDescription = trim((string) $__env->yieldContent('description', $settings->default_description ?? ''));
+        $seoKeywords = trim((string) $__env->yieldContent('keywords', implode(', ', $settings->default_keywords ?? [])));
         $seoRobots = trim((string) $__env->yieldContent('robots', (($settings->robots_index ?? true) ? 'index' : 'noindex') . ',' . (($settings->robots_follow ?? true) ? 'follow' : 'nofollow')));
         $defaultOg = !empty($settings->default_og_image_path) ? Storage::disk('public')->url($settings->default_og_image_path) : '';
         $seoImage = trim((string) $__env->yieldContent('seo-image', $defaultOg));
@@ -26,6 +27,7 @@
     <meta name="theme-color" content="#0b1b3a">
     <title>{{ $seoTitle }}</title>
     @if($seoDescription !== '')<meta name="description" content="{{ $seoDescription }}">@endif
+    @if($seoKeywords !== '')<meta name="keywords" content="{{ $seoKeywords }}">@endif
     <meta name="robots" content="{{ $seoRobots }}">
     @if(!empty($settings->google_site_verification))<meta name="google-site-verification" content="{{ $settings->google_site_verification }}">@endif
     @if(!empty($settings->bing_site_verification))<meta name="msvalidate.01" content="{{ $settings->bing_site_verification }}">@endif
