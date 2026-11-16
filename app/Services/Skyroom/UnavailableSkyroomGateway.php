@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Services\\Skyroom;
+namespace App\Services\Skyroom;
 
-use App\\Services\\Integrations\\Contracts\\IntegrationHealth;
-use App\\Services\\Integrations\\IntegrationException;
-use App\\Services\\Skyroom\\Contracts\\SkyroomAttendanceEvent;
-use App\\Services\\Skyroom\\Contracts\\SkyroomGateway;
-use App\\Services\\Skyroom\\Contracts\\SkyroomLoginCommand;
-use App\\Services\\Skyroom\\Contracts\\SkyroomRoomCommand;
+use App\Services\Integrations\Contracts\IntegrationHealth;
+use App\Services\Integrations\IntegrationException;
+use App\Services\Skyroom\Contracts\SkyroomAttendanceEvent;
+use App\Services\Skyroom\Contracts\SkyroomGateway;
+use App\Services\Skyroom\Contracts\SkyroomLoginCommand;
+use App\Services\Skyroom\Contracts\SkyroomRoomCommand;
 use DateTimeImmutable;
 
 final class UnavailableSkyroomGateway implements SkyroomGateway
