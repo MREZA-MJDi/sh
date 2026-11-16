@@ -80,7 +80,11 @@ class ClassroomController extends Controller
         $roomId = $liveClasses->ensureRoom($classroom);
 
         if (! $roomId) {
-            return back()->with('warning', 'اتاق خودکار ساخته نشد؛ اتصال Skyroom در انتظار قرارداد رسمی است. لینک دستی کلاس همچنان قابل استفاده است.');
+            $classroom->refresh();
+
+            return back()->with('warning', $classroom->skyroom_status === 'failed'
+                ? 'ساخت اتاق آنلاین ناموفق بود؛ تنظیمات اتصال را بررسی کنید. لینک دستی کلاس همچنان قابل استفاده است.'
+                : 'اتاق خودکار ساخته نشد؛ اتصال Skyroom در انتظار قرارداد رسمی است. لینک دستی کلاس همچنان قابل استفاده است.');
         }
 
         return back()->with('success', 'اتاق آنلاین کلاس با شناسه تأییدشده ثبت شد.');
