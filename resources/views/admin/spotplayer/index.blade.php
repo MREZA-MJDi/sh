@@ -145,7 +145,9 @@
       @csrf
       @method('PATCH')
       <x-admin.input label="شناسه حساب" name="account_id" :value="$settings?->account_id"/>
-      <x-admin.input label="کلید API (برای حفظ مقدار فعلی خالی بگذارید)" name="api_key" type="password" autocomplete="new-password"/>
+      <x-admin.field label="کلید API (برای حفظ مقدار فعلی خالی بگذارید)" name="api_key">
+        <input class="adm-input" type="password" name="api_key" value="" autocomplete="new-password">
+      </x-admin.field>
       <x-admin.input label="حداکثر دستگاه" name="max_devices" type="number" min="1" max="99" :value="$settings?->max_devices ?? 2"/>
       <x-admin.select label="محیط" name="mode" :options="['test' => 'آزمایشی', 'production' => 'عملیاتی']" :selected="$settings?->mode ?? 'test'"/>
       <x-admin.switch label="واترمارک اطلاعات دانش‌آموز" name="watermark_enabled" :checked="$settings?->watermark_enabled ?? true"/>
