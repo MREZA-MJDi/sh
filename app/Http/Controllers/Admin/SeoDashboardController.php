@@ -88,6 +88,7 @@ class SeoDashboardController extends Controller
 
         return view('admin.seo.banners', [
             'banners' => $banners,
+            'settings' => SeoSetting::current(),
             'activeBannerCount' => SeoBanner::active()->count(),
             'draftBannerCount' => SeoBanner::query()->where('status', 'draft')->count(),
             'inactiveBannerCount' => SeoBanner::query()->where('status', 'inactive')->count(),
