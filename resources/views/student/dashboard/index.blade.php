@@ -406,7 +406,7 @@
                         <p>{{ $resource->kind }}</p>
                         <span class="mu">{{ $resource->is_free ? 'رایگان' : $faNumber((int) $resource->price).' تومان' }}</span>
                         @if ($resource->file_path && $resource->is_free)
-                            <span class="tag">فایل در فضای خصوصی نگهداری می‌شود؛ دریافت مستقیم غیرفعال است.</span>
+                            <a class="btn g s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت منبع' : 'مشاهده PDF' }}</a>
                         @elseif (! $resource->is_free)
                             <span class="tag w">نیازمند خرید</span>
                         @endif
