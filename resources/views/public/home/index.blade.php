@@ -123,7 +123,7 @@
         </div>
         <div class="g4">
             {{-- دوره‌های واقعی دیتابیس --}}
-            @forelse(($homeCourses ?? collect()) as $homeCourse)
+            @forelse(($courses ?? collect()) as $homeCourse)
                 <article class="card cc">
                     @php
                         $homeCourseGradients = [
