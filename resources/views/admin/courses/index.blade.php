@@ -102,7 +102,7 @@
               <x-admin.btn size="sm" icon="book" :href="url('admin/courses/'.$course->id.'/content')">محتوا</x-admin.btn>
             @endif
             @if($canManage)
-              <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="course-modal" data-title="ویرایش دوره" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/courses/'.$course->id)" data-method="PUT">ویرایش</x-admin.btn>
+              <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="course-modal" data-title="ویرایش دوره" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/courses/'.$course->id)" data-method="PATCH">ویرایش</x-admin.btn>
               <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="course-del" :data-name="$course->title" :data-action="url('admin/courses/'.$course->id)" aria-label="حذف"/>
             @endif
           </div>
@@ -120,7 +120,7 @@
 
 @push('modals')
 @if($canManage)
-<x-admin.modal id="course-modal" title="دوره جدید" size="lg" :action="url('admin/courses')">
+<x-admin.modal :demo="false" id="course-modal" title="دوره جدید" size="lg" :action="url('admin/courses')">
   <x-admin.legend title="اطلاعات پایه دوره"/>
   <x-admin.input label="عنوان دوره" name="title" placeholder="مثلاً ریاضی نهم" wide required/>
   <x-admin.select label="مدرس" name="teacher_id" :options="$teacherOptions" placeholder="انتخاب مدرس"/>
