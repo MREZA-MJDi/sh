@@ -73,7 +73,7 @@
       </tbody>
     </table>
   </div>
-  <x-slot:footer>{{ $sessions.links() }}</x-slot:footer>
+  <x-slot:footer>{{ $sessions->links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
 
