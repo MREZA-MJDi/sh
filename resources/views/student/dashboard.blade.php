@@ -10,7 +10,7 @@
 @endphp
 <section class="page" id="dashboard">
  <div class="hero">
-  <svg class="av" viewBox="0 0 120 120"><use href="{{ url('student/avatar') }}"/></svg>
+  <svg class="av" viewBox="0 0 120 120"><use href="#avatar"/></svg>
   <div class="txt">
    <h2>سلام {{ $student->name }}!</h2>
    <p>{{ $classroom_count }} کلاس فعال و {{ $pending_homework_count }} تکلیف ثبت‌نشده داری.</p>
@@ -18,10 +18,10 @@
   </div>
  </div>
  <div class="stats">
-  <a class="st s1" href="{{ url('student/live-classes') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-video') }}"/></svg></div><small>کلاس‌های پیش‌رو</small><b>{{ $sessions->count() }}</b><span>جلسات برنامه‌ریزی‌شده</span></a>
-  <a class="st s2" href="{{ url('student/homework') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-task') }}"/></svg></div><small>تکالیف نمایش‌داده‌شده</small><b>{{ $tasks->count() }}</b><span>{{ $pending_homework_count }} تکلیف بدون ارسال</span></a>
-  <a class="st s3" href="{{ url('student/exams') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-exam') }}"/></svg></div><small>نتایج اخیر</small><b>{{ $results->count() }}</b><span>نتایج قابل مشاهده</span></a>
-  <a class="st s4" href="{{ url('student/messages') }}"><div class="ic"><svg class="i"><use href="{{ url('student/i-msg') }}"/></svg></div><small>یادداشت‌ها</small><b>{{ $notes->count() }}</b><span>یادداشت‌های شخصی</span></a>
+  <a class="st s1" href="{{ url('student/live-classes') }}"><div class="ic"><svg class="i"><use href="#i-video"/></svg></div><small>کلاس‌های پیش‌رو</small><b>{{ $sessions->count() }}</b><span>جلسات برنامه‌ریزی‌شده</span></a>
+  <a class="st s2" href="{{ url('student/homework') }}"><div class="ic"><svg class="i"><use href="#i-task"/></svg></div><small>تکالیف نمایش‌داده‌شده</small><b>{{ $tasks->count() }}</b><span>{{ $pending_homework_count }} تکلیف بدون ارسال</span></a>
+  <a class="st s3" href="{{ url('student/exams') }}"><div class="ic"><svg class="i"><use href="#i-exam"/></svg></div><small>نتایج اخیر</small><b>{{ $results->count() }}</b><span>نتایج قابل مشاهده</span></a>
+  <a class="st s4" href="{{ url('student/messages') }}"><div class="ic"><svg class="i"><use href="#i-msg"/></svg></div><small>یادداشت‌ها</small><b>{{ $notes->count() }}</b><span>یادداشت‌های شخصی</span></a>
  </div>
  <div class="row">
   <div class="card">
@@ -30,7 +30,7 @@
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
      <div><b>{{ $session->classroom?->name ?? 'کلاس' }}</b><span>{{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
-     <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="ورود به کلاس"><svg class="i"><use href="{{ url('student/i-play') }}"/></svg></button></form>
+     <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="ورود به کلاس"><svg class="i"><use href="#i-play"/></svg></button></form>
     </div>
    @empty
     <p>جلسه‌ی برنامه‌ریزی‌شده‌ای برای شما ثبت نشده است.</p>
