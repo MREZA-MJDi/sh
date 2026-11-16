@@ -107,7 +107,7 @@ final class CourseLearningProgressTest extends TestCase
         $this->assertSame(100, (int) $summary->progress_percent);
     }
 
-    public function test_course_detail_paginates_lessons_instead_of_loading_the_entire_section(): void
+    public function test_legacy_private_course_detail_redirects_to_the_public_course_page(): void
     {
         $student = $this->userWithRole('student');
         $teacher = $this->userWithRole('teacher');
@@ -132,17 +132,21 @@ final class CourseLearningProgressTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.courses.show', $course))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->actingAs($student)
+            ->get(route('student.courses.show', [
+                'course' => $course,
+                'section' => $section->id,
+                'lessons_page' => 2,
+            ]))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSee('درس صفحه‌بندی 01')
             ->assertDontSee('درس صفحه‌بندی 31');
-
-        $this->get(route('student.courses.show', [
-            'course' => $course,
-            'section' => $section->id,
-            'lessons_page' => 2,
-        ]))
-            ->assertOk()
-            ->assertSee('درس صفحه‌بندی 31');
     }
 
     public function test_student_cannot_open_course_or_mark_lesson_without_active_enrollment(): void
@@ -219,7 +223,7 @@ final class CourseLearningProgressTest extends TestCase
             ->assertOk()
             ->assertSee('محتوای دوره در دسترس است');
 
-        $this->get(route('student.courses.show', $course))->assertOk();
+        $this->get(route('student.courses.show', $course))->assertRedirect(route('public.courses.show', $course->slug));
     }
 
     private function userWithRole(string $role): User

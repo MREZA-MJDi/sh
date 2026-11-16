@@ -125,7 +125,7 @@
             </div>
             <div class="student-course-progress__list">
                 @forelse ($course_progress as $courseProgress)
-                    <a class="student-course-progress__item" href="{{ route('student.courses.show', $courseProgress->id) }}">
+                    <a class="student-course-progress__item" href="{{ route('public.courses.show', $courseProgress->slug) }}">
                         <div class="student-course-progress__head">
                             <strong>{{ $courseProgress->title }}</strong>
                             <span>{{ $faNumber($courseProgress->progress_percent) }}٪</span>

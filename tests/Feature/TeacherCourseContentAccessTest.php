@@ -186,16 +186,12 @@ final class TeacherCourseContentAccessTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.courses.show', $course))
-            ->assertOk()
-            ->assertSeeInOrder(['فصل اول', 'فصل دوم'])
-            ->assertDontSee('درس اول');
+            ->assertRedirect(route('public.courses.show', $course->slug));
 
-        $this->get(route('student.courses.show', [
-            'course' => $course,
-            'section' => $secondSection->id,
-        ]))
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertSeeInOrder(['درس اول', 'درس دوم']);
+            ->assertSeeInOrder(['فصل اول', 'فصل دوم', 'درس اول', 'درس دوم']);
     }
 
 }

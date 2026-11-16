@@ -14,6 +14,7 @@ return [
     'enabled' => (bool) env('SHIKHAN_DEMO_ACCOUNTS', false),
     'login_cards_enabled' => (bool) env('SHIKHAN_DEMO_LOGIN_CARDS', false),
     'password' => env('SHIKHAN_DEMO_PASSWORD'),
+    'seed_academic_content' => (bool) env('SHIKHAN_SEED_ACADEMY_CONTENT', false),
     'accounts' => [
         [
             'name' => 'مدیر آزمایشی',

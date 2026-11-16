@@ -7,49 +7,25 @@ use App\Models\CourseEnrollment;
 use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
-use App\Services\SpotPlayer\SpotPlayerService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
-use Illuminate\View\View;
 
 final class VideoController extends Controller
 {
-    public function index(Request $request, SpotPlayerService $spotPlayer): View
+    public function index(Request $request): RedirectResponse
     {
-        $videos = $this->accessibleVideos($request->user())
-            ->with(['course:id,title', 'classroom:id,name'])
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
-
-        $health = $spotPlayer->health();
-
-        return view('student.videos.index', compact('videos', 'health'));
+        return redirect()->route('student.courses.index');
     }
 
-    public function show(Request $request, int $video, SpotPlayerService $spotPlayer): View
+    public function show(Request $request, int $video): RedirectResponse
     {
         $video = $this->findAccessibleVideo($request->user(), $video);
-        $license = SpotPlayerLicense::query()
-            ->where('student_id', $request->user()->id)
-            ->where('course_id', $video->course_id)
-            ->latest('id')
-            ->first();
 
-        return view('student.videos.show', [
-            'video' => $video,
-            'license' => $license,
-            'health' => $spotPlayer->health(),
-            'playbackReady' => false,
-        ]);
+        return redirect()->route('public.courses.show', $video->course->slug);
     }
 
-    /**
-     * Raw staged media is never a student delivery path. Playback must be
-     * supplied by the authenticated SpotPlayer web player after the provider
-     * adapter, course mapping and active student license have been verified.
-     */
     public function stream(Request $request, int $video): Response
     {
         $this->findAccessibleVideo($request->user(), $video);
@@ -64,7 +40,7 @@ final class VideoController extends Controller
     private function findAccessibleVideo(User $student, int $videoId): SpotPlayerVideo
     {
         return $this->accessibleVideos($student)
-            ->with(['course:id,title,delivery_type,spotplayer_course_id', 'classroom:id,name'])
+            ->with(['course:id,title,slug,delivery_type,spotplayer_course_id', 'classroom:id,name'])
             ->findOrFail($videoId);
     }
 

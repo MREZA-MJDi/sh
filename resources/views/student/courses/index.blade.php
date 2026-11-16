@@ -20,7 +20,7 @@
                         <span style="width: {{ max(0, min(100, (int) ($courseProgress->progress_percent ?? 0))) }}%"></span>
                     </div>
                     <p class="mu">{{ \App\Support\PersianDate::toPersianDigits((string) ($courseProgress->completed_lessons ?? 0)) }} از {{ \App\Support\PersianDate::toPersianDigits((string) ($courseProgress->total_lessons ?? 0)) }} درس تکمیل شده</p>
-                    <a class="btn s" href="{{ route('student.courses.show', $course) }}">ادامه یادگیری</a>
+                    <a class="btn s" href="{{ route('public.courses.show', $course->slug) }}">ادامه یادگیری</a>
                 </article>
             @empty
                 <div class="empty">دورهٔ فعالی برای این حساب ثبت نشده است.</div>

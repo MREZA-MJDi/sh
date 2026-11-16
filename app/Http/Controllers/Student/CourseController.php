@@ -34,62 +34,15 @@ final class CourseController extends Controller
         return view('student.courses.index', compact('courses', 'progressByCourse'));
     }
 
-    public function show(Request $request, int $course): View
+    public function show(Request $request, int $course): RedirectResponse
     {
-        $courseIds = $this->activeCourseIds($request);
         $course = Course::query()
             ->whereKey($course)
-            ->whereIn('id', clone $courseIds)
+            ->whereIn('id', $this->activeCourseIds($request))
             ->where('status', 'published')
-            ->with('teacher:id,name')
             ->firstOrFail();
 
-        $classrooms = Classroom::query()
-            ->where('course_id', $course->id)
-            ->where('status', 'active')
-            ->whereHas('students', fn ($students) => $students->whereKey($request->user()->id))
-            ->with('teacher:id,name')
-            ->withCount('students')
-            ->orderBy('name')
-            ->get(['id', 'course_id', 'teacher_id', 'name', 'schedule', 'meeting_url', 'skyroom_room_id', 'skyroom_status']);
-
-        $upcomingSessions = ClassSession::query()
-            ->whereIn('classroom_id', $classrooms->modelKeys())
-            ->where('status', 'scheduled')
-            ->where('ends_at', '>=', now())
-            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
-            ->orderBy('starts_at')
-            ->limit(8)
-            ->get();
-
-        $sections = $course->sections()
-            ->where('status', 'published')
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->paginate(10, ['*'], 'sections_page')
-            ->withQueryString();
-
-        $selectedSection = $request->filled('section')
-            ? $course->sections()
-                ->whereKey($request->integer('section'))
-                ->where('status', 'published')
-                ->first()
-            : null;
-
-        $selectedSection ??= $sections->first();
-        $license = $course->delivery_type === 'spotplayer'
-            ? SpotPlayerLicense::query()->where('student_id', $request->user()->id)->where('course_id', $course->id)->latest('id')->first()
-            : null;
-
-        $lessons = $selectedSection
-            ? $selectedSection->lessons()
-                ->where('status', 'published')
-                ->with(['progress' => fn ($progress) => $progress->where('student_id', $request->user()->id)])
-                ->paginate(30, ['*'], 'lessons_page')
-                ->withQueryString()
-            : null;
-
-        return view('student.courses.show', compact('course', 'sections', 'selectedSection', 'lessons', 'license', 'classrooms', 'upcomingSessions'));
+        return redirect()->route('public.courses.show', $course->slug);
     }
 
     public function updateProgress(

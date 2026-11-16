@@ -28,6 +28,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'spotplayer' => [
+        // Comma-separated trusted HTTPS hosts used by provider embed URLs.
+        'embed_hosts' => array_values(array_filter(array_map(
+            static fn (string $host): string => strtolower(trim($host)),
+            explode(',', (string) env('SPOTPLAYER_EMBED_HOSTS', ''))
+        ))),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
