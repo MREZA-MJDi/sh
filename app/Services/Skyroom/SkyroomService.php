@@ -5,6 +5,7 @@ namespace App\Services\Skyroom;
 use App\Models\Classroom;
 use App\Models\User;
 use App\Services\Integrations\Contracts\IntegrationHealth;
+use App\Services\Integrations\IntegrationException;
 use App\Services\Skyroom\Contracts\SkyroomGateway;
 use App\Services\Skyroom\Contracts\SkyroomLoginCommand;
 use App\Services\Skyroom\Contracts\SkyroomRoomCommand;
@@ -36,11 +37,20 @@ final class SkyroomService
             return null;
         }
 
-        $externalRoomId = trim($this->gateway->createRoom(new SkyroomRoomCommand(
-            localClassroomId: (int) $classroom->id,
-            name: 'shikhan-class-'.$classroom->id,
-            title: $classroom->name,
-        )));
+        try {
+            $externalRoomId = trim($this->gateway->createRoom(new SkyroomRoomCommand(
+                localClassroomId: (int) $classroom->id,
+                name: 'shikhan-class-'.$classroom->id,
+                title: $classroom->name,
+            )));
+        } catch (IntegrationException $exception) {
+            $classroom->forceFill([
+                'skyroom_status' => 'failed',
+                'skyroom_note' => mb_substr($exception->getMessage(), 0, 500),
+            ])->save();
+
+            return null;
+        }
 
         if ($externalRoomId === '') {
             throw new InvalidArgumentException('Skyroom returned an empty room identifier.');
@@ -66,13 +76,22 @@ final class SkyroomService
             return null;
         }
 
-        return $this->gateway->createLoginUrl(new SkyroomLoginCommand(
-            externalRoomId: (string) $classroom->skyroom_room_id,
-            externalUserId: 'student-'.$user->id,
-            displayName: $user->name,
-            language: 'fa',
-            ttlMinutes: 15,
-        ));
+        try {
+            return $this->gateway->createLoginUrl(new SkyroomLoginCommand(
+                externalRoomId: (string) $classroom->skyroom_room_id,
+                externalUserId: 'student-'.$user->id,
+                displayName: $user->name,
+                language: 'fa',
+                ttlMinutes: 15,
+            ));
+        } catch (IntegrationException $exception) {
+            $classroom->forceFill([
+                'skyroom_status' => 'failed',
+                'skyroom_note' => mb_substr($exception->getMessage(), 0, 500),
+            ])->save();
+
+            return null;
+        }
     }
 
     /** @return iterable<\App\Services\Skyroom\Contracts\SkyroomAttendanceEvent> */
