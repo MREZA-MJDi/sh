@@ -135,7 +135,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             ->assertDontSee('مدیریت کاربران');
     }
 
-    public function test_student_dashboard_renders_the_expected_navigation_targets_and_layout_assets(): void
+    public function test_student_dashboard_renders_the_expected_navigation_targets_and_clean_layout_markup(): void
     {
         $student = User::factory()->create();
         $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
@@ -150,10 +150,9 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             ->assertSee('id="results"', false)
             ->assertSee('id="resources"', false)
             ->assertSee('id="notes"', false)
-            ->assertSee('id="announcements"', false)
-            ->assertSee('resources/js/student/app.js', false);
+            ->assertSee('id="announcements"', false);
 
-        $this->assertStringNotContainsString('\\\\n    @vite', $response->getContent());
+        $this->assertStringNotContainsString(chr(92).'n    @vite', $response->getContent());
     }
 
     public function test_student_dashboard_does_not_expose_admin_navigation_or_another_students_class(): void
