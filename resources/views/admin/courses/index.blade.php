@@ -19,7 +19,9 @@
 @endphp
 
 <x-admin.page-head tone="edu" icon="book" title="دوره‌ها" desc="مدیریت محصول آموزشی، امکانات یادگیری، مدرس و انتشار">
-  <x-admin.btn icon="plus" data-modal-open="course-modal">دوره جدید</x-admin.btn>
+  @if($canManage)
+    <x-admin.btn icon="plus" data-modal-open="course-modal">دوره جدید</x-admin.btn>
+  @endif
 </x-admin.page-head>
 
 <div class="adm-stats">
@@ -93,9 +95,13 @@
             <span class="adm-muted">{{ $deliveryTypes[$course->delivery_type] ?? $course->delivery_type }}</span>
           </div>
           <div class="adm-actions">
-            <x-admin.btn size="sm" icon="book" :href="url('admin/courses/'.$course->id.'/content')">محتوا</x-admin.btn>
-            <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="course-modal" data-title="ویرایش دوره" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/courses/'.$course->id)" data-method="PUT">ویرایش</x-admin.btn>
-            <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="course-del" :data-name="$course->title" :data-action="url('admin/courses/'.$course->id)" aria-label="حذف"/>
+            @if($canManageContent)
+              <x-admin.btn size="sm" icon="book" :href="url('admin/courses/'.$course->id.'/content')">محتوا</x-admin.btn>
+            @endif
+            @if($canManage)
+              <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="course-modal" data-title="ویرایش دوره" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/courses/'.$course->id)" data-method="PUT">ویرایش</x-admin.btn>
+              <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="course-del" :data-name="$course->title" :data-action="url('admin/courses/'.$course->id)" aria-label="حذف"/>
+            @endif
           </div>
         </div>
       </article>
@@ -110,6 +116,7 @@
 @endsection
 
 @push('modals')
+@if($canManage)
 <x-admin.modal id="course-modal" title="دوره جدید" size="lg" :action="url('admin/courses')">
   <x-admin.legend title="اطلاعات پایه دوره"/>
   <x-admin.input label="عنوان دوره" name="title" placeholder="مثلاً ریاضی نهم" wide required/>
@@ -138,4 +145,5 @@
 </x-admin.modal>
 
 <x-admin.confirm id="course-del" title="حذف دوره" text="حذف فقط برای دوره بدون سابقه آموزشی، ثبت‌نام و محتوای وابسته مجاز است؛ در غیر این صورت دوره باید بایگانی شود."/>
+@endif
 @endpush
