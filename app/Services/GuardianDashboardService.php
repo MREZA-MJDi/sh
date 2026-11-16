@@ -60,6 +60,9 @@ final class GuardianDashboardService
 
         $homeworks = (clone $homeworkQuery)
             ->with('classroom:id,name,course_id')
+            ->with(['submissions' => fn ($query) => $query
+                ->where('student_id', $student->id)
+                ->orderByDesc('submitted_at')])
             ->withCount([
                 'submissions as selected_student_submission_count' => fn (Builder $query) => $query
                     ->where('student_id', $student->id),
