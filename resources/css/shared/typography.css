@@ -1,7 +1,7 @@
-@import "@fontsource-variable/vazirmatn/wght.css";
+@import "../../iranyekanx/font-face.css";
 
 :root {
-    --font-family-ui: "Vazirmatn Variable", Tahoma, sans-serif;
+    --font-family-ui: "IRANYekanX Variable", "IRANYekanX", Tahoma, sans-serif;
 }
 
 html,
