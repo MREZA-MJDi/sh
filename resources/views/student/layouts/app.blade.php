@@ -6,7 +6,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title', 'پنل دانش‌آموز') · شیخان</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="{{ asset('css/student.css') }}">
+@vite(['resources/css/student/app.css', 'resources/js/student/student.js'])
 <script>try{var t=localStorage.getItem('sh-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 @stack('head')
 </head>
@@ -24,7 +24,7 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<script src="{{ asset('js/student.js') }}" defer></script>
+
 @stack('scripts')
 </body>
 </html>
