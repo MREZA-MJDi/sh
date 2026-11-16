@@ -32,7 +32,7 @@ final class ParentMeetingWorkflowTest extends TestCase
             'student_id' => $child->id,
             'title' => 'پیگیری وضعیت درسی',
             'message' => 'لطفاً زمان جلسه اعلام شود.',
-        ])->assertRedirect(route('guardian.meetings.index'));
+        ])->assertRedirect(route('guardian.meetings.index', ['child' => $child->id]));
 
         $this->assertDatabaseHas('parent_meetings', [
             'guardian_id' => $guardian->id,
