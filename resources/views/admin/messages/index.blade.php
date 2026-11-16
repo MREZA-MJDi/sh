@@ -53,7 +53,7 @@
           <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">علامت‌گذاری به‌عنوان خوانده‌شده</button>
         </form>
       @endif
-      @can('messages.manage')
+      @can('messages.reply')
         <form method="POST" action="{{ route('admin.messages.reply', $selected) }}" class="adm-stack">
           @csrf
           <label class="adm-label" for="message-reply-body">پاسخ شما</label>
