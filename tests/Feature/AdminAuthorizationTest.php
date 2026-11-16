@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\AuthenticationService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,6 +19,31 @@ class AdminAuthorizationTest extends TestCase
 
         $this->seed(RolePermissionSeeder::class);
         $this->withoutVite();
+    }
+
+    public function test_admin_role_precedes_specialist_roles_in_dashboard_resolution(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach([
+            Role::where('name', 'admin')->value('id'),
+            Role::where('name', 'teacher')->value('id'),
+            Role::where('name', 'seo')->value('id'),
+        ]);
+
+        $this->assertSame('admin.dashboard', app(AuthenticationService::class)->dashboardRouteName($admin));
+    }
+
+    public function test_login_ignores_a_stale_intended_url_from_another_role_dashboard(): void
+    {
+        $admin = User::factory()->create(['password' => 'password']);
+        $admin->roles()->attach(Role::where('name', 'admin')->value('id'));
+
+        $this->get(route('student.dashboard'))->assertRedirect(route('login'));
+
+        $this->post(route('login.store'), [
+            'email' => $admin->email,
+            'password' => 'password',
+        ])->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_guest_is_redirected_to_the_shared_login_page(): void
