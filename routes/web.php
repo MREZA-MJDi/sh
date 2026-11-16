@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
 use App\Http\Controllers\SeoPublicController;
 use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\PublicHomeQuizController;
 use App\Http\Controllers\PublicLearningResourceController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
@@ -42,6 +43,10 @@ use App\Http\Controllers\Teacher\ConsultationController as TeacherConsultationCo
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
+Route::get('/home-quiz/question/{step}', [PublicHomeQuizController::class, 'question'])
+    ->whereNumber('step')->middleware('throttle:30,1')->name('public.home.quiz.question');
+Route::post('/home-quiz/answer', [PublicHomeQuizController::class, 'answer'])
+    ->middleware('throttle:30,1')->name('public.home.quiz.answer');
 Route::get('/courses', [PublicSiteController::class, 'courses'])->name('public.courses.index');
 Route::get('/teachers', [PublicSiteController::class, 'teachers'])->name('public.teachers.index');
 Route::get('/teachers/{teacher}', [PublicSiteController::class, 'teacher'])->name('public.teachers.show');
