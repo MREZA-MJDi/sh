@@ -10,7 +10,6 @@ use App\Services\Skyroom\Contracts\SkyroomGateway;
 use App\Services\Skyroom\Contracts\SkyroomLoginCommand;
 use App\Services\Skyroom\Contracts\SkyroomRoomCommand;
 use DateTimeImmutable;
-use InvalidArgumentException;
 
 final class SkyroomService
 {
@@ -53,7 +52,12 @@ final class SkyroomService
         }
 
         if ($externalRoomId === '') {
-            throw new InvalidArgumentException('Skyroom returned an empty room identifier.');
+            $classroom->forceFill([
+                'skyroom_status' => 'failed',
+                'skyroom_note' => 'Skyroom پاسخ ساخت اتاق را بدون شناسه معتبر برگرداند.',
+            ])->save();
+
+            return null;
         }
 
         $classroom->forceFill([
