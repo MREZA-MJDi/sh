@@ -110,6 +110,17 @@ class PublicSiteTest extends TestCase
             ->assertDontSee('مقاله پیش‌نویس');
     }
 
+    public function test_homepage_renders_without_published_courses(): void
+    {
+        Course::query()->where('status', 'published')->delete();
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertViewIs('public.home.index')
+            ->assertSee('در حال حاضر دوره‌ای برای نمایش منتشر نشده است.')
+            ->assertSee(route('public.courses.index'));
+    }
+
     public function test_public_course_page_exposes_only_published_sections_and_lessons(): void
     {
         $course = Course::create([
