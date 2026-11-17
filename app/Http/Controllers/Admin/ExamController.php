@@ -18,7 +18,7 @@ class ExamController extends Controller
     {
         $user = auth()->user();
         $records = $exams->queryFor($user)->with(['classroom', 'course'])
-            ->withCount(['results', 'questions'])->latest()->paginate(15);
+            ->withCount(['results', 'questions', 'attempts'])->latest()->paginate(15);
         $classroomOptions = $classrooms->queryFor($user)->orderBy('name')->get(['id', 'name']);
         $courseOptions = $classrooms->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
 
