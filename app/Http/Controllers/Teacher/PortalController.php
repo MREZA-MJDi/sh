@@ -236,6 +236,7 @@ final class PortalController extends Controller
 
         $record = ClassSession::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->where('session_type', 'online')
             ->findOrFail($session);
 
         $record->update([
