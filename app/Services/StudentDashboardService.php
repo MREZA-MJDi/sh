@@ -36,7 +36,6 @@ final class StudentDashboardService
 
         $upcomingSessions = ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
-            ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->whereNotNull('ends_at')
             ->where('ends_at', '>=', now())
@@ -88,12 +87,21 @@ final class StudentDashboardService
             ->where('student_id', $student->id)
             ->whereHas('exam', function (Builder $exam) use ($examClassroomIds, $examCourseIds): void {
                 $exam->where(function (Builder $scope) use ($examClassroomIds, $examCourseIds): void {
-                    $scope->whereIn('exams.classroom_id', clone $examClassroomIds)
-                        ->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
-                            $courseLevel
-                                ->whereNull('exams.classroom_id')
-                                ->whereIn('exams.course_id', clone $examCourseIds);
-                        });
+                    $scope->where(function (Builder $classScoped) use ($examClassroomIds): void {
+                        $classScoped->whereIn('exams.classroom_id', clone $examClassroomIds)
+                            ->where(function (Builder $classCourse): void {
+                                $classCourse->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                    ->whereColumn('classrooms.course_id', 'exams.course_id'))
+                                    ->orWhere(function (Builder $classOnly): void {
+                                        $classOnly->whereNull('exams.course_id')
+                                            ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                                ->whereNull('classrooms.course_id'));
+                                    });
+                            });
+                    })->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
+                        $courseLevel->whereNull('exams.classroom_id')
+                            ->whereIn('exams.course_id', clone $examCourseIds);
+                    });
                 });
             })
             ->with(['exam:id,title,classroom_id,course_id', 'exam.classroom:id,name', 'exam.course:id,title'])

@@ -99,7 +99,7 @@ final class DashboardController extends Controller
         $data = $dashboard->build($request->user());
 
         return view('student.live-classes', [
-            'sessions' => $data['upcoming_sessions'],
+            'sessions' => $data['upcoming_sessions']->where('session_type', 'online')->values(),
             'classrooms' => $data['classrooms'],
         ]);
     }
