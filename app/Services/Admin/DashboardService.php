@@ -53,7 +53,8 @@ final class DashboardService
                     'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
                     ['present', 'late']
                 )
-                ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->whereDate('session_date', '>=', $weekStart->toDateString())
+                ->whereDate('session_date', '<=', today()->toDateString())
                 ->groupBy('session_date')->get()->keyBy('attendance_day')
             : collect();
 
