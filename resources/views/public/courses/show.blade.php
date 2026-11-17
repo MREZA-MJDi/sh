@@ -267,7 +267,7 @@
                                     <button type="submit" class="btn s">ورود به کلاس</button>
                                 </form>
                             @elseif(auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
-                                <span class="lesson-lock-label">اتصال Skyroom در انتظار فعال‌سازی سرویس</span>
+                                <span class="lesson-lock-label">{{ $session->meeting_provider === 'jitsi' ? 'لینک Jitsi هنوز توسط مدرس ثبت نشده است' : 'اتصال Skyroom در انتظار فعال‌سازی سرویس' }}</span>
                             @elseif(auth()->check() && auth()->user()->hasRole('student') && $hasCourseAccess)
                                 <span class="lesson-lock-label">برای ورود، عضویت در گروه این کلاس لازم است</span>
                             @else
