@@ -10,7 +10,6 @@ use App\Models\Course;
 use App\Models\HomeworkSubmission;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 
 final class DashboardService
 {
@@ -30,7 +29,7 @@ final class DashboardService
         $canSeeStudents = $user->hasAnyPermission(['users.manage', 'students.view.assigned']);
         $canSeeClasses = $user->hasAnyPermission(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned']);
         $canSeeCourses = $user->hasAnyPermission(['courses.manage', 'courses.view.assigned']);
-        $canSeeAttendance = $user->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned']);
+        $canSeeAttendance = $user->hasAnyPermission(['attendance.view.all', 'attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned']);
         $canSeeHomework = $user->hasAnyPermission(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned', 'homework.grade']);
         $canSeeMessages = $user->hasAnyPermission(['messages.view.all', 'messages.view.assigned']);
         $canSeeAnnouncements = $user->hasAnyPermission(['announcements.manage', 'announcements.view']);
@@ -54,15 +53,15 @@ final class DashboardService
                     'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
                     ['present', 'late']
                 )
-                ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->whereDate('session_date', '>=', $weekStart->toDateString())
+                ->whereDate('session_date', '<=', today()->toDateString())
                 ->groupBy('session_date')->get()->keyBy('attendance_day')
             : collect();
 
-        // Reuse the grouped seven-day result for today's KPI instead of issuing
-        // two additional COUNT queries for the same attendance records.
-        $todayAttendance = $attendanceByDay->get(today()->toDateString());
-        $attendanceTotal = (int) ($todayAttendance->total ?? 0);
-        $attendancePresent = (int) ($todayAttendance->present ?? 0);
+        // The dashboard KPI is a seven-day aggregate; the chart below keeps
+        // the per-day rates from the same grouped query.
+        $attendanceTotal = (int) $attendanceByDay->sum('total');
+        $attendancePresent = (int) $attendanceByDay->sum('present');
 
         $pendingHomework = $canSeeHomework
             ? HomeworkSubmission::query()
@@ -89,16 +88,28 @@ final class DashboardService
             ? (clone $classroomQuery)->with(['teacher', 'course'])->withCount('students')->latest()->limit(6)->get()
             : collect();
 
-        $recentMessages = $canSeeMessages
-            ? $this->messages->queryFor($user)->with('sender')->where('status', 'open')->latest()->limit(5)->get()
+        $openMessagesQuery = $canSeeMessages
+            ? $this->messages->queryFor($user)->where('status', 'open')
+            : null;
+        $openMessageCount = $openMessagesQuery?->count() ?? 0;
+        $recentMessages = $openMessagesQuery
+            ? (clone $openMessagesQuery)->with('sender')->latest()->limit(5)->get()
             : collect();
 
-        $pendingConsultations = $user->hasPermissionTo('consultations.manage')
-            ? Consultation::with(['requester', 'student'])->where('status', 'pending')->latest()->limit(5)->get()
+        $pendingConsultationsQuery = $user->hasPermissionTo('consultations.manage')
+            ? Consultation::query()->where('status', 'pending')
+            : null;
+        $pendingConsultationCount = $pendingConsultationsQuery?->count() ?? 0;
+        $pendingConsultations = $pendingConsultationsQuery
+            ? (clone $pendingConsultationsQuery)->with(['requester', 'student'])->latest()->limit(5)->get()
             : collect();
 
-        $recentAnnouncements = $canSeeAnnouncements
-            ? Announcement::where('status', 'published')->latest('published_at')->limit(4)->get()
+        $publishedAnnouncementsQuery = $canSeeAnnouncements
+            ? Announcement::query()->where('status', 'published')
+            : null;
+        $publishedAnnouncementCount = $publishedAnnouncementsQuery?->count() ?? 0;
+        $recentAnnouncements = $publishedAnnouncementsQuery
+            ? (clone $publishedAnnouncementsQuery)->latest('published_at')->limit(4)->get()
             : collect();
 
 
@@ -117,7 +128,8 @@ final class DashboardService
 
         return compact(
             'stats', 'todayClasses', 'recentMessages', 'pendingConsultations',
-            'recentAnnouncements', 'weeklyAttendance'
+            'recentAnnouncements', 'weeklyAttendance', 'openMessageCount',
+            'pendingConsultationCount', 'publishedAnnouncementCount'
         );
     }
 }
