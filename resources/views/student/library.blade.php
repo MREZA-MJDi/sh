@@ -10,10 +10,16 @@
     <div class="th" style="background:linear-gradient(160deg,#6fb2b6,#4b6fb3)"><svg class="i"><use href="#i-book"/></svg></div>
     <h3>{{ $purchase->course?->title ?? 'دوره حذف‌شده' }}</h3>
     <p>{{ $purchase->course?->subject }} · {{ $purchase->course?->grade }}</p>
-    <p>وضعیت سفارش: {{ $purchase->status }}</p>
-    <p>تاریخ پرداخت: {{ $purchase->paid_at?->format('Y/m/d') ?? 'پرداخت ثبت نشده' }}</p>
-    @if ($purchase->license)
-     <span class="tag">{{ $purchase->license->status }}</span>
+    @php
+      $paymentStatus = ['paid' => 'پرداخت تأییدشده', 'pending_review' => 'رسید در انتظار بررسی', 'awaiting_provider' => 'در انتظار فعال‌سازی درگاه', 'failed' => 'پرداخت ناموفق', 'refund_pending' => 'درخواست استرداد', 'refunded' => 'مستردشده'];
+    @endphp
+    <p>وضعیت پرداخت: {{ $paymentStatus[$purchase->status] ?? $purchase->status }}</p>
+    <p>مبلغ: {{ number_format($purchase->amount) }} تومان</p>
+    <p>تاریخ پرداخت: {{ $purchase->paid_at?->format('Y/m/d') ?? 'هنوز پرداخت تأیید نشده' }}</p>
+    @if ($purchase->status === 'awaiting_provider')
+     <span class="tag">درگاه آنلاین در انتظار فعال‌سازی است</span>
+    @elseif ($purchase->status === 'pending_review')
+     <span class="tag">پس از تأیید رسید، دسترسی فعال می‌شود</span>
     @endif
    </div>
   @empty

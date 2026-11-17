@@ -12,13 +12,15 @@
         <div class="st"><b>{{ $stats['new_messages'] }}</b><span>پیام‌های باز</span><small>{{ $stats['new_messages_note'] }}</small></div>
     </div>
     <div class="g g2">
-        <section class="c"><h3>کلاس‌های تحت مدیریت</h3>
+        <section class="c"><h3>جلسات امروز</h3>
             @forelse (($todayClasses ?? []) as $cl)
                 <div class="row"><div>{{ data_get($cl, 'title') }}<small>{{ data_get($cl, 'time') }}</small></div>
-                    @if (data_get($cl, 'status') === 'link')<i class="bd gn">لینک کلاس ثبت شده</i>@else<i class="bd am">بدون لینک جلسه</i>@endif
+                    @if (data_get($cl, 'status') === 'link')<a class="b s" href="{{ data_get($cl, 'url') }}" target="_blank" rel="noopener">ورود به کلاس</a>
+                    @elseif (data_get($cl, 'status') === 'waiting')<i class="bd am">در انتظار فعال‌سازی Skyroom</i>
+                    @else<i class="bd bl">جلسه حضوری</i>@endif
                 </div>
             @empty
-                <p>کلاس فعالی برای حساب شما ثبت نشده است.</p>
+                <p>برای امروز جلسه‌ای زمان‌بندی نشده است.</p>
             @endforelse
         </section>
         <section class="c"><h3>نرخ حضور این هفته</h3>
