@@ -46,6 +46,11 @@ final class GuardianDashboardService
         $student = User::query()->findOrFail($selectedChild->id);
         $classroomIds = $this->learningAccess->activeClassroomIds($student);
         $courseIds = $this->learningAccess->activeCourseIds($student);
+        $assignmentClassroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
+        $examClassroomIds = $this->learningAccess->activeClassroomIds($student, 'exams');
+        $examCourseIds = $this->learningAccess->activeCourseIds($student, 'exams');
+        $resourceClassroomIds = $this->learningAccess->activeClassroomIds($student, 'resources');
+        $resourceCourseIds = $this->learningAccess->activeCourseIds($student, 'resources');
 
         $classrooms = Classroom::query()
             ->whereIn('classrooms.id', clone $classroomIds)
@@ -55,7 +60,7 @@ final class GuardianDashboardService
             ->get();
 
         $homeworkQuery = Homework::query()
-            ->whereIn('classroom_id', clone $classroomIds)
+            ->whereIn('classroom_id', clone $assignmentClassroomIds)
             ->where('status', 'published');
 
         $homeworks = (clone $homeworkQuery)
@@ -145,14 +150,14 @@ final class GuardianDashboardService
 
         $resultQuery = ExamResult::query()
             ->where('student_id', $student->id)
-            ->whereHas('exam', function (Builder $exam) use ($classroomIds, $courseIds): void {
+            ->whereHas('exam', function (Builder $exam) use ($examClassroomIds, $examCourseIds): void {
                 $exam->where('show_to_guardians', true)
                 ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
-                    $scope->whereIn('exams.classroom_id', clone $classroomIds)
-                        ->orWhere(function (Builder $courseLevel) use ($courseIds): void {
+                    $scope->whereIn('exams.classroom_id', clone $examClassroomIds)
+                        ->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
                             $courseLevel
                                 ->whereNull('exams.classroom_id')
-                                ->whereIn('exams.course_id', clone $courseIds);
+                                ->whereIn('exams.course_id', clone $examCourseIds);
                         });
                 });
             });
@@ -173,20 +178,20 @@ final class GuardianDashboardService
             ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
             ->where('status', 'published')
             ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
-                        ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
-                $scope->where(function (Builder $classScoped) use ($classroomIds, $courseIds): void {
+            ->where(function (Builder $scope) use ($resourceClassroomIds, $resourceCourseIds): void {
+                $scope->where(function (Builder $classScoped) use ($resourceClassroomIds, $resourceCourseIds): void {
                     $classScoped->whereNotNull('classroom_id')
-                        ->whereIn('classroom_id', clone $classroomIds)
-                        ->where(function (Builder $courseScope) use ($courseIds): void {
+                        ->whereIn('classroom_id', clone $resourceClassroomIds)
+                        ->where(function (Builder $courseScope) use ($resourceCourseIds): void {
                             $courseScope->whereNull('course_id')
-                                ->orWhere(function (Builder $matchingCourse) use ($courseIds): void {
-                                    $matchingCourse->whereIn('course_id', clone $courseIds)
+                                ->orWhere(function (Builder $matchingCourse) use ($resourceCourseIds): void {
+                                    $matchingCourse->whereIn('course_id', clone $resourceCourseIds)
                                         ->whereHas('classroom', fn (Builder $classroom) => $classroom
                                             ->whereColumn('classrooms.course_id', 'learning_resources.course_id'));
                                 });
                         });
-                })->orWhere(function (Builder $courseOnly) use ($courseIds): void {
-                    $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                })->orWhere(function (Builder $courseOnly) use ($resourceCourseIds): void {
+                    $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $resourceCourseIds);
                 })->orWhere(function (Builder $unscoped): void {
                     $unscoped->whereNull('classroom_id')->whereNull('course_id')
                         ->whereIn('visibility', ['public', 'authenticated']);
