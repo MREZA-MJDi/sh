@@ -78,7 +78,7 @@ final class AcademicPortalContentSeeder extends Seeder
                     ->first()
                 : null;
 
-            $course = Course::query()->updateOrCreate(
+            $course = Course::query()->firstOrCreate(
                 ['slug' => 'riyazi-takmili-nomre'],
                 [
                     'title' => 'ریاضی تکمیلی و حل مسئله',
@@ -95,7 +95,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 ]
             );
 
-            $classroom = Classroom::query()->updateOrCreate(
+            $classroom = Classroom::query()->firstOrCreate(
                 ['course_id' => $course->id, 'name' => 'کلاس ریاضی تکمیلی - گروه اول'],
                 [
                     'teacher_id' => $teacher->id,
@@ -122,7 +122,7 @@ final class AcademicPortalContentSeeder extends Seeder
 
             $lessons = collect();
             foreach ($sectionDefinitions as $sectionIndex => $definition) {
-                $section = CourseSection::query()->updateOrCreate(
+                $section = CourseSection::query()->firstOrCreate(
                     ['course_id' => $course->id, 'title' => $definition['title']],
                     [
                         'description' => $definition['description'],
@@ -132,7 +132,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 );
 
                 foreach ($definition['lessons'] as $lessonIndex => $lessonData) {
-                    $lesson = Lesson::query()->updateOrCreate(
+                    $lesson = Lesson::query()->firstOrCreate(
                         ['course_section_id' => $section->id, 'title' => $lessonData['title']],
                         [
                             'body' => 'در این درس، مفهوم اصلی با مثال آموزشی توضیح داده می‌شود و در پایان تمرین مرتبط ارائه خواهد شد.',
@@ -151,7 +151,7 @@ final class AcademicPortalContentSeeder extends Seeder
                     $student->id => ['assigned_by' => $teacher->id],
                 ]);
 
-                CourseEnrollment::query()->updateOrCreate(
+                CourseEnrollment::query()->firstOrCreate(
                     ['course_id' => $course->id, 'student_id' => $student->id],
                     [
                         'source' => 'classroom',
@@ -166,7 +166,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 foreach ([21, 14, 7, 2] as $sessionIndex => $daysAgo) {
                     $sessionDate = $today->copy()->subDays($daysAgo);
                     $statuses = ['present', 'present', 'late', 'absent'];
-                    Attendance::query()->updateOrCreate(
+                    Attendance::query()->firstOrCreate(
                         [
                             'classroom_id' => $classroom->id,
                             'student_id' => $student->id,
@@ -184,7 +184,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 }
 
                 foreach ($lessons as $lessonIndex => $lesson) {
-                    LessonProgress::query()->updateOrCreate(
+                    LessonProgress::query()->firstOrCreate(
                         ['lesson_id' => $lesson->id, 'student_id' => $student->id],
                         [
                             'progress_percent' => $lessonIndex < (2 + ($studentIndex % 2)) ? 100 : 0,
@@ -203,7 +203,7 @@ final class AcademicPortalContentSeeder extends Seeder
 
             $homeworks = collect();
             foreach ($homeworkDefinitions as $definition) {
-                $homeworks->push(Homework::query()->updateOrCreate(
+                $homeworks->push(Homework::query()->firstOrCreate(
                     ['classroom_id' => $classroom->id, 'title' => $definition['title']],
                     [
                         'instructions' => $definition['instructions'],
@@ -217,7 +217,7 @@ final class AcademicPortalContentSeeder extends Seeder
 
             foreach ($students as $studentIndex => $student) {
                 $completedHomework = $homeworks->first();
-                HomeworkSubmission::query()->updateOrCreate(
+                HomeworkSubmission::query()->firstOrCreate(
                     ['homework_id' => $completedHomework->id, 'student_id' => $student->id],
                     [
                         'answer' => 'پاسخ تمرین همراه با مراحل حل و توضیح روش انتخاب‌شده ثبت شده است.',
@@ -232,7 +232,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 );
             }
 
-            $exam = Exam::query()->updateOrCreate(
+            $exam = Exam::query()->firstOrCreate(
                 ['course_id' => $course->id, 'title' => 'آزمونک فصل اول ریاضی'],
                 [
                     'classroom_id' => $classroom->id,
@@ -250,7 +250,7 @@ final class AcademicPortalContentSeeder extends Seeder
             );
 
             foreach ($students as $studentIndex => $student) {
-                ExamResult::query()->updateOrCreate(
+                ExamResult::query()->firstOrCreate(
                     ['exam_id' => $exam->id, 'student_id' => $student->id],
                     [
                         'score' => 15 + ($studentIndex % 6),
@@ -261,7 +261,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 );
             }
 
-            LearningResource::query()->updateOrCreate(
+            LearningResource::query()->firstOrCreate(
                 ['course_id' => $course->id, 'classroom_id' => $classroom->id, 'title' => 'جزوه راهبردهای حل مسئله'],
                 [
                     'uploaded_by' => $teacher->id,
@@ -275,7 +275,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 ]
             );
 
-            SpotPlayerVideo::query()->updateOrCreate(
+            SpotPlayerVideo::query()->firstOrCreate(
                 ['course_id' => $course->id, 'classroom_id' => $classroom->id, 'title' => 'معرفی دوره و مسیر یادگیری'],
                 [
                     'created_by' => $teacher->id,
@@ -285,7 +285,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 ]
             );
 
-            Announcement::query()->updateOrCreate(
+            Announcement::query()->firstOrCreate(
                 ['title' => 'آغاز برنامه آموزشی دوره ریاضی تکمیلی'],
                 [
                     'created_by' => $teacher->id,
@@ -297,7 +297,7 @@ final class AcademicPortalContentSeeder extends Seeder
             );
 
             foreach ($students as $studentIndex => $student) {
-                StudentNote::query()->updateOrCreate(
+                StudentNote::query()->firstOrCreate(
                     ['student_id' => $student->id, 'title' => 'یادداشت برنامه‌ریزی هفتگی'],
                     [
                         'body' => 'مرور درس‌های تکمیل‌شده و حل تمرین‌های باقی‌مانده در برنامه این هفته قرار دارد.',
@@ -309,7 +309,7 @@ final class AcademicPortalContentSeeder extends Seeder
                     $parent->children()->syncWithoutDetaching([$student->id]);
                 }
 
-                Message::query()->updateOrCreate(
+                Message::query()->firstOrCreate(
                     [
                         'sender_id' => $student->id,
                         'recipient_id' => $teacher->id,
@@ -333,14 +333,14 @@ final class AcademicPortalContentSeeder extends Seeder
                     ->first();
 
                 if ($message) {
-                    MessageReply::query()->updateOrCreate(
+                    MessageReply::query()->firstOrCreate(
                         ['message_id' => $message->id, 'sender_id' => $teacher->id],
                         ['body' => 'نوشتن روش اصلی و توضیح دلیل انتخاب آن کافی است؛ روش جایگزین امتیاز تکمیلی دارد.']
                     );
                 }
 
                 if ($parent) {
-                    Consultation::query()->updateOrCreate(
+                    Consultation::query()->firstOrCreate(
                         [
                             'requester_id' => $parent->id,
                             'student_id' => $student->id,
@@ -362,7 +362,7 @@ final class AcademicPortalContentSeeder extends Seeder
 
             // Real paid course fixture: the roster is present, but every
             // enrollment remains pending_payment until a verified payment.
-            $paidCourse = Course::query()->updateOrCreate(
+            $paidCourse = Course::query()->firstOrCreate(
                 ['slug' => 'riyazi-pishrafte-dore-pooli'],
                 [
                     'title' => 'ریاضی پیشرفته؛ دوره جامع پولی',
@@ -379,7 +379,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 ]
             );
 
-            $paidClassroom = Classroom::query()->updateOrCreate(
+            $paidClassroom = Classroom::query()->firstOrCreate(
                 ['course_id' => $paidCourse->id, 'name' => 'کلاس دوره جامع پولی - گروه آزمایشی'],
                 [
                     'teacher_id' => $teacher->id,
@@ -421,7 +421,7 @@ final class AcademicPortalContentSeeder extends Seeder
             ];
 
             foreach ($paidSections as $sectionIndex => $definition) {
-                $paidSection = CourseSection::query()->updateOrCreate(
+                $paidSection = CourseSection::query()->firstOrCreate(
                     ['course_id' => $paidCourse->id, 'title' => $definition['title']],
                     [
                         'description' => $definition['description'],
@@ -431,7 +431,7 @@ final class AcademicPortalContentSeeder extends Seeder
                 );
 
                 foreach ($definition['lessons'] as $lessonIndex => $lessonData) {
-                    Lesson::query()->updateOrCreate(
+                    Lesson::query()->firstOrCreate(
                         ['course_section_id' => $paidSection->id, 'title' => $lessonData['title']],
                         [
                             'body' => 'محتوای این درس پس از ثبت‌نام معتبر و تأیید پرداخت در دسترس دانش‌آموز قرار می‌گیرد.',
