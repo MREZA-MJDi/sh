@@ -60,7 +60,7 @@ class ClassSessionController extends Controller
         $session->update([
             ...$data,
             'meeting_url' => $meetingUrl,
-            'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
+            'meeting_provider' => $data['session_type'] === 'online' ? ($data['meeting_provider'] ?? $session->meeting_provider ?? 'skyroom') : null,
         ]);
 
         return back()->with('success', 'جلسه به‌روزرسانی شد.');
