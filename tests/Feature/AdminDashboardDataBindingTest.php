@@ -31,6 +31,7 @@ final class AdminDashboardDataBindingTest extends TestCase
         $admin = User::factory()->create();
         $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
         $student = User::factory()->create();
+        $otherStudent = User::factory()->create();
 
         $classroom = Classroom::query()->create([
             'teacher_id' => $admin->id,
@@ -46,8 +47,8 @@ final class AdminDashboardDataBindingTest extends TestCase
         ]);
         Attendance::query()->create([
             'classroom_id' => $classroom->id,
-            'student_id' => $student->id,
-            'session_date' => today()->subDay()->toDateString(),
+            'student_id' => $otherStudent->id,
+            'session_date' => today()->toDateString(),
             'status' => 'absent',
         ]);
         $this->assertDatabaseCount('attendances', 2);
