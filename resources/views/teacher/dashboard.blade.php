@@ -15,10 +15,22 @@
         <section class="c"><h3>کلاس‌های تحت مدیریت</h3>
             @forelse (($todayClasses ?? []) as $cl)
                 <div class="row"><div>{{ data_get($cl, 'title') }}<small>{{ data_get($cl, 'time') }}</small></div>
-                    @if (data_get($cl, 'status') === 'link')<i class="bd gn">لینک کلاس ثبت شده</i>@else<i class="bd am">بدون لینک جلسه</i>@endif
+                    @if (data_get($cl, 'status') === 'link')<a class="b s" href="{{ data_get($cl, 'url') }}" target="_blank" rel="noopener">ورود به کلاس</a>
+                    @else<i class="bd am">لینک جلسه ثبت نشده</i>@endif
                 </div>
             @empty
                 <p>کلاس فعالی برای حساب شما ثبت نشده است.</p>
+            @endforelse
+        </section>
+        <section class="c"><h3>جلسات امروز</h3>
+            @forelse (($todaySessions ?? []) as $session)
+                <div class="row"><div>{{ data_get($session, 'title') }}<small>{{ data_get($session, 'time') }}</small></div>
+                    @if (data_get($session, 'status') === 'link')<a class="b s" href="{{ data_get($session, 'url') }}" target="_blank" rel="noopener">ورود به کلاس</a>
+                    @elseif (data_get($session, 'status') === 'waiting')<i class="bd am">در انتظار فعال‌سازی Skyroom</i>
+                    @else<i class="bd bl">جلسه حضوری</i>@endif
+                </div>
+            @empty
+                <p>برای امروز جلسه‌ای زمان‌بندی نشده است.</p>
             @endforelse
         </section>
         <section class="c"><h3>نرخ حضور این هفته</h3>

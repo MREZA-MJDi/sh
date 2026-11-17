@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\HomeworkSubmission;
+use App\Models\ClassSession;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\DashboardService;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,7 +27,24 @@ final class DashboardController extends Controller
             'title' => $classroom->name,
             'time' => $classroom->course?->title ?? 'کلاس فعال',
             'status' => filled($classroom->meeting_url) ? 'link' : 'scheduled',
+            'url' => $classroom->meeting_url,
         ]);
+
+        $todaySessions = ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->whereDate('starts_at', today())
+            ->where('status', 'scheduled')
+            ->with(['classroom:id,name,course_id,meeting_url', 'classroom.course:id,title'])
+            ->orderBy('starts_at')
+            ->get()
+            ->map(fn ($session) => [
+                'title' => $session->title ?: $session->classroom?->name,
+                'time' => $session->starts_at?->format('H:i').' · '.($session->classroom?->course?->title ?? 'جلسه آموزشی'),
+                'status' => $session->session_type === 'online'
+                    ? (filled($session->meeting_url) || filled($session->classroom?->meeting_url) ? 'link' : 'waiting')
+                    : 'onsite',
+                'url' => $session->meeting_url ?: $session->classroom?->meeting_url,
+            ]);
 
         $pending = HomeworkSubmission::query()
             ->where('status', 'submitted')
@@ -69,6 +87,7 @@ final class DashboardController extends Controller
             'new_messages_note' => 'پیام‌های باز',
         ];
         $data['todayClasses'] = $todayClasses;
+        $data['todaySessions'] = $todaySessions;
         $data['weekAttendance'] = $weekAttendance;
         $data['pendingHomework'] = $pending;
         $data['newMessages'] = $newMessages;

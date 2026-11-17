@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\CourseEnrollment;
-use App\Models\Enrollment;
+use App\Models\Payment;
+use App\Services\Learning\LearningAccessService;
 use App\Services\StudentDashboardService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,12 +31,14 @@ final class DashboardController extends Controller
         ]);
     }
 
-    public function attendance(Request $request): View
+    public function attendance(Request $request, LearningAccessService $access): View
     {
         $student = $request->user();
+        $classroomIds = $access->activeClassroomIds($student);
         $start = now()->startOfMonth();
         $monthRecords = Attendance::query()
             ->where('student_id', $student->id)
+            ->whereIn('classroom_id', clone $classroomIds)
             ->whereBetween('session_date', [$start->toDateString(), now()->toDateString()])
             ->with(['classroom:id,name', 'session:id,starts_at'])
             ->get();
@@ -96,7 +99,7 @@ final class DashboardController extends Controller
         $data = $dashboard->build($request->user());
 
         return view('student.live-classes', [
-            'sessions' => $data['upcoming_sessions'],
+            'sessions' => $data['upcoming_sessions']->where('session_type', 'online')->values(),
             'classrooms' => $data['classrooms'],
         ]);
     }
@@ -114,9 +117,9 @@ final class DashboardController extends Controller
     public function library(Request $request): View
     {
         $student = $request->user();
-        $purchases = Enrollment::query()
-            ->where('user_id', $student->id)
-            ->with(['course:id,title,slug,subject,grade', 'license'])
+        $purchases = Payment::query()
+            ->where('student_id', $student->id)
+            ->with('course:id,title,slug,subject,grade')
             ->latest('created_at')
             ->paginate(12)
             ->withQueryString();
