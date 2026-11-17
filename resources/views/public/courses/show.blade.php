@@ -193,6 +193,9 @@
                                                             @endif
                                                         </div>
                                                     </div>
+                                                    @if(filled($lesson->body))
+                                                        <p class="lesson-description" style="margin:10px 0 0 42px;color:var(--mute);font-size:13px;line-height:1.9;white-space:pre-line">{{ $lesson->body }}</p>
+                                                    @endif
 
                                                     <div class="lesson-meta">
                                                         <span class="lesson-time">
