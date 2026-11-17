@@ -76,6 +76,53 @@ final class DemoWorkflowContentSeeder extends Seeder
                 ]
             );
 
+            $section = CourseSection::query()->firstOrCreate(
+                ['course_id' => $course->id, 'title' => 'شروع و مهارت‌های مطالعه'],
+                [
+                    'description' => 'محتوای خودآموز ویدئویی و متنی؛ بدون کلاس زمان‌بندی‌شده.',
+                    'sort_order' => 1,
+                    'status' => 'published',
+                ]
+            );
+
+            Lesson::query()->firstOrCreate(
+                ['course_section_id' => $section->id, 'title' => 'چطور برنامه مطالعه بسازیم؟'],
+                [
+                    'body' => 'در این درس با هدف‌گذاری، تقسیم زمان و مرور فاصله‌دار آشنا می‌شوید. ویدئوی درس پس از بارگذاری فایل واقعی توسط مدیر به این بخش متصل می‌شود.',
+                    'duration_minutes' => 18,
+                    'sort_order' => 1,
+                    'status' => 'published',
+                ]
+            );
+
+            Lesson::query()->firstOrCreate(
+                ['course_section_id' => $section->id, 'title' => 'روش یادداشت‌برداری مؤثر'],
+                [
+                    'body' => 'روش خلاصه‌سازی، دسته‌بندی نکته‌ها و مرور یادداشت‌ها در این درس توضیح داده می‌شود.',
+                    'duration_minutes' => 22,
+                    'sort_order' => 2,
+                    'status' => 'published',
+                ]
+            );
+
+            LearningResource::query()->firstOrCreate(
+                ['course_id' => $course->id, 'title' => 'جزوه PDF اختیاری؛ هنوز بارگذاری نشده'],
+                [
+                    'classroom_id' => null,
+                    'uploaded_by' => $teacher->id,
+                    'description' => 'رکورد نمونه برای نمایش منبع اختیاری. فایل واقعی هنوز بارگذاری نشده و لینک دانلودی جعل نشده است.',
+                    'kind' => 'document',
+                    'price' => 0,
+                    'is_free' => true,
+                    'visibility' => 'enrolled',
+                    'release_at' => null,
+                    'downloadable' => false,
+                    'sort_order' => 1,
+                    'file_path' => null,
+                    'status' => 'draft',
+                ]
+            );
+
             $liveCourse = Course::query()->firstOrCreate(
                 ['slug' => 'hybrid-live-demo-course'],
                 [
