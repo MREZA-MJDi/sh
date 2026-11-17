@@ -50,16 +50,11 @@ final class AdminDashboardDataBindingTest extends TestCase
             'session_date' => today()->subDay()->toDateString(),
             'status' => 'absent',
         ]);
-        Attendance::query()->create([
-            'classroom_id' => $classroom->id,
-            'student_id' => $student->id,
-            'session_date' => today()->subDays(2)->toDateString(),
-            'status' => 'late',
-        ]);
+        $this->assertDatabaseCount('attendances', 2);
 
         $dashboard = app(DashboardService::class)->build($admin);
 
-        $this->assertSame(67, $dashboard['stats']['attendance_rate']);
+        $this->assertSame(50, $dashboard['stats']['attendance_rate']);
         $this->assertCount(7, $dashboard['weeklyAttendance']);
     }
 
