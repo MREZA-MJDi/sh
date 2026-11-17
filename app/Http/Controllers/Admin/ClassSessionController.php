@@ -39,12 +39,15 @@ class ClassSessionController extends Controller
     {
         $classroom = $workspace->queryFor($request->user())->findOrFail($classroom);
         $data = $request->validated();
-        $meetingUrl = $data['session_type'] === 'online' ? (filled($data['meeting_url'] ?? null) ? $data['meeting_url'] : $classroom->meeting_url) : null;
+        $provider = $data['meeting_provider'] ?? 'skyroom';
+        $meetingUrl = $data['session_type'] === 'online'
+            ? (filled($data['meeting_url'] ?? null) ? $data['meeting_url'] : ($provider === 'skyroom' ? $classroom->meeting_url : null))
+            : null;
         ClassSession::create([
             ...$data,
             // اگر لینک جلسه خالی بود، لینک اسکای‌روم خود کلاس استفاده می‌شود.
             'meeting_url' => $meetingUrl,
-            'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
+            'meeting_provider' => $data['session_type'] === 'online' ? ($data['meeting_provider'] ?? 'skyroom') : null,
             'classroom_id' => $classroom->id,
             'created_by' => $request->user()->id,
         ]);
@@ -56,11 +59,14 @@ class ClassSessionController extends Controller
     {
         $session = $this->ownedSession($request, $classSession, $workspace);
         $data = $request->validated();
-        $meetingUrl = $data['session_type'] === 'online' ? (filled($data['meeting_url'] ?? null) ? $data['meeting_url'] : $session->classroom?->meeting_url) : null;
+        $provider = $data['meeting_provider'] ?? $session->meeting_provider ?? 'skyroom';
+        $meetingUrl = $data['session_type'] === 'online'
+            ? (filled($data['meeting_url'] ?? null) ? $data['meeting_url'] : ($provider === 'skyroom' ? $session->classroom?->meeting_url : null))
+            : null;
         $session->update([
             ...$data,
             'meeting_url' => $meetingUrl,
-            'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
+            'meeting_provider' => $data['session_type'] === 'online' ? $provider : null,
         ]);
 
         return back()->with('success', 'جلسه به‌روزرسانی شد.');

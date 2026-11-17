@@ -57,7 +57,7 @@
                 @if($nextJoinReady && $joinWindowOpen)
                     <form method="POST" action="{{ route('student.class-sessions.join', $nextSession) }}" target="_blank" rel="noopener">@csrf<button class="btn s" type="submit">ورود به کلاس آنلاین</button></form>
                 @elseif(! $nextJoinReady)
-                    <span class="tag">اتصال Skyroom در انتظار فعال‌سازی</span>
+                    <span class="tag">{{ $nextSession->meeting_provider === 'jitsi' ? 'لینک Jitsi هنوز ثبت نشده است' : 'اتصال Skyroom در انتظار فعال‌سازی' }}</span>
                 @else
                     <span class="tag">ورود از ۱۵ دقیقه پیش از شروع</span>
                 @endif
