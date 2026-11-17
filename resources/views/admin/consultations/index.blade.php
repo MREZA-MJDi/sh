@@ -45,6 +45,12 @@
               <textarea name="notes" class="adm-input" rows="2" placeholder="یادداشت پیگیری">{{ $consultation->notes }}</textarea>
               <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">ذخیره وضعیت</button>
             </form>
+            @if(auth()->user()->hasRole('admin'))
+              <form method="POST" action="{{ route('admin.consultations.destroy', $consultation) }}" onsubmit="return confirm('این درخواست مشاوره حذف شود؟')">
+                @csrf @method('DELETE')
+                <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">حذف درخواست</button>
+              </form>
+            @endif
           </td>
         </tr>
       @empty
