@@ -61,4 +61,13 @@ class MessageController extends Controller
 
         return back()->with('success', 'پیام به‌عنوان خوانده‌شده ثبت شد.');
     }
+    public function destroy(Request $request, \App\Models\Message $message, MessageWorkspaceService $workspace): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('admin'), 403);
+        $message = $workspace->findVisible($request->user(), $message->id);
+        $message->delete();
+
+        return redirect()->route('admin.messages.index')->with('success', 'گفت‌وگو و پاسخ‌های آن حذف شد.');
+    }
+
 }
