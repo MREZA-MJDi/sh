@@ -16,12 +16,19 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class LearningAccessService
 {
-    public function activeCourseIds(User $student): Builder
+    public function activeCourseIds(User $student, ?string $feature = null): Builder
     {
         $query = CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->currentlyActive()
-            ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
+            ->whereHas('course', function (Builder $course) use ($feature): void {
+                $course->where('status', 'published');
+                if ($feature !== null) {
+                    $course->where(fn (Builder $features) => $features
+                        ->whereNull('learning_features')
+                        ->orWhere('learning_features->'.$feature, true));
+                }
+            })
             ->select('course_id');
 
         return $student->is_active && $student->hasRole('student')
@@ -29,18 +36,24 @@ final class LearningAccessService
             : $query->whereRaw('1 = 0');
     }
 
-    public function activeClassroomIds(User $student): Builder
+    public function activeClassroomIds(User $student, ?string $feature = null): Builder
     {
         $query = Classroom::query()
             ->where('classrooms.status', 'active')
             ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-            ->where(function (Builder $access) use ($student): void {
+            ->where(function (Builder $access) use ($student, $feature): void {
                 $access->whereNull('classrooms.course_id')
-                    ->orWhereHas('course', fn (Builder $course) => $course
-                        ->where('status', 'published')
-                        ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
+                    ->orWhereHas('course', function (Builder $course) use ($student, $feature): void {
+                        $course->where('status', 'published');
+                        if ($feature !== null) {
+                            $course->where(fn (Builder $features) => $features
+                                ->whereNull('learning_features')
+                                ->orWhere('learning_features->'.$feature, true));
+                        }
+                        $course->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
                             ->where('student_id', $student->id)
-                            ->currentlyActive()));
+                            ->currentlyActive());
+                    });
             })
             ->select('classrooms.id');
 

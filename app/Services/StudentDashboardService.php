@@ -6,19 +6,21 @@ use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\ClassSession;
-use App\Models\CourseEnrollment;
 use App\Models\ExamResult;
 use App\Models\Homework;
 use App\Models\LearningResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use App\Services\Learning\LearningAccessService;
 
 final class StudentDashboardService
 {
+    public function __construct(private readonly LearningAccessService $learningAccess) {}
+
     public function build(User $student): array
     {
-        $classroomIds = $this->enrolledClassroomIds($student);
-        $courseIds = $this->activeCourseIds($student);
+        $classroomIds = $this->learningAccess->activeClassroomIds($student);
+        $courseIds = $this->learningAccess->activeCourseIds($student);
 
         $classrooms = Classroom::query()
             ->whereIn('classrooms.id', clone $classroomIds)
@@ -180,28 +182,4 @@ final class StudentDashboardService
         ];
     }
 
-    private function enrolledClassroomIds(User $student): Builder
-    {
-        return Classroom::query()
-            ->where('classrooms.status', 'active')
-            ->whereHas('students', fn (Builder $query) => $query->whereKey($student->id))
-            ->where(function (Builder $access) use ($student): void {
-                $access->whereNull('classrooms.course_id')
-                    ->orWhereHas('course', fn (Builder $course) => $course
-                        ->where('status', 'published')
-                        ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
-                            ->where('student_id', $student->id)
-                            ->currentlyActive()));
-            })
-            ->select('classrooms.id');
-    }
-
-    private function activeCourseIds(User $student): Builder
-    {
-        return CourseEnrollment::query()
-            ->where('student_id', $student->id)
-            ->currentlyActive()
-            ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
-            ->select('course_id');
-    }
 }

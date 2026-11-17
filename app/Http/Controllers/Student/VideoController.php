@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\CourseEnrollment;
 use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use App\Services\Learning\LearningAccessService;
 
 final class VideoController extends Controller
 {
@@ -19,16 +19,16 @@ final class VideoController extends Controller
         return redirect()->route('student.courses.index');
     }
 
-    public function show(Request $request, int $video): RedirectResponse
+    public function show(Request $request, int $video, LearningAccessService $access): RedirectResponse
     {
-        $video = $this->findAccessibleVideo($request->user(), $video);
+        $video = $this->findAccessibleVideo($request->user(), $video, $access);
 
         return redirect()->route('public.courses.show', $video->course->slug);
     }
 
-    public function stream(Request $request, int $video): Response
+    public function stream(Request $request, int $video, LearningAccessService $access): Response
     {
-        $this->findAccessibleVideo($request->user(), $video);
+        $this->findAccessibleVideo($request->user(), $video, $access);
 
         return response(
             'فایل خام ویدئوی آموزشی ارائه نمی‌شود. پخش فقط از طریق پلیر محافظت‌شده SpotPlayer پس از فعال‌شدن اتصال سرویس ممکن است.',
@@ -37,19 +37,17 @@ final class VideoController extends Controller
             ->header('X-Content-Type-Options', 'nosniff');
     }
 
-    private function findAccessibleVideo(User $student, int $videoId): SpotPlayerVideo
+    private function findAccessibleVideo(User $student, int $videoId, LearningAccessService $access): SpotPlayerVideo
     {
-        return $this->accessibleVideos($student)
+        return $this->accessibleVideos($student, $access)
             ->with(['course:id,title,slug,delivery_type,spotplayer_course_id', 'classroom:id,name'])
             ->findOrFail($videoId);
     }
 
-    private function accessibleVideos(User $student): Builder
+    private function accessibleVideos(User $student, LearningAccessService $access): Builder
     {
-        $activeCourseIds = CourseEnrollment::query()
-            ->where('student_id', $student->id)
-            ->currentlyActive()
-            ->select('course_id');
+        $activeCourseIds = $access->activeCourseIds($student, 'recorded_video');
+        $activeClassroomIds = $access->activeClassroomIds($student, 'recorded_video');
 
         return SpotPlayerVideo::query()
             ->where(function (Builder $delivery) {
@@ -66,11 +64,7 @@ final class VideoController extends Controller
                 ->whereIn('courses.id', clone $activeCourseIds))
             ->where(function (Builder $scope) use ($student): void {
                 $scope->whereNull('classroom_id')
-                    ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
-                        ->where('status', 'active')
-                        ->whereColumn('classrooms.course_id', 'spot_player_videos.course_id')
-                        ->whereHas('students', fn (Builder $students) => $students
-                            ->whereKey($student->id)));
+                    ->orWhereIn('classroom_id', clone $activeClassroomIds);
             });
     }
 }
