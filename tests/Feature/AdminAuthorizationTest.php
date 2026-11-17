@@ -96,6 +96,25 @@ class AdminAuthorizationTest extends TestCase
         }
     }
 
+    public function test_admin_sidebar_links_match_the_permissions_required_by_the_routes(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee(route('admin.payments.index'), false);
+
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::where('name', 'teacher')->value('id'));
+
+        $this->actingAs($teacher)->get(route('admin.classes.index'))
+            ->assertOk()
+            ->assertSee(route('admin.online-classes.index'), false)
+            ->assertSee(route('admin.exams.index'), false)
+            ->assertDontSee(route('admin.payments.index'), false);
+    }
+
     public function test_teacher_is_redirected_to_the_independent_teacher_workspace(): void
     {
         $teacher = User::factory()->create();

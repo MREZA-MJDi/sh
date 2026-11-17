@@ -27,7 +27,8 @@
       
       'admin/attendance' => ['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'],
       'admin/homework' => ['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'],
-      'admin/exams' => ['exams.manage'],
+      'admin/exams' => ['exams.manage', 'exams.manage.assigned'],
+      'admin/online-classes' => ['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'],
       'admin/quiz24' => ['integrations.manage'],
       'admin/contact-messages' => ['messages.view.all'],
       'admin/parent-meetings' => ['classes.manage', 'classes.manage.assigned'],
@@ -39,7 +40,7 @@
       'admin/consultations' => ['consultations.manage'],
       'admin/announcements' => ['announcements.manage', 'announcements.view'],
       'admin/enrollments' => ['courses.manage', 'users.manage'],
-      'admin/payments' => ['payments.manage'],
+      'admin/payments' => ['users.manage'],
       'admin/resources' => ['resources.manage', 'resources.manage.assigned'],
     ];
     $nav['groups'] = collect($nav['groups'])->map(function ($group) use ($user, $isAdmin, $permissionMap) {
