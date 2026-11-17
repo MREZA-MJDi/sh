@@ -51,6 +51,11 @@ final class AdminDashboardDataBindingTest extends TestCase
             'status' => 'absent',
         ]);
         $this->assertDatabaseCount('attendances', 2);
+        $this->assertTrue($admin->hasRole('admin'));
+        $this->assertTrue($admin->hasPermissionTo('attendance.view.all'));
+        $this->assertSame(2, Attendance::query()
+            ->whereBetween('session_date', [today()->copy()->subDays(6)->toDateString(), today()->toDateString()])
+            ->count());
 
         $dashboard = app(DashboardService::class)->build($admin);
 
