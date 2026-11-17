@@ -114,4 +114,25 @@ final class StudentClassSessionJoinTest extends TestCase
             'meeting_url' => 'https://meet.example.test/room',
         ]);
     }
+
+    public function test_student_can_join_a_jitsi_session_using_its_saved_meeting_url(): void
+    {
+        [$student, $classroom] = $this->studentWithClassroom();
+        $session = $this->makeSession($classroom, now()->addMinutes(5), now()->addHour());
+        $session->update([
+            'meeting_provider' => 'jitsi',
+            'meeting_url' => 'https://meet.jit.si/shikhan-student-room-2026',
+        ]);
+
+        $this->actingAs($student)
+            ->post(route('student.class-sessions.join', $session))
+            ->assertRedirect('https://meet.jit.si/shikhan-student-room-2026');
+
+        $this->assertDatabaseHas('class_session_join_logs', [
+            'class_session_id' => $session->id,
+            'user_id' => $student->id,
+        ]);
+    }
+
+
 }
