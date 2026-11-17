@@ -30,8 +30,11 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'parent@sh.local']);
         $this->assertDatabaseHas('courses', ['slug' => 'riyazi-takmili-nomre']);
         $this->assertDatabaseHas('courses', ['slug' => 'riyazi-pishrafte-dore-pooli']);
-        $this->assertDatabaseCount('courses', 2);
-        $this->assertDatabaseCount('classrooms', 2);
+        $this->assertDatabaseHas('courses', ['slug' => 'video-only-demo-course']);
+        $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
+        $this->assertDatabaseCount('courses', 4);
+        $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
+        $this->assertDatabaseCount('classrooms', 3);
         $this->assertDatabaseCount('guardian_student', 1);
     }
 
@@ -52,8 +55,11 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
         $this->assertDatabaseHas('courses', ['slug' => 'riyazi-takmili-nomre']);
         $this->assertDatabaseHas('courses', ['slug' => 'riyazi-pishrafte-dore-pooli']);
-        $this->assertDatabaseCount('courses', 2);
-        $this->assertDatabaseCount('classrooms', 2);
+        $this->assertDatabaseHas('courses', ['slug' => 'video-only-demo-course']);
+        $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
+        $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
+        $this->assertDatabaseCount('courses', 4);
+        $this->assertDatabaseCount('classrooms', 3);
     }
 
     public function test_academic_demo_seeder_never_attaches_fixtures_to_unrelated_local_users(): void

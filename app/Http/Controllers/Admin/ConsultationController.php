@@ -30,4 +30,12 @@ class ConsultationController extends Controller
 
         return back()->with('success', 'وضعیت درخواست مشاوره به‌روزرسانی شد.');
     }
+    public function destroy(\Illuminate\Http\Request $request, Consultation $consultation): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('admin'), 403);
+
+        $consultation->delete();
+
+        return back()->with('success', 'درخواست مشاوره حذف شد.');
+    }
 }

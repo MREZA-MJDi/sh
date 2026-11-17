@@ -18,7 +18,10 @@ class DatabaseSeeder extends Seeder
             && config('demo.seed_academic_content');
 
         if (app()->environment(['local', 'testing']) || $productionDemoSeedEnabled) {
-            $this->call(AcademicPortalContentSeeder::class);
+            $this->call([
+                AcademicPortalContentSeeder::class,
+                DemoWorkflowContentSeeder::class,
+            ]);
         }
     }
 }

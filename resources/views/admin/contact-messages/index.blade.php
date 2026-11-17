@@ -50,6 +50,10 @@
               </select>
               <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">ثبت</button>
             </form>
+            <form method="POST" action="{{ route('admin.contact-messages.destroy', $message) }}" onsubmit="return confirm('این پیام تماس حذف شود؟')">
+              @csrf @method('DELETE')
+              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">حذف</button>
+            </form>
           </td>
         </tr>
       @empty

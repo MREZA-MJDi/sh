@@ -43,4 +43,13 @@ final class ContactMessageController extends Controller
 
         return back()->with('success', 'وضعیت پیام تماس به‌روزرسانی شد.');
     }
+    public function destroy(Request $request, ContactMessage $message): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('admin'), 403);
+
+        $message->delete();
+
+        return back()->with('success', 'پیام تماس حذف شد.');
+    }
+
 }

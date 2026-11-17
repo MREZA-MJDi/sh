@@ -97,6 +97,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
     Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');
+    Route::delete('/contact-messages/{message}', [ContactMessageController::class, 'destroy'])->middleware('permission:messages.view.all')->name('contact-messages.destroy');
 
     Route::get('/seo', [SeoDashboardController::class, 'index'])->middleware('permission:seo.manage')->name('seo.index');
     Route::patch('/seo/settings', [SeoDashboardController::class, 'updateSettings'])->middleware('permission:seo.manage')->name('seo.settings.update');
@@ -181,6 +182,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/exams', [ExamController::class, 'index'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.index');
     Route::post('/exams', [ExamController::class, 'store'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.store');
     Route::patch('/exams/{exam}', [ExamController::class, 'update'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.update');
+    Route::delete('/exams/{exam}', [ExamController::class, 'destroy'])->middleware('permission:exams.manage')->name('exams.destroy');
     Route::get('/exams/{exam}/results', [ExamController::class, 'results'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.results');
     Route::middleware('permission:exams.manage,exams.manage.assigned')->group(function (): void {
         Route::get('/exams/{exam}/questions', [ExamQuestionController::class, 'index'])->name('exams.questions');
@@ -199,10 +201,12 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/consultations', [ConsultationController::class, 'index'])->middleware('permission:consultations.manage')->name('consultations.index');
     Route::patch('/consultations/{consultation}', [ConsultationController::class, 'update'])->middleware('permission:consultations.manage')->name('consultations.update');
+    Route::delete('/consultations/{consultation}', [ConsultationController::class, 'destroy'])->middleware('permission:consultations.manage')->name('consultations.destroy');
 
     Route::get('/messages', [MessageController::class, 'index'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.index');
     Route::post('/messages/{message}/reply', [MessageController::class, 'reply'])->middleware('permission:messages.reply')->name('messages.reply');
     Route::patch('/messages/{message}/read', [MessageController::class, 'markRead'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.read');
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->middleware('permission:messages.view.all')->name('messages.destroy');
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('permission:announcements.manage,announcements.view')->name('announcements.index');
     Route::post('/announcements', [AnnouncementController::class, 'store'])->middleware('permission:announcements.manage')->name('announcements.store');
