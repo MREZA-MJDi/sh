@@ -6,6 +6,10 @@ use App\Models\ClassSession;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\Homework;
+use App\Models\CourseEnrollment;
+use App\Services\GuardianDashboardService;
+use App\Services\StudentDashboardService;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -82,6 +86,54 @@ final class RoleDashboardDataBindingTest extends TestCase
             ->assertSee('جلسه آنلاین قابل نمایش')
             ->assertSee('اتصال Skyroom در انتظار فعال‌سازی است')
             ->assertDontSee('جلسه حضوری نباید در صفحه آنلاین باشد');
+    }
+
+    public function test_student_and_parent_dashboards_hide_homework_when_course_feature_is_disabled(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $parent = $this->userWithRole('parent');
+        $parent->children()->attach($student);
+
+        $course = Course::create([
+            'title' => 'دوره بدون تکلیف',
+            'slug' => 'course-without-assignments',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'learning_features' => ['assignments' => false],
+            'status' => 'published',
+        ]);
+        $classroom = Classroom::create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس بدون تکلیف',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        CourseEnrollment::create([
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'source' => 'manual',
+            'status' => 'active',
+            'granted_by' => $admin->id,
+            'granted_at' => now(),
+        ]);
+        Homework::create([
+            'classroom_id' => $classroom->id,
+            'title' => 'تکلیف نباید نمایش داده شود',
+            'instructions' => 'این قابلیت برای دوره خاموش است.',
+            'due_at' => now()->addDays(2),
+            'status' => 'published',
+            'created_by' => $teacher->id,
+        ]);
+
+        $studentData = app(StudentDashboardService::class)->build($student);
+        $guardianData = app(GuardianDashboardService::class)->build($parent, $student->id);
+
+        $this->assertTrue($studentData['homeworks']->isEmpty());
+        $this->assertTrue($guardianData['homeworks']->isEmpty());
     }
 
     private function userWithRole(string $role): User
