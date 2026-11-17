@@ -29,7 +29,7 @@ final class DashboardService
         $canSeeStudents = $user->hasAnyPermission(['users.manage', 'students.view.assigned']);
         $canSeeClasses = $user->hasAnyPermission(['classes.manage', 'classes.view.assigned', 'classes.manage.assigned']);
         $canSeeCourses = $user->hasAnyPermission(['courses.manage', 'courses.view.assigned']);
-        $canSeeAttendance = $user->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned']);
+        $canSeeAttendance = $user->hasAnyPermission(['attendance.view.all', 'attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned']);
         $canSeeHomework = $user->hasAnyPermission(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned', 'homework.grade']);
         $canSeeMessages = $user->hasAnyPermission(['messages.view.all', 'messages.view.assigned']);
         $canSeeAnnouncements = $user->hasAnyPermission(['announcements.manage', 'announcements.view']);
