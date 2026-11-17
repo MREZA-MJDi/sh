@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Services\Integrations\IntegrationException;
 use App\Services\SpotPlayer\SpotPlayerService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 
 final class SpotPlayerLicenseController extends Controller
@@ -18,7 +19,7 @@ final class SpotPlayerLicenseController extends Controller
         try {
             $license = $spotPlayer->requestLicense($request->user(), $course, $request->user());
         } catch (IntegrationException $exception) {
-            return back()->with('status', $exception->getMessage());
+            throw ValidationException::withMessages(['spotplayer' => $exception->getMessage()]);
         }
 
         if ($license->status === 'waiting_contract') {

@@ -62,7 +62,7 @@ final class VideoController extends Controller
                         })->orWhere('learning_features->recorded_video', true);
                 })
                 ->whereIn('courses.id', clone $activeCourseIds))
-            ->where(function (Builder $scope) use ($student): void {
+            ->where(function (Builder $scope) use ($student, $activeClassroomIds): void {
                 $scope->whereNull('classroom_id')
                     ->orWhereIn('classroom_id', clone $activeClassroomIds);
             });
