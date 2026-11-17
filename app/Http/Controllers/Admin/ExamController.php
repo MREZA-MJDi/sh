@@ -69,4 +69,21 @@ class ExamController extends Controller
 
         return back()->with('success', 'آزمون ثبت شد؛ در صورت استفاده از Quiz24، درخواست اتصال در کارتابل قرار گرفت.');
     }
+    public function destroy(
+        \Illuminate\Http\Request $request,
+        Exam $exam,
+        ExamWorkspaceService $workspace
+    ): RedirectResponse {
+        abort_unless($request->user()->hasRole('admin'), 403);
+        abort_unless($workspace->owns($request->user(), $exam), 404);
+
+        if ($exam->attempts()->exists() || $exam->results()->exists()) {
+            return back()->withErrors(['exam' => 'این آزمون سابقه شرکت یا نتیجه دارد؛ برای حفظ سوابق امکان حذف آن وجود ندارد.']);
+        }
+
+        $exam->delete();
+
+        return back()->with('success', 'آزمون حذف شد.');
+    }
+
 }
