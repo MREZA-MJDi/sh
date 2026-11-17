@@ -24,9 +24,22 @@ final class LearningAccessService
             ->whereHas('course', function (Builder $course) use ($feature): void {
                 $course->where('status', 'published');
                 if ($feature !== null) {
-                    $course->where(fn (Builder $features) => $features
-                        ->whereNull('learning_features')
-                        ->orWhere('learning_features->'.$feature, true));
+                    $course->where(function (Builder $featureScope) use ($feature): void {
+                        $featureScope->where('learning_features->'.$feature, true)
+                            ->orWhere(function (Builder $legacy) use ($feature): void {
+                                $legacy->where(fn (Builder $missing) => $missing
+                                    ->whereNull('learning_features')
+                                    ->orWhereNull('learning_features->'.$feature));
+
+                                if ($feature === 'recorded_video') {
+                                    $legacy->where('delivery_type', 'spotplayer');
+                                } elseif ($feature === 'live_class') {
+                                    $legacy->where('delivery_type', 'skyroom');
+                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                                    $legacy->whereRaw('1 = 0');
+                                }
+                            });
+                    });
                 }
             })
             ->select('course_id');
@@ -46,9 +59,22 @@ final class LearningAccessService
                     ->orWhereHas('course', function (Builder $course) use ($student, $feature): void {
                         $course->where('status', 'published');
                         if ($feature !== null) {
-                            $course->where(fn (Builder $features) => $features
-                                ->whereNull('learning_features')
-                                ->orWhere('learning_features->'.$feature, true));
+                            $course->where(function (Builder $featureScope) use ($feature): void {
+                        $featureScope->where('learning_features->'.$feature, true)
+                            ->orWhere(function (Builder $legacy) use ($feature): void {
+                                $legacy->where(fn (Builder $missing) => $missing
+                                    ->whereNull('learning_features')
+                                    ->orWhereNull('learning_features->'.$feature));
+
+                                if ($feature === 'recorded_video') {
+                                    $legacy->where('delivery_type', 'spotplayer');
+                                } elseif ($feature === 'live_class') {
+                                    $legacy->where('delivery_type', 'skyroom');
+                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                                    $legacy->whereRaw('1 = 0');
+                                }
+                            });
+                    });
                         }
                         $course->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
                             ->where('student_id', $student->id)

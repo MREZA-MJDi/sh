@@ -64,7 +64,11 @@ final class VideoController extends Controller
                 ->whereIn('courses.id', clone $activeCourseIds))
             ->where(function (Builder $scope) use ($student, $activeClassroomIds): void {
                 $scope->whereNull('classroom_id')
-                    ->orWhereIn('classroom_id', clone $activeClassroomIds);
+                    ->orWhere(function (Builder $classScope) use ($activeClassroomIds): void {
+                        $classScope->whereIn('classroom_id', clone $activeClassroomIds)
+                            ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                ->whereColumn('classrooms.course_id', 'spot_player_videos.course_id'));
+                    });
             });
     }
 }

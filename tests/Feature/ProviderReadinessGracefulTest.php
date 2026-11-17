@@ -70,8 +70,9 @@ final class ProviderReadinessGracefulTest extends TestCase
         $student = $this->userWithRole('student');
         $examCourse = $this->course('exam-feature-enabled', ['exams' => true]);
         $noExamCourse = $this->course('exam-feature-disabled', ['exams' => false]);
+        $defaultExamCourse = $this->course('exam-feature-default', ['recorded_video' => true]);
 
-        foreach ([$examCourse, $noExamCourse] as $course) {
+        foreach ([$examCourse, $noExamCourse, $defaultExamCourse] as $course) {
             CourseEnrollment::create([
                 'course_id' => $course->id,
                 'student_id' => $student->id,
@@ -89,6 +90,7 @@ final class ProviderReadinessGracefulTest extends TestCase
             ->all();
 
         $this->assertContains($examCourse->id, $courseIds);
+        $this->assertContains($defaultExamCourse->id, $courseIds);
         $this->assertNotContains($noExamCourse->id, $courseIds);
 
         $exam = Exam::create([
