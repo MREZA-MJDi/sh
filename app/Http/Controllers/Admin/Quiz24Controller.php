@@ -11,6 +11,7 @@ use App\Models\Quiz24Setting;
 use App\Models\Quiz24UnmatchedParticipant;
 use App\Models\User;
 use App\Services\Quiz24\Quiz24Service;
+use App\Services\Integrations\IntegrationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -64,9 +65,13 @@ class Quiz24Controller extends Controller
 
     public function requestResultsSync(Exam $exam, Quiz24Service $quiz24): RedirectResponse
     {
-        $operation = $quiz24->requestResultsSync($exam, auth()->user());
+        try {
+            $operation = $quiz24->requestResultsSync($exam, auth()->user());
+        } catch (IntegrationException $exception) {
+            return back()->with('warning', $exception->getMessage());
+        }
 
-        return back()->with('success', 'درخواست همگام‌سازی نتایج ثبت شد؛ وضعیت '.$operation->status.' است.');
+        return back()->with('success', 'درخواست همگام‌سازی نتایج ثبت شد؛ وضعیت '.$operation->status.' است و تا دریافت قرارداد خارجی در انتظار می‌ماند.');
     }
 
     public function resolveParticipant(
