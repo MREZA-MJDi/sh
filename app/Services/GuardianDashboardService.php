@@ -109,7 +109,7 @@ final class GuardianDashboardService
             ->whereNotNull('reviewed_at')
             ->whereHas('homework', fn (Builder $homework) => $homework
                 ->where('status', 'published')
-                ->whereIn('classroom_id', clone $classroomIds))
+                ->whereIn('classroom_id', clone $assignmentClassroomIds))
             ->with([
                 'homework:id,title,classroom_id',
                 'homework.classroom:id,name',

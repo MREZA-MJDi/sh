@@ -36,6 +36,7 @@ final class StudentDashboardService
 
         $upcomingSessions = ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
+            ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->whereNotNull('ends_at')
             ->where('ends_at', '>=', now())
