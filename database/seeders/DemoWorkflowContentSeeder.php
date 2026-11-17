@@ -1,25 +1,25 @@
 <?php
 
-namespace Database\\Seeders;
+namespace Database\Seeders;
 
-use App\\Models\\ClassSession;
-use App\\Models\\ContactMessage;
-use App\\Models\\Consultation;
-use App\\Models\\ConsultationReply;
-use App\\Models\\Course;
-use App\\Models\\Exam;
-use App\\Models\\ExamAnswer;
-use App\\Models\\ExamAttempt;
-use App\\Models\\Homework;
-use App\\Models\\HomeworkSubmission;
-use App\\Models\\Message;
-use App\\Models\\MessageReply;
-use App\\Models\\Question;
-use App\\Models\\SeoArticle;
-use App\\Models\\User;
-use Illuminate\\Database\\Seeder;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\ClassSession;
+use App\Models\ContactMessage;
+use App\Models\Consultation;
+use App\Models\ConsultationReply;
+use App\Models\Course;
+use App\Models\Exam;
+use App\Models\ExamAnswer;
+use App\Models\ExamAttempt;
+use App\Models\Homework;
+use App\Models\HomeworkSubmission;
+use App\Models\Message;
+use App\Models\MessageReply;
+use App\Models\Question;
+use App\Models\SeoArticle;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Stable, editable demo fixtures for the complete academy workflow.
