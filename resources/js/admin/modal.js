@@ -7,6 +7,36 @@ import { syncReveal } from './reveal.js';
 
 function fill(form, data) {
   Object.entries(data).forEach(([key, value]) => {
+    const arrayTarget = form.querySelector('[data-array-field="' + key + '"]');
+    if (Array.isArray(value) && arrayTarget) {
+      arrayTarget.querySelectorAll('[data-generated-selection]').forEach((node) => node.remove());
+      const labels = Array.isArray(data[key + '_labels']) ? data[key + '_labels'] : [];
+      value.forEach((item, index) => {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = key + '[]';
+        hidden.value = item;
+        hidden.dataset.generatedSelection = 'true';
+
+        const chip = document.createElement('span');
+        chip.className = 'adm-chip';
+        chip.textContent = labels[index] || ('#' + item);
+        chip.dataset.generatedSelection = 'true';
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'adm-btn adm-btn-line adm-btn-sm';
+        remove.textContent = 'حذف';
+        remove.dataset.generatedSelection = 'true';
+        remove.addEventListener('click', () => {
+          hidden.remove();
+          chip.remove();
+          remove.remove();
+        });
+
+        arrayTarget.append(hidden, chip, remove);
+      });
+    }
     form.querySelectorAll(`[name="${key}"],[name="${key}[]"]`).forEach((el) => {
       if (el.type === 'file') return;
       if (el.type === 'hidden' && Array.from(form.querySelectorAll('input[type="checkbox"]')).some((checkbox) => checkbox.name === key)) {
@@ -28,6 +58,10 @@ function open(trigger) {
   const heading = dialog.querySelector('[data-modal-title]');
 
   form.reset();
+  form.querySelectorAll('[data-array-field] [data-generated-selection]').forEach((node) => node.remove());
+  form.querySelectorAll('[name="password"],[name="password_confirmation"]').forEach((field) => {
+    field.required = !Boolean(trigger.dataset.fill);
+  });
   form.dataset.createAction ??= form.getAttribute('action') || '';
   form.setAttribute('action', trigger.dataset.action || form.dataset.createAction);
 

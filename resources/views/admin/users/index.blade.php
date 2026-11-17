@@ -59,6 +59,7 @@
             'course_ids' => $role === 'teacher' ? $user->assignedCourses->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
             'teacher_access' => $role === 'teacher' ? collect($teacherSelectedGroups[$user->id] ?? [])->filter()->keys()->values()->all() : [],
             'child_ids' => $role === 'parent' ? $user->children->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
+            'child_ids_labels' => $role === 'parent' ? $user->children->pluck('name')->values()->all() : [],
           ];
           $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
         @endphp
@@ -115,7 +116,7 @@
         <button type="button" class="adm-btn adm-btn-line" data-student-lookup-search>جستجو</button>
       </div>
       <div data-student-lookup-results aria-live="polite"></div>
-      <div data-student-lookup-selected class="adm-actions"></div>
+      <div data-student-lookup-selected data-array-field="child_ids" class="adm-actions"></div>
       @foreach($selectedChildren as $child)
         <input type="hidden" name="child_ids[]" value="{{ $child->id }}">
         <span class="adm-chip">{{ $child->name }}</span>
@@ -139,7 +140,11 @@
   const results = root.querySelector('[data-student-lookup-results]');
   const selected = root.querySelector('[data-student-lookup-selected]');
   const endpoint = root.dataset.endpoint;
-  const chosen = new Set(Array.from(root.querySelectorAll('input[name="child_ids[]"]')).map((el) => el.value));
+  const chosen = new Set();
+  const syncChosen = () => {
+    chosen.clear();
+    root.querySelectorAll('input[name="child_ids[]"]').forEach((el) => chosen.add(String(el.value)));
+  };
 
   const addStudent = (student) => {
     if (chosen.has(String(student.id))) return;
@@ -165,6 +170,7 @@
   };
 
   search?.addEventListener('click', async () => {
+    syncChosen();
     const query = input?.value?.trim() || '';
     if (query.length < 2) {
       results.textContent = 'برای جستجو حداقل دو حرف وارد کنید.';
