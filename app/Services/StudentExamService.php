@@ -20,39 +20,6 @@ final class StudentExamService
     public function query(User $student): Builder
     {
         return $this->accessibleQuery($student, ['published'])
-            ->where(function (Builder $provider): void {
-                $provider->where('provider', 'internal')
-                    ->orWhere(function (Builder $fallback): void {
-                        $fallback->where('provider', 'quiz24')
-                            ->whereIn('integration_status', [
-                                'waiting_external_mapping',
-                                'awaiting_api_verification',
-                                'waiting_contract',
-                                'failed',
-                            ])
-                            ->whereHas('questions');
-                    });
-            })
-            ->where('status', 'published')
-            ->where(function (Builder $access) use ($student, $courseIds): void {
-                $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
-                    $courseScope->whereNotNull('course_id')
-                        ->whereIn('course_id', clone $courseIds)
-                        ->where(function (Builder $classScope) use ($student): void {
-                            $classScope->whereNull('classroom_id')
-                                ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
-                                    ->whereColumn('classrooms.course_id', 'exams.course_id')
-                                    ->where('status', 'active')
-                                    ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
-                        });
-                })->orWhere(function (Builder $classOnly) use ($student): void {
-                    $classOnly->whereNotNull('classroom_id')
-                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
-                            ->whereNull('course_id')
-                            ->where('status', 'active')
-                            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
-                });
-            })
             ->with(['course:id,title', 'classroom:id,name'])
             ->withCount('questions')
             ->with(['attempts' => fn ($attempts) => $attempts
