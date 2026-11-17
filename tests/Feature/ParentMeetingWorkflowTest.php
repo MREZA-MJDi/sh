@@ -67,8 +67,13 @@ final class ParentMeetingWorkflowTest extends TestCase
             'student_id' => $student->id,
             'guardian_id' => $guardian->id,
             'title' => 'گفت‌وگو درباره پیشرفت',
-            'starts_at' => now()->addDays(2)->format('Y-m-d\TH:i'),
+            'starts_at' => now()->addDays(2)->format('Y-m-d\\TH:i'),
         ])->assertRedirect();
+
+        $this->actingAs($teacher)
+            ->get(route('admin.parent-meetings.index'))
+            ->assertOk()
+            ->assertSee('گفت‌وگو درباره پیشرفت');
 
         $this->assertDatabaseHas('parent_meetings', [
             'classroom_id' => $classroom->id,

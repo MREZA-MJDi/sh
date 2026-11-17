@@ -4,6 +4,7 @@ namespace App\Services\Learning;
 
 use App\Models\Classroom;
 use App\Models\User;
+use App\Services\Integrations\Contracts\IntegrationHealth;
 use App\Services\Skyroom\SkyroomService;
 
 /**
@@ -15,6 +16,11 @@ use App\Services\Skyroom\SkyroomService;
 final class LiveClassService
 {
     public function __construct(private readonly SkyroomService $skyroom) {}
+
+    public function health(): IntegrationHealth
+    {
+        return $this->skyroom->health();
+    }
 
     public function ensureRoom(Classroom $classroom): ?string
     {
