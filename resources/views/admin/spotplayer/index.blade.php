@@ -73,7 +73,7 @@
 </x-admin.panel>
 
 @if(!$teacherView)
-  <x-admin.panel title="درخواست لایسنس دانش‌آموز" desc="فقط دانش‌آموز دارای ثبت‌نام معتبر و دوره دارای شناسه SpotPlayer قابل درخواست است." data-tone="edu">
+  <x-admin.panel title="درخواست لایسنس دانش‌آموز" desc="برای دانش‌آموز دارای ثبت‌نام معتبر درخواست محلی ثبت می‌شود؛ اگر شناسه خارجی یا API هنوز آماده نباشد، وضعیت در انتظار می‌ماند." data-tone="edu">
     @if(count($licenseCourseOptions) && count($studentOptions))
       <form method="POST" action="{{ route('admin.spotplayer.licenses.store') }}" class="adm-form">
         @csrf
@@ -82,7 +82,7 @@
         <div class="wide"><button type="submit" class="adm-btn adm-btn-primary">ثبت درخواست لایسنس</button></div>
       </form>
     @else
-      <p class="adm-muted">برای صدور درخواست، ابتدا برای دوره قابلیت ویدیویی را فعال و شناسه خارجی SpotPlayer را ثبت کنید؛ سپس دانش‌آموز باید ثبت‌نام معتبر داشته باشد.</p>
+      <p class="adm-muted">برای صدور درخواست، ابتدا قابلیت ویدیویی دوره را فعال کنید؛ شناسه خارجی و وب‌سرویس می‌توانند بعداً تکمیل شوند. دانش‌آموز باید ثبت‌نام معتبر داشته باشد.</p>
     @endif
   </x-admin.panel>
 
