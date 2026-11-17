@@ -33,7 +33,7 @@ final class JoinClassSessionController extends Controller
         }
 
         $url = $classSession->meeting_url;
-        if (blank($url) && $classSession->meeting_provider === 'skyroom') {
+        if (blank($url) && in_array($classSession->meeting_provider, ['skyroom', null, ''], true)) {
             $url = $classroom->meeting_url;
             $health = $liveClasses->health();
 
