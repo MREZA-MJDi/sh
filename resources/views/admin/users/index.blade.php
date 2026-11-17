@@ -118,8 +118,8 @@
       <div data-student-lookup-results aria-live="polite"></div>
       <div data-student-lookup-selected data-array-field="child_ids" class="adm-actions"></div>
       @foreach($selectedChildren as $child)
-        <input type="hidden" name="child_ids[]" value="{{ $child->id }}">
-        <span class="adm-chip">{{ $child->name }}</span>
+        <input type="hidden" name="child_ids[]" value="{{ $child->id }}" data-generated-selection="true">
+        <span class="adm-chip" data-generated-selection="true">{{ $child->name }}</span>
       @endforeach
       <p class="adm-muted">حداقل دو حرف وارد کنید. فهرست کامل دانش‌آموزان بارگذاری نمی‌شود؛ فقط نتیجه جستجوی شما و حداکثر ۲۰ مورد نمایش داده می‌شود.</p>
     </div>
