@@ -11,6 +11,7 @@
 @endphp
 
 <x-admin.page-head tone="edu" icon="cls" title="کلاس‌ها" desc="هر کلاس یک گروه آموزشی از یک دوره است؛ مدرس، اعضا و جلسات خودش را دارد">
+  <x-admin.btn variant="line" icon="calendar" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
   @if($canManage)
     <x-admin.btn icon="plus" data-modal-open="class-modal">کلاس جدید</x-admin.btn>
   @endif

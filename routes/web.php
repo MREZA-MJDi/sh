@@ -7,6 +7,9 @@ use App\Http\Controllers\Admin\ClassSessionController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\EnrollmentAdminController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\OnlineClassController;
 use App\Http\Controllers\Admin\ChunkUploadController;
 use App\Http\Controllers\Admin\LearningAdminController;
 use App\Http\Controllers\Admin\CourseContentController;
@@ -122,6 +125,13 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/parents/{parent}', [UserController::class, 'updateParent'])->middleware('permission:users.manage')->name('parents.update');
     Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->middleware('permission:users.manage')->name('users.status');
 
+    Route::get('/enrollments', [EnrollmentAdminController::class, 'index'])->middleware('permission:users.manage')->name('enrollments.index');
+    Route::post('/enrollments', [EnrollmentAdminController::class, 'store'])->middleware('permission:users.manage')->name('enrollments.store');
+    Route::patch('/enrollments/{enrollment}/revoke', [EnrollmentAdminController::class, 'revoke'])->middleware('permission:users.manage')->name('enrollments.revoke');
+    Route::get('/payments', [PaymentController::class, 'index'])->middleware('permission:users.manage')->name('payments.index');
+    Route::post('/payments', [PaymentController::class, 'storeManual'])->middleware('permission:users.manage')->name('payments.store');
+    Route::patch('/payments/{payment}/verify', [PaymentController::class, 'verifyManual'])->middleware('permission:users.manage')->name('payments.verify');
+
     Route::get('/courses', [CourseController::class, 'index'])->middleware('permission:courses.manage,courses.view.assigned')->name('courses.index');
     Route::post('/courses', [CourseController::class, 'store'])->middleware('permission:courses.manage')->name('courses.store');
     Route::get('/courses/{course}/teaser', [LearningAdminController::class, 'teaser'])->middleware('permission:courses.manage')->name('courses.teaser');
@@ -144,6 +154,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     });
 
     Route::get('/classes', [ClassroomController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('classes.index');
+    Route::get('/online-classes', [OnlineClassController::class, 'index'])->middleware('permission:classes.manage,classes.view.assigned,classes.manage.assigned')->name('online-classes.index');
     Route::post('/classes', [ClassroomController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.store');
     Route::post('/classes/{classroom}/skyroom-room', [ClassroomController::class, 'ensureSkyroomRoom'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.skyroom-room');
     Route::patch('/classes/{classroom}', [ClassroomController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.update');
