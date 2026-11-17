@@ -31,7 +31,7 @@ final class ParentMeetingController extends Controller
         $students = User::query()
             ->whereIn('id', $studentIds)
             ->where('is_active', true)
-            ->with(['guardians' => fn (Builder $guardians) => $guardians
+            ->with(['guardians' => fn ($guardians) => $guardians
                 ->where('is_active', true)
                 ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'parent'))
                 ->orderBy('name')])
