@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Announcement;
+use App\Models\Attendance;
+use App\Models\Classroom;
 use App\Models\Consultation;
 use App\Models\Message;
 use App\Models\Role;
