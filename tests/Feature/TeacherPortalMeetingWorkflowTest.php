@@ -65,7 +65,9 @@ final class TeacherPortalMeetingWorkflowTest extends TestCase
             ->get(route('teacher.meetings'))
             ->assertOk()
             ->assertSee('پیگیری وضعیت آموزشی')
-            ->assertSee(route('teacher.meetings.update', $meeting), false);
+            ->assertSee(route('teacher.meetings.update', $meeting), false)
+            ->assertSee(route('logout'), false)
+            ->assertSee('خروج');
 
         $this->actingAs($teacher)
             ->patch(route('teacher.meetings.update', $meeting), [
