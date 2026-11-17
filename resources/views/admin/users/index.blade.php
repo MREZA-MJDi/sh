@@ -68,7 +68,7 @@
           <td>{{ \Illuminate\Support\Str::limit($associations ?: 'بدون تخصیص', 90) }}</td>
           <td><x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
           <td><div class="adm-actions">
-            @if($canManage && $role !== 'parent')
+            @if($canManage)
               <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="user-modal" data-title="ویرایش کاربر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="$updateAction" data-method="PATCH">ویرایش</x-admin.btn>
             @endif
             @if($canManage)

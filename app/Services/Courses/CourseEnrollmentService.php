@@ -202,6 +202,42 @@ class CourseEnrollmentService
         }, 3);
     }
 
+    /** Grant an administrative enrollment without fabricating a payment. */
+    public function grantManually(User $student, Course $course, User $actor, ?string $expiresAt = null): CourseEnrollment
+    {
+        if (! $student->is_active || ! $student->hasRole('student')) {
+            throw ValidationException::withMessages(['student_id' => 'فقط دانش‌آموز فعال می‌تواند ثبت‌نام شود.']);
+        }
+
+        if ($course->status !== 'published') {
+            throw ValidationException::withMessages(['course_id' => 'ثبت‌نام دستی فقط برای دوره منتشرشده انجام می‌شود.']);
+        }
+
+        return DB::transaction(function () use ($student, $course, $actor, $expiresAt): CourseEnrollment {
+            $enrollment = CourseEnrollment::query()
+                ->where('course_id', $course->id)
+                ->where('student_id', $student->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($enrollment?->source === 'payment' && in_array($enrollment->status, ['active', 'suspended', 'revoked'], true)) {
+                throw ValidationException::withMessages(['student_id' => 'ثبت‌نام پرداختی موجود است و نباید با ثبت دستی بازنویسی شود.']);
+            }
+
+            $enrollment ??= new CourseEnrollment(['course_id' => $course->id, 'student_id' => $student->id]);
+            $enrollment->fill([
+                'source' => 'manual',
+                'status' => 'active',
+                'granted_by' => $actor->id,
+                'source_reference' => 'manual:'.$actor->id,
+                'granted_at' => now(),
+                'expires_at' => $expiresAt,
+            ])->save();
+
+            return $enrollment->refresh();
+        }, 3);
+    }
+
     public function hasActiveAccess(User $student, Course $course): bool
     {
         return $this->learningAccess->hasCourseAccess($student, $course);
