@@ -52,10 +52,6 @@ class SpotPlayerService
             throw new IntegrationException('دوره باید منتشرشده و قابلیت آموزش ویدیویی فعال داشته باشد.');
         }
 
-        if (blank($course->spotplayer_course_id)) {
-            throw new IntegrationException('ابتدا شناسه دوره متناظر در پنل SpotPlayer را ثبت کنید.');
-        }
-
         if (! $this->enrollments->hasActiveAccess($student, $course)) {
             throw new IntegrationException('دانش‌آموز برای این دوره دسترسی فعال ندارد؛ ابتدا ثبت‌نام یا پرداخت را نهایی کنید.');
         }
@@ -73,7 +69,7 @@ class SpotPlayerService
                 ->lockForUpdate()
                 ->first();
 
-            if ($license && in_array($license->status, ['active', 'waiting_contract', 'queued'], true)) {
+            if ($license && in_array($license->status, ['active', 'queued'], true)) {
                 return $license;
             }
 
@@ -92,6 +88,27 @@ class SpotPlayerService
                 'revoked_at' => null,
                 'issued_at' => null,
             ])->save();
+
+            if (blank($course->spotplayer_course_id)) {
+                $license->update([
+                    'status' => 'waiting_contract',
+                    'error_message' => 'درخواست محلی ثبت شد؛ شناسه دوره در SpotPlayer پس از دریافت اطلاعات اتصال تکمیل می‌شود.',
+                ]);
+
+                return $license->refresh();
+            }
+
+            $pendingOperation = IntegrationRun::query()
+                ->where('provider', 'spotplayer')
+                ->where('action', 'issue_license')
+                ->where('entity_type', $license->getMorphClass())
+                ->where('entity_id', $license->id)
+                ->whereIn('status', ['waiting_contract', 'queued', 'pending', 'processing'])
+                ->exists();
+
+            if ($pendingOperation) {
+                return $license->refresh();
+            }
 
             $this->operations->waitForContract(
                 provider: 'spotplayer',
