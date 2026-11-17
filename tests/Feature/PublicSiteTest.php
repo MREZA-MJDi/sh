@@ -496,7 +496,8 @@ class PublicSiteTest extends TestCase
             ->assertSee('پیش‌نمایش مدیر')
             ->assertSee('دوره پیش‌نمایش مدیر')
             ->assertSee('noindex,nofollow')
-            ->assertSee('متن معرفی دوره برای پیش‌نمایش');
+            ->assertSee('متن معرفی دوره برای پیش‌نمایش')
+            ->assertSee('متن واقعی درس برای نمایش در صفحه عمومی');
 
         auth()->logout();
 
