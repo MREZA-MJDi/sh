@@ -104,7 +104,7 @@
           </div>
           <div class="adm-actions">
             @if($canManage)
-              <x-admin.btn size="sm" variant="soft" icon="eye" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش</x-admin.btn>
+              <x-admin.btn size="sm" variant="soft" icon="book" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش</x-admin.btn>
             @endif
             @if($canManageContent)
               <x-admin.btn size="sm" icon="book" :href="url('admin/courses/'.$course->id.'/content')">محتوا</x-admin.btn>
