@@ -87,7 +87,7 @@ final class StudentDashboardService
         $results = ExamResult::query()
             ->where('student_id', $student->id)
             ->whereHas('exam', function (Builder $exam) use ($examClassroomIds, $examCourseIds): void {
-                $exam->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
+                $exam->where(function (Builder $scope) use ($examClassroomIds, $examCourseIds): void {
                     $scope->whereIn('exams.classroom_id', clone $examClassroomIds)
                         ->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
                             $courseLevel

@@ -23,7 +23,14 @@ final class DashboardController extends Controller
         $data = $dashboard->build($user);
         $classroomIds = $workspace->queryFor($user)->where('status', 'active')->select('classrooms.id');
 
-        $todayClasses = ClassSession::query()
+        $todayClasses = $data['todayClasses']->map(fn ($classroom) => [
+            'title' => $classroom->name,
+            'time' => $classroom->course?->title ?? 'کلاس فعال',
+            'status' => filled($classroom->meeting_url) ? 'link' : 'scheduled',
+            'url' => $classroom->meeting_url,
+        ]);
+
+        $todaySessions = ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
             ->whereDate('starts_at', today())
             ->where('status', 'scheduled')
@@ -67,7 +74,7 @@ final class DashboardController extends Controller
         $data['teacher'] = $user;
         $data['stats'] = [
             'classes_today' => $todayClasses->count(),
-            'classes_today_note' => 'جلسات برنامه‌ریزی‌شده امروز',
+            'classes_today_note' => 'کلاس‌های تحت مدیریت شما',
             'homework_review' => (int) $data['stats']['pending_homework'],
             'homework_review_note' => 'ارسال در انتظار بررسی',
             'absent_today' => Attendance::query()
@@ -80,6 +87,7 @@ final class DashboardController extends Controller
             'new_messages_note' => 'پیام‌های باز',
         ];
         $data['todayClasses'] = $todayClasses;
+        $data['todaySessions'] = $todaySessions;
         $data['weekAttendance'] = $weekAttendance;
         $data['pendingHomework'] = $pending;
         $data['newMessages'] = $newMessages;
