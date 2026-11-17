@@ -466,4 +466,43 @@ class PublicSiteTest extends TestCase
             ->assertSee('دکترای ژنتیک و مدرس دوره‌های زیست.');
     }
 
+
+    public function test_admin_can_preview_an_unpublished_course_using_the_exact_public_course_template(): void
+    {
+        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->firstOrFail());
+
+        $course = Course::query()->create([
+            'title' => 'دوره پیش‌نمایش مدیر',
+            'slug' => 'admin-course-preview',
+            'description' => "متن معرفی دوره برای پیش‌نمایش\\nخط دوم توضیحات",
+            'type' => 'paid',
+            'price' => 450000,
+            'delivery_type' => 'spotplayer',
+            'status' => 'draft',
+        ]);
+        $section = $course->sections()->create(['title' => 'فصل اول', 'status' => 'published']);
+        $section->lessons()->create([
+            'title' => 'درس دارای توضیحات',
+            'body' => 'متن واقعی درس برای نمایش در صفحه عمومی',
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]))
+            ->assertOk()
+            ->assertViewIs('public.courses.show')
+            ->assertSee('پیش‌نمایش مدیر')
+            ->assertSee('دوره پیش‌نمایش مدیر')
+            ->assertSee('noindex,nofollow')
+            ->assertSee('متن معرفی دوره برای پیش‌نمایش');
+
+        auth()->logout();
+
+        $this->get(route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]))
+            ->assertNotFound();
+    }
+
+
 }
