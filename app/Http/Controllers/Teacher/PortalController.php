@@ -230,7 +230,7 @@ final class PortalController extends Controller
     public function updateLiveSession(Request $request, int $session, ClassroomWorkspaceService $workspace): RedirectResponse
     {
         $data = $request->validate([
-            'meeting_provider' => ['required', 'in:skyroom,bbb,link'],
+            'meeting_provider' => ['required', 'in:skyroom,jitsi,bbb,link'],
             'meeting_url' => ['nullable', 'url', 'max:2048'],
         ]);
 
