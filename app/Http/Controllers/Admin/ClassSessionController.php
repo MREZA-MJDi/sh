@@ -44,7 +44,7 @@ class ClassSessionController extends Controller
             ...$data,
             // اگر لینک جلسه خالی بود، لینک اسکای‌روم خود کلاس استفاده می‌شود.
             'meeting_url' => $meetingUrl,
-            'meeting_provider' => $data['session_type'] === 'online' ? 'skyroom' : null,
+            'meeting_provider' => $data['session_type'] === 'online' ? ($data['meeting_provider'] ?? 'skyroom') : null,
             'classroom_id' => $classroom->id,
             'created_by' => $request->user()->id,
         ]);
