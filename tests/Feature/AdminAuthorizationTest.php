@@ -103,7 +103,7 @@ class AdminAuthorizationTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee(route('admin.payments.index'), false);
+            ->assertSee('پرداخت‌ها</span>', false);
 
         $teacher = User::factory()->create();
         $teacher->roles()->attach(Role::where('name', 'teacher')->value('id'));
@@ -112,7 +112,7 @@ class AdminAuthorizationTest extends TestCase
             ->assertOk()
             ->assertSee(route('admin.online-classes.index'), false)
             ->assertSee(route('admin.exams.index'), false)
-            ->assertDontSee(route('admin.payments.index'), false);
+            ->assertDontSee('پرداخت‌ها</span>', false);
     }
 
     public function test_teacher_is_redirected_to_the_independent_teacher_workspace(): void

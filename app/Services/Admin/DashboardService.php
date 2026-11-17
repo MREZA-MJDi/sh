@@ -57,11 +57,10 @@ final class DashboardService
                 ->groupBy('session_date')->get()->keyBy('attendance_day')
             : collect();
 
-        // Reuse the grouped seven-day result for today's KPI instead of issuing
-        // two additional COUNT queries for the same attendance records.
-        $todayAttendance = $attendanceByDay->get(today()->toDateString());
-        $attendanceTotal = (int) ($todayAttendance->total ?? 0);
-        $attendancePresent = (int) ($todayAttendance->present ?? 0);
+        // The dashboard KPI is a seven-day aggregate; the chart below keeps
+        // the per-day rates from the same grouped query.
+        $attendanceTotal = (int) $attendanceByDay->sum('total');
+        $attendancePresent = (int) $attendanceByDay->sum('present');
 
         $pendingHomework = $canSeeHomework
             ? HomeworkSubmission::query()
