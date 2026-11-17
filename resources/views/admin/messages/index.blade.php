@@ -53,6 +53,12 @@
           <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">علامت‌گذاری به‌عنوان خوانده‌شده</button>
         </form>
       @endif
+      @if(auth()->user()->hasRole('admin'))
+        <form method="POST" action="{{ route('admin.messages.destroy', $selected) }}" onsubmit="return confirm('این گفت‌وگو و پاسخ‌های آن حذف شود؟')">
+          @csrf @method('DELETE')
+          <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">حذف گفت‌وگو</button>
+        </form>
+      @endif
       @can('messages.reply')
         <form method="POST" action="{{ route('admin.messages.reply', $selected) }}" class="adm-stack">
           @csrf
