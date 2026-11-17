@@ -58,7 +58,7 @@
   <x-admin.input label="عنوان داخلی" name="title" required/>
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
   <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp"/>
-  <x-admin.select label="جایگاه نمایش" name="placement" :options="['sitewide' => 'سراسری', 'articles_top' => 'بالای مقاله‌ها', 'articles_inline' => 'بین مقاله‌ها']" required/>
+  <x-admin.select label="جایگاه نمایش" name="placement" :options="['sitewide' => 'سراسری', 'articles_top' => 'بالای مقاله‌ها', 'articles_sidebar' => 'ستون کناری مقاله‌ها']" required/>
   <x-admin.input label="نشانی مقصد" name="target_url" placeholder="/courses یا https://..."/>
   <x-admin.switch label="باز شدن در زبانه جدید" name="open_in_new_tab"/>
   <x-admin.input label="اولویت نمایش" name="sort_order" type="number" min="0"/>

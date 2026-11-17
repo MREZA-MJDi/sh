@@ -72,13 +72,13 @@
         <a href="{{ route('admin.homework.index') }}" data-tone="track"><span class="adm-stat-ico"><x-admin.icon name="file"/></span>پاسخ‌های تکلیف در انتظار بررسی<strong class="adm-num">{{ number_format($stats['pending_homework'] ?? 0) }}</strong></a>
       @endcan
       @can('messages.view.all')
-        <a href="{{ route('admin.messages.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="msg"/></span>گفت‌وگوهای باز<strong class="adm-num">{{ number_format($recentMessages->count()) }}</strong></a>
+        <a href="{{ route('admin.messages.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="msg"/></span>گفت‌وگوهای باز<strong class="adm-num">{{ number_format($openMessageCount ?? 0) }}</strong></a>
       @endcan
       @can('consultations.manage')
-        <a href="{{ route('admin.consultations.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="chat"/></span>درخواست‌های مشاوره جدید<strong class="adm-num">{{ number_format($pendingConsultations->count()) }}</strong></a>
+        <a href="{{ route('admin.consultations.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="chat"/></span>درخواست‌های مشاوره جدید<strong class="adm-num">{{ number_format($pendingConsultationCount ?? 0) }}</strong></a>
       @endcan
       @can('announcements.manage')
-        <a href="{{ route('admin.announcements.index') }}" data-tone="edu"><span class="adm-stat-ico"><x-admin.icon name="bell"/></span>اطلاعیه‌های منتشرشده<strong class="adm-num">{{ number_format($recentAnnouncements->count()) }}</strong></a>
+        <a href="{{ route('admin.announcements.index') }}" data-tone="edu"><span class="adm-stat-ico"><x-admin.icon name="bell"/></span>اطلاعیه‌های منتشرشده<strong class="adm-num">{{ number_format($publishedAnnouncementCount ?? 0) }}</strong></a>
       @endcan
     </div>
   </x-admin.panel>

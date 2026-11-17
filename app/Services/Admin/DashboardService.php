@@ -10,7 +10,6 @@ use App\Models\Course;
 use App\Models\HomeworkSubmission;
 use App\Models\Message;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 
 final class DashboardService
 {
@@ -89,16 +88,28 @@ final class DashboardService
             ? (clone $classroomQuery)->with(['teacher', 'course'])->withCount('students')->latest()->limit(6)->get()
             : collect();
 
-        $recentMessages = $canSeeMessages
-            ? $this->messages->queryFor($user)->with('sender')->where('status', 'open')->latest()->limit(5)->get()
+        $openMessagesQuery = $canSeeMessages
+            ? $this->messages->queryFor($user)->where('status', 'open')
+            : null;
+        $openMessageCount = $openMessagesQuery?->count() ?? 0;
+        $recentMessages = $openMessagesQuery
+            ? (clone $openMessagesQuery)->with('sender')->latest()->limit(5)->get()
             : collect();
 
-        $pendingConsultations = $user->hasPermissionTo('consultations.manage')
-            ? Consultation::with(['requester', 'student'])->where('status', 'pending')->latest()->limit(5)->get()
+        $pendingConsultationsQuery = $user->hasPermissionTo('consultations.manage')
+            ? Consultation::query()->where('status', 'pending')
+            : null;
+        $pendingConsultationCount = $pendingConsultationsQuery?->count() ?? 0;
+        $pendingConsultations = $pendingConsultationsQuery
+            ? (clone $pendingConsultationsQuery)->with(['requester', 'student'])->latest()->limit(5)->get()
             : collect();
 
-        $recentAnnouncements = $canSeeAnnouncements
-            ? Announcement::where('status', 'published')->latest('published_at')->limit(4)->get()
+        $publishedAnnouncementsQuery = $canSeeAnnouncements
+            ? Announcement::query()->where('status', 'published')
+            : null;
+        $publishedAnnouncementCount = $publishedAnnouncementsQuery?->count() ?? 0;
+        $recentAnnouncements = $publishedAnnouncementsQuery
+            ? (clone $publishedAnnouncementsQuery)->latest('published_at')->limit(4)->get()
             : collect();
 
 
@@ -117,7 +128,8 @@ final class DashboardService
 
         return compact(
             'stats', 'todayClasses', 'recentMessages', 'pendingConsultations',
-            'recentAnnouncements', 'weeklyAttendance'
+            'recentAnnouncements', 'weeklyAttendance', 'openMessageCount',
+            'pendingConsultationCount', 'publishedAnnouncementCount'
         );
     }
 }
