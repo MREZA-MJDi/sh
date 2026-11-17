@@ -476,7 +476,7 @@ class PublicSiteTest extends TestCase
         $course = Course::query()->create([
             'title' => 'دوره پیش‌نمایش مدیر',
             'slug' => 'admin-course-preview',
-            'description' => "متن معرفی دوره برای پیش‌نمایش\\nخط دوم توضیحات",
+            'description' => "متن معرفی دوره برای پیش‌نمایش\nخط دوم توضیحات",
             'type' => 'paid',
             'price' => 450000,
             'delivery_type' => 'spotplayer',
