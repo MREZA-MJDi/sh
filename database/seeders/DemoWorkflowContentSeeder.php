@@ -253,6 +253,24 @@ final class DemoWorkflowContentSeeder extends Seeder
                 ]
             );
 
+            Exam::query()->firstOrCreate(
+                ['course_id' => $liveCourse->id, 'title' => 'آزمون پیش‌نویس قابل ویرایش و حذف'],
+                [
+                    'classroom_id' => $classroom->id,
+                    'created_by' => $teacher->id,
+                    'description' => 'نمونه آزمون پیش‌نویس بدون شرکت‌کننده و بدون نتیجه؛ مدیر می‌تواند آن را ویرایش یا حذف کند.',
+                    'provider' => 'internal',
+                    'external_id' => null,
+                    'starts_at' => $now->copy()->addDays(7),
+                    'duration_minutes' => 20,
+                    'attempts_allowed' => 1,
+                    'show_to_guardians' => false,
+                    'status' => 'draft',
+                    'integration_status' => 'not_required',
+                    'integration_note' => null,
+                ]
+            );
+
             $choice = Question::query()->firstOrCreate(
                 ['exam_id' => $exam->id, 'question' => 'حاصل ۷ × ۸ کدام است؟'],
                 [
