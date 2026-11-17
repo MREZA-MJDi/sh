@@ -32,8 +32,8 @@ class RequestSpotPlayerLicenseRequest extends FormRequest
 
             $course = $courseId ? Course::query()->find($courseId) : null;
             if ($courseId && (! $course || $course->status !== 'published'
-                || ! $course->featureEnabled('recorded_video') || blank($course->spotplayer_course_id))) {
-                $validator->errors()->add('course_id', 'دوره باید منتشرشده، دارای قابلیت ویدیویی و شناسه اتصال SpotPlayer باشد.');
+                || ! $course->featureEnabled('recorded_video'))) {
+                $validator->errors()->add('course_id', 'دوره باید منتشرشده و دارای قابلیت ویدیویی باشد؛ شناسه خارجی می‌تواند بعداً تکمیل شود.');
             }
         }];
     }

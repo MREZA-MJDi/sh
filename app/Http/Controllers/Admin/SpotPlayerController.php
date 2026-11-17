@@ -15,6 +15,7 @@ use App\Models\SpotPlayerSetting;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Integrations\IntegrationException;
 use App\Services\SpotPlayer\SpotPlayerService;
 use App\Services\SpotPlayer\SpotPlayerVideoService;
 use Illuminate\Http\RedirectResponse;
@@ -159,13 +160,21 @@ class SpotPlayerController extends Controller
     public function requestLicense(RequestSpotPlayerLicenseRequest $request, SpotPlayerService $spotPlayer): RedirectResponse
     {
         $data = $request->validated();
-        $license = $spotPlayer->requestLicense(
-            User::findOrFail($data['student_id']),
-            Course::findOrFail($data['course_id']),
-            $request->user(),
-        );
+        try {
+            $license = $spotPlayer->requestLicense(
+                User::findOrFail($data['student_id']),
+                Course::findOrFail($data['course_id']),
+                $request->user(),
+            );
+        } catch (IntegrationException $exception) {
+            return back()->with('warning', $exception->getMessage());
+        }
 
-        return back()->with('success', 'درخواست لایسنس با وضعیت '.$license->status.' ثبت شد؛ کلید یا لینک فعال تا پاسخ واقعی SpotPlayer صادر نمی‌شود.');
+        if ($license->status === 'waiting_contract') {
+            return back()->with('warning', $license->error_message ?: 'درخواست در انتظار تکمیل اتصال SpotPlayer است.');
+        }
+
+        return back()->with('success', 'درخواست لایسنس ثبت شد؛ کلید یا لینک فعال تا پاسخ واقعی SpotPlayer صادر نمی‌شود.');
     }
 
     public function requestRevocation(

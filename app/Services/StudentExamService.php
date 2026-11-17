@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\CourseEnrollment;
 use App\Models\Exam;
 use App\Models\ExamAnswer;
 use App\Models\ExamAttempt;
@@ -12,47 +11,15 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Services\Learning\LearningAccessService;
 
 final class StudentExamService
 {
+    public function __construct(private readonly LearningAccessService $learningAccess) {}
+
     public function query(User $student): Builder
     {
-        $courseIds = $this->activeCourseIds($student);
-
-        return Exam::query()
-            ->where(function (Builder $provider): void {
-                $provider->where('provider', 'internal')
-                    ->orWhere(function (Builder $fallback): void {
-                        $fallback->where('provider', 'quiz24')
-                            ->whereIn('integration_status', [
-                                'waiting_external_mapping',
-                                'awaiting_api_verification',
-                                'waiting_contract',
-                                'failed',
-                            ])
-                            ->whereHas('questions');
-                    });
-            })
-            ->where('status', 'published')
-            ->where(function (Builder $access) use ($student, $courseIds): void {
-                $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
-                    $courseScope->whereNotNull('course_id')
-                        ->whereIn('course_id', clone $courseIds)
-                        ->where(function (Builder $classScope) use ($student): void {
-                            $classScope->whereNull('classroom_id')
-                                ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
-                                    ->whereColumn('classrooms.course_id', 'exams.course_id')
-                                    ->where('status', 'active')
-                                    ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
-                        });
-                })->orWhere(function (Builder $classOnly) use ($student): void {
-                    $classOnly->whereNotNull('classroom_id')
-                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
-                            ->whereNull('course_id')
-                            ->where('status', 'active')
-                            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
-                });
-            })
+        return $this->accessibleQuery($student, ['published'])
             ->with(['course:id,title', 'classroom:id,name'])
             ->withCount('questions')
             ->with(['attempts' => fn ($attempts) => $attempts
@@ -336,7 +303,8 @@ final class StudentExamService
 
     private function accessibleQuery(User $student, array $statuses): Builder
     {
-        $courseIds = $this->activeCourseIds($student);
+        $courseIds = $this->learningAccess->activeCourseIds($student, 'exams');
+        $classroomIds = $this->learningAccess->activeClassroomIds($student);
 
         return Exam::query()
             ->where(function (Builder $provider): void {
@@ -353,38 +321,24 @@ final class StudentExamService
                     });
             })
             ->whereIn('status', $statuses)
-            ->where(function (Builder $access) use ($student, $courseIds): void {
-                $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
+            ->where(function (Builder $access) use ($courseIds, $classroomIds): void {
+                $access->where(function (Builder $courseScope) use ($courseIds, $classroomIds): void {
                     $courseScope->whereNotNull('course_id')
                         ->whereIn('course_id', clone $courseIds)
-                        ->where(function (Builder $classScope) use ($student): void {
+                        ->where(function (Builder $classScope) use ($classroomIds): void {
                             $classScope->whereNull('classroom_id')
-                                ->orWhereHas('classroom', fn (Builder $classroom) => $classroom
-                                    ->whereColumn('classrooms.course_id', 'exams.course_id')
-                                    ->where('status', 'active')
-                                    ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
+                                ->orWhere(function (Builder $assignedClass) use ($classroomIds): void {
+                                    $assignedClass->whereIn('classroom_id', clone $classroomIds)
+                                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                            ->whereColumn('classrooms.course_id', 'exams.course_id'));
+                                });
                         });
-                })->orWhere(function (Builder $classOnly) use ($student): void {
-                    $classOnly->whereNotNull('classroom_id')
-                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
-                            ->whereNull('course_id')
-                            ->where('status', 'active')
-                            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id)));
+                })->orWhere(function (Builder $classOnly) use ($classroomIds): void {
+                    $classOnly->whereNull('course_id')
+                        ->whereNotNull('classroom_id')
+                        ->whereIn('classroom_id', clone $classroomIds)
+                        ->whereHas('classroom', fn (Builder $classroom) => $classroom->whereNull('course_id'));
                 });
             });
-    }
-
-    private function activeCourseIds(User $student)
-    {
-        return CourseEnrollment::query()
-            ->where('student_id', $student->id)
-            ->where('status', 'active')
-            ->where(fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-            ->whereHas('course', fn ($course) => $course
-                ->where('status', 'published')
-                ->where(fn (Builder $features) => $features
-                    ->whereNull('learning_features')
-                    ->orWhere('learning_features->exams', true)))
-            ->select('course_id');
     }
 }

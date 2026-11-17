@@ -16,12 +16,32 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class LearningAccessService
 {
-    public function activeCourseIds(User $student): Builder
+    public function activeCourseIds(User $student, ?string $feature = null): Builder
     {
         $query = CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->currentlyActive()
-            ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
+            ->whereHas('course', function (Builder $course) use ($feature): void {
+                $course->where('status', 'published');
+                if ($feature !== null) {
+                    $course->where(function (Builder $featureScope) use ($feature): void {
+                        $featureScope->where('learning_features->'.$feature, true)
+                            ->orWhere(function (Builder $legacy) use ($feature): void {
+                                $legacy->where(fn (Builder $missing) => $missing
+                                    ->whereNull('learning_features')
+                                    ->orWhereNull('learning_features->'.$feature));
+
+                                if ($feature === 'recorded_video') {
+                                    $legacy->where('delivery_type', 'spotplayer');
+                                } elseif ($feature === 'live_class') {
+                                    $legacy->where('delivery_type', 'skyroom');
+                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                                    $legacy->whereRaw('1 = 0');
+                                }
+                            });
+                    });
+                }
+            })
             ->select('course_id');
 
         return $student->is_active && $student->hasRole('student')
@@ -29,18 +49,37 @@ final class LearningAccessService
             : $query->whereRaw('1 = 0');
     }
 
-    public function activeClassroomIds(User $student): Builder
+    public function activeClassroomIds(User $student, ?string $feature = null): Builder
     {
         $query = Classroom::query()
             ->where('classrooms.status', 'active')
             ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-            ->where(function (Builder $access) use ($student): void {
+            ->where(function (Builder $access) use ($student, $feature): void {
                 $access->whereNull('classrooms.course_id')
-                    ->orWhereHas('course', fn (Builder $course) => $course
-                        ->where('status', 'published')
-                        ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
+                    ->orWhereHas('course', function (Builder $course) use ($student, $feature): void {
+                        $course->where('status', 'published');
+                        if ($feature !== null) {
+                            $course->where(function (Builder $featureScope) use ($feature): void {
+                        $featureScope->where('learning_features->'.$feature, true)
+                            ->orWhere(function (Builder $legacy) use ($feature): void {
+                                $legacy->where(fn (Builder $missing) => $missing
+                                    ->whereNull('learning_features')
+                                    ->orWhereNull('learning_features->'.$feature));
+
+                                if ($feature === 'recorded_video') {
+                                    $legacy->where('delivery_type', 'spotplayer');
+                                } elseif ($feature === 'live_class') {
+                                    $legacy->where('delivery_type', 'skyroom');
+                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                                    $legacy->whereRaw('1 = 0');
+                                }
+                            });
+                    });
+                        }
+                        $course->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
                             ->where('student_id', $student->id)
-                            ->currentlyActive()));
+                            ->currentlyActive());
+                    });
             })
             ->select('classrooms.id');
 

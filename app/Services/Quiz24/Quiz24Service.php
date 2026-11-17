@@ -107,7 +107,7 @@ class Quiz24Service
         if ($exam->course_id) {
             $course = $exam->course;
 
-            if (! $course || ! $this->enrollments->hasActiveAccess($student, $course)) {
+            if (! $course || ! $course->featureEnabled('exams') || ! $this->enrollments->hasActiveAccess($student, $course)) {
                 throw new IntegrationException('دانش‌آموز برای دوره مرتبط با این آزمون دسترسی فعال ندارد.');
             }
         }
