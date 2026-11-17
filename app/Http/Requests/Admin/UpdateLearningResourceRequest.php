@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -53,6 +54,14 @@ class UpdateLearningResourceRequest extends FormRequest
                     ->where('course_id', $this->integer('course_id'))
                     ->exists()) {
                 $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
+            }
+
+            $resourceCourseId = $this->integer('course_id')
+                ?: ($this->filled('classroom_id')
+                    ? (int) Classroom::query()->whereKey($this->integer('classroom_id'))->value('course_id')
+                    : 0);
+            if ($resourceCourseId > 0 && ! Course::query()->find($resourceCourseId)?->featureEnabled('resources')) {
+                $validator->errors()->add('course_id', 'امکان منابع آموزشی برای این دوره غیرفعال است.');
             }
 
             $workspace = app(ClassroomWorkspaceService::class);

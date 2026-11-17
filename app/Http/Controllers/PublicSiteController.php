@@ -15,6 +15,7 @@ use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -106,7 +107,12 @@ final class PublicSiteController extends Controller
         return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades'));
     }
 
-    public function course(Request $request, string $slug, CourseEnrollmentService $enrollments): View
+    public function course(
+        Request $request,
+        string $slug,
+        CourseEnrollmentService $enrollments,
+        LearningAccessService $learningAccess
+    ): View
     {
         $settings = SeoSetting::current();
         $course = Course::query()->where('status', 'published')->where('slug', $slug)
@@ -125,6 +131,31 @@ final class PublicSiteController extends Controller
                 ->where('course_id', $course->id)
                 ->where('status', 'active'))
             ->count();
+
+        $upcomingSessions = ClassSession::query()
+            ->where('session_type', 'online')
+            ->where('status', 'scheduled')
+            ->where('starts_at', '>=', now())
+            ->whereHas('classroom', fn ($classrooms) => $classrooms
+                ->where('course_id', $course->id)
+                ->where('status', 'active'))
+            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
+            ->orderBy('starts_at')
+            ->limit(8)
+            ->get();
+
+        $features = [];
+        foreach (['recorded_video', 'live_class', 'resources', 'assignments', 'exams', 'projects'] as $feature) {
+            $features[$feature] = $course->featureEnabled($feature);
+        }
+
+        $activeClassroomIds = $request->user()?->hasRole('student')
+            ? $learningAccess->activeClassroomIds($request->user())->pluck('classrooms.id')->map(fn ($id) => (int) $id)->all()
+            : [];
+
+        $upcomingSessions->each(function (ClassSession $session) use ($activeClassroomIds): void {
+            $session->setAttribute('can_join', in_array((int) $session->classroom_id, $activeClassroomIds, true));
+        });
 
         // The public curriculum is a preview, not an unbounded dump of every
         // lesson. Keep sections and per-section lesson previews paginated/bounded.
@@ -152,7 +183,7 @@ final class PublicSiteController extends Controller
         // Video playback is exposed only when both the enrollment and the
         // provider-issued license are currently valid. Embed hosts are explicitly
         // allow-listed in services.spotplayer.embed_hosts (never trust arbitrary URLs).
-        $videoLicense = $hasCourseAccess && $course->delivery_type === 'spotplayer'
+        $videoLicense = $hasCourseAccess && ($features['recorded_video'] ?? false)
             ? SpotPlayerLicense::query()
                 ->where('student_id', $request->user()->id)
                 ->where('course_id', $course->id)
@@ -193,7 +224,19 @@ final class PublicSiteController extends Controller
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact('settings', 'course', 'sections', 'totalLessons', 'relatedCourses', 'hasCourseAccess', 'upcomingOnlineSessionCount', 'canWatchCourseVideos', 'playableVideos'));
+        return view('public.courses.show', compact(
+            'settings',
+            'course',
+            'sections',
+            'totalLessons',
+            'relatedCourses',
+            'hasCourseAccess',
+            'upcomingOnlineSessionCount',
+            'upcomingSessions',
+            'features',
+            'canWatchCourseVideos',
+            'playableVideos'
+        ));
     }
 
     public function playCourseVideo(
@@ -212,6 +255,7 @@ final class PublicSiteController extends Controller
             ->firstOrFail();
 
         abort_unless($enrollments->hasActiveAccess($student, $course), 403);
+        abort_unless($course->featureEnabled('recorded_video'), 404);
 
         $license = SpotPlayerLicense::query()
             ->where('student_id', $student->id)

@@ -141,6 +141,30 @@ final class ClassSessionManagementTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_online_session_can_be_scheduled_without_a_skyroom_room_or_external_url(): void
+    {
+        [$teacher, $classroom] = $this->teacherWithClassroom('pending-skyroom');
+
+        $this->actingAs($teacher)
+            ->post(route('admin.classes.sessions.store', $classroom), [
+                'title' => 'جلسه در انتظار اتصال',
+                'session_type' => 'online',
+                'starts_at' => now()->addDay()->format('Y-m-d\TH:i'),
+                'ends_at' => now()->addDay()->addHour()->format('Y-m-d\TH:i'),
+                'status' => 'scheduled',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('class_sessions', [
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه در انتظار اتصال',
+            'meeting_url' => null,
+            'meeting_provider' => 'skyroom',
+            'status' => 'scheduled',
+        ]);
+    }
+
     /** @return array{0: User, 1: Classroom} */
     private function teacherWithClassroom(string $key): array
     {

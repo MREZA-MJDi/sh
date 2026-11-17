@@ -55,7 +55,11 @@ class SpotPlayerController extends Controller
         $videos = $videosQuery->latest()->paginate(10, ['*'], 'videos');
 
         $courses = $workspace->coursesQueryFor($user)
-            ->where('delivery_type', 'spotplayer')
+            ->where(function ($query): void {
+                $query->where(function ($legacy): void {
+                    $legacy->whereNull('learning_features')->where('delivery_type', 'spotplayer');
+                })->orWhere('learning_features->recorded_video', true);
+            })
             ->orderBy('title')
             ->get(['id', 'title', 'spotplayer_course_id', 'integration_status']);
 

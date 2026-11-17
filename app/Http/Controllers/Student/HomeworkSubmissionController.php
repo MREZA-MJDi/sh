@@ -175,6 +175,9 @@ final class HomeworkSubmissionController extends Controller
                         $access->whereNull('classrooms.course_id')
                             ->orWhereHas('course', fn (Builder $course) => $course
                                 ->where('status', 'published')
+                                ->where(fn (Builder $features) => $features
+                                    ->whereNull('learning_features')
+                                    ->orWhere('learning_features->assignments', true))
                                 ->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
                                     ->where('student_id', $student->id)
                                     ->where('status', 'active')

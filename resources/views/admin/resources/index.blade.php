@@ -1,84 +1,79 @@
 @extends('admin.layouts.app')
-@section('title', 'منابع و محصولات')
+@section('title', 'منابع آموزشی')
 
 @section('content')
 @php
-  $courses = ['' => 'عمومی (بدون دوره)', '1' => 'ریاضی نهم', '2' => 'فیزیک دهم', '3' => 'زیست یازدهم'];
-  $types = ['handout' => 'جزوه', 'book' => 'کتاب', 'sample' => 'نمونه‌سؤال', 'product' => 'محصول فیزیکی'];
-  $icons = ['handout' => 'file', 'book' => 'lib', 'sample' => 'exam', 'product' => 'box'];
-  $rows = $items ?? [
-    ['id' => 1, 'c' => 1, 'title' => 'جزوه کامل هندسه نهم', 'type' => 'handout', 'course_id' => '1', 'access' => 'included', 'price' => 0, 'stock' => '', 'is_active' => 1, 'sales' => 0],
-    ['id' => 2, 'c' => 2, 'title' => 'کتاب تست فیزیک دهم', 'type' => 'book', 'course_id' => '2', 'access' => 'paid', 'price' => 340000, 'sale_price' => 290000, 'stock' => '', 'is_active' => 1, 'sales' => 41],
-    ['id' => 3, 'c' => 3, 'title' => 'نمونه‌سؤال میان‌ترم زیست', 'type' => 'sample', 'course_id' => '3', 'access' => 'free', 'price' => 0, 'stock' => '', 'is_active' => 1, 'sales' => 0],
-    ['id' => 4, 'c' => 4, 'title' => 'بسته لوازم‌التحریر آکادمی', 'type' => 'product', 'course_id' => '', 'access' => 'paid', 'price' => 450000, 'stock' => 35, 'is_active' => 0, 'sales' => 12],
-  ];
+  $courseOptions = $courses->pluck('title', 'id')->all();
+  $classroomOptions = $classrooms->pluck('name', 'id')->all();
+  $kindOptions = ['pdf' => 'PDF', 'book' => 'کتاب / جزوه', 'other' => 'سایر'];
+  $visibilityOptions = $teacherView
+    ? ['authenticated' => 'کاربران واردشده', 'enrolled' => 'ثبت‌نام‌شده‌ها']
+    : ['public' => 'عمومی', 'authenticated' => 'کاربران واردشده', 'enrolled' => 'ثبت‌نام‌شده‌ها'];
+  $statusOptions = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی'];
 @endphp
 
-<x-admin.page-head tone="shop" icon="lib" title="منابع و محصولات" desc="جزوه، کتاب و محصولاتی که روی سایت عرضه می‌شوند">
-  <x-admin.btn icon="plus" data-modal-open="res-modal">منبع جدید</x-admin.btn>
+<x-admin.page-head tone="shop" icon="lib" title="منابع و محصولات آموزشی" desc="جزوه‌ها و فایل‌های دوره یا کلاس با سطح دسترسی و ثبت رویداد دریافت">
+  <x-admin.btn icon="plus" data-modal-open="resource-modal">افزودن منبع</x-admin.btn>
 </x-admin.page-head>
 
-<div class="adm-stats">
-  <x-admin.stat tone="shop" icon="lib" label="کل منابع" value="42"/>
-  <x-admin.stat tone="shop" icon="down" label="رایگان" value="17" hint="قابل دانلود برای دانش‌آموزان"/>
-  <x-admin.stat tone="shop" icon="tag" label="فروش این ماه" value="139"/>
-  <x-admin.stat tone="shop" icon="alert" label="موجودی کم" value="2" hint="محصولات فیزیکی"/>
-</div>
-
-<div data-filter class="adm-stack">
-  <x-admin.panel flush><x-admin.toolbar placeholder="جستجوی منبع یا محصول…">
-    <x-admin.filter-select key="type" placeholder="همه نوع‌ها" :options="$types"/>
-    <div class="adm-toolbar-end"><x-admin.seg :options="['on' => 'فعال', 'off' => 'غیرفعال']"/></div>
-  </x-admin.toolbar></x-admin.panel>
-
-  <div class="adm-grid adm-cols-3" data-filter-list>
-    @foreach ($rows as $r)
-      <article class="adm-card" data-c="{{ $r['c'] }}" data-state="{{ $r['is_active'] ? 'on' : 'off' }}" data-type="{{ $r['type'] }}" data-name="{{ $r['title'] }}">
-        <div class="adm-card-cover">
-          <x-admin.badge tone="mute" class="is-plain">{{ $types[$r['type']] }}</x-admin.badge>
-          <x-admin.icon :name="$icons[$r['type']]"/>
-        </div>
-        <div class="adm-card-body">
-          <h3>{{ $r['title'] }}</h3>
-          <div class="adm-meta">
-            <span><x-admin.icon name="book"/>{{ $courses[$r['course_id']] }}</span>
-            <span class="adm-num"><x-admin.icon name="tag"/>{{ $r['sales'] }} فروش</span>
-            @if ($r['stock'] !== '')<span class="adm-num"><x-admin.icon name="box"/>موجودی {{ $r['stock'] }}</span>@endif
-          </div>
-          <div class="adm-card-foot">
-            @if ($r['access'] === 'included')<span class="adm-price" style="color:var(--info)">جزو پلن دوره</span>
-            @elseif ($r['access'] === 'free')<span class="adm-price is-free">رایگان</span>
-            @else<span class="adm-price adm-num">{{ number_format($r['sale_price'] ?? $r['price']) }} تومان @isset($r['sale_price'])<s>{{ number_format($r['price']) }}</s>@endisset</span>@endif
-            <label class="adm-switch" title="نمایش در سایت"><input type="checkbox" name="is_active" @checked($r['is_active']) aria-label="نمایش در سایت"><i></i></label>
-          </div>
-          <div class="adm-actions">
-            <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="res-modal" data-title="ویرایش منبع" :data-fill="json_encode($r, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/resources/'.$r['id'])" data-method="PUT">ویرایش</x-admin.btn>
-            <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="res-del" :data-name="$r['title']" :data-action="url('admin/resources/'.$r['id'])" aria-label="حذف"/>
-          </div>
-        </div>
-      </article>
-    @endforeach
-  </div>
-  <x-admin.empty data-empty class="adm-hide" text="منبعی پیدا نشد."/>
-  <x-admin.pager :current="1" :total="42" :per="4"/>
-</div>
+<x-admin.panel flush>
+  <div class="adm-table-wrap"><table class="adm-table">
+    <thead><tr><th>منبع</th><th>دوره / کلاس</th><th>نوع و دسترسی</th><th>قیمت</th><th>رویدادهای دسترسی</th><th>وضعیت</th><th></th></tr></thead>
+    <tbody>
+      @forelse($resources as $resource)
+        @php
+          $fill = [
+            'title' => $resource->title,
+            'description' => $resource->description,
+            'kind' => $resource->kind,
+            'course_id' => (string) ($resource->course_id ?? ''),
+            'classroom_id' => (string) ($resource->classroom_id ?? ''),
+            'is_free' => (bool) $resource->is_free,
+            'price' => $resource->price,
+            'visibility' => $resource->visibility,
+            'release_at' => $resource->release_at?->format('Y-m-d\TH:i'),
+            'downloadable' => (bool) $resource->downloadable,
+            'status' => $resource->status,
+          ];
+        @endphp
+        <tr>
+          <td><b>{{ $resource->title }}</b><small>{{ $resource->uploader?->name ?? '—' }} · {{ $resource->file_path ? basename($resource->file_path) : 'بدون فایل' }}</small></td>
+          <td>{{ $resource->course?->title ?? '—' }}<small>{{ $resource->classroom?->name ?? 'سطح دوره' }}</small></td>
+          <td>{{ $kindOptions[$resource->kind] ?? $resource->kind }}<small>{{ $visibilityOptions[$resource->visibility] ?? $resource->visibility }}</small></td>
+          <td>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</td>
+          <td class="adm-num">{{ number_format($resource->access_logs_count) }}</td>
+          <td><x-admin.badge :tone="$resource->status === 'published' ? 'ok' : 'warn'">{{ $statusOptions[$resource->status] ?? $resource->status }}</x-admin.badge></td>
+          <td><div class="adm-actions">
+            @if($resource->file_path)<x-admin.btn size="sm" variant="line" :href="route('admin.resources.download', $resource)">دریافت</x-admin.btn>@endif
+            <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="resource-modal" data-title="ویرایش منبع" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.resources.update', $resource)" data-method="PATCH">ویرایش</x-admin.btn>
+            <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="resource-delete" :data-name="$resource->title" :data-action="route('admin.resources.destroy', $resource)"/>
+          </div></td>
+        </tr>
+      @empty
+        <tr><td colspan="7">هنوز منبعی ثبت نشده است.</td></tr>
+      @endforelse
+    </tbody>
+  </table></div>
+  <x-slot:footer>{{ $resources->links() }}</x-slot:footer>
+</x-admin.panel>
 @endsection
 
 @push('modals')
-<x-admin.modal id="res-modal" title="منبع جدید" size="lg" :action="url('admin/resources')">
-  <x-admin.legend title="اطلاعات منبع"/>
-  <x-admin.input label="عنوان" name="title" wide required/>
-  <x-admin.select label="نوع" name="type" :options="$types"/>
-  <x-admin.select label="مربوط به دوره" name="course_id" :options="$courses"/>
-  <div data-show-if="type=handout|book|sample"><x-admin.file label="فایل (PDF)" name="file" accept=".pdf,.zip" icon="file" hint="PDF یا ZIP، حداکثر ۵۰ مگابایت"/></div>
-  <div data-show-if="type=product"><x-admin.input label="موجودی انبار" name="stock" type="number" min="0" addon="عدد"/></div>
-  <x-admin.file label="تصویر" name="cover" accept="image/*" icon="up" :wide="false" hint="تصویر کاور"/>
-
-  <x-admin.legend title="قیمت و نمایش"/>
-  <x-admin.chips label="نحوه ارائه" name="access" :multiple="false" :options="['included' => 'جزو امکانات پلن‌های دوره', 'free' => 'رایگان برای همه', 'paid' => 'فروش مستقل']" :checked="['included']"/>
-  <div data-show-if="access=paid"><x-admin.input label="قیمت" name="price" type="number" min="0" step="1000" addon="تومان"/><x-admin.input label="قیمت با تخفیف" name="sale_price" type="number" min="0" step="1000" addon="تومان"/></div>
-  <x-admin.switch label="در سایت نمایش داده شود" name="is_active" :checked="true" wide/>
+<x-admin.modal :demo="false" id="resource-modal" title="منبع آموزشی جدید" size="lg" :action="route('admin.resources.store')">
+  <x-admin.legend title="اطلاعات و فایل"/>
+  <x-admin.input label="عنوان منبع" name="title" wide required/>
+  <x-admin.textarea label="توضیحات" name="description" wide/>
+  <x-admin.select label="نوع منبع" name="kind" :options="$kindOptions" required/>
+  <x-admin.input label="فایل (حداکثر ۳۰ مگابایت)" name="file" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"/>
+  <x-admin.select label="دوره" name="course_id" :options="$courseOptions" placeholder="بدون دوره"/>
+  <x-admin.select label="کلاس" name="classroom_id" :options="$classroomOptions" placeholder="سطح کل دوره"/>
+  <x-admin.legend title="قیمت و دسترسی"/>
+  <x-admin.switch label="منبع رایگان است" name="is_free" :checked="true"/>
+  <x-admin.input label="قیمت (تومان)" name="price" type="number" min="0"/>
+  <x-admin.select label="مخاطبان مجاز" name="visibility" :options="$visibilityOptions" required/>
+  <x-admin.input label="زمان انتشار (اختیاری)" name="release_at" type="datetime-local"/>
+  <x-admin.switch label="امکان دریافت فایل" name="downloadable" :checked="true"/>
+  <x-admin.select label="وضعیت" name="status" :options="$statusOptions" required/>
 </x-admin.modal>
-
-<x-admin.confirm id="res-del" title="حذف منبع" text="منبع از سایت و پنل دانش‌آموزان حذف می‌شود."/>
+<x-admin.confirm :demo="false" id="resource-delete" title="حذف منبع" text="منبع و فایل خصوصی آن حذف می‌شود؛ رویدادهای دسترسی برای گزارش امنیتی حفظ می‌شوند."/>
 @endpush

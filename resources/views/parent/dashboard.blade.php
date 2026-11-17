@@ -58,7 +58,7 @@
         </section>
         <section class="c"><h3>نتایج آزمون‌های قابل مشاهده</h3>
             @forelse (($results ?? collect()) as $result)
-                <div class="row"><div>{{ $result->exam?->title }}<small>{{ $result->created_at?->format('Y/m/d') }}</small></div><i class="bd pk">{{ $result->score }} / {{ $result->max_score }}</i></div>
+                <div class="row"><div>{{ $result->exam?->title }}<small>{{ $result->created_at?->format('Y/m/d') }}</small>@if($result->feedback)<small>{{ $result->feedback }}</small>@endif</div><i class="bd pk">{{ $result->score }} / {{ $result->max_score }}</i></div>
             @empty
                 <p>نتیجه‌ی قابل نمایشی ثبت نشده است.</p>
             @endforelse

@@ -1,0 +1,62 @@
+@extends('admin.layouts.app')
+@section('title', 'پیام‌های تماس')
+
+@section('content')
+@php
+  $statusLabels = ['new' => 'جدید', 'in_progress' => 'در حال پیگیری', 'resolved' => 'پاسخ‌داده‌شده', 'spam' => 'هرزنامه'];
+  $statusTones = ['new' => 'warn', 'in_progress' => 'info', 'resolved' => 'ok', 'spam' => 'mute'];
+@endphp
+
+<x-admin.page-head tone="comm" icon="msg" title="پیام‌های تماس" desc="پیام‌های ثبت‌شده از فرم تماس سایت و پیگیری وضعیت آن‌ها"/>
+
+<div class="adm-stats">
+  <x-admin.stat tone="comm" icon="inbox" label="پیام جدید" :value="number_format((int) ($counts['new'] ?? 0))"/>
+  <x-admin.stat tone="comm" icon="clock" label="در حال پیگیری" :value="number_format((int) ($counts['in_progress'] ?? 0))"/>
+  <x-admin.stat tone="comm" icon="check" label="پاسخ‌داده‌شده" :value="number_format((int) ($counts['resolved'] ?? 0))"/>
+  <x-admin.stat tone="comm" icon="shield" label="هرزنامه" :value="number_format((int) ($counts['spam'] ?? 0))"/>
+</div>
+
+<x-admin.panel flush data-filter data-tone="comm">
+  <x-admin.toolbar placeholder="جستجوی نام، راه تماس یا متن پیام…">
+    <form method="GET" class="adm-toolbar-end">
+      <select name="status" class="adm-select" onchange="this.form.submit()">
+        <option value="">همه وضعیت‌ها</option>
+        @foreach($statusLabels as $key => $label)
+          <option value="{{ $key }}" @selected($status === $key)>{{ $label }}</option>
+        @endforeach
+      </select>
+    </form>
+  </x-admin.toolbar>
+  <div class="adm-table-wrap"><table class="adm-table">
+    <thead><tr><th>فرستنده</th><th>موضوع</th><th>پیام</th><th>زمان</th><th>وضعیت</th><th>به‌روزرسانی</th></tr></thead>
+    <tbody data-filter-list>
+      @forelse($messages as $message)
+        <tr data-name="{{ $message->name.' '.$message->contact.' '.$message->topic.' '.$message->body }}">
+          <td><b>{{ $message->name }}</b><small>{{ $message->contact }}</small></td>
+          <td>{{ $message->topic ?: 'عمومی' }}</td>
+          <td><p>{{ \Illuminate\Support\Str::limit($message->body, 180) }}</p></td>
+          <td>{{ $message->created_at?->format('Y/m/d H:i') }}</td>
+          <td><x-admin.badge :tone="$statusTones[$message->status] ?? 'warn'">{{ $statusLabels[$message->status] ?? $message->status }}</x-admin.badge>
+            @if($message->handler)<small>{{ $message->handler->name }} · {{ $message->handled_at?->format('Y/m/d H:i') }}</small>@endif
+          </td>
+          <td>
+            <form method="POST" action="{{ route('admin.contact-messages.status', $message) }}" class="adm-actions">
+              @csrf
+              @method('PATCH')
+              <select name="status" class="adm-select">
+                @foreach($statusLabels as $key => $label)
+                  <option value="{{ $key }}" @selected($message->status === $key)>{{ $label }}</option>
+                @endforeach
+              </select>
+              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">ثبت</button>
+            </form>
+          </td>
+        </tr>
+      @empty
+        <tr><td colspan="6">پیامی برای این فیلتر وجود ندارد.</td></tr>
+      @endforelse
+    </tbody>
+  </table></div>
+  <x-slot:footer>{{ $messages->links() }}</x-slot:footer>
+</x-admin.panel>
+@endsection

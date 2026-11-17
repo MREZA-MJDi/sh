@@ -67,6 +67,43 @@ final class StudentExamExpirationTest extends TestCase
         $this->assertSame('in_progress', $second->status);
     }
 
+    public function test_quiz24_exam_remains_attemptable_locally_while_external_contract_is_pending(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        [$course, $classroom] = $this->enrolledClass($teacher, $student);
+
+        $exam = Exam::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'created_by' => $teacher->id,
+            'title' => 'آزمون Quiz24 با مسیر جایگزین',
+            'provider' => 'quiz24',
+            'integration_status' => 'waiting_external_mapping',
+            'status' => 'published',
+            'duration_minutes' => 60,
+            'attempts_allowed' => 1,
+        ]);
+        Question::query()->create([
+            'exam_id' => $exam->id,
+            'type' => 'single',
+            'question' => 'سؤال محلی تا زمان اتصال',
+            'options' => ['گزینه الف', 'گزینه ب'],
+            'correct_answer' => 'گزینه الف',
+            'score' => 1,
+            'sort_order' => 1,
+        ]);
+
+        $service = app(StudentExamService::class);
+
+        $this->assertTrue($service->query($student)->whereKey($exam->id)->exists());
+
+        $attempt = $service->start($student, $exam);
+
+        $this->assertSame('in_progress', $attempt->status);
+        $this->assertSame(1, $attempt->attempt_number);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

@@ -61,7 +61,8 @@ class HomeworkController extends Controller
         ClassroomWorkspaceService $workspace
     ): RedirectResponse {
         $data = $request->validated();
-        $workspace->queryFor($request->user())->findOrFail($data['classroom_id']);
+        $classroom = $workspace->queryFor($request->user())->with('course')->findOrFail($data['classroom_id']);
+        abort_unless(! $classroom->course || $classroom->course->featureEnabled('assignments'), 422);
         $homework->create($data, (int) $request->user()->id);
 
         return back()->with('success', 'تکلیف با موفقیت ثبت شد.');
@@ -77,7 +78,8 @@ class HomeworkController extends Controller
         abort_unless($workspace->queryFor($request->user())->whereKey($homework->classroom_id)->exists(), 403);
 
         $data = $request->validated();
-        $workspace->queryFor($request->user())->findOrFail($data['classroom_id']);
+        $classroom = $workspace->queryFor($request->user())->with('course')->findOrFail($data['classroom_id']);
+        abort_unless(! $classroom->course || $classroom->course->featureEnabled('assignments'), 422);
 
         if ($homework->submissions()->exists() && (int) $data['classroom_id'] !== (int) $homework->classroom_id) {
             return back()->withInput()->withErrors(['classroom_id' => 'پس از دریافت پاسخ دانش‌آموز، انتقال تکلیف به کلاس دیگر مجاز نیست.']);

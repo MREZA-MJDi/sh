@@ -32,7 +32,22 @@
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
      <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ $session->session_type === 'onsite' ? 'حضوری' : 'آنلاین' }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
      @if ($session->session_type === 'online')
-      <form method="POST" action="{{ route('student.class-sessions.join', $session) }}">@csrf<button class="pl" type="submit" aria-label="پیوستن به کلاس آنلاین"><svg class="i"><use href="#i-play"/></svg></button></form>
+      @php
+       $joinReady = filled($session->meeting_url)
+        || ($session->meeting_provider === 'skyroom'
+         && filled($session->classroom?->skyroom_room_id)
+         && $session->classroom?->skyroom_status === 'ready');
+       $joinWindowOpen = $session->starts_at && $session->ends_at
+        && $session->starts_at->lte(now()->addMinutes(15))
+        && $session->ends_at->gte(now());
+      @endphp
+      @if ($joinReady && $joinWindowOpen)
+       <form method="POST" action="{{ route('student.class-sessions.join', $session) }}" target="_blank" rel="noopener">@csrf<button class="pl" type="submit" aria-label="پیوستن به کلاس آنلاین"><svg class="i"><use href="#i-play"/></svg></button></form>
+      @elseif(! $joinReady)
+       <span class="tag">لینک ورود پس از اتصال Skyroom فعال می‌شود</span>
+      @else
+       <span class="tag">ورود از ۱۵ دقیقه پیش از شروع</span>
+      @endif
      @else
       <span class="tag">حضوری</span>
      @endif
@@ -81,6 +96,24 @@
     <div class="trk"><div><b>{{ $announcement->title }}</b><span>{{ $announcement->published_at?->format('Y/m/d') }}</span><p>{{ \Illuminate\Support\Str::limit(strip_tags($announcement->body), 150) }}</p></div></div>
    @empty
     <p>اطلاعیه‌ی تازه‌ای ثبت نشده است.</p>
+   @endforelse
+  </div>
+ </div>
+
+ <div class="row">
+  <div class="card" id="exam-results">
+   <div class="chead"><h2>نتایج و بازخورد آزمون‌ها</h2><a class="pill" href="{{ url('student/exams') }}">همه نتایج</a></div>
+   @forelse($results as $result)
+    <div class="trk">
+     <div>
+      <b>{{ $result->exam?->title ?? 'آزمون' }}</b>
+      <span>{{ number_format((float) $result->score, 2) }} از {{ number_format((float) $result->max_score, 2) }} · {{ $result->synced_at?->format('Y/m/d H:i') ?? 'ثبت‌شده' }}</span>
+      @if($result->feedback)<p>{{ $result->feedback }}</p>@endif
+     </div>
+     <span class="tag">کارنامه</span>
+    </div>
+   @empty
+    <p>هنوز نتیجه‌ای برای نمایش ثبت نشده است.</p>
    @endforelse
   </div>
  </div>

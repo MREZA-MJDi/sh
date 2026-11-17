@@ -20,7 +20,19 @@ final class StudentExamService
         $courseIds = $this->activeCourseIds($student);
 
         return Exam::query()
-            ->where('provider', 'internal')
+            ->where(function (Builder $provider): void {
+                $provider->where('provider', 'internal')
+                    ->orWhere(function (Builder $fallback): void {
+                        $fallback->where('provider', 'quiz24')
+                            ->whereIn('integration_status', [
+                                'waiting_external_mapping',
+                                'awaiting_api_verification',
+                                'waiting_contract',
+                                'failed',
+                            ])
+                            ->whereHas('questions');
+                    });
+            })
             ->where('status', 'published')
             ->where(function (Builder $access) use ($student, $courseIds): void {
                 $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
@@ -327,7 +339,19 @@ final class StudentExamService
         $courseIds = $this->activeCourseIds($student);
 
         return Exam::query()
-            ->where('provider', 'internal')
+            ->where(function (Builder $provider): void {
+                $provider->where('provider', 'internal')
+                    ->orWhere(function (Builder $fallback): void {
+                        $fallback->where('provider', 'quiz24')
+                            ->whereIn('integration_status', [
+                                'waiting_external_mapping',
+                                'awaiting_api_verification',
+                                'waiting_contract',
+                                'failed',
+                            ])
+                            ->whereHas('questions');
+                    });
+            })
             ->whereIn('status', $statuses)
             ->where(function (Builder $access) use ($student, $courseIds): void {
                 $access->where(function (Builder $courseScope) use ($courseIds, $student): void {
@@ -356,7 +380,11 @@ final class StudentExamService
             ->where('student_id', $student->id)
             ->where('status', 'active')
             ->where(fn ($expiry) => $expiry->whereNull('expires_at')->orWhere('expires_at', '>', now()))
-            ->whereHas('course', fn ($course) => $course->where('status', 'published'))
+            ->whereHas('course', fn ($course) => $course
+                ->where('status', 'published')
+                ->where(fn (Builder $features) => $features
+                    ->whereNull('learning_features')
+                    ->orWhere('learning_features->exams', true)))
             ->select('course_id');
     }
 }

@@ -9,7 +9,9 @@ function fill(form, data) {
   Object.entries(data).forEach(([key, value]) => {
     form.querySelectorAll(`[name="${key}"],[name="${key}[]"]`).forEach((el) => {
       if (el.type === 'file') return;
-      if (el.type === 'checkbox' || el.type === 'radio') {
+      if (el.type === 'hidden' && Array.from(form.querySelectorAll('input[type="checkbox"]')).some((checkbox) => checkbox.name === key)) {
+        el.value = value === true || value === 1 || value === '1' ? '1' : '0';
+      } else if (el.type === 'checkbox' || el.type === 'radio') {
         if (Array.isArray(value)) el.checked = value.map(String).includes(el.value);
         else if (el.type === 'checkbox' && el.value === '1') el.checked = value === true || value === 1 || value === '1';
         else el.checked = String(value) === el.value;

@@ -3,136 +3,155 @@
 
 @section('content')
 @php
-  $course = $course ?? ['id' => 1, 'title' => 'ریاضی تکمیلی دهم'];
-  $includes = ['video' => 'ویدیوهای ضبط‌شده', 'live' => 'کلاس زنده', 'resources' => 'جزوه و منابع', 'exams' => 'آزمون و تکلیف', 'qa' => 'پرسش و پاسخ'];
-  $validity = ['365' => '۱ سال', '180' => '۶ ماه', '90' => '۳ ماه', '30' => '۱ ماه', '0' => 'نامحدود'];
-  $plans = $plans ?? [
-    ['id' => 1, 'name' => 'پایه', 'includes' => ['video', 'resources'], 'price' => 900000, 'sale_price' => '', 'validity' => '365', 'is_active' => 1, 'is_featured' => 0, 'buyers' => 61],
-    ['id' => 2, 'name' => 'پیشرفته', 'includes' => ['video', 'live', 'resources', 'exams'], 'price' => 1800000, 'sale_price' => 1590000, 'validity' => '365', 'is_active' => 1, 'is_featured' => 1, 'buyers' => 48],
-    ['id' => 3, 'name' => 'ویژه', 'includes' => ['video', 'live', 'resources', 'exams', 'qa'], 'price' => 2600000, 'sale_price' => '', 'validity' => '365', 'is_active' => 1, 'is_featured' => 0, 'buyers' => 11],
-    ['id' => 4, 'name' => 'فقط کلاس زنده', 'includes' => ['live'], 'price' => 1200000, 'sale_price' => '', 'validity' => '90', 'is_active' => 0, 'is_featured' => 0, 'buyers' => 0],
+  $featureLabels = [
+    'recorded_video' => 'ویدیوی ضبط‌شده',
+    'live_class' => 'کلاس آنلاین',
+    'resources' => 'منابع آموزشی',
+    'assignments' => 'تکلیف و تمرین',
+    'exams' => 'آزمون و کوییز',
+    'projects' => 'پروژه و ارزیابی مرحله‌ای',
   ];
-  $cohorts = $cohorts ?? [['id' => 1, 'title' => 'گروه شنبه‌ها — استاد احمدی', 'when' => 'شنبه · ۱۷:۰۰', 'members' => 22, 'cap' => 25], ['id' => 2, 'title' => 'گروه دوشنبه‌ها — استاد رضایی', 'when' => 'دوشنبه · ۱۸:۳۰', 'members' => 18, 'cap' => 25]];
-  $chapters = $chapters ?? [
-    ['id' => 1, 'title' => 'مبانی ریاضی', 'lessons' => [
-      ['id' => 11, 'title' => 'مقدمه و معرفی', 'duration' => 12, 'access' => 'free'],
-      ['id' => 12, 'title' => 'معادلات و نامعادلات', 'duration' => 34, 'access' => 'paid'],
-      ['id' => 13, 'title' => 'تمرین فصل', 'duration' => 18, 'access' => 'paid'],
-    ]],
-    ['id' => 2, 'title' => 'هندسه', 'lessons' => [['id' => 21, 'title' => 'مثلث‌ها', 'duration' => 41, 'access' => 'paid']]],
-  ];
-  $lessonCount = collect($chapters)->sum(fn ($c) => count($c['lessons']));
+  $features = [];
+  foreach ($featureLabels as $key => $label) {
+    $features[$key] = $course->featureEnabled($key);
+  }
+  $lessonCount = $course->sections->sum(fn ($section) => $section->lessons->count());
 @endphp
 
-<x-admin.page-head tone="edu" icon="book" :title="'محتوای دوره: '.$course['title']" desc="هسته دوره: فصل‌ها و درس‌ها، پلن‌های فروش و گروه‌های آموزشی (کلاس‌ها) همین‌جا به هم وصل می‌شوند"
-  :back-url="url('admin/courses')" back-label="دوره‌ها">
-  <x-admin.btn icon="plus" data-modal-open="chapter-modal">فصل جدید</x-admin.btn>
+<x-admin.page-head tone="edu" icon="book" :title="'محتوای دوره: '.$course->title" desc="ساختار واقعی دوره، فصل‌ها، درس‌ها و گروه‌های آموزشی"
+  :back-url="route('admin.courses.index')" back-label="دوره‌ها">
+  <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن بخش جدید</x-admin.btn>
+  <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', $course->slug)" target="_blank">مشاهده صفحه عمومی</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="edu" icon="cls" label="فصل‌ها" :value="count($chapters)" :hint="$lessonCount.' درس'"/>
-  <x-admin.stat tone="shop" icon="tag" label="پلن‌های فروش" :value="count($plans)" hint="۳ فعال"/>
-  <x-admin.stat tone="edu" icon="users" label="کلاس‌ها (گروه‌ها)" :value="count($cohorts)"/>
-  <x-admin.stat tone="shop" icon="lock" label="ثبت‌نام فعال" value="120"/>
+  <x-admin.stat tone="edu" icon="cls" label="فصل‌ها" :value="number_format($course->sections->count())" :hint="number_format($lessonCount).' درس'"/>
+  <x-admin.stat tone="edu" icon="users" label="گروه‌های فعال" :value="number_format($course->active_classrooms_count)" hint="کلاس‌های متصل به این دوره"/>
+  <x-admin.stat tone="shop" icon="lock" label="ثبت‌نام معتبر" :value="number_format($course->active_enrollments_count)" hint="مجوزهای فعال دوره"/>
+  <x-admin.stat tone="edu" icon="calendar" label="جلسات زمان‌بندی‌شده" :value="number_format($course->classrooms->sum('sessions_count'))" hint="در تمام گروه‌ها"/>
 </div>
 
-<x-admin.panel title="پلن‌های فروش" desc="هر پلن مشخص می‌کند خریدار به کدام امکانات دوره دسترسی دارد؛ قیمت فقط روی پلن است" flush data-tone="shop">
-  <x-slot:actions><x-admin.btn size="sm" icon="plus" data-modal-open="plan-modal">پلن جدید</x-admin.btn></x-slot:actions>
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>پلن</th><th>امکانات</th><th>قیمت (تومان)</th><th>اعتبار</th><th>خریداران</th><th>وضعیت</th><th></th></tr></thead>
-    <tbody>
-      @foreach ($plans as $pl)
-        <tr>
-          <td><b>{{ $pl['name'] }}</b>@if ($pl['is_featured'])<small><x-admin.badge tone="info" class="is-plain">پیشنهادی</x-admin.badge></small>@endif</td>
-          <td><x-admin.access-flags :flags="$pl['includes']"/></td>
-          <td class="adm-num is-nowrap"><b>{{ number_format($pl['sale_price'] ?: $pl['price']) }}</b>@if ($pl['sale_price'])<small><s>{{ number_format($pl['price']) }}</s></small>@endif</td>
-          <td>{{ $validity[$pl['validity']] }}</td>
-          <td class="adm-num">{{ $pl['buyers'] }}</td>
-          <td>@if ($pl['is_active'])<x-admin.badge tone="ok">فعال</x-admin.badge>@else<x-admin.badge tone="mute">غیرفعال</x-admin.badge>@endif</td>
-          <td><x-admin.row-actions edit="plan-modal" del="plan-del" :row="$pl" :name="$pl['name']" :url="url('admin/plans/'.$pl['id'])" edit-title="ویرایش پلن"/></td>
-        </tr>
-      @endforeach
-    </tbody>
-  </table></div>
-</x-admin.panel>
-
 <div class="adm-split">
-  <section class="adm-stack" data-tone="edu" aria-label="فصل‌ها">
-    @foreach ($chapters as $i => $ch)
-      <div class="adm-chapter">
-        <div class="adm-chapter-head" data-toggle-chapter>
-          <span class="adm-chapter-no adm-num">{{ $i + 1 }}</span>
-          <div class="adm-grow"><h3>{{ $ch['title'] }}</h3><small class="adm-muted adm-num">{{ count($ch['lessons']) }} درس</small></div>
-          <x-admin.btn variant="line" size="sm" icon="plus" data-modal-open="lesson-modal" :data-action="url('admin/courses/'.$course['id'].'/chapters/'.$ch['id'].'/lessons')">درس</x-admin.btn>
-          <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="chapter-modal" data-title="ویرایش فصل" :data-fill="json_encode(['title' => $ch['title'], 'position' => $i + 1], JSON_UNESCAPED_UNICODE)" :data-action="url('admin/chapters/'.$ch['id'])" data-method="PUT" aria-label="ویرایش فصل"/>
-          <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="chapter-del" :data-name="$ch['title']" :data-action="url('admin/chapters/'.$ch['id'])" aria-label="حذف فصل"/>
-        </div>
-        <div class="adm-chapter-body" data-sortable>
-          @foreach ($ch['lessons'] as $l)
-            <div class="adm-lesson" data-sort-item data-id="{{ $l['id'] }}">
-              <span class="adm-grip" data-grip title="برای جابه‌جایی بکشید"><x-admin.icon name="grip"/></span>
-              <span class="adm-lesson-ico {{ $l['access'] === 'paid' ? 'is-paid' : '' }}"><x-admin.icon :name="$l['access'] === 'paid' ? 'lock' : 'video'"/></span>
-              <div class="adm-grow"><b>{{ $l['title'] }}</b><small class="adm-num">{{ $l['duration'] }} دقیقه</small></div>
-              @if ($l['access'] === 'paid')<x-admin.badge tone="info">با مجوز ویدیو</x-admin.badge>@else<x-admin.badge tone="ok">پیش‌نمایش رایگان</x-admin.badge>@endif
-              <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="lesson-modal" data-title="ویرایش درس" :data-fill="json_encode($l, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/lessons/'.$l['id'])" data-method="PUT" aria-label="ویرایش درس"/>
-              <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="lesson-del" :data-name="$l['title']" :data-action="url('admin/lessons/'.$l['id'])" aria-label="حذف درس"/>
-            </div>
-          @endforeach
-        </div>
+  <section class="adm-stack" data-tone="edu" aria-label="ساختار آموزشی دوره">
+    <x-admin.panel title="امکانات فعال این دوره" desc="امکانات از تنظیمات اصلی دوره کنترل می‌شوند؛ اینجا فقط وضعیت واقعی آن‌ها نمایش داده می‌شود." flush>
+      <div class="adm-side-list">
+        @foreach($featureLabels as $key => $label)
+          <div>
+            <span class="adm-stat-ico" data-tone="{{ $features[$key] ? 'edu' : 'muted' }}" style="width:34px;height:34px;border-radius:10px">
+              <x-admin.icon :name="$features[$key] ? 'check' : 'minus'"/>
+            </span>
+            <div class="adm-grow"><b>{{ $label }}</b></div>
+            @if($features[$key])<x-admin.badge tone="ok">فعال</x-admin.badge>@else<x-admin.badge tone="warn">غیرفعال</x-admin.badge>@endif
+          </div>
+        @endforeach
       </div>
-    @endforeach
+      <x-slot:footer>
+        <x-admin.btn variant="line" size="sm" :href="route('admin.courses.index')">ویرایش امکانات در تنظیمات دوره</x-admin.btn>
+      </x-slot:footer>
+    </x-admin.panel>
+
+    <x-admin.panel title="فصل‌ها و درس‌ها" :desc="$course->sections->count().' فصل · '.$lessonCount.' درس ثبت‌شده'" flush>
+      @forelse($course->sections as $section)
+        <div class="adm-chapter">
+          <div class="adm-chapter-head">
+            <span class="adm-chapter-no adm-num">{{ $loop->iteration }}</span>
+            <div class="adm-grow">
+              <h3>{{ $section->title }}</h3>
+              <small class="adm-muted">{{ $section->lessons->count() }} درس · {{ $section->status === 'published' ? 'منتشرشده' : ($section->status === 'draft' ? 'پیش‌نویس' : 'بایگانی') }}</small>
+              @if($section->description)<p class="adm-muted">{{ $section->description }}</p>@endif
+            </div>
+            <x-admin.btn size="sm" variant="line" icon="plus" data-modal-open="lesson-modal" :data-action="route('admin.courses.lessons.store', $section)">افزودن درس</x-admin.btn>
+            <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="section-modal" data-title="ویرایش فصل" :data-fill="json_encode(['title' => $section->title, 'description' => $section->description, 'sort_order' => $section->sort_order, 'status' => $section->status], JSON_UNESCAPED_UNICODE)" :data-action="route('admin.courses.sections.update', $section)" data-method="PATCH" aria-label="ویرایش فصل"/>
+            <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="section-delete" :data-name="$section->title" :data-action="route('admin.courses.sections.destroy', $section)" aria-label="حذف فصل"/>
+          </div>
+
+          <div class="adm-chapter-body">
+            @forelse($section->lessons as $lesson)
+              <div class="adm-lesson">
+                <span class="adm-lesson-ico"><x-admin.icon name="file"/></span>
+                <div class="adm-grow">
+                  <b>{{ $lesson->title }}</b>
+                  <small class="adm-muted">{{ $lesson->duration_minutes }} دقیقه · {{ $lesson->status === 'published' ? 'منتشرشده' : ($lesson->status === 'draft' ? 'پیش‌نویس' : 'بایگانی') }}</small>
+                </div>
+                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="lesson-modal" data-title="ویرایش درس" :data-fill="json_encode(['title' => $lesson->title, 'body' => $lesson->body, 'duration_minutes' => $lesson->duration_minutes, 'sort_order' => $lesson->sort_order, 'status' => $lesson->status], JSON_UNESCAPED_UNICODE)" :data-action="route('admin.courses.lessons.update', $lesson)" data-method="PATCH" aria-label="ویرایش درس"/>
+                <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="lesson-delete" :data-name="$lesson->title" :data-action="route('admin.courses.lessons.destroy', $lesson)" aria-label="حذف درس"/>
+              </div>
+            @empty
+              <x-admin.empty text="هنوز درسی در این فصل ثبت نشده است."/>
+            @endforelse
+          </div>
+        </div>
+      @empty
+        <x-admin.empty text="ساختار آموزشی این دوره هنوز ایجاد نشده است. از «فصل جدید» شروع کنید."/>
+      @endforelse
+    </x-admin.panel>
   </section>
 
   <aside class="adm-stack">
-    <x-admin.panel title="کلاس‌های این دوره" desc="هر کلاس یک گروه آموزشی با جلسات زنده خودش است" flush data-tone="edu">
-      <x-slot:actions><x-admin.btn size="sm" variant="line" :href="url('admin/classes')">مدیریت</x-admin.btn></x-slot:actions>
+    <x-admin.panel title="گروه‌های آموزشی / کلاس‌ها" desc="هر کلاس یک گروه اجرایی برای مدرس، دانش‌آموزان و جلسات خودش است." flush data-tone="edu">
+      <x-slot:actions><x-admin.btn size="sm" variant="line" :href="route('admin.classes.index')">مدیریت همه کلاس‌ها</x-admin.btn></x-slot:actions>
       <div class="adm-side-list">
-        @foreach ($cohorts as $c)
-          <div><span class="adm-stat-ico" data-tone="edu" style="width:38px;height:38px;border-radius:11px"><x-admin.icon name="cls"/></span><div class="adm-grow"><b>{{ $c['title'] }}</b><div class="adm-muted adm-num">{{ $c['when'] }}</div></div><x-admin.badge tone="mute" class="is-plain"><span class="adm-num">{{ $c['members'] }}/{{ $c['cap'] }}</span></x-admin.badge></div>
-        @endforeach
+        @forelse($course->classrooms as $classroom)
+          <div>
+            <span class="adm-stat-ico" data-tone="edu" style="width:38px;height:38px;border-radius:11px"><x-admin.icon name="users"/></span>
+            <div class="adm-grow">
+              <b>{{ $classroom->name }}</b>
+              <small class="adm-muted">{{ $classroom->teacher?->name ?? 'مدرس تعیین نشده' }} · {{ $classroom->students_count }} دانش‌آموز · {{ $classroom->sessions_count }} جلسه</small>
+              @if($classroom->skyroom_status === 'waiting_contract')
+                <small class="adm-muted">اتصال Skyroom در انتظار قرارداد</small>
+              @elseif($classroom->skyroom_status === 'ready')
+                <small class="adm-muted">اتاق Skyroom متصل است</small>
+              @endif
+            </div>
+            <x-admin.btn size="sm" variant="soft" :href="route('admin.classes.sessions.index', $classroom)">جلسات</x-admin.btn>
+          </div>
+        @empty
+          <x-admin.empty text="هنوز گروهی برای این دوره ساخته نشده است."/>
+        @endforelse
       </div>
     </x-admin.panel>
 
-    <x-admin.panel title="ویدیوی معرفی" desc="برای همه قابل مشاهده است" data-tone="edu">
-      <div class="adm-stack" style="gap:12px">
-        <div class="adm-video"><x-admin.icon name="play"/></div>
-        <form method="POST" action="{{ url('admin/courses/'.$course['id'].'/teaser') }}" enctype="multipart/form-data" data-demo data-demo-message="ویدیوی معرفی ذخیره شد (نمایشی)">
-          @csrf
-          <x-admin.file label="جایگزینی ویدیو" name="teaser" accept="video/*" :wide="false" icon="video" hint="MP4، حداکثر ۵۰۰ مگابایت"/>
-          <x-admin.btn type="submit" variant="line" style="width:100%;margin-top:12px">ذخیره ویدیو</x-admin.btn>
-        </form>
+    @unless($teacherView)
+    <x-admin.panel title="وضعیت یکپارچه‌سازی" desc="اتصال خارجی مستقل از ثبت‌نام و ساختار آموزشی نگهداری می‌شود." data-tone="shop">
+      <div class="adm-stack">
+        <div class="adm-row-between">
+          <b>SpotPlayer</b>
+          <x-admin.badge :tone="in_array($course->integration_status, ['active', 'ready'], true) ? 'ok' : 'warn'">{{ $course->integration_status ?: 'ثبت نشده' }}</x-admin.badge>
+        </div>
+        @if($course->integration_note)<p class="adm-muted">{{ $course->integration_note }}</p>@endif
+        <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.index')">مدیریت ویدیو و لایسنس‌ها</x-admin.btn>
+        <div class="adm-divider"></div>
+        <p class="adm-muted">برای ساخت و زمان‌بندی جلسه آنلاین، ابتدا گروه آموزشی بسازید و سپس وارد بخش «جلسات» همان گروه شوید. نبود قرارداد Skyroom مانع ثبت برنامه جلسات نیست.</p>
+        <x-admin.btn size="sm" variant="line" :href="route('admin.quiz24.index')">مدیریت Quiz24 و همگام‌سازی نتایج</x-admin.btn>
       </div>
+    </x-admin.panel>
+    @endunless
+
+    <x-admin.panel title="فروش دوره" desc="قیمت فعلی دوره در صفحه خرید استفاده می‌شود." data-tone="shop">
+      <b class="adm-price">{{ $course->type === 'free' ? 'رایگان' : number_format((int) $course->price).' تومان' }}</b>
+      <p class="adm-muted">در این نسخه، فروش در سطح خود دوره انجام می‌شود. بسته‌های دارای مجوزهای جزئی باید به مدل مستقل بسته و مجوز دسترسی متصل شوند؛ این صفحه دیگر پلن‌های نمایشی نشان نمی‌دهد.</p>
+      <x-admin.btn size="sm" variant="line" :href="route('admin.courses.index')">ویرایش قیمت و نوع فروش</x-admin.btn>
     </x-admin.panel>
   </aside>
 </div>
 @endsection
 
 @push('modals')
-<x-admin.modal id="plan-modal" title="پلن جدید" size="lg" :action="url('admin/courses/'.$course['id'].'/plans')">
-  <x-admin.input label="نام پلن" name="name" placeholder="مثلاً پیشرفته" wide required/>
-  <x-admin.chips label="امکانات این پلن" name="includes" :options="$includes" hint="می‌توان فقط ویدیو یا فقط کلاس زنده فروخت"/>
-  <x-admin.legend title="قیمت و اعتبار"/>
-  <x-admin.input label="قیمت" name="price" type="number" min="0" step="1000" addon="تومان" required/>
-  <x-admin.input label="قیمت با تخفیف" name="sale_price" type="number" min="0" step="1000" addon="تومان" hint="خالی = بدون تخفیف"/>
-  <x-admin.select label="مدت اعتبار مجوز" name="validity" :options="$validity"/>
-  <x-admin.switch label="پلن پیشنهادی" name="is_featured" hint="با نشان ویژه در صفحه دوره"/>
-  <x-admin.switch label="پلن فعال باشد" name="is_active" :checked="true" wide/>
-</x-admin.modal>
-
-<x-admin.modal id="chapter-modal" title="فصل جدید" size="sm" :action="url('admin/courses/'.$course['id'].'/chapters')">
+<x-admin.modal :demo="false" id="section-modal" title="فصل جدید" size="md" :action="route('admin.courses.sections.store', $course)">
   <x-admin.input label="عنوان فصل" name="title" wide required/>
-  <x-admin.input label="ترتیب" name="position" type="number" min="1" wide/>
+  <x-admin.textarea label="توضیحات فصل" name="description" wide/>
+  <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
+  <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" required/>
 </x-admin.modal>
 
-<x-admin.modal id="lesson-modal" title="درس جدید" size="lg" :action="url('admin/lessons')">
+<x-admin.modal :demo="false" id="lesson-modal" title="درس جدید" size="md" :action="url('admin/course-sections/0/lessons')">
   <x-admin.input label="عنوان درس" name="title" wide required/>
-  <x-admin.chips label="چه کسی می‌تواند ببیند؟" name="access" :multiple="false" :options="['free' => 'پیش‌نمایش رایگان', 'paid' => 'دارندگان مجوز «ویدیو»']" :checked="['paid']"/>
-  <x-admin.input label="مدت (دقیقه)" name="duration" type="number" min="1"/>
-  <x-admin.file label="ویدیوی درس" name="video" accept="video/*" icon="video" hint="ویدیوهای محافظت‌شده با اسپات‌پلیر پخش می‌شوند"/>
-  <x-admin.file label="جزوه یا فایل پیوست (اختیاری)" name="attachment" accept=".pdf,.zip" icon="file" hint="PDF یا ZIP"/>
+  <x-admin.textarea label="متن / توضیحات درس" name="body" wide/>
+  <x-admin.input label="مدت (دقیقه)" name="duration_minutes" type="number" min="0" max="600"/>
+  <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
+  <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" required/>
 </x-admin.modal>
 
-<x-admin.confirm id="plan-del" title="حذف پلن" text="ثبت‌نام‌های قبلی این پلن حفظ می‌شود ولی فروش جدید متوقف می‌شود."/>
-<x-admin.confirm id="chapter-del" title="حذف فصل" text="فصل و همهٔ درس‌های داخل آن حذف می‌شود."/>
-<x-admin.confirm id="lesson-del" title="حذف درس" text="درس و ویدیوی آن حذف می‌شود."/>
+<x-admin.confirm :demo="false" id="section-delete" title="حذف فصل" text="اگر برای درس‌های این فصل سابقه پیشرفت وجود داشته باشد، حذف انجام نمی‌شود و باید فصل را بایگانی کنید."/>
+<x-admin.confirm :demo="false" id="lesson-delete" title="حذف درس" text="اگر برای این درس سابقه پیشرفت ثبت شده باشد، حذف انجام نمی‌شود و باید درس را بایگانی کنید."/>
 @endpush

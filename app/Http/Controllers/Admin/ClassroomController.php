@@ -14,6 +14,7 @@ use App\Services\Learning\LiveClassService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class ClassroomController extends Controller
 {
@@ -24,7 +25,7 @@ class ClassroomController extends Controller
 
         $classrooms = $workspace->queryFor($user)
             ->with(['course', 'teacher', 'students:id,name'])
-            ->withCount('students')->latest()->paginate(15);
+            ->withCount(['students', 'sessions'])->latest()->paginate(15);
 
         $courses = $workspace->coursesQueryFor($user)
             ->whereIn('status', ['published', 'draft'])
@@ -48,14 +49,27 @@ class ClassroomController extends Controller
             }))
             ->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView'));
+        $visibleClassroomIds = $workspace->queryFor($user)->select('classrooms.id');
+        $stats = [
+            'total' => (clone $visibleClassroomIds)->count(),
+            'active' => (clone $workspace->queryFor($user))->where('status', 'active')->count(),
+            'students' => DB::table('classroom_student')
+                ->whereIn('classroom_id', clone $visibleClassroomIds)
+                ->distinct()
+                ->count('student_id'),
+            'without_teacher' => (clone $workspace->queryFor($user))->whereNull('teacher_id')->count(),
+        ];
+
+        $canManage = $user->hasAnyPermission(['classes.manage', 'classes.manage.assigned']);
+
+        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView', 'stats', 'canManage'));
     }
 
     public function store(StoreClassroomRequest $request, ClassroomService $classrooms): RedirectResponse
     {
         $classrooms->create($request->user(), $request->validated());
 
-        return back()->with('success', 'کلاس و لینک ورود آنلاین آن با موفقیت ثبت شد.');
+        return back()->with('success', 'گروه آموزشی و اعضای آن با موفقیت ثبت شدند؛ برنامه جلسات را از بخش جلسات مدیریت کنید.');
     }
 
     public function update(
@@ -65,7 +79,7 @@ class ClassroomController extends Controller
     ): RedirectResponse {
         $classrooms->update($request->user(), $classroom, $request->validated());
 
-        return back()->with('success', 'کلاس، زمان‌بندی و لینک اسکای‌روم به‌روزرسانی شد.');
+        return back()->with('success', 'اطلاعات گروه آموزشی، اعضا و برنامه هفتگی به‌روزرسانی شد.');
     }
 
     public function ensureSkyroomRoom(

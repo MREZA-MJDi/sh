@@ -12,13 +12,16 @@ class Course extends Model
     protected $fillable = [
         'title', 'slug', 'description', 'subject', 'grade', 'teacher_id',
         'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
-        'integration_status', 'integration_note',
+        'integration_status', 'integration_note', 'learning_features',
         'teaser_original_path', 'teaser_path', 'teaser_poster_path', 'teaser_status', 'teaser_error',
     ];
 
     protected function casts(): array
     {
-        return ['price' => 'integer'];
+        return [
+            'price' => 'integer',
+            'learning_features' => 'array',
+        ];
     }
 
     public function getTeaserUrlAttribute(): ?string
@@ -69,5 +72,26 @@ class Course extends Model
     public function spotPlayerVideos(): HasMany
     {
         return $this->hasMany(SpotPlayerVideo::class);
+    }
+
+    /**
+     * Backward-compatible feature policy: explicit matrix values always win;
+     * legacy courses retain their former delivery defaults until configured.
+     */
+    public function featureEnabled(string $feature): bool
+    {
+        $features = $this->learning_features;
+
+        if (is_array($features) && array_key_exists($feature, $features)) {
+            return (bool) $features[$feature];
+        }
+
+        return match ($feature) {
+            'recorded_video' => $this->delivery_type === 'spotplayer',
+            'live_class' => $this->delivery_type === 'skyroom',
+            'resources', 'assignments', 'exams' => true,
+            'projects' => false,
+            default => false,
+        };
     }
 }

@@ -39,7 +39,13 @@ final class StudentDashboardService
 
         $homeworkQuery = Homework::query()
             ->whereIn('classroom_id', clone $classroomIds)
-            ->where('status', 'published');
+            ->where('status', 'published')
+            ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                ->whereNull('course_id')
+                ->orWhereHas('course', fn (Builder $course) => $course
+                    ->where(fn (Builder $features) => $features
+                        ->whereNull('learning_features')
+                        ->orWhere('learning_features->assignments', true))));
 
         $homeworks = (clone $homeworkQuery)
             ->with('classroom:id,name,course_id')
@@ -97,6 +103,25 @@ final class StudentDashboardService
             ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
             ->where('status', 'published')
             ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
+            ->where(function (Builder $featureScope): void {
+                $featureScope->where(function (Builder $courseScope): void {
+                    $courseScope->whereNotNull('course_id')
+                        ->whereHas('course', fn (Builder $course) => $course
+                            ->where(fn (Builder $features) => $features
+                                ->whereNull('learning_features')
+                                ->orWhere('learning_features->resources', true)));
+                })->orWhere(function (Builder $classroomScope): void {
+                    $classroomScope->whereNotNull('classroom_id')
+                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                            ->whereNull('course_id')
+                            ->orWhereHas('course', fn (Builder $course) => $course
+                                ->where(fn (Builder $features) => $features
+                                    ->whereNull('learning_features')
+                                    ->orWhere('learning_features->resources', true))));
+                })->orWhere(function (Builder $unscoped): void {
+                    $unscoped->whereNull('course_id')->whereNull('classroom_id');
+                });
+            })
                         ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function (Builder $classScoped) use ($classroomIds, $courseIds): void {
                     $classScoped->whereNotNull('classroom_id')

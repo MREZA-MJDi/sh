@@ -45,7 +45,22 @@
         @if ($nextSession)
             <p>{{ $nextSession->starts_at?->format('Y/m/d H:i') }}</p>
             @if ($nextSession->session_type === 'online')
-                <form method="POST" action="{{ route('student.class-sessions.join', $nextSession) }}">@csrf<button class="btn s" type="submit">ورود به کلاس آنلاین</button></form>
+                @php
+                    $nextJoinReady = filled($nextSession->meeting_url)
+                        || ($nextSession->meeting_provider === 'skyroom'
+                            && filled($nextSession->classroom?->skyroom_room_id)
+                            && $nextSession->classroom?->skyroom_status === 'ready');
+                    $joinWindowOpen = $nextSession->starts_at && $nextSession->ends_at
+                        && $nextSession->starts_at->lte(now()->addMinutes(15))
+                        && $nextSession->ends_at->gte(now());
+                @endphp
+                @if($nextJoinReady && $joinWindowOpen)
+                    <form method="POST" action="{{ route('student.class-sessions.join', $nextSession) }}" target="_blank" rel="noopener">@csrf<button class="btn s" type="submit">ورود به کلاس آنلاین</button></form>
+                @elseif(! $nextJoinReady)
+                    <span class="tag">اتصال Skyroom در انتظار فعال‌سازی</span>
+                @else
+                    <span class="tag">ورود از ۱۵ دقیقه پیش از شروع</span>
+                @endif
             @else
                 <span class="tag">جلسه حضوری</span>
             @endif

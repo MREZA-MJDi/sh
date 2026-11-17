@@ -18,14 +18,26 @@ class ExamController extends Controller
     {
         $user = auth()->user();
         $records = $exams->queryFor($user)->with(['classroom', 'course'])
-            ->withCount('results')->latest()->paginate(15);
+            ->withCount(['results', 'questions'])->latest()->paginate(15);
         $classroomOptions = $classrooms->queryFor($user)->orderBy('name')->get(['id', 'name']);
         $courseOptions = $classrooms->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
+
+        $teacherView = $classrooms->isTeacher($user);
+        $pageRows = $records->getCollection();
+
+        $stats = [
+            'total' => $records->total(),
+            'upcoming' => $pageRows->whereIn('status', ['scheduled', 'published'])->count(),
+            'quiz24' => $pageRows->where('provider', 'quiz24')->count(),
+            'drafts' => $pageRows->where('status', 'draft')->count(),
+        ];
 
         return view('admin.exams.index', [
             'exams' => $records,
             'classrooms' => $classroomOptions,
             'courses' => $courseOptions,
+            'teacherView' => $teacherView,
+            'stats' => $stats,
         ]);
     }
 

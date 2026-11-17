@@ -88,7 +88,11 @@ final class LearningResourceAccessService
             ->where(fn (Builder $expiry) => $expiry
                 ->whereNull('expires_at')
                 ->orWhere('expires_at', '>', now()))
-            ->whereHas('course', fn (Builder $course) => $course->where('status', 'published'))
+            ->whereHas('course', fn (Builder $course) => $course
+                ->where('status', 'published')
+                ->where(fn (Builder $features) => $features
+                    ->whereNull('learning_features')
+                    ->orWhere('learning_features->resources', true)))
             ->exists();
     }
 }

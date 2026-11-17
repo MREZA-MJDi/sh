@@ -7,6 +7,13 @@
 @section('content')
 @php
     $teacher = $course->teacher;
+    $learningBenefits = [];
+    if ($features['recorded_video'] ?? false) $learningBenefits[] = 'آموزش ویدیویی فصل‌به‌فصل با دسترسی کنترل‌شده';
+    if ($features['live_class'] ?? false) $learningBenefits[] = 'جلسات آنلاین زمان‌بندی‌شده و پیگیری حضور در کلاس';
+    if ($features['resources'] ?? false) $learningBenefits[] = 'جزوه‌ها، فایل‌ها و منابع تکمیلی آموزشی';
+    if ($features['assignments'] ?? false) $learningBenefits[] = 'تمرین، تکلیف و بازخورد مدرس';
+    if ($features['exams'] ?? false) $learningBenefits[] = 'آزمون و کوییز با ثبت نتیجه در کارنامه';
+    if ($features['projects'] ?? false) $learningBenefits[] = 'پروژه‌های مرحله‌ای و ارزیابی پیشرفت';
 @endphp
 
 {{-- سربرگ مشخصات دوره --}}
@@ -37,10 +44,15 @@
                 <span class="bd">پایه {{ $course->grade }}</span>
             @endif
         </div>
-        <div class="mt" aria-label="نوع ارائه و کلاس‌های دوره">
-            <span>شیوه ارائه محتوا: {{ ['spotplayer' => 'ویدیوی آموزشی', 'skyroom' => 'آموزش زنده', 'onsite' => 'آموزش حضوری'][$course->delivery_type] ?? 'ترکیبی' }}</span>
+        <div class="mt" aria-label="امکانات و شیوه ارائه دوره">
+            @if($features['recorded_video'] ?? false)<span>آموزش ویدیویی</span>@endif
+            @if($features['live_class'] ?? false)<span>آموزش زنده</span>@endif
+            @if($features['resources'] ?? false)<span>منابع آموزشی</span>@endif
+            @if($features['assignments'] ?? false)<span>تکلیف و تمرین</span>@endif
+            @if($features['exams'] ?? false)<span>آزمون و کوییز</span>@endif
+            @if($features['projects'] ?? false)<span>پروژه مرحله‌ای</span>@endif
             <span>{{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال</span>
-            <span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>
+            @if($features['live_class'] ?? false)<span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>@endif
         </div>
     </div>
 </div>
@@ -50,6 +62,7 @@
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
+        @if($features['live_class'] ?? false)<a href="#live-sessions">برنامه کلاس‌ها</a>@endif
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
@@ -91,35 +104,19 @@
             @endif
 
 
-            <div class="card blk" id="c1-learning">
-                <h2>در این دوره چه یاد می‌گیری؟</h2>
-                <ul class="learn">
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>آموزش مفهومی و سرفصل‌به‌سرفصل کتاب درسی</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>حل مسئله و تسلط بر تیپ‌های مختلف سؤالات امتحانی</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>تکنیک‌های تست‌زنی و مدیریت زمان ویژه کنکور</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>بررسی و تحلیل نمونه سؤالات سال‌های اخیر</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>رفع اشکال مستمر و ارتباط با تیم آموزشی</span>
-                    </li>
-                    <li>
-                        <svg class="i"><use href="#chk"/></svg>
-                        <span>آزمون‌های مرحله‌ای همراه با کارنامه و پاسخ تشریحی</span>
-                    </li>
-                </ul>
-            </div>
+            @if(count($learningBenefits))
+                <div class="card blk" id="c1-learning">
+                    <h2>امکانات آموزشی این دوره</h2>
+                    <ul class="learn">
+                        @foreach($learningBenefits as $benefit)
+                            <li>
+                                <svg class="i"><use href="#chk"/></svg>
+                                <span>{{ $benefit }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             {{-- بخش ۲: سرفصل‌ها و جلسات دوره --}}
             <div class="card blk" id="c2">
@@ -171,7 +168,8 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    $isUnlocked = (bool) $hasCourseAccess;
+                                                    $isUnlocked = (bool) $hasCourseAccess
+                                                        && (! ($features['recorded_video'] ?? false) || (bool) $canWatchCourseVideos);
                                                 @endphp
                                                 <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
                                                     <div class="lesson-main">
@@ -230,6 +228,50 @@
                     </div>
                 @endif
             </div>
+
+            @if($features['live_class'] ?? false)
+                <section class="card blk" id="live-sessions">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+                        <div>
+                            <h2 style="margin:0 0 6px">برنامه کلاس‌های آنلاین</h2>
+                            <p class="mu" style="margin:0">زمان‌بندی گروه‌های فعال این دوره؛ ورود به جلسه فقط برای اعضای مجاز همان کلاس فعال است.</p>
+                        </div>
+                        <span class="c-badge">{{ number_format($upcomingSessions->count()) }} جلسه پیش‌رو</span>
+                    </div>
+                    @forelse($upcomingSessions as $session)
+                        @php
+                            $joinReady = filled($session->meeting_url)
+                                || ($session->meeting_provider === 'skyroom'
+                                    && filled($session->classroom?->skyroom_room_id)
+                                    && $session->classroom?->skyroom_status === 'ready');
+                        @endphp
+                        <article style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--ln);flex-wrap:wrap">
+                            <div style="min-width:220px;flex:1">
+                                <strong style="display:block">{{ $session->title }}</strong>
+                                <span class="mu" style="font-size:13px">{{ $session->can_join ? ($session->classroom?->name ?? 'گروه آموزشی شما') : 'گروه آموزشی' }}</span>
+                                <div style="margin-top:5px;font-size:13px;color:var(--mute)">
+                                    {{ $session->starts_at?->translatedFormat('l d F Y، H:i') }}
+                                    @if($session->ends_at) — {{ $session->ends_at->translatedFormat('H:i') }} @endif
+                                </div>
+                            </div>
+                            @if(auth()->check() && auth()->user()->hasRole('student') && $session->can_join && $joinReady)
+                                <form method="POST" action="{{ route('student.class-sessions.join', $session) }}" target="_blank" rel="noopener">
+                                    @csrf
+                                    <button type="submit" class="btn s">ورود به کلاس</button>
+                                </form>
+                            @elseif(auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
+                                <span class="lesson-lock-label">اتصال Skyroom در انتظار فعال‌سازی سرویس</span>
+                            @elseif(auth()->check() && auth()->user()->hasRole('student') && $hasCourseAccess)
+                                <span class="lesson-lock-label">برای ورود، عضویت در گروه این کلاس لازم است</span>
+                            @else
+                                <span class="lesson-lock-label">پس از ثبت‌نام و تخصیص گروه فعال می‌شود</span>
+                            @endif
+                        </article>
+                    @empty
+                        <div class="lesson-empty">هنوز جلسه‌ای برای گروه‌های این دوره زمان‌بندی نشده است. برنامه کلاس پس از ثبت توسط آموزش در همین صفحه نمایش داده می‌شود.</div>
+                    @endforelse
+                </section>
+            @endif
 
             {{-- بخش ۳: مدرس دوره --}}
             @if($teacher)
@@ -304,23 +346,28 @@
             </p>
 
             <ul>
-                <li>
-                    <svg class="i"><use href="#cam"/></svg>
-                    <span>{{ $totalLessons > 0 ? $totalLessons . ' جلسه آموزش ویدیویی' : 'دسترسی به ویدیوها' }}</span>
-                </li>
-                <li>
-                    <svg class="i"><use href="#inf"/></svg>
-                    <span>دسترسی به سرفصل‌های منتشرشده بر اساس وضعیت ثبت‌نام</span>
-                </li>
-                <li>
-                    <svg class="i"><use href="#help"/></svg>
-                    <span>پشتیبانی و رفع اشکال مستقیم مدرس</span>
-                </li>
-                <li>
-                    <svg class="i"><use href="#award"/></svg>
-                    <span>آزمون‌های مرحله‌ای و سنجش تراز</span>
-                </li>
+                @if($features['recorded_video'] ?? false)
+                    <li><svg class="i"><use href="#cam"/></svg><span>{{ $totalLessons }} درس ویدیویی / آموزشی</span></li>
+                @endif
+                @if($features['live_class'] ?? false)
+                    <li><svg class="i"><use href="#users"/></svg><span>جلسات زنده و گروه‌های کلاسی</span></li>
+                @endif
+                @if($features['resources'] ?? false)
+                    <li><svg class="i"><use href="#inf"/></svg><span>جزوه و منابع تکمیلی</span></li>
+                @endif
+                @if($features['assignments'] ?? false)
+                    <li><svg class="i"><use href="#file"/></svg><span>تمرین و تکلیف با بازخورد مدرس</span></li>
+                @endif
+                @if($features['exams'] ?? false)
+                    <li><svg class="i"><use href="#award"/></svg><span>آزمون و کوییز و ثبت نتیجه</span></li>
+                @endif
+                @if($features['projects'] ?? false)
+                    <li><svg class="i"><use href="#check"/></svg><span>پروژه و ارزیابی مرحله‌ای</span></li>
+                @endif
             </ul>
+            @if(($features['recorded_video'] ?? false) && $hasCourseAccess && ! $canWatchCourseVideos)
+                <p class="lesson-empty" style="margin-top:14px">ثبت‌نام شما فعال است؛ پخش ویدیو پس از صدور یا تأیید لایسنس SpotPlayer در همین صفحه فعال می‌شود.</p>
+            @endif
         </aside>
     </div>
 

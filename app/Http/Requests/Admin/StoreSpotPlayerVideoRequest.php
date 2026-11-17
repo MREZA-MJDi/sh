@@ -34,8 +34,8 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             $workspace = app(ClassroomWorkspaceService::class);
             $course = Course::query()->find($this->integer('course_id'));
 
-            if (! $course || $course->delivery_type !== 'spotplayer') {
-                $validator->errors()->add('course_id', 'ویدیو باید به یک دوره با روش ارائه SpotPlayer متصل شود.');
+            if (! $course || ! $course->featureEnabled('recorded_video')) {
+                $validator->errors()->add('course_id', 'قابلیت آموزش ویدیویی این دوره فعال نیست.');
                 return;
             }
 

@@ -23,7 +23,7 @@
         <div class="ac-card ac-auth-card">
             <div class="auth-card-heading">
                 <span class="auth-kicker">خوش آمدی</span>
-                <h1>ورود به آکادمی شیخان</h1>
+                <h1>ورود به حساب کاربری آکادمی شیخان</h1>
                 <p class="ac-muted">وارد حساب شو یا برای شروع یادگیری، حساب دانش‌آموزی بساز.</p>
             </div>
 
@@ -53,10 +53,10 @@
                     <button class="ac-btn auth-submit" type="submit">ورود به پنل</button>
                 </form>
 
-                @if (! empty($demoAccounts) && is_string($demoPassword) && $demoPassword !== '')
+                @if (config('demo.enabled') && config('demo.login_cards_enabled') && ! empty($demoAccounts) && is_string($demoPassword) && $demoPassword !== '')
                     <div class="auth-demo">
                         <div class="auth-demo-heading">
-                            <strong>ورود سریع به پنل‌های آزمایشی</strong>
+                            <strong>ورود سریع برای بررسی پنل‌ها</strong>
                             <span>برای ورود، کارت پنل موردنظر را انتخاب کن.</span>
                         </div>
                         <div class="auth-demo-grid">

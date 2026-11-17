@@ -1,0 +1,28 @@
+@props(['course'])
+
+<a class="ac-card ac-course" href="{{ route('public.courses.show', $course->slug) }}" aria-label="مشاهده دوره {{ $course->title }}">
+    <div class="ac-course-cover">
+        <span aria-hidden="true">{{ mb_substr($course->subject ?: $course->title, 0, 1) }}</span>
+    </div>
+    <div class="ac-course-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            @if($course->grade)
+                <span class="ac-pill">پایه {{ $course->grade }}</span>
+            @endif
+            @if($course->type === 'free')
+                <span class="ac-pill">رایگان</span>
+            @else
+                <span class="ac-pill ac-pill-orange">دوره تخصصی</span>
+            @endif
+        </div>
+        <h3>{{ $course->title }}</h3>
+        <div class="ac-meta">
+            @if($course->subject)<span>{{ $course->subject }}</span>@endif
+            @if($course->teacher?->name)<span>{{ $course->teacher->name }}</span>@endif
+        </div>
+        <div class="ac-price">
+            <b>{{ $course->type === 'free' ? 'رایگان' : number_format((int) $course->price).' تومان' }}</b>
+            <span class="ac-link">مشاهده دوره ←</span>
+        </div>
+    </div>
+</a>

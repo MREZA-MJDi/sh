@@ -3,89 +3,121 @@
 
 @section('content')
 @php
-  $classes = ['1' => 'ریاضی نهم — الف', '2' => 'فیزیک دهم — ب', '3' => 'زیست یازدهم — ج'];
-  $kinds = ['class' => 'آزمون کلاسی', 'online' => 'آزمون آنلاین', 'midterm' => 'امتحان میان‌ترم'];
-  $status = ['planned' => ['info', 'برنامه‌ریزی‌شده'], 'graded' => ['ok', 'نمره‌دهی شده'], 'pending' => ['warn', 'منتظر نمره‌دهی']];
-  $rows = $exams ?? [
-    ['id' => 1, 'title' => 'آزمون فصل ۳ ریاضی', 'class_id' => '1', 'kind' => 'class', 'date' => '1405-08-29', 'time' => '16:00', 'duration' => 60, 'max_score' => 20, 'status' => 'planned', 'avg' => '', 'publish' => 0],
-    ['id' => 2, 'title' => 'آزمون آنلاین فیزیک', 'class_id' => '2', 'kind' => 'online', 'date' => '1405-08-22', 'time' => '17:30', 'duration' => 45, 'max_score' => 20, 'status' => 'pending', 'avg' => '', 'publish' => 0],
-    ['id' => 3, 'title' => 'میان‌ترم زیست', 'class_id' => '3', 'kind' => 'midterm', 'date' => '1405-08-15', 'time' => '15:00', 'duration' => 90, 'max_score' => 20, 'status' => 'graded', 'avg' => 14.6, 'publish' => 1],
+  $classOptions = $classrooms->pluck('name', 'id')->all();
+  $courseOptions = $courses->pluck('title', 'id')->all();
+  $providerOptions = $teacherView
+      ? ['internal' => 'آزمون داخلی شیخان']
+      : ['internal' => 'آزمون داخلی شیخان', 'quiz24' => 'Quiz24 (اتصال پس از دریافت قرارداد)'];
+  $statusOptions = [
+      'draft' => 'پیش‌نویس',
+      'scheduled' => 'زمان‌بندی‌شده',
+      'published' => 'منتشرشده',
+      'closed' => 'بسته‌شده',
   ];
-  $results = [['سارا احمدی', 18], ['علی رضایی', 14.5], ['نگار کریمی', 16], ['رضا مرادی', '']];
+  $statusTones = ['draft' => 'warn', 'scheduled' => 'info', 'published' => 'ok', 'closed' => 'muted'];
+  $statusLabels = ['draft' => 'پیش‌نویس', 'scheduled' => 'زمان‌بندی‌شده', 'published' => 'منتشرشده', 'closed' => 'بسته‌شده'];
 @endphp
 
-<x-admin.page-head tone="track" icon="exam" title="آزمون‌ها" desc="برنامه‌ریزی آزمون، ثبت نمره و انتشار نتایج برای دانش‌آموز و ولی">
+<x-admin.page-head tone="track" icon="exam" title="آزمون‌ها" desc="ساخت آزمون داخلی، مدیریت اتصال Quiz24، سؤال‌ها و نتایج">
   <x-admin.btn icon="plus" data-modal-open="exam-modal">آزمون جدید</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="track" icon="exam" label="آزمون‌های پیش‌رو" value="4"/>
-  <x-admin.stat tone="track" icon="edit" label="منتظر نمره‌دهی" value="2"/>
-  <x-admin.stat tone="track" icon="chart" label="میانگین کل" value="14.8"/>
-  <x-admin.stat tone="track" icon="eye" label="نتایج منتشرشده" value="19"/>
+  <x-admin.stat tone="track" icon="exam" label="آزمون‌های فهرست" :value="number_format($stats['total'])" hint="بر اساس دسترسی نقش شما"/>
+  <x-admin.stat tone="track" icon="clock" label="در جریان / پیش‌رو" :value="number_format($stats['upcoming'])" hint="در صفحه جاری"/>
+  <x-admin.stat tone="track" icon="link" label="آزمون‌های Quiz24" :value="number_format($stats['quiz24'])" hint="وضعیت اتصال جداگانه"/>
+  <x-admin.stat tone="track" icon="edit" label="پیش‌نویس‌ها" :value="number_format($stats['drafts'])" hint="نیازمند تکمیل و انتشار"/>
 </div>
 
 <x-admin.panel flush data-filter data-tone="track">
-  <x-admin.toolbar placeholder="جستجوی آزمون…">
-    <x-admin.filter-select key="class" placeholder="همه کلاس‌ها" :options="$classes"/>
-    <div class="adm-toolbar-end"><x-admin.seg :options="['planned' => 'پیش‌رو', 'pending' => 'منتظر نمره', 'graded' => 'نمره‌دهی شده']"/></div>
+  <x-admin.toolbar placeholder="جستجوی عنوان آزمون…">
+    <x-admin.filter-select key="provider" placeholder="همه سرویس‌ها" :options="['internal' => 'داخلی شیخان', 'quiz24' => 'Quiz24']"/>
+    <div class="adm-toolbar-end"><x-admin.seg :options="['draft' => 'پیش‌نویس', 'scheduled' => 'زمان‌بندی', 'published' => 'منتشرشده', 'closed' => 'بسته‌شده']"/></div>
   </x-admin.toolbar>
 
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>آزمون</th><th>زمان</th><th>مدت</th><th>نمره کل</th><th>میانگین</th><th>وضعیت</th><th></th></tr></thead>
-    <tbody data-filter-list>
-      @foreach ($rows as $r)
-        <tr data-name="{{ $r['title'] }}" data-state="{{ $r['status'] }}" data-class="{{ $r['class_id'] }}">
-          <td><b>{{ $r['title'] }}</b><small>{{ $classes[$r['class_id']] }} · {{ $kinds[$r['kind']] }}</small></td>
-          <td class="adm-num is-nowrap">{{ $r['date'] }}<small>{{ $r['time'] }}</small></td>
-          <td class="adm-num">{{ $r['duration'] }} دقیقه</td>
-          <td class="adm-num">{{ $r['max_score'] }}</td>
-          <td class="adm-num">{{ $r['avg'] !== '' ? $r['avg'] : '—' }}</td>
-          <td><x-admin.badge :tone="$status[$r['status']][0]">{{ $status[$r['status']][1] }}</x-admin.badge></td>
-          <td>
-            <x-admin.row-actions edit="exam-modal" del="exam-del" :row="$r" :name="$r['title']" :url="url('admin/exams/'.$r['id'])" edit-title="ویرایش آزمون">
-              <x-admin.btn size="sm" icon="chart" data-modal-open="exam-results" :data-title="'نتایج: '.$r['title']" :data-action="url('admin/exams/'.$r['id'].'/results')" data-method="PUT">نتایج</x-admin.btn>
-            </x-admin.row-actions>
-          </td>
-        </tr>
-      @endforeach
-    </tbody>
-  </table></div>
-  <x-admin.empty data-empty class="adm-hide" text="آزمونی پیدا نشد."/>
-  <x-slot:footer><x-admin.pager :current="1" :total="29" :per="3"/></x-slot:footer>
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr><th>آزمون</th><th>دوره / کلاس</th><th>زمان شروع</th><th>مدت</th><th>سؤال / نتیجه</th><th>وضعیت</th><th></th></tr>
+      </thead>
+      <tbody data-filter-list>
+        @forelse($exams as $exam)
+          @php
+            $scopeName = $exam->classroom?->name ?? $exam->course?->title ?? 'بدون تخصیص';
+            $fill = [
+              'title' => $exam->title,
+              'description' => $exam->description,
+              'classroom_id' => (string) ($exam->classroom_id ?? ''),
+              'course_id' => (string) ($exam->course_id ?? ''),
+              'provider' => $exam->provider,
+              'external_id' => $exam->external_id,
+              'starts_at' => $exam->starts_at?->format('Y-m-d\TH:i'),
+              'duration_hours' => max(1, min(4, (int) ceil(((int) $exam->duration_minutes) / 60))),
+              'attempts_allowed' => $exam->attempts_allowed,
+              'show_to_guardians' => (bool) $exam->show_to_guardians,
+              'status' => $exam->status,
+            ];
+          @endphp
+          <tr data-name="{{ $exam->title }}" data-state="{{ $exam->status }}" data-provider="{{ $exam->provider }}">
+            <td>
+              <b>{{ $exam->title }}</b>
+              <small>{{ $exam->provider === 'quiz24' ? 'Quiz24' : 'آزمون داخلی شیخان' }} · {{ $exam->results_count }} نتیجه ثبت‌شده</small>
+            </td>
+            <td>{{ $scopeName }}</td>
+            <td class="adm-num is-nowrap">
+              {{ $exam->starts_at?->format('Y/m/d H:i') ?? 'بدون زمان' }}
+            </td>
+            <td class="adm-num">{{ $exam->duration_minutes }} دقیقه</td>
+            <td class="adm-num">{{ $exam->questions_count }} سؤال</td>
+            <td>
+              <x-admin.badge :tone="$statusTones[$exam->status] ?? 'warn'">{{ $statusLabels[$exam->status] ?? $exam->status }}</x-admin.badge>
+              @if($exam->provider === 'quiz24')
+                <small class="adm-muted">{{ $exam->integration_status ?: 'در انتظار بررسی' }}</small>
+              @endif
+            </td>
+            <td>
+              <div class="adm-actions">
+                @if($exam->provider === 'internal' || ! in_array($exam->integration_status, ['active', 'connected'], true))
+                  <x-admin.btn size="sm" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌ها</x-admin.btn>
+                @endif
+                <x-admin.btn size="sm" variant="soft" icon="chart" :href="route('admin.exams.results', $exam)">نتایج</x-admin.btn>
+                <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.exams.attempts', $exam)">تصحیح تشریحی</x-admin.btn>
+                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="exam-modal" data-title="ویرایش آزمون" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.exams.update', $exam)" data-method="PATCH">ویرایش</x-admin.btn>
+              </div>
+              @if($exam->integration_note)
+                <small class="adm-muted">{{ $exam->integration_note }}</small>
+              @endif
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="7">هنوز آزمونی برای این محدوده دسترسی ثبت نشده است.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+  <x-admin.empty data-empty class="adm-hide" text="آزمونی با این مشخصات پیدا نشد."/>
+  <x-slot:footer>{{ $exams->links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
 
 @push('modals')
-<x-admin.modal id="exam-modal" title="آزمون جدید" size="lg" :action="url('admin/exams')">
-  <x-admin.legend title="اطلاعات آزمون"/>
+<x-admin.modal :demo="false" id="exam-modal" title="آزمون جدید" size="lg" :action="url('admin/exams')">
+  <x-admin.legend title="اطلاعات آزمون" desc="آزمون می‌تواند به یک دوره، یک کلاس یا هر دو متصل شود."/>
   <x-admin.input label="عنوان آزمون" name="title" wide required/>
-  <x-admin.select label="کلاس" name="class_id" :options="$classes" required/>
-  <x-admin.select label="نوع آزمون" name="kind" :options="$kinds"/>
-  <x-admin.legend title="زمان و نمره"/>
-  <x-admin.input label="تاریخ" name="date" placeholder="۱۴۰۵/۰۸/۲۹" required/>
-  <x-admin.input label="ساعت" name="time" type="time"/>
-  <x-admin.input label="مدت" name="duration" type="number" min="5" addon="دقیقه"/>
-  <x-admin.input label="نمره کل" name="max_score" type="number" min="1"/>
-  <x-admin.file label="فایل سؤالات (اختیاری)" name="file" accept=".pdf" icon="file" hint="PDF"/>
-  <x-admin.switch label="نتایج برای دانش‌آموز و ولی نمایش داده شود" name="publish" hint="پس از ثبت نمره‌ها" wide/>
-</x-admin.modal>
+  <x-admin.textarea label="توضیحات" name="description" wide/>
+  <x-admin.select label="دوره مرتبط" name="course_id" :options="$courseOptions" placeholder="انتخاب دوره"/>
+  <x-admin.select label="کلاس / گروه" name="classroom_id" :options="$classOptions" placeholder="انتخاب کلاس"/>
+  <x-admin.select label="موتور آزمون" name="provider" :options="$providerOptions" required/>
+  @unless($teacherView)
+    <x-admin.input label="شناسه آزمون در Quiz24" name="external_id" placeholder="پس از ایجاد یا دریافت از سرویس"/>
+  @endunless
 
-<x-admin.modal id="exam-results" title="نتایج آزمون" size="lg" method="PUT" submit="ذخیره نتایج" :action="url('admin/exams')" plain>
-  <div data-scores>
-    <div class="adm-table-wrap"><table class="adm-table adm-table-compact">
-      <thead><tr><th>دانش‌آموز</th><th>نمره از ۲۰</th><th>توضیح</th></tr></thead>
-      <tbody>
-        @foreach ($results as $i => [$name, $score])
-          <tr><td><x-admin.person :name="$name"/></td>
-          <td><input class="adm-input adm-score adm-num" type="number" min="0" max="20" step="0.25" name="score[{{ $i }}]" value="{{ $score }}" data-score aria-label="نمره {{ $name }}"></td>
-          <td><input class="adm-input" name="note[{{ $i }}]" placeholder="اختیاری" aria-label="توضیح"></td></tr>
-        @endforeach
-      </tbody>
-    </table></div>
-    <p class="adm-muted" style="margin-top:12px">میانگین کلاس: <b data-avg class="adm-num">—</b></p>
-  </div>
+  <x-admin.legend title="زمان و محدودیت شرکت"/>
+  <x-admin.input label="زمان شروع" name="starts_at" type="datetime-local"/>
+  <x-admin.input label="مدت آزمون" name="duration_hours" type="number" min="1" max="4" addon="ساعت" required/>
+  <x-admin.input label="تعداد دفعات مجاز" name="attempts_allowed" type="number" min="1" max="5" required/>
+  <x-admin.select label="وضعیت" name="status" :options="$statusOptions" required/>
+  <x-admin.switch label="نتیجه برای والدین نیز قابل مشاهده باشد" name="show_to_guardians" wide/>
+  <p class="adm-muted" style="grid-column:1/-1">آزمون داخلی شیخان حتی بدون اتصال Quiz24 قابل اجراست. انتخاب Quiz24 فقط درخواست اتصال را در کارتابل یکپارچه‌سازی ثبت می‌کند و تا تأیید API، اتصال خارجی فعال محسوب نمی‌شود.</p>
 </x-admin.modal>
-
-<x-admin.confirm id="exam-del" title="حذف آزمون" text="آزمون و نمره‌های ثبت‌شده حذف می‌شود."/>
 @endpush
