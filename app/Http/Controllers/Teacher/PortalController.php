@@ -16,6 +16,7 @@ use App\Models\ParentMeeting;
 use App\Services\Admin\AttendanceService;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\MessageWorkspaceService;
+use App\Services\Skyroom\SkyroomService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -113,18 +114,21 @@ final class PortalController extends Controller
         return back()->with('success', 'حضور و غیاب جلسه ذخیره شد.');
     }
 
-    public function live(Request $request, ClassroomWorkspaceService $workspace): View
+    public function live(Request $request, ClassroomWorkspaceService $workspace, SkyroomService $skyroom): View
     {
         $sessions = ClassSession::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->where('ends_at', '>=', now())
-            ->with('classroom:id,name,meeting_url,skyroom_room_id')
+            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
             ->orderBy('starts_at')
             ->paginate(12)
             ->withQueryString();
 
-        return view('teacher.live', compact('sessions'));
+        $skyroomHealth = $skyroom->health();
+
+        return view('teacher.live', compact('sessions', 'skyroomHealth'));
     }
 
     public function meetings(Request $request, ClassroomWorkspaceService $workspace): View
