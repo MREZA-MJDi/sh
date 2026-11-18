@@ -97,11 +97,16 @@ final class StudentVideoAccessTest extends TestCase
             ->assertHeader('Content-Type', 'video/mp4')
             ->assertHeader('Accept-Ranges', 'bytes');
 
-        $this->withHeaders(['Range' => 'bytes=0-4'])
-            ->get(route('student.videos.stream', $video))
-            ->assertStatus(206)
+        $rangeResponse = $this->withHeaders(['Range' => 'bytes=0-4'])
+            ->get(route('student.videos.stream', $video));
+        $rangeResponse->assertStatus(206)
             ->assertHeader('Content-Range', 'bytes 0-4/19')
-            ->assertSee('local', false);
+            ->assertHeader('Content-Length', '5');
+
+        ob_start();
+        $rangeResponse->baseResponse->sendContent();
+        $rangeBody = ob_get_clean();
+        $this->assertSame('local', $rangeBody);
 
         $this->withHeaders(['Range' => 'bytes=99-120'])
             ->get(route('student.videos.stream', $video))
