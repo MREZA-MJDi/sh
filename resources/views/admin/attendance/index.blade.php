@@ -21,7 +21,7 @@
           <option value="{{ $v }}" @selected((int) $classroom?->id === (int) $v)>{{ $t }}</option>
         @endforeach
       </select>
-      <input class="adm-input" form="attendance-filter" name="date" value="{{ $date }}" style="width:140px" aria-label="تاریخ" autocomplete="off">
+      <input class="adm-input" form="attendance-filter" name="date" type="date" value="{{ $dateIso }}" style="width:180px" aria-label="تاریخ جلسه" autocomplete="off">
       <select class="adm-select" name="session" form="attendance-filter" aria-label="جلسه">
         @forelse ($sessions as $item)
           <option value="{{ $item->id }}" @selected($session?->id === $item->id)>
