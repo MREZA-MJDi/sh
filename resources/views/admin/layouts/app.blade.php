@@ -17,6 +17,10 @@
     $nav = include resource_path('views/admin/nav.php');
     $user = auth()->user();
     $isAdmin = $user?->hasRole('admin') ?? false;
+    if ($user?->hasRole('seo')) {
+      $nav['home']['url'] = 'admin/seo';
+      $nav['home']['label'] = 'مرکز مدیریت سئو';
+    }
     $permissionMap = [
       'admin/students' => ['users.view', 'users.manage', 'students.view.assigned'],
       'admin/teachers' => ['users.manage'],

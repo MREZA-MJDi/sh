@@ -48,6 +48,29 @@
     <x-admin.input label="نشان اعتماد" name="trust_badge" type="file" accept="image/jpeg,image/png,image/webp"/>
     <x-admin.textarea label="توضیح فوتر" name="footer_description" :value="$settings->footer_description" wide/>
 
+
+    <x-admin.legend title="عنوان و توضیحات صفحات عمومی"/>
+    <x-admin.input label="عنوان سئوی صفحه اصلی" name="home_sections[home_meta_title]" :value="data_get($settings->home_sections, 'home_meta_title')" maxlength="180" wide/>
+    <x-admin.textarea label="توضیحات سئوی صفحه اصلی" name="home_sections[home_meta_description]" :value="data_get($settings->home_sections, 'home_meta_description')" wide/>
+    <x-admin.input label="عنوان صفحه مقالات" name="home_sections[blog_page_title]" :value="data_get($settings->home_sections, 'blog_page_title')" maxlength="180"/>
+    <x-admin.textarea label="توضیحات صفحه مقالات" name="home_sections[blog_page_description]" :value="data_get($settings->home_sections, 'blog_page_description')"/>
+    <x-admin.input label="عنوان صفحه دوره‌ها" name="home_sections[courses_page_title]" :value="data_get($settings->home_sections, 'courses_page_title')" maxlength="180"/>
+    <x-admin.textarea label="توضیحات صفحه دوره‌ها" name="home_sections[courses_page_description]" :value="data_get($settings->home_sections, 'courses_page_description')"/>
+    <x-admin.input label="عنوان صفحه مدرسان" name="home_sections[teachers_page_title]" :value="data_get($settings->home_sections, 'teachers_page_title')" maxlength="180"/>
+    <x-admin.textarea label="توضیحات صفحه مدرسان" name="home_sections[teachers_page_description]" :value="data_get($settings->home_sections, 'teachers_page_description')"/>
+    <x-admin.input label="عنوان صفحه تماس" name="home_sections[contact_page_title]" :value="data_get($settings->home_sections, 'contact_page_title')" maxlength="180"/>
+    <x-admin.textarea label="توضیحات صفحه تماس" name="home_sections[contact_page_description]" :value="data_get($settings->home_sections, 'contact_page_description')" wide/>
+
+    <x-admin.legend title="شبکه‌های اجتماعی و لینک‌های فوتر"/>
+    <x-admin.input label="Instagram" name="social_links[instagram]" type="url" :value="data_get($settings->social_links, 'instagram')"/>
+    <x-admin.input label="Telegram" name="social_links[telegram]" type="url" :value="data_get($settings->social_links, 'telegram')"/>
+    <x-admin.input label="LinkedIn" name="social_links[linkedin]" type="url" :value="data_get($settings->social_links, 'linkedin')"/>
+    @php($seoFooterLinks = $settings->footer_links ?? [])
+    @foreach (range(0, 3) as $footerIndex)
+      <x-admin.input label="عنوان لینک فوتر {{ $footerIndex + 1 }}" name="footer_links[{{ $footerIndex }}][label]" :value="$seoFooterLinks[$footerIndex]['label'] ?? ''"/>
+      <x-admin.input label="نشانی لینک فوتر {{ $footerIndex + 1 }}" name="footer_links[{{ $footerIndex }}][url]" :value="$seoFooterLinks[$footerIndex]['url'] ?? ''" wide/>
+    @endforeach
+
     <x-admin.legend title="کنترل خزنده‌ها و نقشه سایت"/>
     <x-admin.switch label="اجازه ایندکس صفحات عمومی" name="robots_index" :checked="$settings->robots_index"/>
     <x-admin.switch label="اجازه دنبال‌کردن لینک‌ها" name="robots_follow" :checked="$settings->robots_follow"/>

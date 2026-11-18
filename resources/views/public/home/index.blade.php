@@ -1,7 +1,8 @@
 
 @extends('public.layouts.academy')
 
-@section('title', ($settings->site_name ?? 'آکادمی شیخان').' | آموزش آنلاین')
+@section('title', $settings->home_sections['home_meta_title'] ?? (($settings->site_name ?? 'آکادمی شیخان').' | آموزش آنلاین'))
+@section('description', $settings->home_sections['home_meta_description'] ?? $settings->default_description)
 
 @section('content')
 

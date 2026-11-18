@@ -477,4 +477,88 @@ class SeoContentManagementTest extends TestCase
             ->assertSee('<urlset', false)
             ->assertDontSee($article->slug);
     }
+    public function test_seo_user_can_manage_page_metadata_home_hero_banners_and_teacher_sitemap_entries(): void
+    {
+        $seo = $this->seoUser();
+        $this->actingAs($seo)->patch(route('admin.seo.settings.update'), [
+            'site_name' => 'آکادمی شیخان',
+            'default_title' => 'عنوان پیش‌فرض',
+            'title_separator' => ' | ',
+            'default_description' => 'توضیح پیش‌فرض',
+            'canonical_base_url' => 'https://sheykhan.example',
+            'home_sections' => [
+                'home_meta_title' => 'خانه شیخان؛ آموزش هدفمند',
+                'home_meta_description' => 'توضیحات اختصاصی صفحه اصلی برای موتورهای جست‌وجو',
+                'blog_page_title' => 'مجله تخصصی شیخان',
+                'blog_page_description' => 'مقاله‌های آموزشی و راهنماهای کاربردی',
+                'courses_page_title' => 'دوره‌های تخصصی شیخان',
+                'courses_page_description' => 'فهرست دوره‌های آموزشی منتشرشده',
+                'teachers_page_title' => 'مدرسان آکادمی',
+                'teachers_page_description' => 'آشنایی با مدرسان فعال آکادمی',
+                'contact_page_title' => 'ارتباط با آکادمی',
+                'contact_page_description' => 'راه‌های ارتباط با پشتیبانی',
+            ],
+            'social_links' => [
+                'instagram' => 'https://instagram.com/sheykhan',
+                'telegram' => 'https://t.me/sheykhan',
+            ],
+            'footer_links' => [
+                ['label' => 'دوره‌ها', 'url' => '/courses'],
+                ['label' => 'مقالات', 'url' => '/articles'],
+            ],
+            'robots_index' => '1',
+            'robots_follow' => '1',
+            'sitemap_enabled' => '1',
+        ])->assertRedirect();
+
+        $settings = SeoSetting::query()->firstOrFail();
+        $this->assertSame('خانه شیخان؛ آموزش هدفمند', $settings->home_sections['home_meta_title']);
+        $this->assertSame('مجله تخصصی شیخان', $settings->home_sections['blog_page_title']);
+        $this->assertSame('https://instagram.com/sheykhan', $settings->social_links['instagram']);
+        $this->assertCount(2, $settings->footer_links);
+
+        $this->get(route('home'))->assertOk()
+            ->assertSee('<title>خانه شیخان؛ آموزش هدفمند</title>', false)
+            ->assertSee('name="description" content="توضیحات اختصاصی صفحه اصلی برای موتورهای جست‌وجو"', false);
+
+        $this->get(route('public.courses.index'))->assertOk()
+            ->assertSee('دوره‌های تخصصی شیخان')
+            ->assertSee('فهرست دوره‌های آموزشی منتشرشده');
+
+        $this->get(route('seo.articles.index'))->assertOk()
+            ->assertSee('مجله تخصصی شیخان')
+            ->assertSee('مقاله‌های آموزشی و راهنماهای کاربردی');
+
+        $teacherRole = Role::query()->where('name', 'teacher')->firstOrFail();
+        $teacher = User::factory()->create(['is_active' => true]);
+        $teacher->roles()->attach($teacherRole);
+
+        $this->get(route('seo.sitemap'))->assertOk()
+            ->assertSee('https://sheykhan.example/teachers/'.$teacher->id);
+    }
+
+    public function test_seo_user_can_create_home_hero_banner_with_image_position(): void
+    {
+        $seo = $this->seoUser();
+
+        $this->actingAs($seo)->post(route('admin.seo.banners.store'), [
+            'title' => 'بنر اصلی خانه',
+            'alt_text' => 'معرفی دوره‌های آموزشی',
+            'image' => UploadedFile::fake()->image('home-hero.jpg', 1600, 600),
+            'image_position' => '42% 50%',
+            'placement' => 'home_hero',
+            'target_url' => '/courses',
+            'sort_order' => 0,
+            'status' => 'active',
+        ])->assertRedirect();
+
+        $banner = SeoBanner::query()->firstOrFail();
+        $this->assertSame('home_hero', $banner->placement);
+        $this->assertSame('42% 50%', $banner->image_position);
+
+        $this->get(route('home'))->assertOk()
+            ->assertSee('بنر اصلی خانه')
+            ->assertSee('42% 50%');
+    }
+
 }
