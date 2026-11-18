@@ -24,6 +24,7 @@ const jsonRequest = async (url, payload) => {
 };
 
 const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+const targetIsSessionUpload = (widget) => widget.dataset.target === 'spotplayer_video';
 
 document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   const fileInput = widget.querySelector('[data-upload-file]');
@@ -93,6 +94,15 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       return;
     }
 
+    const classroomSelect = widget.querySelector('[data-upload-classroom]');
+    const sessionSelect = widget.querySelector('[data-upload-session]');
+    const classSessionId = Number(sessionSelect?.value || 0);
+    if (targetIsSessionUpload(widget) && !classSessionId) {
+      setStatus('ابتدا کلاس و سپس جلسه موردنظر را انتخاب کنید.', true);
+      sessionSelect?.focus();
+      return;
+    }
+
     const maxMb = Number(widget.dataset.maxMb || 0);
     if (maxMb > 0 && file.size > maxMb * 1024 * 1024) {
       setStatus('حجم فایل از سقف ' + maxMb + ' مگابایت بیشتر است.', true);
@@ -108,10 +118,12 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       return;
     }
 
-    const resumeKey = ['sh-video-upload', target, courseId, file.name, file.size, file.lastModified].join(':');
+    const resumeKey = ['sh-video-upload', target, courseId, classSessionId || 0, file.name, file.size, file.lastModified].join(':');
     startButton.disabled = true;
     fileInput.disabled = true;
     if (courseSelect) courseSelect.disabled = true;
+    if (classroomSelect) classroomSelect.disabled = true;
+    if (sessionSelect) sessionSelect.disabled = true;
     let started = null;
     let completedUpload = false;
     const receivedChunks = new Set();
@@ -141,9 +153,10 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         };
         if (target === 'spotplayer_video') {
           startPayload.title = title;
-          const classroomId = widget.querySelector('[data-upload-classroom]')?.value;
+          const classroomId = classroomSelect?.value;
           const externalId = widget.querySelector('[data-upload-external]')?.value?.trim();
           if (classroomId) startPayload.classroom_id = Number(classroomId);
+          if (classSessionId) startPayload.class_session_id = classSessionId;
           if (externalId) startPayload.external_id = externalId;
         }
 
@@ -264,6 +277,8 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
           startButton.disabled = false;
           fileInput.disabled = false;
           if (courseSelect) courseSelect.disabled = false;
+    if (classroomSelect) classroomSelect.disabled = false;
+    if (sessionSelect) sessionSelect.disabled = false;
         } else {
           if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
           setStatus(completed.status === 'ready'
