@@ -206,6 +206,11 @@ final class PublicSiteController extends Controller
         $playableVideos = $hasCourseAccess && ($features['recorded_video'] ?? false)
             ? SpotPlayerVideo::query()
                 ->where('course_id', $course->id)
+                ->where(function ($scope) use ($activeClassroomIds): void {
+                    $scope->whereNull('classroom_id')
+                        ->orWhereIn('classroom_id', $activeClassroomIds);
+                })
+                ->with('classSession:id,title,starts_at')
                 ->where('status', 'active')
                 ->where(function ($query): void {
                     $query->where(function ($local): void {
@@ -262,7 +267,8 @@ final class PublicSiteController extends Controller
         Request $request,
         string $slug,
         int $video,
-        CourseEnrollmentService $enrollments
+        CourseEnrollmentService $enrollments,
+        LearningAccessService $learningAccess
     ): RedirectResponse {
         $student = $request->user();
 
@@ -281,6 +287,15 @@ final class PublicSiteController extends Controller
             ->where('course_id', $course->id)
             ->where('status', 'active')
             ->firstOrFail();
+
+        if ($courseVideo->classroom_id) {
+            abort_unless(
+                $learningAccess->activeClassroomIds($student, 'recorded_video')
+                    ->where('classrooms.id', $courseVideo->classroom_id)
+                    ->exists(),
+                403
+            );
+        }
 
         if (filled($courseVideo->file_path) && blank($courseVideo->external_id)) {
             return redirect()->route('student.videos.show', $courseVideo);
