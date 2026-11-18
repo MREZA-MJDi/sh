@@ -118,7 +118,8 @@ final class PortalController extends Controller
             ->where('status', 'active')
             ->with(['sessions' => fn ($sessions) => $sessions
                 ->where('status', '!=', 'cancelled')
-                ->orderByDesc('starts_at')])
+                ->orderByDesc('starts_at')
+                ->limit(100)])
             ->orderBy('name')
             ->get(['id', 'name', 'course_id']);
 
@@ -159,7 +160,8 @@ final class PortalController extends Controller
             ->where('status', 'active')
             ->with(['sessions' => fn ($sessions) => $sessions
                 ->where('status', '!=', 'cancelled')
-                ->orderByDesc('starts_at')])
+                ->orderByDesc('starts_at')
+                ->limit(100)])
             ->orderBy('name')
             ->get(['id', 'name', 'course_id']);
 
