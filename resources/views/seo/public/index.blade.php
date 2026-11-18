@@ -5,6 +5,7 @@
 @section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
 @php($featuredSeoArticle = $articles->first())
+@php($articlesToLoop = ($featuredSeoArticle && empty($search) && $articles->currentPage() === 1) ? $articles->slice(1) : $articles)
 @section('seo-image', $featuredSeoArticle?->featured_image_path ? Storage::disk('public')->url($featuredSeoArticle->og_image_path ?: $featuredSeoArticle->featured_image_path) : ($settings->default_og_image_path ? Storage::disk('public')->url($settings->default_og_image_path) : ''))
 @push('head')
     <meta property="og:type" content="website">
@@ -82,7 +83,7 @@
 
         {{-- Article Cards Grid --}}
         <div class="g g3">
-            @forelse((($featuredSeoArticle && empty($search) && $articles->currentPage() === 1) ? $articles->slice(1) : $articles) as $index => $article)
+            @forelse($articlesToLoop as $index => $article)
                 @php
                     $gradients = [
                         'linear-gradient(135deg,#0d9488,#0f766e)',
