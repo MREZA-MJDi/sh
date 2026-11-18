@@ -16,6 +16,41 @@ use Illuminate\View\View;
 
 final class CourseController extends Controller
 {
+    public function create(ClassroomWorkspaceService $workspace): View
+    {
+        abort_unless(auth()->user()->hasPermissionTo('courses.manage'), 403);
+
+        $teachers = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('admin.courses.form', [
+            'course' => new Course(['type' => 'free', 'price' => 0, 'delivery_type' => 'spotplayer', 'status' => 'draft']),
+            'teachers' => $teachers,
+            'isEditing' => false,
+            'videos' => collect(),
+            'classrooms' => collect(),
+        ]);
+    }
+
+    public function edit(Course $course): View
+    {
+        abort_unless(auth()->user()->hasPermissionTo('courses.manage'), 403);
+
+        $teachers = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $videos = $course->spotPlayerVideos()->with('classroom:id,name')->latest()->get();
+        $classrooms = $course->classrooms()->where('status', 'active')->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.courses.form', compact('course', 'teachers', 'videos', 'classrooms') + ['isEditing' => true]);
+    }
+
     public function index(ClassroomWorkspaceService $workspace): View
     {
         $courses = $workspace->coursesQueryFor(auth()->user())
@@ -69,7 +104,7 @@ final class CourseController extends Controller
             ? 'دوره در شیخان ایجاد شد؛ اتصال SpotPlayer در کارتابل یکپارچه‌سازی در انتظار قرارداد وب‌سرویس است.'
             : 'دوره با موفقیت ایجاد شد.';
 
-        return back()->with('success', $message);
+        return redirect()->route('admin.courses.edit', $course)->with('success', $message);
     }
 
     public function update(
@@ -85,7 +120,7 @@ final class CourseController extends Controller
             ? 'اطلاعات دوره ذخیره شد؛ وضعیت SpotPlayer تا زمان تأیید API در انتظار باقی می‌ماند.'
             : 'دوره به‌روزرسانی شد.';
 
-        return back()->with('success', $message);
+        return redirect()->route('admin.courses.edit', $course)->with('success', $message);
     }
 
     public function destroy(
