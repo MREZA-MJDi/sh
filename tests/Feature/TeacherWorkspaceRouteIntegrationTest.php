@@ -60,16 +60,22 @@ final class TeacherWorkspaceRouteIntegrationTest extends TestCase
 
         $this->actingAs($teacher)
             ->get(route('teacher.videos'))
-            ->assertRedirect(route('admin.spotplayer.index'));
+            ->assertOk()
+            ->assertSee('بارگذاری فیلم‌ها');
 
         $this->actingAs($teacher)
             ->get(route('teacher.resources'))
-            ->assertRedirect(route('admin.resources.index'));
+            ->assertOk()
+            ->assertSee('بارگذاری جزوه و منابع');
 
         $this->actingAs($teacher)
             ->get(route('teacher.homework'))
             ->assertOk()
             ->assertSee('تکالیف کلاس‌ها');
+
+        $this->actingAs($teacher)->get(route('admin.homework.index'))->assertForbidden();
+        $this->actingAs($teacher)->get(route('admin.resources.index'))->assertForbidden();
+        $this->actingAs($teacher)->get(route('admin.spotplayer.index'))->assertForbidden();
 
         $this->actingAs($teacher)
             ->get(route('teacher.consultations.index'))
