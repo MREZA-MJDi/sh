@@ -21,7 +21,6 @@
     </section>
 
     <section class="c"><h3>فیلم‌های ضبط‌شده</h3>
-        @php $videos = $classrooms->getCollection()->flatMap(fn ($classroom) => $classroom->spotPlayerVideos); @endphp
         @forelse ($videos as $video)
             <div class="row"><div>{{ $video->title ?? 'ویدئوی کلاس' }}<small>{{ $video->created_at?->format('Y/m/d') }}</small></div>
                 @if ($video->status === 'published')<i class="bd gn">منتشر شد</i>@else<i class="bd am">{{ $video->status }}</i>@endif
@@ -32,7 +31,6 @@
     </section>
 
     <section class="c"><div class="teacher-section-head"><h3>منابع و جزوه‌ها</h3><a href="{{ route('teacher.resources') }}">مدیریت منابع</a></div>
-        @php $resources = $classrooms->getCollection()->flatMap(fn ($classroom) => $classroom->learningResources); @endphp
         @forelse ($resources as $resource)
             <div class="row"><div>{{ $resource->title }}<small>{{ $resource->kind }}</small></div>
                 <i class="bd {{ $resource->status === 'published' ? 'gn' : 'am' }}">{{ $resource->status }}</i>
