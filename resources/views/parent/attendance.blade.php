@@ -15,7 +15,7 @@
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>{{ $monthTitle ?? 'تقویم' }}</h3>
-        <div class="cal2">
+        <div class="cal2 sh-calendar-grid">
             @foreach (['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'] as $w)<small class="wk">{{ $w }}</small>@endforeach
             @for ($i = 0; $i < ($monthOffset ?? 0); $i++)<i></i>@endfor
             {{-- status: p حاضر | a غایب | l تأخیر | off تعطیل | future --}}
