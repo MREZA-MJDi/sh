@@ -1,5 +1,7 @@
 @props(['course'])
 
+@php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
+
 <a class="ac-card ac-course" href="{{ route('public.courses.show', $course->slug) }}" aria-label="مشاهده دوره {{ $course->title }}">
     <div class="ac-course-cover">
         <span aria-hidden="true">{{ mb_substr($course->subject ?: $course->title, 0, 1) }}</span>
@@ -8,6 +10,9 @@
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
             @if($course->grade)
                 <span class="ac-pill">پایه {{ $course->grade }}</span>
+            @endif
+            @if($course->season && isset($seasonLabels[$course->season]))
+                <span class="ac-pill">{{ $seasonLabels[$course->season] }}</span>
             @endif
             @if($course->type === 'free')
                 <span class="ac-pill">رایگان</span>
