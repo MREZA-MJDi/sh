@@ -50,8 +50,17 @@
             <td><b>{{ $video->title }}</b><small>شناسه داخلی #{{ $video->id }} · {{ $video->external_id ?: 'شناسه خارجی ثبت نشده' }}</small></td>
             <td>{{ $video->course?->title ?? '—' }}<small>{{ $video->classroom?->name ?? 'مشترک در سطح دوره' }}</small></td>
             <td>
-              @php $tone = $video->status === 'active' ? 'ok' : ($video->status === 'failed' ? 'bad' : 'warn'); @endphp
-              <x-admin.badge :tone="$tone">{{ $video->status }}</x-admin.badge>
+              @php
+                $videoStatus = match ($video->status) {
+                  'active' => ['ok', 'آماده پخش'],
+                  'processing' => ['warn', 'در حال پردازش'],
+                  'failed' => ['bad', 'پردازش ناموفق'],
+                  'waiting_contract' => ['warn', 'در انتظار قرارداد'],
+                  default => ['mute', $video->status],
+                };
+              @endphp
+              <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
+              @if($video->processing_error)<small>{{ $video->processing_error }}</small>@endif
             </td>
             <td>
               @if($video->file_path)
