@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\LearningResource;
 use App\Models\Permission;
@@ -45,12 +46,22 @@ final class TeacherResourceScopeTest extends TestCase
             'name' => 'کلاس من',
             'status' => 'active',
         ]);
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه هندسه',
+            'session_type' => 'online',
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(2),
+            'meeting_provider' => 'jitsi',
+            'status' => 'scheduled',
+        ]);
 
         $this->actingAs($teacher)
             ->post(route('teacher.resources.store'), [
                 'title' => 'جزوه کلاس من',
                 'course_id' => $course->id,
                 'classroom_id' => $classroom->id,
+                'class_session_id' => $session->id,
                 'kind' => 'pdf',
                 'price' => 0,
                 'is_free' => 1,
@@ -62,6 +73,7 @@ final class TeacherResourceScopeTest extends TestCase
         $this->assertDatabaseHas('learning_resources', [
             'course_id' => $course->id,
             'classroom_id' => $classroom->id,
+            'class_session_id' => $session->id,
             'title' => 'جزوه کلاس من',
             'uploaded_by' => $teacher->id,
         ]);
