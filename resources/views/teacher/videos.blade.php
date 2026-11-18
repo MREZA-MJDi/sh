@@ -9,7 +9,7 @@
 <label>عنوان ویدئو</label><input name="title" maxlength="180" required>
 <label>دوره</label><select name="course_id" required><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}" >{{ $course->title }}@if($course->grade) · پایه {{ $course->grade }}@endif @if($course->season) · {{ $seasonLabels[$course->season] ?? $course->season }}@endif</option>@endforeach</select>
 <label>کلاس (اختیاری)</label><select name="classroom_id"><option value="">کل دوره</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select>
-<label>شناسه ویدئوی SpotPlayer (در صورت نداشتن فایل)</label><input name="external_id" maxlength="190">
+<label>شناسه ویدئوی SpotPlayer (در صورت نداشتن فایل)</label><input name="external_id" maxlength="190" required>
 <input type="hidden" name="status" value="waiting_contract">
 <button class="b" type="submit">ثبت شناسه ویدئوی موجود</button><small class="teacher-help">برای ثبت ویدئوی موجود در SpotPlayer از شناسه خارجی استفاده کنید. برای بارگذاری فایل از آپلود امن تکه‌ای در بخش بعد استفاده کنید.</small>
 </form>
@@ -26,7 +26,7 @@
   <label>شناسه خارجی SpotPlayer (اختیاری)</label><input data-upload-external maxlength="190" placeholder="در صورت نیاز به اتصال بعدی">
   <label>فایل ویدیوی جلسه</label><input type="file" data-upload-file accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v">
   <small class="teacher-help">حداکثر {{ config('learning.max_lesson_mb') }} مگابایت. آپلود قابل ادامه، ذخیره خصوصی و پردازش خودکار دارد.</small>
-  <div class="adm-progress" data-upload-progress hidden><div class="adm-progress-bar" data-upload-bar></div></div>
+  <div class="teacher-progress" data-upload-progress hidden><span data-upload-bar style="width:0"></span></div>
   <p class="teacher-help" data-upload-status role="status" aria-live="polite">پس از انتخاب فایل، پیش‌نمایش و وضعیت آپلود در همین بخش نمایش داده می‌شود.</p>
   <button class="b" type="button" data-upload-start>بارگذاری و پردازش ویدیو</button>
 </div>
