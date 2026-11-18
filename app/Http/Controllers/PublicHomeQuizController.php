@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\HomeQuizQuestion;
-use Illuminate\\Http\\JsonResponse;
-use Illuminate\\Http\\Request;
+use App\Models\HomeQuizQuestion;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PublicHomeQuizController extends Controller
 {
@@ -52,7 +52,7 @@ class PublicHomeQuizController extends Controller
             $isCorrect = $validated['answer'] === $question->correct_answer;
             $correctLabel = data_get($question->options, $question->correct_answer, $question->correct_answer);
         } else {
-            $normalize = fn (string $value): string => mb_strtolower(trim(preg_replace('/\\s+/u', ' ', $value) ?? $value));
+            $normalize = fn (string $value): string => mb_strtolower(trim(preg_replace('/\s+/u', ' ', $value) ?? $value));
             $isCorrect = $normalize($validated['answer']) === $normalize($question->correct_answer);
             $correctLabel = $question->correct_answer;
         }
