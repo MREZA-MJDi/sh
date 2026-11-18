@@ -50,18 +50,35 @@
             <td><b>{{ $video->title }}</b><small>شناسه داخلی #{{ $video->id }} · {{ $video->external_id ?: 'شناسه خارجی ثبت نشده' }}</small></td>
             <td>{{ $video->course?->title ?? '—' }}<small>{{ $video->classroom?->name ?? 'مشترک در سطح دوره' }}</small></td>
             <td>
-              @php $tone = $video->status === 'active' ? 'ok' : ($video->status === 'failed' ? 'bad' : 'warn'); @endphp
-              <x-admin.badge :tone="$tone">{{ $video->status }}</x-admin.badge>
+              @php
+                $videoStatus = match ($video->status) {
+                  'active' => ['ok', 'آماده پخش'],
+                  'processing' => ['warn', 'در حال پردازش'],
+                  'failed' => ['bad', 'پردازش ناموفق'],
+                  'waiting_contract' => ['warn', 'در انتظار قرارداد'],
+                  default => ['mute', $video->status],
+                };
+              @endphp
+              <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
+              @if($video->processing_error)<small>{{ $video->processing_error }}</small>@endif
             </td>
             <td>
               @if($video->file_path)
-                <a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت فایل مبدأ</a>
+                <a href="{{ route('admin.spotplayer.videos.download', $video) }}">{{ $video->status === 'active' ? 'دریافت فایل پردازش‌شده' : 'دریافت فایل مبدأ' }}</a>
                 <small>{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} MB</small>
               @else
                 <span class="adm-muted">فقط شناسه خارجی</span>
               @endif
             </td>
-            <td><span class="adm-muted">{{ $video->staged_at?->format('Y/m/d H:i') ?? '—' }}</span></td>
+            <td>
+              <span class="adm-muted">{{ $video->staged_at?->format('Y/m/d H:i') ?? '—' }}</span>
+              @if($video->status === 'failed' && $video->file_path)
+                <form method="POST" action="{{ route('admin.spotplayer.videos.retry-processing', $video) }}" style="margin-top:8px">
+                  @csrf
+                  <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">تلاش مجدد پردازش</button>
+                </form>
+              @endif
+            </td>
           </tr>
         @empty
           <tr><td colspan="5">هنوز ویدیویی برای این محدوده ثبت نشده است.</td></tr>
@@ -163,9 +180,8 @@
   <x-admin.input label="عنوان ویدیو" name="title" wide required/>
   <x-admin.select label="دوره" name="course_id" :options="$courseOptions" required/>
   <x-admin.select label="کلاس / گروه (اختیاری)" name="classroom_id" :options="$classroomOptions" placeholder="در سطح کل دوره"/>
-  <x-admin.input label="شناسه ویدیوی موجود در SpotPlayer (در صورت عدم بارگذاری فایل)" name="external_id" placeholder="شناسه خارجی"/>
-  <x-admin.input label="فایل ویدیویی (اختیاری)" name="file" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska"/>
+  <x-admin.input label="شناسه ویدیوی موجود در SpotPlayer" name="external_id" placeholder="شناسه خارجی" required/>
   <x-admin.select label="وضعیت محلی" name="status" :options="['waiting_contract' => 'در انتظار قرارداد']" selected="waiting_contract"/>
-  <p class="adm-muted" style="grid-column:1/-1">فایل در فضای خصوصی ذخیره می‌شود. تا زمان دریافت قرارداد و پاسخ واقعی سرویس، وضعیت «در انتظار قرارداد» باقی می‌ماند و پلیر فعال یا لینک جعلی تولید نمی‌شود.</p>
+  <p class="adm-muted" style="grid-column:1/-1">این فرم فقط برای ثبت شناسه ویدیوی موجود در SpotPlayer است. برای بارگذاری فایل جدید، از صفحه ویرایش همان دوره و آپلود تکه‌ای استفاده کنید تا امکان ادامه آپلود و پردازش امن حفظ شود.</p>
 </x-admin.modal>
 @endpush
