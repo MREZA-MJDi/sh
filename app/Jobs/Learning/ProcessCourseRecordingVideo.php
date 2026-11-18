@@ -26,7 +26,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
 
     public function __construct(public readonly int $videoId)
     {
-        $this->onQueue('video');
+        $this->onConnection('video')->onQueue('video');
     }
 
     public function handle(): void
