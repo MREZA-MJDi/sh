@@ -118,3 +118,14 @@
 
 /* Keep the profile panel inside the page edge in the RTL header. */
 .adm-profile-pop{inset-inline-start:auto;inset-inline-end:0}
+
+/* Keep the RTL notification dropdown inside the viewport.
+   The notification trigger sits at the inline-start edge of the tools group,
+   so anchor the panel by its inline-end edge to prevent it opening off-screen. */
+.adm-notification-pop{
+  inset-inline-start:auto;
+  inset-inline-end:0;
+  box-sizing:border-box;
+  width:min(360px,calc(100vw - 24px));
+  max-width:calc(100vw - 24px);
+}
