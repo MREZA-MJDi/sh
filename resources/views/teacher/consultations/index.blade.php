@@ -20,7 +20,7 @@
             <label>شماره تماس</label>
             <input name="contact_phone" maxlength="30" value="{{ old('contact_phone', auth()->user()->phone) }}">
             <label>زمان پیشنهادی</label>
-            @include('teacher.partials.jalali-datetime', ['name'=>'desired_at','label'=>'تاریخ و ساعت پیشنهادی','value'=>old('desired_at'),'help'=>'درخواست برای بررسی و هماهنگی به کارتابل مدیریت سایت ارسال می‌شود.'])addMinute()->format('Y-m-d\\TH:i') }}" value="{{ old('desired_at') }}">
+            <input type="datetime-local" name="desired_at" min="{{ now()->addMinute()->format('Y-m-d\\TH:i') }}" value="{{ old('desired_at') }}">
             <label>شرح درخواست</label>
             <textarea name="body" required minlength="5" maxlength="5000">{{ old('body') }}</textarea>
             <button class="b" type="submit">ارسال درخواست</button>

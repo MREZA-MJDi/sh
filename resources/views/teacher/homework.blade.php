@@ -7,7 +7,7 @@
 <label>کلاس</label><select name="classroom_id" required><option value="">انتخاب کلاس تخصیص‌یافته</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected((string)old('classroom_id') === (string)$classroom->id)>{{ $classroom->name }}{{ $classroom->course?->title ? ' · '.$classroom->course->title : '' }}</option>@endforeach</select>
 <label>عنوان تکلیف</label><input name="title" maxlength="180" value="{{ old('title') }}" required>
 <label>شرح و دستورالعمل</label><textarea name="instructions" rows="5" maxlength="40000" placeholder="شرح تمرین را بنویسید…">{{ old('instructions') }}</textarea>
-@include('teacher.partials.jalali-datetime', ['name'=>'due_at','label'=>'مهلت تحویل (اختیاری)','value'=>old('due_at')])
+<label>مهلت تحویل (اختیاری)</label><input type="datetime-local" name="due_at" value="{{ old('due_at') }}">
 <label class="teacher-file-field">پیوست PDF (اختیاری)<input type="file" name="attachment" accept=".pdf,application/pdf"></label>
 <label>وضعیت انتشار</label><select name="status" required><option value="draft">پیش‌نویس</option><option value="published" @selected(old('status','published')==='published')>انتشار برای دانش‌آموزان</option></select>
 <button class="b" type="submit">ثبت تکلیف</button><small class="teacher-help">حداقل یکی از شرح متنی یا فایل پیوست باید تکمیل شود. فایل‌ها خصوصی ذخیره می‌شوند.</small>
