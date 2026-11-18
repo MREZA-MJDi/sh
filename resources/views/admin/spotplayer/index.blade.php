@@ -70,7 +70,15 @@
                 <span class="adm-muted">فقط شناسه خارجی</span>
               @endif
             </td>
-            <td><span class="adm-muted">{{ $video->staged_at?->format('Y/m/d H:i') ?? '—' }}</span></td>
+            <td>
+              <span class="adm-muted">{{ $video->staged_at?->format('Y/m/d H:i') ?? '—' }}</span>
+              @if($video->status === 'failed' && $video->file_path)
+                <form method="POST" action="{{ route('admin.spotplayer.videos.retry-processing', $video) }}" style="margin-top:8px">
+                  @csrf
+                  <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">تلاش مجدد پردازش</button>
+                </form>
+              @endif
+            </td>
           </tr>
         @empty
           <tr><td colspan="5">هنوز ویدیویی برای این محدوده ثبت نشده است.</td></tr>
