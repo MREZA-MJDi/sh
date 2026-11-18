@@ -62,6 +62,8 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
 
     startButton.disabled = true;
     fileInput.disabled = true;
+    let started = null;
+    let completedUpload = false;
     progress.hidden = false;
     setProgress(0);
     setStatus('در حال آماده‌سازی آپلود امن…');
@@ -81,7 +83,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         if (externalId) startPayload.external_id = externalId;
       }
 
-      const started = await jsonRequest(widget.dataset.startUrl, startPayload);
+      started = await jsonRequest(widget.dataset.startUrl, startPayload);
       const chunkSize = Number(started.chunk_size_bytes || chunkSizeFallback);
       const total = Math.ceil(file.size / chunkSize);
       if (total !== startPayload.total) throw new Error('تنظیم اندازه قطعه آپلود با سرور هماهنگ نیست.');
@@ -92,19 +94,30 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         form.append('index', String(index));
         form.append('chunk', file.slice(index * chunkSize, Math.min(file.size, (index + 1) * chunkSize)), file.name);
 
-        const response = await fetch(widget.dataset.chunkUrl, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': csrf(),
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: form,
-        });
-        let result = {};
-        try { result = await response.json(); } catch (_) {}
-        if (!response.ok) throw new Error(result.message || 'ارسال بخشی از فایل ناموفق بود.');
+        let chunkUploaded = false;
+        let chunkError = null;
+        for (let attempt = 1; attempt <= 3 && !chunkUploaded; attempt++) {
+          try {
+            const response = await fetch(widget.dataset.chunkUrl, {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+              },
+              body: form,
+            });
+            let result = {};
+            try { result = await response.json(); } catch (_) {}
+            if (!response.ok) throw new Error(result.message || 'ارسال بخشی از فایل ناموفق بود.');
+            chunkUploaded = true;
+          } catch (error) {
+            chunkError = error;
+            if (attempt < 3) await sleep(700 * attempt);
+          }
+        }
+        if (!chunkUploaded) throw chunkError || new Error('ارسال فایل ناموفق بود.');
         setProgress(((index + 1) / total) * 92);
         setStatus('در حال ارسال فایل… بخش ' + (index + 1) + ' از ' + total);
       }
@@ -114,6 +127,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         total,
         filename: file.name,
       });
+      completedUpload = true;
       setProgress(100);
 
       if (target === 'teaser') {
@@ -138,6 +152,8 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             }
           }
           setStatus('پردازش تریلر هنوز ادامه دارد؛ چند لحظه دیگر صفحه را تازه کنید.');
+          startButton.disabled = false;
+          fileInput.disabled = false;
         } else {
           setStatus('تریلر بارگذاری شد و در صف پردازش قرار گرفت.');
         }
@@ -146,6 +162,9 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         window.setTimeout(() => window.location.reload(), 1600);
       }
     } catch (error) {
+      if (started?.upload_id && !completedUpload && widget.dataset.cancelUrl) {
+        try { await jsonRequest(widget.dataset.cancelUrl, {upload_id: started.upload_id}); } catch (_) {}
+      }
       setStatus(error.message || 'بارگذاری فایل ناموفق بود.', true);
       startButton.disabled = false;
       fileInput.disabled = false;
