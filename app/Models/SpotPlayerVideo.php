@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SpotPlayerVideo extends Model
 {
     protected $fillable = [
-        'course_id', 'classroom_id', 'created_by', 'title', 'external_id',
+        'course_id', 'classroom_id', 'class_session_id', 'created_by', 'title', 'external_id',
         'embed_url', 'status', 'file_path', 'file_original_name',
         'file_mime_type', 'file_size_bytes', 'file_sha256', 'staged_at', 'processing_error', 'processed_at',
     ];
@@ -26,6 +26,11 @@ class SpotPlayerVideo extends Model
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    public function classSession(): BelongsTo
+    {
+        return $this->belongsTo(ClassSession::class, 'class_session_id');
     }
 
     public function creator(): BelongsTo
