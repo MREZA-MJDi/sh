@@ -132,7 +132,7 @@ final class PortalController extends Controller
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
         $resources = LearningResource::query()
-            ->with(['course:id,title,grade,season', 'classroom:id,name'])
+            ->with(['course:id,title,grade,season', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function ($classScope) use ($classroomIds, $courseIds): void {
                     $classScope->whereNotNull('classroom_id')
@@ -157,6 +157,9 @@ final class PortalController extends Controller
         $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title', 'grade', 'season']);
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
+            ->with(['sessions' => fn ($sessions) => $sessions
+                ->where('status', '!=', 'cancelled')
+                ->orderByDesc('starts_at')])
             ->orderBy('name')
             ->get(['id', 'name', 'course_id']);
 
