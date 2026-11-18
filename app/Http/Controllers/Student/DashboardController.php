@@ -23,10 +23,8 @@ final class DashboardController extends Controller
 
     public function homework(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
-
         return view('student.assignments', [
-            'homeworks' => $data['homeworks'],
+            'homeworks' => $dashboard->assignments($request->user()),
             'student' => $request->user(),
         ]);
     }
