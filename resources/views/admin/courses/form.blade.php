@@ -163,7 +163,7 @@
     </x-admin.panel>
     @if($isEditing)
       <x-admin.panel title="پیش‌نمایش زنده صفحه عمومی" desc="همان صفحه‌ای که بازدیدکننده می‌بیند؛ برای دوره پیش‌نویس با دسترسی مدیر قابل مشاهده است.">
-        <x-admin.btn block icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
+        <x-admin.btn icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
       </x-admin.panel>
     @endif
   </aside>
