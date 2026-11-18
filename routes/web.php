@@ -108,7 +108,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
         ->middleware('permission:integrations.manage,videos.manage.assigned')
         ->name('recordings.legacy');
     Route::get('/meetings', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.meetings') : redirect()->route('admin.parent-meetings.index'))
-        ->middleware('permission:classes.manage,classes.manage.assigned')
+        ->middleware('permission:classes.view.assigned,classes.manage.assigned,classes.manage')
         ->name('meetings.legacy');
     Route::get('/parent-messages', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.messages.index') : redirect()->route('admin.messages.index'))
         ->middleware('permission:messages.view.all,messages.view.assigned')
