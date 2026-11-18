@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class Course extends Model
 {
     protected $fillable = [
-        'title', 'slug', 'description', 'subject', 'grade', 'teacher_id',
+        'title', 'slug', 'description', 'subject', 'grade', 'academic_grade_id', 'season', 'teacher_id',
         'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
         'integration_status', 'integration_note', 'learning_features',
         'teaser_original_path', 'teaser_path', 'teaser_poster_path', 'teaser_status', 'teaser_error',
@@ -32,6 +32,11 @@ class Course extends Model
     public function getTeaserPosterUrlAttribute(): ?string
     {
         return $this->teaser_poster_path ? Storage::disk('public')->url($this->teaser_poster_path) : null;
+    }
+
+    public function academicGrade(): BelongsTo
+    {
+        return $this->belongsTo(AcademicGrade::class, 'academic_grade_id');
     }
 
     public function teacher(): BelongsTo

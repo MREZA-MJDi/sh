@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\AcademicGrade;
 use App\Models\ClassSession;
+use App\Models\SpotPlayerVideo;
 use App\Models\ContactMessage;
 use App\Models\Consultation;
 use App\Models\ConsultationReply;
@@ -56,13 +58,24 @@ final class DemoWorkflowContentSeeder extends Seeder
 
         DB::transaction(function () use ($teacher, $student, $parent): void {
             $now = Carbon::now();
+            $grade = AcademicGrade::query()->firstOrCreate(
+                ['code' => '10'],
+                ['name' => 'دهم', 'level' => 10, 'sort_order' => 10, 'is_active' => true]
+            );
+            $student->forceFill([
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+            ])->save();
+
             $course = Course::query()->firstOrCreate(
                 ['slug' => 'video-only-demo-course'],
                 [
                     'title' => 'دوره ویدئویی بدون کلاس؛ مهارت مطالعه مؤثر',
                     'description' => 'یک دوره خودآموز شامل ویدئوی معرفی، درس‌های ویدئویی، محتوای متنی و منابع PDF اختیاری. این دوره برنامه کلاس یا جلسه آنلاین ندارد.',
                     'subject' => 'مهارت‌های مطالعه',
-                    'grade' => $student->grade ?: 'عمومی',
+                    'grade' => $grade->name,
+                    'academic_grade_id' => $grade->id,
+                    'season' => 'autumn',
                     'teacher_id' => $teacher->id,
                     'type' => 'free',
                     'price' => 0,
@@ -77,6 +90,16 @@ final class DemoWorkflowContentSeeder extends Seeder
                         'exams' => true,
                     ],
                 ]
+            );
+            $course->forceFill([
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+                'season' => 'autumn',
+            ])->save();
+
+            SpotPlayerVideo::query()->firstOrCreate(
+                ['course_id' => $course->id, 'classroom_id' => null, 'title' => 'ویدیوی معرفی مهارت مطالعه - دوره پاییزه دهم'],
+                ['created_by' => $teacher->id, 'external_id' => null, 'embed_url' => null, 'status' => 'draft']
             );
 
             $section = CourseSection::query()->firstOrCreate(
@@ -132,7 +155,9 @@ final class DemoWorkflowContentSeeder extends Seeder
                     'title' => 'دوره ترکیبی با کلاس آنلاین؛ ریاضی و حل مسئله',
                     'description' => 'نمونه دوره دارای محتوای ضبط‌شده و جلسات آنلاین برنامه‌ریزی‌شده. سرویس جلسه زنده تا زمان دریافت اطلاعات رسمی در وضعیت انتظار باقی می‌ماند.',
                     'subject' => 'ریاضی',
-                    'grade' => $student->grade ?: 'هفتم',
+                    'grade' => $grade->name,
+                    'academic_grade_id' => $grade->id,
+                    'season' => 'autumn',
                     'teacher_id' => $teacher->id,
                     'type' => 'free',
                     'price' => 0,
@@ -148,6 +173,16 @@ final class DemoWorkflowContentSeeder extends Seeder
                         'exams' => true,
                     ],
                 ]
+            );
+            $liveCourse->forceFill([
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+                'season' => 'autumn',
+            ])->save();
+
+            SpotPlayerVideo::query()->firstOrCreate(
+                ['course_id' => $liveCourse->id, 'classroom_id' => null, 'title' => 'ویدیوی ضبط‌شده ریاضی دهم - دوره پاییزه'],
+                ['created_by' => $teacher->id, 'external_id' => null, 'embed_url' => null, 'status' => 'draft']
             );
 
             $classroom = $liveCourse->classrooms()->firstOrCreate(

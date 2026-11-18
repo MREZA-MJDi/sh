@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +16,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'phone', 'password', 'is_active', 'grade', 'subject',
+        'name', 'email', 'phone', 'password', 'is_active', 'grade', 'academic_grade_id', 'subject',
         'profile_note', 'external_student_id', 'legacy_login', 'permissions_customized',
     ];
 
@@ -66,6 +67,11 @@ class User extends Authenticatable
         ]);
 
         $this->attributes['external_student_id'] = preg_replace('/\\s+/u', '', $identifier) ?? $identifier;
+    }
+
+    public function academicGrade(): BelongsTo
+    {
+        return $this->belongsTo(AcademicGrade::class, 'academic_grade_id');
     }
 
     public function roles(): BelongsToMany

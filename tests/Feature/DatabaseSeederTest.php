@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\AcademicGrade;
+use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\AcademicPortalContentSeeder;
@@ -33,8 +35,14 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('courses', ['slug' => 'video-only-demo-course']);
         $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
         $this->assertDatabaseCount('courses', 4);
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+        $course = Course::query()->where('slug', 'riyazi-takmili-nomre')->firstOrFail();
+        $this->assertSame($grade->id, $course->academic_grade_id);
+        $this->assertSame('autumn', $course->season);
+        $this->assertSame(2, $course->classrooms()->count());
+        $this->assertTrue($course->spotPlayerVideos()->whereNull('classroom_id')->exists());
         $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
-        $this->assertDatabaseCount('classrooms', 3);
+        $this->assertDatabaseCount('classrooms', 4);
         $this->assertDatabaseCount('guardian_student', 1);
     }
 
@@ -59,7 +67,13 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
         $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
         $this->assertDatabaseCount('courses', 4);
-        $this->assertDatabaseCount('classrooms', 3);
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+        $this->assertDatabaseHas('courses', [
+            'slug' => 'hybrid-live-demo-course',
+            'academic_grade_id' => $grade->id,
+            'season' => 'autumn',
+        ]);
+        $this->assertDatabaseCount('classrooms', 4);
     }
 
     public function test_academic_demo_seeder_never_attaches_fixtures_to_unrelated_local_users(): void
