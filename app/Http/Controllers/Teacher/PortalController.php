@@ -233,8 +233,8 @@ final class PortalController extends Controller
             });
 
         if ($request->filled('classroom_id')) {
-            $query->where('classroom_id', $assignedClassrooms->modelKeys())
-                ->where('classroom_id', $request->integer('classroom_id'));
+            $query->where('classroom_id', $request->integer('classroom_id'))
+                ->whereIn('classroom_id', $assignedClassrooms->modelKeys());
         }
 
         if ($request->filled('provider') && in_array($request->input('provider'), ['skyroom', 'jitsi', 'bbb', 'link'], true)) {
