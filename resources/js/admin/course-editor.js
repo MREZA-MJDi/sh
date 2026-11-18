@@ -78,6 +78,29 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
   };
 
+  const classroomField = widget.querySelector('[data-upload-classroom]');
+  const sessionField = widget.querySelector('[data-upload-session]');
+  const filterSessions = () => {
+    if (!sessionField) return;
+    const classroomId = classroomField?.value || '';
+    Array.from(sessionField.options).forEach((option) => {
+      const optionClassroom = option.dataset.classroomId || '';
+      const visible = !option.value || !classroomId || optionClassroom === classroomId;
+      option.hidden = !visible;
+      option.disabled = !visible;
+    });
+    if (sessionField.selectedOptions[0]?.disabled) sessionField.value = '';
+  };
+  classroomField?.addEventListener('change', filterSessions);
+  sessionField?.addEventListener('change', () => {
+    const selected = sessionField.selectedOptions[0];
+    if (selected?.dataset.classroomId && classroomField && !classroomField.value) {
+      classroomField.value = selected.dataset.classroomId;
+    }
+    filterSessions();
+  });
+  filterSessions();
+
   startButton.addEventListener('click', async () => {
     const file = fileInput.files?.[0];
     if (!file) {
