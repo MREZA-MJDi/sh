@@ -50,7 +50,7 @@ import '../shared/iranian-locale.js';
   var sr = $('#globalSearch');
   if (sr) sr.addEventListener('input', function () {
     var q = sr.value.trim().toLowerCase();
-    $$('main .row').forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1; });
+    $('main .row, main .teacher-list-card, main .teacher-review-row, main .teacher-live-session-card').forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1; });
   });
 
   /* ---------- Modal افزودن/ویرایش ---------- */
@@ -142,7 +142,7 @@ import '../shared/iranian-locale.js';
     f.addEventListener('submit', function (e) {
       if (f.getAttribute('data-busy')) { e.preventDefault(); return; }
       f.setAttribute('data-busy', '1');
-      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+      $$('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         button.disabled = true;
       });
     });
@@ -150,7 +150,7 @@ import '../shared/iranian-locale.js';
   window.addEventListener('pageshow', function () {
     $$('form[data-busy]').forEach(function (f) {
       f.removeAttribute('data-busy');
-      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+      $$('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         button.disabled = false;
       });
     });

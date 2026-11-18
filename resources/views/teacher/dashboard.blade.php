@@ -24,7 +24,7 @@
 @endforeach
 </div></section>
 <div class="g g2">
-<section class="c"><div class="teacher-section-head"><h2>کلاس‌های فعال شما</h2><a href="{{ route('teacher.classes') }}">همه کلاس‌ها</a></div>
+<section class="c"><div class="teacher-section-head"><h2>کلاس‌های تحت مدیریت شما</h2><a href="{{ route('teacher.classes') }}">همه کلاس‌ها</a></div>
 @forelse(($todayClasses ?? []) as $cl)<div class="row"><div>{{ data_get($cl,'title') }}<small>{{ data_get($cl,'time') }}</small></div>@if(data_get($cl,'status')==='link')<a class="b s" href="{{ data_get($cl,'url') }}" target="_blank" rel="noopener noreferrer">ورود</a>@else<i class="bd am">لینک جلسه ثبت نشده</i>@endif</div>
 @empty<p>کلاس فعالی برای حساب شما ثبت نشده است.</p>@endforelse</section>
 <section class="c"><div class="teacher-section-head"><h2>جلسات امروز</h2><a href="{{ route('teacher.live') }}">کلاس آنلاین</a></div>
@@ -37,4 +37,18 @@
 @forelse(($newMessages ?? []) as $message)<div class="row"><div>{{ data_get($message,'from') }}<small>{{ data_get($message,'text') }}</small></div><i class="bd pk">باز</i></div>
 @empty<p>پیام بازی وجود ندارد.</p>@endforelse</section>
 </div>
+<section class="c teacher-attendance-summary">
+    <div class="teacher-section-head"><div><h2>روند حضور هفت روز اخیر</h2><p>درصد حضور و تأخیر نسبت به کل رکوردهای ثبت‌شده در کلاس‌های شما</p></div><a href="{{ route('teacher.attendance') }}">مشاهده سوابق</a></div>
+    <div class="teacher-attendance-bars" role="list" aria-label="درصد حضور روزانه">
+        @foreach(($weekAttendance ?? collect()) as $day)
+            <div class="teacher-attendance-bar" role="listitem">
+                <div class="teacher-attendance-bar-track" title="{{ $day['percent'] }}٪">
+                    <span style="height:{{ max(0,min(100,(int) $day['percent'])) }}%"></span>
+                </div>
+                <strong>{{ $day['percent'] }}٪</strong>
+                <small>{{ $day['label'] }}</small>
+            </div>
+        @endforeach
+    </div>
+</section>
 @endsection

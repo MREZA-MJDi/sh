@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Models\ClassSession;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
+use App\Models\LearningResource;
+use App\Models\SpotPlayerVideo;
 use App\Models\MessageReply;
 use App\Models\User;
 use App\Notifications\MessageActivityNotification;
@@ -75,14 +77,83 @@ final class PortalController extends Controller
         return view('teacher.homework', compact('homework', 'submissions', 'classrooms'));
     }
 
-    public function videos(Request $request): RedirectResponse
+    public function videos(Request $request, ClassroomWorkspaceService $workspace): View
     {
-        return redirect()->route('admin.spotplayer.index');
+        $user = $request->user();
+        $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
+        $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
+
+        $videos = SpotPlayerVideo::query()
+            ->with(['course:id,title', 'classroom:id,name'])
+            ->where(function ($scope) use ($courseIds, $classroomIds): void {
+                $scope->where(function ($classScope) use ($courseIds, $classroomIds): void {
+                    $classScope->whereNotNull('classroom_id')
+                        ->whereIn('course_id', clone $courseIds)
+                        ->whereHas('classroom', fn ($classrooms) => $classrooms
+                            ->whereIn('classrooms.id', clone $classroomIds)
+                            ->whereColumn('classrooms.course_id', 'spot_player_videos.course_id'));
+                })->orWhere(function ($courseScope) use ($courseIds): void {
+                    $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                });
+            })
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
+        $courses = $workspace->coursesQueryFor($user)
+            ->where(function ($query): void {
+                $query->where(function ($legacy): void {
+                    $legacy->whereNull('learning_features')->where('delivery_type', 'spotplayer');
+                })->orWhere('learning_features->recorded_video', true);
+            })
+            ->orderBy('title')
+            ->get(['id', 'title']);
+
+        $classrooms = $workspace->queryFor($user)
+            ->whereIn('course_id', $courses->modelKeys())
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'course_id']);
+
+        return view('teacher.videos', compact('videos', 'courses', 'classrooms'));
     }
 
-    public function resources(Request $request): RedirectResponse
+    public function resources(Request $request, ClassroomWorkspaceService $workspace): View
     {
-        return redirect()->route('admin.resources.index');
+        $user = $request->user();
+        $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
+        $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
+
+        $resources = LearningResource::query()
+            ->with(['course:id,title', 'classroom:id,name'])
+            ->where(function ($scope) use ($classroomIds, $courseIds): void {
+                $scope->where(function ($classScope) use ($classroomIds, $courseIds): void {
+                    $classScope->whereNotNull('classroom_id')
+                        ->whereHas('classroom', function ($classrooms) use ($classroomIds): void {
+                            $classrooms->whereIn('classrooms.id', clone $classroomIds)
+                                ->where(function ($courseMatch): void {
+                                    $courseMatch->whereNull('learning_resources.course_id')
+                                        ->orWhereColumn('classrooms.course_id', 'learning_resources.course_id');
+                                });
+                        })
+                        ->where(function ($courseScope) use ($courseIds): void {
+                            $courseScope->whereNull('course_id')->orWhereIn('course_id', clone $courseIds);
+                        });
+                })->orWhere(function ($courseScope) use ($courseIds): void {
+                    $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                });
+            })
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
+        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
+        $classrooms = $workspace->queryFor($user)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name', 'course_id']);
+
+        return view('teacher.resources', compact('resources', 'courses', 'classrooms'));
     }
 
     public function attendance(Request $request, ClassroomWorkspaceService $workspace): View
@@ -144,19 +215,56 @@ final class PortalController extends Controller
 
     public function live(Request $request, ClassroomWorkspaceService $workspace, SkyroomService $skyroom): View
     {
-        $sessions = ClassSession::query()
-            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+        $teacher = $request->user();
+        $assignedClassrooms = $workspace->queryFor($teacher)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $query = ClassSession::query()
+            ->whereIn('classroom_id', $assignedClassrooms->modelKeys())
             ->where('session_type', 'online')
             ->where('status', 'scheduled')
-            ->where('ends_at', '>=', now())
+            ->where(function ($window): void {
+                $window->where('ends_at', '>=', now())
+                    ->orWhere(function ($withoutEnd): void {
+                        $withoutEnd->whereNull('ends_at')->where('starts_at', '>=', now());
+                    });
+            });
+
+        if ($request->filled('classroom_id')) {
+            $query->where('classroom_id', $request->integer('classroom_id'))
+                ->whereIn('classroom_id', $assignedClassrooms->modelKeys());
+        }
+
+        if ($request->filled('provider') && in_array($request->input('provider'), ['skyroom', 'jitsi', 'bbb', 'link'], true)) {
+            $query->where('meeting_provider', $request->input('provider'));
+        }
+
+        $liveCount = (clone $query)
+            ->where('starts_at', '<=', now())
+            ->where(function ($window): void {
+                $window->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+            })->count();
+        $upcomingCount = (clone $query)->where('starts_at', '>', now())->count();
+        $waitingCount = (clone $query)
+            ->whereNull('meeting_url')
+            ->whereDoesntHave('classroom', fn ($classroom) => $classroom->whereNotNull('meeting_url'))
+            ->count();
+
+        $sessions = $query
             ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
             ->orderBy('starts_at')
             ->paginate(12)
             ->withQueryString();
 
         $skyroomHealth = $skyroom->health();
+        $filters = [
+            'classroom_id' => $request->integer('classroom_id') ?: null,
+            'provider' => $request->input('provider'),
+        ];
 
-        return view('teacher.live', compact('sessions', 'skyroomHealth'));
+        return view('teacher.live', compact('sessions', 'skyroomHealth', 'assignedClassrooms', 'filters', 'liveCount', 'upcomingCount', 'waitingCount'));
     }
 
     public function meetings(Request $request, ClassroomWorkspaceService $workspace): View
@@ -258,7 +366,7 @@ final class PortalController extends Controller
     {
         $data = $request->validate([
             'meeting_provider' => ['required', 'in:skyroom,jitsi,bbb,link'],
-            'meeting_url' => ['nullable', 'url', 'max:2048'],
+            'meeting_url' => ['nullable', 'url', 'starts_with:https://', 'max:2048'],
         ]);
 
         $record = ClassSession::query()

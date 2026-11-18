@@ -1,25 +1,29 @@
 @php
     $t = $teacher ?? auth()->user();
-    $nav = [
-        ['teacher', 'داشبورد', '🏠'],
-        ['teacher/classes', 'کلاس‌ها', '🎬'],
-        ['teacher/homework', 'تکالیف', '📝'],
-        ['teacher/attendance', 'حضور و غیاب', '✅'],
-        ['teacher/live', 'کلاس آنلاین', '🎥'],
-        ['teacher/messages', 'پیام اولیا', '💬'],
-        ['teacher/consultations', 'درخواست مشاوره', '🗨️'],
-        ['teacher/meetings', 'جلسات', '🤝'],
-    ];
-
-    // These direct links are visible only when the administrator grants the corresponding teacher permissions.
-    if ($t?->hasPermissionTo('homework.manage.assigned') || $t?->hasPermissionTo('homework.view.assigned')) {
-        $nav[] = ['admin/homework', 'مدیریت تکالیف و تصحیح', '📝'];
+    $nav = [['teacher', 'داشبورد', '🏠']];
+    if ($t?->hasPermissionTo('classes.view.assigned')) {
+        $nav[] = ['teacher/classes', 'کلاس‌ها', '🎬'];
+        $nav[] = ['teacher/live', 'کلاس آنلاین', '🎥'];
+        $nav[] = ['teacher/meetings', 'جلسات', '🤝'];
     }
+    if ($t?->hasPermissionTo('homework.view.assigned')) {
+        $nav[] = ['teacher/homework', 'تکالیف', '📝'];
+    }
+    if ($t?->hasPermissionTo('attendance.view.assigned')) {
+        $nav[] = ['teacher/attendance', 'حضور و غیاب', '✅'];
+    }
+    if ($t?->hasPermissionTo('messages.view.assigned')) {
+        $nav[] = ['teacher/messages', 'پیام اولیا', '💬'];
+    }
+    if ($t?->hasPermissionTo('consultations.create')) {
+        $nav[] = ['teacher/consultations', 'درخواست مشاوره', '🗨️'];
+    }
+
     if ($t?->hasPermissionTo('resources.manage.assigned')) {
-        $nav[] = ['admin/resources', 'بارگذاری جزوه و منابع', '📚'];
+        $nav[] = ['teacher/resources', 'بارگذاری جزوه و منابع', '📚'];
     }
     if ($t?->hasPermissionTo('videos.manage.assigned')) {
-        $nav[] = ['admin/spotplayer', 'بارگذاری فیلم‌ها', '🎞️'];
+        $nav[] = ['teacher/videos', 'بارگذاری فیلم‌ها', '🎞️'];
     }
 @endphp
 <div class="teacher-sidebar">

@@ -20,6 +20,28 @@ final class NotificationController extends Controller
             $isLocalPath = str_starts_with($target, '/') && ! str_starts_with($target, '//');
 
             if ($isLocalAbsoluteUrl || $isLocalPath) {
+                if ($request->user()->hasRole('teacher') && ! $request->user()->hasRole('admin')) {
+                    $path = parse_url($target, PHP_URL_PATH) ?: '/';
+                    $teacherTargets = [
+                        '/admin/homework' => route('teacher.homework'),
+                        '/admin/assignments' => route('teacher.homework'),
+                        '/admin/resources' => route('teacher.resources'),
+                        '/admin/spotplayer' => route('teacher.videos'),
+                        '/admin/recordings' => route('teacher.videos'),
+                        '/admin/meetings' => route('teacher.meetings'),
+                        '/admin/parent-messages' => route('teacher.messages.index'),
+                    ];
+                    if (isset($teacherTargets[$path])) {
+                        return redirect()->to($teacherTargets[$path]);
+                    }
+                    if ($path === '/admin' || $path === '/admin/') {
+                        return redirect()->route('teacher.dashboard');
+                    }
+                    if (str_starts_with($path, '/admin/')) {
+                        return redirect()->route('teacher.dashboard');
+                    }
+                }
+
                 return redirect()->to($target);
             }
         }
