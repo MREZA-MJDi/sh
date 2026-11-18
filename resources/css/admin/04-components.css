@@ -102,3 +102,16 @@
 .adm-notification-item small{color:var(--muted);font-size:11px;line-height:1.7}
 .adm-notification-read-all{width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--primary);font-weight:700}
 .is-global-search-hidden{display:none!important}
+
+
+/* Topbar account and notification panels. */
+.adm-menu-pop-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.adm-profile-summary{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);min-width:0}
+.adm-profile-avatar{width:42px;height:42px}
+.adm-profile-identity{display:grid;gap:1px;min-width:0}
+.adm-profile-name{overflow-wrap:anywhere;font-weight:800}
+.adm-profile-identity small{font-size:11px;line-height:1.7}
+.adm-profile-email{direction:ltr;text-align:right;overflow-wrap:anywhere}
+.adm-profile-logout{align-items:center!important;gap:9px!important;font-weight:700;color:var(--bad)!important}
+.adm-profile-logout .adm-icon{width:17px;height:17px}
+.adm-notification-empty{padding:18px 16px;font-size:12px}
