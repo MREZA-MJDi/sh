@@ -83,7 +83,8 @@
 
         {{-- Article Cards Grid --}}
         <div class="g g3">
-            @forelse($articlesToLoop as $index => $article)
+            @if($articlesToLoop->isNotEmpty())
+            @foreach($articlesToLoop as $index => $article)
                 @php
                     $gradients = [
                         'linear-gradient(135deg,#0d9488,#0f766e)',
@@ -113,12 +114,13 @@
                         </div>
                     </div>
                 </a>
-            @empty
+            @endforeach
+            @else
                 <div class="card" style="grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--mute)">
                     <p style="font-size: 16px; margin-bottom: 12px">مقاله‌ای با این مشخصات یافت نشد.</p>
                     <a class="btn s" href="{{ route('seo.articles.index') }}">مشاهده همه مقالات</a>
                 </div>
-            @endforelse
+            @endif
         </div>
 
         {{-- Pagination --}}
