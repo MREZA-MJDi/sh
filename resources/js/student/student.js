@@ -52,7 +52,7 @@ import '../shared/iranian-locale.js';
   });
 
   /* فرم‌ها: جلوگیری از ارسال مجدد تا پایان درخواست و بازگشت صفحه. */
-  $('form').forEach(function (f) {
+  $$('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       if (f.dataset.busy) { e.preventDefault(); return; }
       f.dataset.busy = '1';
@@ -63,7 +63,7 @@ import '../shared/iranian-locale.js';
     });
   });
   window.addEventListener('pageshow', function () {
-    $('form[data-busy]').forEach(function (f) {
+    $$('form[data-busy]').forEach(function (f) {
       delete f.dataset.busy;
       $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         button.disabled = false;
