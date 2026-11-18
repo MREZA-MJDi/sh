@@ -30,6 +30,7 @@ class SeoDashboardController extends Controller
             'bannerCount' => SeoBanner::query()->count(),
             'activeBannerCount' => SeoBanner::active()->count(),
             'homeHeroCount' => SeoBanner::query()->where('placement', 'home_hero')->count(),
+            'homeHeroCount' => SeoBanner::query()->where('placement', 'home_hero')->count(),
             'recentArticles' => SeoArticle::query()->latest()->limit(5)->get(),
             'recentBanners' => SeoBanner::query()->orderBy('sort_order')->latest()->limit(5)->get(),
         ]);
