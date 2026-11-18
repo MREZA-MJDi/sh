@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 final class AdminDashboardPerformanceTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase;\n\n    protected function setUp(): void\n    {\n        parent::setUp();\n        $this->seed(RolePermissionSeeder::class);\n    }
 
     public function test_admin_dashboard_stays_within_a_bounded_query_budget_and_uses_a_date_range_for_attendance(): void
     {
