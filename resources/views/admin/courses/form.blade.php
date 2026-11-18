@@ -137,6 +137,7 @@
             @endforelse
           </div>
           <p class="adm-muted">تا زمان تکمیل اتصال رسمی SpotPlayer، ویدیوها در وضعیت انتظار می‌مانند و لینک پخش ساختگی نمایش داده نمی‌شود.</p>
+          @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @endif
 
