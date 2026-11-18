@@ -146,11 +146,11 @@ class RoleAuthenticationAndDashboardTest extends TestCase
             ->assertSee('id="overview"', false)
             ->assertSee('id="classes"', false)
             ->assertSee('id="homework"', false)
-            ->assertSee('id="attendance"', false)
+            ->assertSee('id="attendance-notice"', false)
             ->assertSee('id="results"', false)
-            ->assertSee('id="resources"', false)
-            ->assertSee('id="notes"', false)
-            ->assertSee('id="announcements"', false);
+            ->assertSee('id="resources-notice"', false)
+            ->assertSee('id="sessions-notice"', false)
+            ->assertSee('id="homework-notice"', false);
 
         $this->assertStringNotContainsString(chr(92).'n    @vite', $response->getContent());
     }
@@ -193,7 +193,9 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.dashboard'))
             ->assertOk()
-            ->assertSee('کلاس ثبت‌شده دانش‌آموز')
+            ->assertSee('کلاس‌های فعال')
+            ->assertSee('/student/courses', false)
+            ->assertDontSee('کلاس ثبت‌شده دانش‌آموز')
             ->assertDontSee('کلاس دانش‌آموز دیگر')
             ->assertSee('تکالیف من')
             ->assertDontSee('اسپات پلیر')
