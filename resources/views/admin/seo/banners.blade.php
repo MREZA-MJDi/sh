@@ -63,8 +63,8 @@
   <x-admin.legend title="محتوای بنر"/>
   <x-admin.input label="عنوان داخلی" name="title" required/>
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
-  <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 6" data-preview-fit="cover"/>
-  <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%" hint="پیش‌نمایش تصویر با نسبت واقعی Hero نمایش داده می‌شود؛ برای تغییر نقطه کانونی از درصد افقی و عمودی استفاده کنید."/>
+  <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 9" data-preview-mobile-ratio="4 / 5" data-preview-fit="cover"/>
+  <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%" hint="پیش‌نمایش دسکتاپ ۱۶:۹ و موبایل ۴:۵ است؛ در هر دو حالت برش نهایی با object-fit: cover شبیه‌سازی می‌شود. برای جابه‌جایی نقطه کانونی درصد افقی و عمودی را تنظیم کنید."/>
   <x-admin.select label="جایگاه نمایش" name="placement" :options="$placementLabels" required/>
   <x-admin.input label="نشانی مقصد" name="target_url" placeholder="/courses یا https://..."/>
   <x-admin.switch label="باز شدن در زبانه جدید" name="open_in_new_tab"/>
