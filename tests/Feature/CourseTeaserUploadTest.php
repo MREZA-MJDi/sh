@@ -36,6 +36,7 @@ final class CourseTeaserUploadTest extends TestCase
             'target' => 'teaser',
             'target_id' => $course->id,
             'total' => 1,
+            'total_bytes' => strlen(pack('N', 24).'ftypmp42'.pack('N', 0).'mp42isom'),
         ])->assertOk()->assertJsonPath('ok', true);
 
         $uploadId = $start->json('upload_id');
@@ -56,6 +57,22 @@ final class CourseTeaserUploadTest extends TestCase
         $this->assertDatabaseHas('video_upload_sessions', ['upload_id' => $uploadId, 'status' => 'completed']);
         $this->assertNotEmpty($course->fresh()->teaser_original_path);
         Queue::assertPushed(ProcessTeaserVideo::class, fn ($job) => $job->courseId === $course->id);
+    }
+
+    public function test_teaser_upload_rejects_files_larger_than_200_mb_before_creating_a_session(): void
+    {
+        $admin = $this->admin();
+        $course = $this->course();
+
+        $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'total' => 41,
+            'total_bytes' => 200 * 1024 * 1024 + 1,
+        ])->assertUnprocessable()->assertJsonValidationErrors('file');
+
+        $this->assertDatabaseCount('video_upload_sessions', 0);
+        $this->assertSame(200, (int) config('learning.max_teaser_mb'));
     }
 
     public function test_teacher_without_course_management_permission_cannot_start_teaser_upload(): void
