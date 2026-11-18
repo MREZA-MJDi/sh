@@ -3,95 +3,14 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
-use App\Models\HomeworkSubmission;
-use App\Models\ClassSession;
-use App\Services\Admin\ClassroomWorkspaceService;
-use App\Services\Admin\DashboardService;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\Teacher\TeacherDashboardService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 final class DashboardController extends Controller
 {
-    public function index(
-        Request $request,
-        DashboardService $dashboard,
-        ClassroomWorkspaceService $workspace
-    ): View {
-        $user = $request->user();
-        $data = $dashboard->build($user);
-        $classroomIds = $workspace->queryFor($user)->where('status', 'active')->select('classrooms.id');
-
-        $todayClasses = $data['todayClasses']->map(fn ($classroom) => [
-            'title' => $classroom->name,
-            'time' => $classroom->course?->title ?? 'کلاس فعال',
-            'status' => filled($classroom->meeting_url) ? 'link' : 'scheduled',
-            'url' => $classroom->meeting_url,
-        ]);
-
-        $todaySessions = ClassSession::query()
-            ->whereIn('classroom_id', clone $classroomIds)
-            ->whereDate('starts_at', today())
-            ->where('status', 'scheduled')
-            ->with(['classroom:id,name,course_id,meeting_url', 'classroom.course:id,title'])
-            ->orderBy('starts_at')
-            ->get()
-            ->map(fn ($session) => [
-                'title' => $session->title ?: $session->classroom?->name,
-                'time' => $session->starts_at?->format('H:i').' · '.($session->classroom?->course?->title ?? 'جلسه آموزشی'),
-                'status' => $session->session_type === 'online'
-                    ? (filled($session->meeting_url) || ($session->meeting_provider === 'skyroom' && filled($session->classroom?->meeting_url)) ? 'link' : ($session->meeting_provider === 'jitsi' ? 'waiting_jitsi' : 'waiting'))
-                    : 'onsite',
-                'url' => $session->meeting_url ?: ($session->meeting_provider === 'skyroom' ? $session->classroom?->meeting_url : null),
-            ]);
-
-        $pending = HomeworkSubmission::query()
-            ->where('status', 'submitted')
-            ->whereHas('homework', fn (Builder $homework) => $homework->whereIn('classroom_id', clone $classroomIds))
-            ->with(['homework:id,title,classroom_id'])
-            ->latest('submitted_at')
-            ->limit(8)
-            ->get()
-            ->groupBy('homework_id')
-            ->map(fn ($items) => [
-                'title' => $items->first()->homework?->title ?? 'تکلیف',
-                'submitted' => $items->count(),
-                'type' => 'در انتظار بررسی',
-            ])->values();
-
-        $weekAttendance = $data['weeklyAttendance']->map(fn ($day) => [
-            'label' => $day['label'],
-            'percent' => $day['rate'],
-        ]);
-
-        $newMessages = $data['recentMessages']->map(fn ($message) => [
-            'from' => $message->sender?->name ?? 'کاربر',
-            'text' => $message->subject ?: $message->body,
-        ]);
-
-        $data['teacher'] = $user;
-        $data['stats'] = [
-            'classes_today' => $todayClasses->count(),
-            'classes_today_note' => 'کلاس‌های تحت مدیریت شما',
-            'homework_review' => (int) $data['stats']['pending_homework'],
-            'homework_review_note' => 'ارسال در انتظار بررسی',
-            'absent_today' => Attendance::query()
-                ->whereIn('classroom_id', clone $classroomIds)
-                ->whereDate('session_date', today())
-                ->where('status', 'absent')
-                ->count(),
-            'absent_today_note' => 'در کلاس‌های شما',
-            'new_messages' => $newMessages->count(),
-            'new_messages_note' => 'پیام‌های باز',
-        ];
-        $data['todayClasses'] = $todayClasses;
-        $data['todaySessions'] = $todaySessions;
-        $data['weekAttendance'] = $weekAttendance;
-        $data['pendingHomework'] = $pending;
-        $data['newMessages'] = $newMessages;
-        $data['liveClass'] = null;
-
-        return view('teacher.dashboard', $data);
+    public function index(Request $request, TeacherDashboardService $dashboard): View
+    {
+        return view('teacher.dashboard', $dashboard->build($request->user()));
     }
 }
