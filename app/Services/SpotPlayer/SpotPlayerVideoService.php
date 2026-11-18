@@ -62,7 +62,7 @@ final class SpotPlayerVideoService
                 'classroom_id' => $classroomId,
                 'external_id' => filled($data['external_id'] ?? null) ? trim($data['external_id']) : null,
                 'embed_url' => null,
-                'status' => filled($data['external_id'] ?? null) ? 'waiting_contract' : 'active',
+                'status' => 'processing',
                 'created_by' => $actor->id,
                 'file_path' => $storagePath,
                 'file_original_name' => mb_substr($originalName, 0, 255),
@@ -71,6 +71,8 @@ final class SpotPlayerVideoService
                 'file_sha256' => $sha256,
                 'staged_at' => now(),
             ]);
+
+            ProcessCourseRecordingVideo::dispatch($video->id)->afterCommit();
 
             if (filled($video->external_id)) {
                 $this->operations->waitForContract(
@@ -166,7 +168,7 @@ final class SpotPlayerVideoService
                     'classroom_id' => $data['classroom_id'] ?? null,
                     'external_id' => $data['external_id'] ?? null,
                     'embed_url' => null,
-                    'status' => filled($data['external_id'] ?? null) ? 'waiting_contract' : 'active',
+                    'status' => 'processing',
                     'created_by' => $actor->id,
                     'file_path' => $storagePath,
                     'file_original_name' => mb_substr($uploadedFile->getClientOriginalName(), 0, 255),
@@ -175,6 +177,8 @@ final class SpotPlayerVideoService
                     'file_sha256' => $sha256,
                     'staged_at' => now(),
                 ]);
+
+                ProcessCourseRecordingVideo::dispatch($video->id)->afterCommit();
 
                 if (filled($video->external_id)) {
                     $this->operations->waitForContract(
