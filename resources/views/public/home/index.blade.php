@@ -234,7 +234,7 @@
 
 
     {{-- =========================================================
-         INTERACTIVE FIVE-STEP QUIZ
+         INTERACTIVE HOMEPAGE QUIZ
     ========================================================= --}}
 
     <section class="home-quiz-section" id="homeQuiz">
