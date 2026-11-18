@@ -41,6 +41,7 @@ final class DemoLoginCardsTest extends TestCase
             ->assertDontSee('admin@sh.local')
             ->assertDontSee('Shikhan-Demo-2026!');
     }
+
     public function test_demo_credentials_are_never_rendered_in_production_even_when_flags_are_enabled(): void
     {
         config([
@@ -62,6 +63,7 @@ final class DemoLoginCardsTest extends TestCase
             $this->app->detectEnvironment(fn () => 'testing');
         }
     }
+
     public function test_demo_seeder_does_not_create_shared_password_accounts_in_production(): void
     {
         config([
@@ -71,7 +73,7 @@ final class DemoLoginCardsTest extends TestCase
         $this->app->detectEnvironment(fn () => 'production');
 
         try {
-            app(\\Database\\Seeders\\LocalDemoAccountsSeeder::class)->run();
+            app(\Database\Seeders\LocalDemoAccountsSeeder::class)->run();
 
             $this->assertDatabaseMissing('users', ['email' => 'admin@sh.local']);
             $this->assertDatabaseMissing('users', ['email' => 'teacher@sh.local']);
