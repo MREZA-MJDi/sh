@@ -196,7 +196,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.store');
     Route::post('/attendance/{classroom}/{student}/notify', [AttendanceController::class, 'notifyAbsence'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.notify');
 
-    Route::get('/homework', [HomeworkController::class, 'index'])->middleware('permission:homework.manage.all,homework.manage.assigned,homework.view.assigned')->name('homework.index');
+    Route::get('/homework', [HomeworkController::class, 'index'])->middleware(['role:admin', 'permission:homework.manage.all,homework.manage.assigned,homework.view.assigned'])->name('homework.index');
     Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.store');
     Route::patch('/homework/{homework}', [HomeworkController::class, 'update'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.update');
     Route::delete('/homework/{homework}', [HomeworkController::class, 'destroy'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.destroy');
@@ -218,7 +218,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
         Route::patch('/exams/{exam}/attempts/{attempt}/grade', [ExamAttemptReviewController::class, 'grade'])->name('exams.attempts.grade');
     });
 
-    Route::get('/resources', [LearningResourceController::class, 'index'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.index');
+    Route::get('/resources', [LearningResourceController::class, 'index'])->middleware(['role:admin', 'permission:resources.manage,resources.manage.assigned'])->name('resources.index');
     Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.store');
     Route::patch('/resources/{resource}', [LearningResourceController::class, 'update'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.update');
     Route::delete('/resources/{resource}', [LearningResourceController::class, 'destroy'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.destroy');
@@ -240,7 +240,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/announcements/{announcement}/status', [AnnouncementController::class, 'updateStatus'])->middleware('permission:announcements.manage')->name('announcements.status');
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->middleware('permission:announcements.manage')->name('announcements.destroy');
 
-    Route::get('/spotplayer', [SpotPlayerController::class, 'index'])->middleware('permission:integrations.manage,videos.manage.assigned')->name('spotplayer.index');
+    Route::get('/spotplayer', [SpotPlayerController::class, 'index'])->middleware(['role:admin', 'permission:integrations.manage,videos.manage.assigned'])->name('spotplayer.index');
     Route::patch('/spotplayer/settings', [SpotPlayerController::class, 'updateSettings'])->middleware('permission:integrations.manage')->name('spotplayer.settings');
     Route::post('/spotplayer/sync-courses', [SpotPlayerController::class, 'requestCourseSync'])->middleware('permission:integrations.manage')->name('spotplayer.sync-courses');
     Route::post('/spotplayer/videos', [SpotPlayerController::class, 'storeVideo'])->middleware('permission:integrations.manage,videos.manage.assigned')->name('spotplayer.videos.store');
