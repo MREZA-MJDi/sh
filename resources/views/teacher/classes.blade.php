@@ -1,6 +1,7 @@
 @extends('teacher.layouts.app')
 @section('title', 'کلاس‌ها و فیلم‌ها')
 @section('content')
+@php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">آموزش و اجرا</span><h1>کلاس‌ها و فیلم‌ها</h1><p>محتوای آموزشی و جلسه‌های کلاس‌های تخصیص‌یافته را پیگیری کنید.</p></div><div class="teacher-head-actions">@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}">بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="b s" href="{{ route('teacher.resources') }}">افزودن جزوه</a>@endif</div></div>
 <div class="g g2">
     <section class="c"><h3>مدیریت ویدئوهای آموزشی</h3><p>ویدئوهای دوره و کلاس را از مسیر آپلود امن بارگذاری کنید و وضعیت اتصال را پیگیری کنید.</p><a class="b s" href="{{ route('teacher.videos') }}">رفتن به بارگذاری ویدئو</a><a class="b s" href="{{ route('teacher.live') }}">مشاهده جلسات آنلاین</a></section>
