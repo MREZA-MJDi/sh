@@ -18,7 +18,6 @@
     'exams' => 'آزمون و کوییز',
     'projects' => 'پروژه و ارزیابی مرحله‌ای',
   ];
-  $teacherOptions = $teachers->pluck('name', 'id')->all();
 @endphp
 
 <x-admin.page-head tone="edu" icon="book" title="دوره‌ها" desc="مدیریت محصول آموزشی، امکانات یادگیری، مدرس و انتشار">
@@ -50,21 +49,6 @@
           $features[$key] = $course->featureEnabled($key);
         }
         $teacherName = $course->teacher?->name ?? 'مدرس تعیین نشده';
-        $fill = [
-          'title' => $course->title,
-          'teacher_id' => (string) ($course->teacher_id ?? ''),
-          'grade' => (string) ($course->grade ?? ''),
-          'subject' => $course->subject,
-          'description' => $course->description,
-          'type' => $course->type,
-          'price' => $course->price,
-          'delivery_type' => $course->delivery_type,
-          'spotplayer_course_id' => $course->spotplayer_course_id,
-          'status' => $course->status,
-        ];
-        foreach ($features as $featureKey => $enabled) {
-          $fill['learning_features['.$featureKey.']'] = (bool) $enabled;
-        }
         $published = $course->status === 'published';
       @endphp
       <article class="adm-card" data-state="{{ $published ? 'on' : 'off' }}" data-grade="{{ $course->grade }}" data-name="{{ $course->title.' '.$teacherName }}">
