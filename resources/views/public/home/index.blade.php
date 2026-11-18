@@ -1712,7 +1712,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const total = Number.parseInt(quiz.dataset.total || '0', 10);
     for (let index = 0; index < total; index++) {
         const dot = document.createElement('span');
-        dot.textContent = String(index + 1).replace(/\\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]);
+        dot.textContent = String(index + 1).replace(/[0-9]/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]);
         dotsContainer.appendChild(dot);
         dots.push(dot);
     }
