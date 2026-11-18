@@ -62,6 +62,42 @@ final class StudentVideoAccessTest extends TestCase
             ->assertDontSee('video-data');
     }
 
+    public function test_enrolled_student_can_stream_a_manually_uploaded_course_video_without_spotplayer_license(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        [$course, $classroom] = $this->courseAndClassroom($teacher, 'local-video-course');
+
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        Storage::disk('local')->put('private/course-videos/local-lesson.mp4', 'local-video-content');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'created_by' => $teacher->id,
+            'title' => 'جلسه بارگذاری‌شده مستقیم',
+            'status' => 'active',
+            'file_path' => 'private/course-videos/local-lesson.mp4',
+            'file_original_name' => 'local-lesson.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 19,
+            'file_sha256' => hash('sha256', 'local-video-content'),
+            'staged_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('student.videos.show', $video))
+            ->assertOk()
+            ->assertSee('جلسه بارگذاری‌شده مستقیم')
+            ->assertSee(route('student.videos.stream', $video), false);
+
+        $this->get(route('student.videos.stream', $video))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'video/mp4')
+            ->assertSee('local-video-content');
+    }
+
     public function test_video_is_not_visible_to_students_outside_its_course_or_class(): void
     {
         $student = $this->userWithRole('student');
