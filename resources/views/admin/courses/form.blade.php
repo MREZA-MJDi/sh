@@ -148,7 +148,7 @@
                     'processing' => ['warn', 'در حال پردازش'],
                     'failed' => ['bad', 'پردازش ناموفق'],
                     'waiting_contract' => ['warn', 'در انتظار قرارداد'],
-                    default => ['mute', $video->status],
+                    default => ['warn', $video->status],
                   };
                 @endphp
                 <x-admin.badge :tone="$videoState[0]">{{ $videoState[1] }}</x-admin.badge>
