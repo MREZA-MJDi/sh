@@ -88,7 +88,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             ->assertJsonPath('status', 'processing');
     }
 
-    public function test_teacher_can_resume_an_interrupted_chunk_upload_without_reuploading_received_parts(): void
+    public function test_admin_can_resume_an_interrupted_chunk_upload_without_reuploading_received_parts(): void
     {
         $teacher = $this->userWithRole('admin');
         $course = Course::query()->create([
@@ -112,7 +112,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
         $this->postJson(route('admin.uploads.chunk'), [
             'upload_id' => $uploadId,
             'index' => 0,
-            'chunk' => UploadedFile::fake()->createWithContent('part', str_repeat("\\0", 128)),
+            'chunk' => UploadedFile::fake()->createWithContent('part', str_repeat("\0", 128)),
         ])->assertOk();
 
         $this->postJson(route('admin.uploads.resume'), ['upload_id' => $uploadId])
