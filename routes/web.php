@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function (): void {
 Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('admin.')->group(function (): void {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 
-    Route::get('/', [AdminDashboardController::class, 'index'])->middleware(['role:admin', 'permission:dashboard.view'])->name('dashboard');
+    Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
     // Backward-compatible URLs for the retired demo screens. Keep bookmarks working
     // while all data and actions live in the canonical workflows.
