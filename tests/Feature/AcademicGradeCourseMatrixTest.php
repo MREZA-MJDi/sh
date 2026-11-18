@@ -199,6 +199,41 @@ final class AcademicGradeCourseMatrixTest extends TestCase
         $this->assertSame(48, Course::query()->count());
     }
 
+
+    public function test_teacher_class_workspace_displays_assigned_course_grade_and_season(): void
+    {
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+        $teacher = $this->userWithRole('teacher');
+
+        $course = Course::query()->create([
+            'title' => 'ریاضی تکمیلی',
+            'slug' => 'teacher-grade-season-course',
+            'subject' => 'ریاضی',
+            'grade' => $grade->name,
+            'academic_grade_id' => $grade->id,
+            'season' => 'autumn',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'skyroom',
+            'status' => 'published',
+        ]);
+
+        Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'گروه آزمایشی ریاضی',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.classes'))
+            ->assertOk()
+            ->assertSee('ریاضی تکمیلی')
+            ->assertSee('پایه دهم')
+            ->assertSee('پاییز');
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);
