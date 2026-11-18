@@ -43,6 +43,7 @@
         </div>
         <div class="teacher-live-session-actions">
             @if ($joinUrl)<a class="b" href="{{ $joinUrl }}" target="_blank" rel="noopener noreferrer">ورود به کلاس</a>@else<span class="teacher-live-no-link">لینک ورود برای این جلسه ثبت نشده است.</span>@endif
+            @if (auth()->user()->hasPermissionTo('classes.manage.assigned'))
             <details class="teacher-live-settings"><summary>تنظیمات اتصال جلسه</summary>
                 <form method="POST" action="{{ route('teacher.live.update', $session) }}" class="teacher-form teacher-live-settings-form">
                     @csrf @method('PATCH')
@@ -51,6 +52,7 @@
                     <button class="b s" type="submit">ذخیره تنظیمات</button>
                 </form>
             </details>
+            @endif
         </div>
     </article>
 @empty
