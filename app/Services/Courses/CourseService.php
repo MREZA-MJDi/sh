@@ -33,7 +33,7 @@ class CourseService
 
             $course = Course::create([
                 ...$data,
-                'grade' => $academicGradeName,
+                'grade' => $academicGradeName ?? ($data['grade'] ?? null),
                 'academic_grade_id' => $academicGradeId,
                 'season' => $data['season'] ?? null,
                 'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(7)),
