@@ -102,7 +102,7 @@
       </x-admin.panel>
 
       @if($course->featureEnabled('recorded_video'))
-        <x-admin.panel title="۵. ویدیوهای آموزشی دوره" desc="هر ویدیو به‌عنوان یک جلسه در کتابخانه ویدیویی دوره ثبت می‌شود؛ فایل خام در فضای خصوصی نگهداری خواهد شد." data-tone="edu">
+        <x-admin.panel title="۵. ویدیوهای آموزشی دوره" desc="فایل‌های بارگذاری‌شده در فضای خصوصی همین سامانه نگهداری و بدون نیاز به لینک SpotPlayer برای دانش‌آموزان دارای دسترسی پخش می‌شوند. شناسه خارجی فقط برای ویدیوی موجود در SpotPlayer است." data-tone="edu">
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
             data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
@@ -136,7 +136,7 @@
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
             @endforelse
           </div>
-          <p class="adm-muted">تا زمان تکمیل اتصال رسمی SpotPlayer، ویدیوها در وضعیت انتظار می‌مانند و لینک پخش ساختگی نمایش داده نمی‌شود.</p>
+          <p class="adm-muted">فایل بارگذاری‌شده مستقیماً از پلیر داخلی پخش می‌شود و نیازی به شناسه یا لینک SpotPlayer ندارد. اگر فقط شناسه خارجی ثبت شود، تا زمان تکمیل اتصال رسمی، وضعیت در انتظار قرارداد می‌ماند.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @endif
