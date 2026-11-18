@@ -88,8 +88,10 @@ final class PortalController extends Controller
             ->where(function ($scope) use ($courseIds, $classroomIds): void {
                 $scope->where(function ($classScope) use ($courseIds, $classroomIds): void {
                     $classScope->whereNotNull('classroom_id')
-                        ->whereIn('classroom_id', clone $classroomIds)
-                        ->whereIn('course_id', clone $courseIds);
+                        ->whereIn('course_id', clone $courseIds)
+                        ->whereHas('classroom', fn ($classrooms) => $classrooms
+                            ->whereIn('classrooms.id', clone $classroomIds)
+                            ->whereColumn('classrooms.course_id', 'spot_player_videos.course_id'));
                 })->orWhere(function ($courseScope) use ($courseIds): void {
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
