@@ -165,6 +165,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/courses/{course}/teaser/status', [LearningAdminController::class, 'teaserStatus'])->middleware('permission:courses.manage')->name('courses.teaser.status');
     Route::delete('/courses/{course}/teaser', [LearningAdminController::class, 'destroyTeaser'])->middleware('permission:courses.manage')->name('courses.teaser.destroy');
     Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
+    Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:60,1'])->name('uploads.resume');
+    Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:60,1'])->name('uploads.status');
     Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
     Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
     Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
@@ -316,6 +318,8 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::post('/videos', [SpotPlayerController::class, 'storeVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.store');
         Route::get('/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.download');
         Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
+        Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:videos.manage.assigned', 'throttle:60,1'])->name('uploads.resume');
+        Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:videos.manage.assigned', 'throttle:60,1'])->name('uploads.status');
         Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
         Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
         Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
