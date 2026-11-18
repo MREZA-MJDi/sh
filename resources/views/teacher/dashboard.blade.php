@@ -26,6 +26,7 @@
             @forelse (($todaySessions ?? []) as $session)
                 <div class="row"><div>{{ data_get($session, 'title') }}<small>{{ data_get($session, 'time') }}</small></div>
                     @if (data_get($session, 'status') === 'link')<a class="b s" href="{{ data_get($session, 'url') }}" target="_blank" rel="noopener">ورود به کلاس</a>
+                    @elseif (data_get($session, 'status') === 'waiting_jitsi')<i class="bd am">لینک Jitsi ثبت نشده است</i>
                     @elseif (data_get($session, 'status') === 'waiting')<i class="bd am">در انتظار فعال‌سازی Skyroom</i>
                     @else<i class="bd bl">جلسه حضوری</i>@endif
                 </div>

@@ -182,4 +182,28 @@ final class ClassSessionManagementTest extends TestCase
 
         return [$teacher, $classroom];
     }
+
+    public function test_teacher_can_schedule_a_jitsi_online_session_with_a_manual_room_url(): void
+    {
+        [$teacher, $classroom] = $this->teacherWithClassroom('jitsi');
+
+        $this->actingAs($teacher)->post(route('admin.classes.sessions.store', $classroom), [
+            'title' => 'کلاس آنلاین Jitsi',
+            'session_type' => 'online',
+            'meeting_provider' => 'jitsi',
+            'meeting_url' => 'https://meet.jit.si/shikhan-demo-room-2026',
+            'starts_at' => now()->addDay()->format('Y-m-d\\TH:i'),
+            'ends_at' => now()->addDay()->addHour()->format('Y-m-d\\TH:i'),
+            'status' => 'scheduled',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('class_sessions', [
+            'classroom_id' => $classroom->id,
+            'title' => 'کلاس آنلاین Jitsi',
+            'meeting_provider' => 'jitsi',
+            'meeting_url' => 'https://meet.jit.si/shikhan-demo-room-2026',
+        ]);
+    }
+
+
 }
