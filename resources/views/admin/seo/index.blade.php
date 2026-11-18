@@ -2,7 +2,8 @@
 @section('title', 'مدیریت سئو')
 
 @section('content')
-@include('admin.seo.partials.workspace-tabs')\n<x-admin.page-head tone="shop" icon="search" title="مرکز مدیریت سئو" desc="کنترل عنوان‌ها، متادیتا، ساختار محتوا، خزنده‌ها و نمایش برند در نتایج جست‌وجو"/>
+@include('admin.seo.partials.workspace-tabs')
+<x-admin.page-head tone="shop" icon="search" title="مرکز مدیریت سئو" desc="کنترل عنوان‌ها، متادیتا، ساختار محتوا، خزنده‌ها و نمایش برند در نتایج جست‌وجو"/>
 
 <div class="adm-stats">
   <x-admin.stat tone="shop" icon="file" label="مقاله‌ها" :value="number_format($articleCount)"/>
