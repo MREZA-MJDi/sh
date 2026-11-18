@@ -180,9 +180,8 @@
   <x-admin.input label="عنوان ویدیو" name="title" wide required/>
   <x-admin.select label="دوره" name="course_id" :options="$courseOptions" required/>
   <x-admin.select label="کلاس / گروه (اختیاری)" name="classroom_id" :options="$classroomOptions" placeholder="در سطح کل دوره"/>
-  <x-admin.input label="شناسه ویدیوی موجود در SpotPlayer (در صورت عدم بارگذاری فایل)" name="external_id" placeholder="شناسه خارجی"/>
-  <x-admin.input label="فایل ویدیویی (اختیاری)" name="file" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska"/>
+  <x-admin.input label="شناسه ویدیوی موجود در SpotPlayer" name="external_id" placeholder="شناسه خارجی" required/>
   <x-admin.select label="وضعیت محلی" name="status" :options="['waiting_contract' => 'در انتظار قرارداد']" selected="waiting_contract"/>
-  <p class="adm-muted" style="grid-column:1/-1">فایل در فضای خصوصی ذخیره می‌شود. تا زمان دریافت قرارداد و پاسخ واقعی سرویس، وضعیت «در انتظار قرارداد» باقی می‌ماند و پلیر فعال یا لینک جعلی تولید نمی‌شود.</p>
+  <p class="adm-muted" style="grid-column:1/-1">این فرم فقط برای ثبت شناسه ویدیوی موجود در SpotPlayer است. برای بارگذاری فایل جدید، از صفحه ویرایش همان دوره و آپلود تکه‌ای استفاده کنید تا امکان ادامه آپلود و پردازش امن حفظ شود.</p>
 </x-admin.modal>
 @endpush
