@@ -8,12 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('spot_player_videos', function (Blueprint $table): void {
-            if (! Schema::hasColumn('spot_player_videos', 'processing_error')) {
+        $missing = [];
+        if (! Schema::hasColumn('spot_player_videos', 'processing_error')) {
+            $missing[] = 'processing_error';
+        }
+        if (! Schema::hasColumn('spot_player_videos', 'processed_at')) {
+            $missing[] = 'processed_at';
+        }
+
+        if ($missing === []) {
+            return;
+        }
+
+        Schema::table('spot_player_videos', function (Blueprint $table) use ($missing): void {
+            if (in_array('processing_error', $missing, true)) {
                 $table->text('processing_error')->nullable();
             }
-
-            if (! Schema::hasColumn('spot_player_videos', 'processed_at')) {
+            if (in_array('processed_at', $missing, true)) {
                 $table->timestamp('processed_at')->nullable();
             }
         });
@@ -21,15 +32,17 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('spot_player_videos', function (Blueprint $table): void {
-            $columns = array_filter([
-                Schema::hasColumn('spot_player_videos', 'processing_error') ? 'processing_error' : null,
-                Schema::hasColumn('spot_player_videos', 'processed_at') ? 'processed_at' : null,
-            ]);
+        $existing = array_values(array_filter([
+            Schema::hasColumn('spot_player_videos', 'processing_error') ? 'processing_error' : null,
+            Schema::hasColumn('spot_player_videos', 'processed_at') ? 'processed_at' : null,
+        ]));
 
-            if ($columns !== []) {
-                $table->dropColumn($columns);
-            }
+        if ($existing === []) {
+            return;
+        }
+
+        Schema::table('spot_player_videos', function (Blueprint $table) use ($existing): void {
+            $table->dropColumn($existing);
         });
     }
 };
