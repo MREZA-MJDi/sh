@@ -186,7 +186,7 @@ final class StudentDashboardService
             ->where('status', 'published')
             ->with([
                 'classroom:id,name,course_id',
-                'submissions' => fn (Builder $query) => $query
+                'submissions' => fn ($query) => $query
                     ->where('student_id', $student->id)
                     ->with('files'),
             ])
