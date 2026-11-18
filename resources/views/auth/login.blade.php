@@ -14,7 +14,6 @@
 <header class="academy-nav">
     <div class="ac-wrap ac-nav-row">
         <a class="ac-brand" href="{{ route('home') }}"><span class="ac-brand-mark">ش</span><span>آکادمی شیخان</span></a>
-        <a class="ac-link" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها</a>
     </div>
 </header>
 
