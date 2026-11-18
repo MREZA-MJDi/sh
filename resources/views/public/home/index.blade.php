@@ -1753,6 +1753,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+    async function readQuizJson(response) {
+        let result = null;
+
+        try {
+            result = await response.json();
+        } catch (error) {
+            // A proxy or server error may return an HTML page instead of JSON.
+        }
+
+        if (!response.ok || !result || !result.success) {
+            const message = result?.message
+                || (response.status === 419
+                    ? 'نشست شما منقضی شده است؛ صفحه را تازه‌سازی کنید.'
+                    : 'ارتباط با سرویس معما با خطا مواجه شد. کد خطا: ' + response.status);
+            throw new Error(message);
+        }
+
+        return result;
+    }
+
     async function loadQuestion(step) {
 
         loading = true;
@@ -1788,13 +1808,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             );
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(
-                    result.message || 'دریافت سؤال ناموفق بود.'
-                );
-            }
+            const result = await readQuizJson(response);
 
             renderQuestion(result.question);
 
@@ -1917,15 +1931,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             });
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-
-                throw new Error(
-                    result.message || 'بررسی پاسخ ناموفق بود.'
-                );
-
-            }
+            const result = await readQuizJson(response);
 
             selectedButton.querySelector('.quiz-spinner')?.remove();
 

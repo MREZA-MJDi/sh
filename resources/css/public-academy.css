@@ -954,3 +954,26 @@ footer .cp { border-top: 1px solid #22305a; margin-top: 40px; padding-top: 20px;
 .auth-card-footer a{color:var(--ac-primary);text-decoration:none;font-weight:700}
 .ac-error{color:#dc2626;font-size:12px;margin-top:5px}
 @media(max-width:520px){.ac-auth-page{padding:20px 12px 36px}.ac-auth-card{padding:20px 16px;border-radius:17px}.auth-demo-grid{grid-template-columns:1fr}.auth-card-heading h1{font-size:20px}}
+
+
+/* Public course curriculum: keep lesson copy inside its own content column. */
+.lesson-content{flex:1;min-width:0}
+.lesson-description{margin:8px 0 0!important;color:var(--mute);font-size:13px;line-height:1.9;white-space:pre-line;overflow-wrap:anywhere}
+.lesson-badge-locked{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--ln);border-radius:999px;background:var(--soft);color:var(--mute);font-size:11px;font-weight:700;white-space:nowrap}
+.lesson-lock-label{display:inline-flex;align-items:center;gap:4px;color:var(--mute);font-size:12px;white-space:nowrap}
+.course-curriculum-pagination{display:flex;justify-content:center;margin-top:24px;overflow-x:auto}
+.course-curriculum-pagination nav{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.course-curriculum-pagination a,.course-curriculum-pagination span[aria-current],.course-curriculum-pagination span[aria-disabled]{display:inline-flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:6px 10px;border:1px solid var(--ln);border-radius:9px;background:var(--sf);color:var(--ink);text-decoration:none;font-size:13px}
+.course-curriculum-pagination span[aria-current]{background:var(--pri);border-color:var(--pri);color:#fff}
+.course-video-choice{width:100%;min-height:42px}
+.mu{color:var(--mute)}
+.lesson-row.is-locked .lesson-icon{background:var(--soft);color:var(--mute)}
+.lesson-row.is-unlocked .lesson-icon{background:rgba(13,148,136,.12);color:var(--pri)}
+@media(max-width:650px){
+  .lesson-main{width:100%;align-items:flex-start}
+  .lesson-content{min-width:0}
+  .lesson-title-box{align-items:flex-start}
+  .lesson-description{font-size:12px}
+  .lesson-meta{width:100%;flex-wrap:wrap}
+  .course-curriculum-pagination nav{flex-wrap:nowrap}
+}
