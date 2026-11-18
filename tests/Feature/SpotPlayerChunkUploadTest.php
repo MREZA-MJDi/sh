@@ -7,10 +7,12 @@ use App\Models\Course;
 use App\Models\Role;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
+use App\Jobs\Learning\ProcessCourseRecordingVideo;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 final class SpotPlayerChunkUploadTest extends TestCase
