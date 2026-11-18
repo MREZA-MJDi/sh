@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
-use App\Models\ClassSession;
 use App\Models\Course;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,7 +24,6 @@ class UpdateLearningResourceRequest extends FormRequest
             'kind' => ['required', Rule::in(['pdf', 'book', 'other'])],
             'course_id' => ['nullable', 'integer', 'exists:courses,id'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
-            'class_session_id' => ['nullable', 'integer', 'exists:class_sessions,id'],
             'is_free' => ['sometimes', 'boolean'],
             'price' => ['nullable', 'integer', 'min:0', 'max:3000000000'],
             'visibility' => ['required', Rule::in(['public', 'authenticated', 'enrolled'])],
@@ -56,17 +54,6 @@ class UpdateLearningResourceRequest extends FormRequest
                     ->where('course_id', $this->integer('course_id'))
                     ->exists()) {
                 $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
-            }
-
-            if ($this->has('class_session_id') && $this->filled('class_session_id')) {
-                $validSession = $this->filled('classroom_id')
-                    && ClassSession::query()
-                        ->whereKey($this->integer('class_session_id'))
-                        ->where('classroom_id', $this->integer('classroom_id'))
-                        ->exists();
-                if (! $validSession) {
-                    $validator->errors()->add('class_session_id', 'جلسه انتخاب‌شده متعلق به کلاس انتخاب‌شده نیست.');
-                }
             }
 
             $resourceCourseId = $this->integer('course_id')
