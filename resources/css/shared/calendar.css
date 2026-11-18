@@ -1,0 +1,28 @@
+/* Shared calendar primitives. Palette and component surfaces remain owned by each dashboard. */
+:where(input[type="date"], input[type="datetime-local"]) {
+    direction: ltr;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+:where(input[type="date"], input[type="datetime-local"])::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: .78;
+}
+
+.sh-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 7px;
+    text-align: center;
+}
+
+.sh-calendar-grid > * {
+    min-width: 0;
+}
+
+@media (max-width: 520px) {
+    .sh-calendar-grid {
+        gap: 4px;
+    }
+}
