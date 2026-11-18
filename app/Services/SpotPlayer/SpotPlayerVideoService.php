@@ -140,7 +140,6 @@ final class SpotPlayerVideoService
                             ],
                             idempotencyKey: 'spotplayer:register-video:'.$video->id.':'.sha1($externalId),
                         );
-                    }
                 }
 
                 return $video->refresh();
