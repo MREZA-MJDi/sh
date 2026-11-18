@@ -89,7 +89,7 @@ class UserController extends Controller
         User $teacher,
         UserManagementService $users
     ): RedirectResponse {
-        $users->updateTeacher($teacher, $request->validated(), $request->user());
+        $users->updateTeacher($teacher, $request->validated());
 
         return back()->with('success', 'اطلاعات حساب مدرس به‌روزرسانی شد.');
     }
