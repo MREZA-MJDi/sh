@@ -8,7 +8,7 @@
         @php $purchase = $resource->purchases->first(); @endphp
         <article class="c">
             <h3>{{ $resource->title }}</h3>
-            <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }} · {{ $resource->kind }}</p>
+            <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif · {{ $resource->kind }}</p>
             <b>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</b>
             @if($resource->file_path && ($resource->is_free || $purchase?->status === 'paid'))
                 <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $kid?->id]) }}">مشاهده / دریافت منبع</a>
