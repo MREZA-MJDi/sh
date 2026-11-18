@@ -9,7 +9,7 @@
 
 <x-admin.page-head title="داشبورد مدیریت" :desc="'سلام، '.(auth()->user()?->name ?? 'مدیر سامانه').' · نمای خلاصه و وضعیت امروز آکادمی'" icon="home"/>
 
-<x-admin.panel title="میانبرهای اصلی" desc="برای انجام کارهای روزانه، مستقیم وارد بخش مربوط شوید." data-tone="edu">
+<x-admin.panel title="میانبرهای سریع" desc="برای انجام کارهای روزانه، مستقیم وارد بخش مربوط شوید." data-tone="edu">
   <div class="adm-actions">
     @can('courses.manage')
       <x-admin.btn icon="book" :href="route('admin.courses.index')">مدیریت دوره‌ها</x-admin.btn>
