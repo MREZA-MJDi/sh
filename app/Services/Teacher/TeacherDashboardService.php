@@ -17,6 +17,26 @@ final class TeacherDashboardService
         private readonly MessageWorkspaceService $messages,
     ) {}
 
+    private function courseLabel(?\\App\\Models\\Course $course): string
+    {
+        if (! $course) {
+            return 'جلسه آموزشی';
+        }
+
+        $seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
+        $parts = [$course->title];
+
+        if (filled($course->grade)) {
+            $parts[] = 'پایه '.$course->grade;
+        }
+
+        if (filled($course->season)) {
+            $parts[] = $seasonLabels[$course->season] ?? $course->season;
+        }
+
+        return implode(' · ', $parts);
+    }
+
     public function build(User $teacher): array
     {
         $activeClassrooms = $this->classrooms->queryFor($teacher)
@@ -26,14 +46,14 @@ final class TeacherDashboardService
         $classroomCount = (clone $activeClassrooms)->count();
 
         $todayClasses = (clone $activeClassrooms)
-            ->with('course:id,title')
+            ->with('course:id,title,grade,season')
             ->withCount('students')
             ->orderBy('classrooms.name')
             ->limit(6)
             ->get()
             ->map(fn ($classroom) => [
                 'title' => $classroom->name,
-                'time' => $classroom->course?->title ?? 'کلاس فعال',
+                'time' => $this->courseLabel($classroom->course),
                 'status' => filled($classroom->meeting_url) ? 'link' : 'scheduled',
                 'url' => $classroom->meeting_url,
             ]);
@@ -42,13 +62,13 @@ final class TeacherDashboardService
             ->whereIn('classroom_id', clone $classroomIds)
             ->whereDate('starts_at', today())
             ->where('status', 'scheduled')
-            ->with(['classroom:id,name,meeting_url,course_id', 'classroom.course:id,title'])
+            ->with(['classroom:id,name,meeting_url,course_id', 'classroom.course:id,title,grade,season'])
             ->orderBy('starts_at')
             ->limit(12)
             ->get()
             ->map(fn (ClassSession $session) => [
                 'title' => $session->title ?: $session->classroom?->name,
-                'time' => $session->starts_at?->format('H:i').' · '.($session->classroom?->course?->title ?? 'جلسه آموزشی'),
+                'time' => $session->starts_at?->format('H:i').' · '.$this->courseLabel($session->classroom?->course),
                 'status' => $session->session_type === 'online'
                     ? (filled($session->meeting_url) || filled($session->classroom?->meeting_url)
                         ? 'link'
