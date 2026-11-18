@@ -50,8 +50,13 @@ final class CourseController extends Controller
             ->get(['id', 'name']);
 
         $grades = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get(['id', 'name', 'code']);
-        $videos = $course->spotPlayerVideos()->with('classroom:id,name')->latest()->paginate(10, ['*'], 'videos');
-        $classrooms = $course->classrooms()->where('status', 'active')->orderBy('name')->limit(100)->get(['id', 'name']);
+        $videos = $course->spotPlayerVideos()->with(['classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])->latest()->paginate(10, ['*'], 'videos');
+        $classrooms = $course->classrooms()
+            ->where('status', 'active')
+            ->with(['sessions' => fn ($sessions) => $sessions->where('status', '!=', 'cancelled')->orderByDesc('starts_at')])
+            ->orderBy('name')
+            ->limit(100)
+            ->get(['id', 'name', 'course_id']);
 
         return view('admin.courses.form', compact('course', 'teachers', 'videos', 'classrooms', 'grades') + ['isEditing' => true]);
     }
