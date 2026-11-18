@@ -26,7 +26,8 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-mark-all]');
   if (!b) return;
   const roster = b.closest('[data-roster]');
-  roster.querySelectorAll(\`.adm-marks input[value="\${b.dataset.markAll}"]\`).forEach((r) => (r.checked = true));
+  const selector = '.adm-marks input[value="' + b.dataset.markAll + '"]';
+  roster.querySelectorAll(selector).forEach((r) => (r.checked = true));
   tally(roster);
 });
 
