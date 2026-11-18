@@ -16,6 +16,8 @@
   @php
     $nav = include resource_path('views/admin/nav.php');
     $user = auth()->user();
+    // Prime role/permission relations once; the sidebar and topbar check many items per request.
+    $user?->loadMissing('roles.permissions');
     $isAdmin = $user?->hasRole('admin') ?? false;
     if ($user?->hasRole('seo') && ! $user?->hasRole('admin')) {
       $nav['home']['url'] = 'admin/seo';
