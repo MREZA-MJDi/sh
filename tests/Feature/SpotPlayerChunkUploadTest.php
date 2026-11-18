@@ -90,6 +90,21 @@ final class SpotPlayerChunkUploadTest extends TestCase
         $this->postJson(route('admin.uploads.status'), ['upload_id' => $uploadId])
             ->assertOk()
             ->assertJsonPath('status', 'processing');
+
+        // If the browser lost the completion response, resuming must not create
+        // a second video; the completed upload can be safely finalized again.
+        $this->postJson(route('admin.uploads.resume'), ['upload_id' => $uploadId])
+            ->assertOk()
+            ->assertJsonPath('status', 'completed')
+            ->assertJsonPath('received_chunks.0', 0);
+
+        $this->postJson(route('admin.uploads.complete'), [
+            'upload_id' => $uploadId,
+            'total' => 1,
+            'filename' => 'lesson-one.mp4',
+        ])->assertOk()->assertJsonPath('status', 'processing');
+
+        $this->assertDatabaseCount('spot_player_videos', 1);
     }
 
     public function test_admin_can_resume_an_interrupted_chunk_upload_without_reuploading_received_parts(): void
