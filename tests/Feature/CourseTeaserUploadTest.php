@@ -92,6 +92,29 @@ final class CourseTeaserUploadTest extends TestCase
     }
 
 
+    public function test_missing_teaser_upload_session_returns_actionable_json_instead_of_model_not_found(): void
+    {
+        $admin = $this->admin();
+        $course = $this->course();
+
+        $start = $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'total' => 1,
+            'total_bytes' => 64,
+        ])->assertOk();
+
+        $uploadId = $start->json('upload_id');
+        \\App\\Models\\VideoUploadSession::query()->where('upload_id', $uploadId)->delete();
+
+        $this->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId,
+            'index' => 0,
+            'chunk' => UploadedFile::fake()->createWithContent('part.mp4', str_repeat('x', 64)),
+        ])->assertStatus(410)
+            ->assertJsonPath('message', 'نشست آپلود پیدا نشد یا از سامانه حذف شده است؛ لطفاً بارگذاری را دوباره آغاز کنید.');
+    }
+
     public function test_ready_teaser_is_rendered_as_a_real_public_video_player(): void
     {
         $course = $this->course();
