@@ -45,8 +45,8 @@ final class CourseController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $videos = $course->spotPlayerVideos()->with('classroom:id,name')->latest()->get();
-        $classrooms = $course->classrooms()->where('status', 'active')->orderBy('name')->get(['id', 'name']);
+        $videos = $course->spotPlayerVideos()->with('classroom:id,name')->latest()->paginate(10, ['*'], 'videos');
+        $classrooms = $course->classrooms()->where('status', 'active')->orderBy('name')->limit(100)->get(['id', 'name']);
 
         return view('admin.courses.form', compact('course', 'teachers', 'videos', 'classrooms') + ['isEditing' => true]);
     }
