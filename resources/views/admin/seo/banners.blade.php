@@ -15,6 +15,7 @@
   <x-admin.stat tone="shop" icon="check" label="فعال" :value="number_format($activeBannerCount)"/>
   <x-admin.stat tone="shop" icon="edit" label="پیش‌نویس" :value="number_format($draftBannerCount)"/>
   <x-admin.stat tone="shop" icon="pause" label="غیرفعال" :value="number_format($inactiveBannerCount)"/>
+  <x-admin.stat tone="shop" icon="image" label="اسلایدهای ثبت‌شده Hero" :value="number_format($homeHeroCount).' / 3'"/>
   <p class="adm-muted wide">اسلایدر Hero صفحه اصلی دقیقاً ۳ جایگاه دارد. برای هر اسلاید یک بنر با جایگاه «بنر اصلی صفحه خانه» ثبت کنید.</p>
 </div>
 
