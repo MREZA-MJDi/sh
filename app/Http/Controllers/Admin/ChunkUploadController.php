@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
+use App\Models\SpotPlayerVideo;
 use App\Models\VideoUploadSession;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\SpotPlayer\SpotPlayerVideoService;
@@ -170,10 +171,16 @@ final class ChunkUploadController extends Controller
             ->firstOrFail();
 
         if ($existing->status === 'completed') {
+            $existingVideo = isset($existing->metadata['result_video_id'])
+                ? SpotPlayerVideo::query()->find($existing->metadata['result_video_id'])
+                : null;
+
             return response()->json([
                 'ok' => true,
-                'status' => $existing->target === 'teaser' ? 'processing' : 'waiting_contract',
-                'video_id' => $existing->metadata['result_video_id'] ?? null,
+                'status' => $existing->target === 'teaser'
+                    ? 'processing'
+                    : ($existingVideo?->status === 'active' ? 'ready' : 'waiting_contract'),
+                'video_id' => $existingVideo?->id,
             ]);
         }
 
@@ -292,7 +299,11 @@ final class ChunkUploadController extends Controller
             ]);
             $disk->deleteDirectory($chunkDirectory);
 
-            return response()->json(['ok' => true, 'status' => 'waiting_contract', 'video_id' => $video->id]);
+            return response()->json([
+                'ok' => true,
+                'status' => $video->status === 'active' ? 'ready' : 'waiting_contract',
+                'video_id' => $video->id,
+            ]);
         } catch (Throwable $exception) {
             $disk->delete($destination);
             $disk->deleteDirectory($chunkDirectory);
