@@ -9,7 +9,7 @@ use App\Services\Learning\LearningAccessService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -54,7 +54,7 @@ final class VideoController extends Controller
         return view('student.videos.show', compact('video'));
     }
 
-    public function stream(Request $request, int $video, LearningAccessService $access): Response
+    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse
     {
         $recording = $this->findAccessibleVideo($request->user(), $video, $access);
 
