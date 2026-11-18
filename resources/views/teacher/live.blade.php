@@ -9,7 +9,7 @@
     <a class="b s" href="{{ route('teacher.classes') }}">مشاهده کلاس‌های من</a>
 </header>
 @if (! $skyroomHealth->available)
-<section class="teacher-live-notice" role="status" aria-live="polite"><span class="teacher-live-notice-icon" aria-hidden="true">ⓘ</span><div><strong>اتصال Skyroom هنوز فعال نشده است</strong><p>برنامه‌ریزی جلسه‌ها و لینک‌های دستی فعال‌اند. ورود خودکار Skyroom پس از ثبت API رسمی سرویس‌دهنده فعال می‌شود.</p></div></section>
+<section class="teacher-live-notice" role="status" aria-live="polite"><span class="teacher-live-notice-icon" aria-hidden="true">ⓘ</span><div><strong>اتصال Skyroom در انتظار فعال‌سازی است</strong><p>برنامه‌ریزی جلسه‌ها و لینک‌های دستی فعال‌اند. ورود خودکار Skyroom پس از ثبت API رسمی سرویس‌دهنده فعال می‌شود.</p></div></section>
 @endif
 <section class="teacher-live-stats" aria-label="خلاصه جلسه‌ها">
     <article class="teacher-live-stat"><span class="teacher-live-stat-icon">●</span><div><strong>{{ $liveCount }}</strong><span>در حال برگزاری</span></div></article>
