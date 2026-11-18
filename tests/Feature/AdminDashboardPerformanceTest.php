@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,14 @@ use Tests\TestCase;
 
 final class AdminDashboardPerformanceTest extends TestCase
 {
-    use RefreshDatabase;\n\n    protected function setUp(): void\n    {\n        parent::setUp();\n        $this->seed(RolePermissionSeeder::class);\n    }
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RolePermissionSeeder::class);
+    }
 
     public function test_admin_dashboard_stays_within_a_bounded_query_budget_and_uses_a_date_range_for_attendance(): void
     {
