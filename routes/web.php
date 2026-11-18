@@ -36,6 +36,7 @@ use App\Http\Controllers\Guardian\DashboardController as GuardianDashboardContro
 use App\Http\Controllers\Guardian\ConsultationController as GuardianConsultationController;
 use App\Http\Controllers\Guardian\ParentMeetingController as GuardianParentMeetingController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\ParentMeetingController as StudentParentMeetingController;
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Student\NoteController;
@@ -181,6 +182,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/homework/{homework}', [HomeworkController::class, 'update'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.update');
     Route::delete('/homework/{homework}', [HomeworkController::class, 'destroy'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.destroy');
     Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
+    Route::get('/homework-submission-files/{file}/download', [HomeworkController::class, 'downloadSubmissionFile'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework-submission-files.download');
     Route::get('/homework/{homework}/attachment', [HomeworkController::class, 'downloadAttachment'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework.attachment');
 
     Route::get('/exams', [ExamController::class, 'index'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.index');
@@ -201,6 +203,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.store');
     Route::patch('/resources/{resource}', [LearningResourceController::class, 'update'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.update');
     Route::delete('/resources/{resource}', [LearningResourceController::class, 'destroy'])->middleware('permission:resources.manage,resources.manage.assigned')->name('resources.destroy');
+    Route::patch('/resource-purchases/{purchase}/verify', [LearningResourceController::class, 'verifyPurchase'])->middleware('permission:resources.manage')->name('resources.purchases.verify');
     Route::get('/resources/{resource}/download', [LearningResourceController::class, 'download'])->middleware('permission:resources.view.all,resources.manage.assigned')->name('resources.download');
 
     Route::get('/consultations', [ConsultationController::class, 'index'])->middleware('permission:consultations.manage')->name('consultations.index');
@@ -238,6 +241,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
     ->name('student.')
     ->group(function (): void {
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/meetings', [StudentParentMeetingController::class, 'index'])->name('meetings.index');
         Route::get('/homework', [StudentDashboardController::class, 'homework'])->middleware('permission:homework.submit')->name('homework.index');
         Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->middleware('permission:dashboard.view')->name('attendance');
         Route::get('/results', [StudentDashboardController::class, 'results'])->middleware('permission:exams.view.own')->name('results');
@@ -306,6 +310,7 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
         Route::get('/attendance', [GuardianDashboardController::class, 'attendance'])->name('attendance');
         Route::get('/exams', [GuardianDashboardController::class, 'exams'])->name('exams');
         Route::get('/homework', [GuardianDashboardController::class, 'homework'])->name('homework');
+        Route::get('/resources', [GuardianDashboardController::class, 'resources'])->middleware('permission:resources.view.enrolled')->name('resources.index');
         Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
         Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
     });

@@ -62,7 +62,9 @@
           <td><b>{{ $submission->student?->name ?? '—' }}</b></td>
           <td>{{ $submission->homework?->title ?? '—' }}<small>{{ $submission->homework?->classroom?->name ?? '—' }}</small></td>
           <td>{{ $submission->submitted_at?->format('Y/m/d H:i') ?? '—' }}</td>
-          <td>@forelse($submission->files as $file)<small>{{ $file->original_name }}</small>@empty<span class="adm-muted">بدون فایل</span>@endforelse</td>
+          <td>@forelse($submission->files as $file)
+                <a href="{{ route('admin.homework-submission-files.download', $file) }}">{{ $file->original_name }}</a>
+              @empty<span class="adm-muted">بدون فایل</span>@endforelse</td>
           <td>{{ $submission->score === null ? '—' : number_format((float) $submission->score, 2).' از ۲۰' }}<small>{{ $submission->feedback ?: 'بدون بازخورد' }}</small></td>
           <td>
             @if(auth()->user()->hasPermissionTo('homework.grade'))

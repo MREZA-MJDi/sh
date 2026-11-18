@@ -10,7 +10,10 @@
             ['جزوه‌ها و منابع', 'i-file', 'student/resources'],
             ['کتابخانه و خریدها', 'i-cart', 'student/library'],
         ]],
-        ['ارتباط', [['پیام به مدرس‌ها', 'i-msg', 'student/messages']]],
+        ['ارتباط', [
+            ['پیام به مدرس‌ها', 'i-msg', 'student/messages'],
+            ['جلسات با اولیا', 'i-cal', 'student/meetings'],
+        ]],
         ['عملکرد و حساب', [
             ['نمرات و عملکرد', 'i-chart', 'student/results'],
             ['حضور و غیاب', 'i-cal', 'student/attendance'],

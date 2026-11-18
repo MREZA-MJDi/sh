@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreHomeworkRequest;
 use App\Http\Requests\Admin\UpdateHomeworkRequest;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
+use App\Models\HomeworkSubmissionFile;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\HomeworkService;
 use Illuminate\Http\RedirectResponse;
@@ -122,6 +123,21 @@ class HomeworkController extends Controller
         $homework->review($submission, $request->validated(), (int) $request->user()->id);
 
         return back()->with('success', 'نتیجه بررسی تکلیف ذخیره شد.');
+    }
+
+    public function downloadSubmissionFile(
+        HomeworkSubmissionFile $file,
+        ClassroomWorkspaceService $workspace
+    ) {
+        $submission = $file->submission()->with('homework')->firstOrFail();
+
+        abort_unless(
+            $workspace->queryFor(auth()->user())->whereKey($submission->homework->classroom_id)->exists(),
+            404
+        );
+        abort_unless(filled($file->path) && Storage::disk('local')->exists($file->path), 404);
+
+        return Storage::disk('local')->download($file->path, $file->original_name);
     }
 
     public function downloadAttachment(Homework $homework, ClassroomWorkspaceService $workspace)

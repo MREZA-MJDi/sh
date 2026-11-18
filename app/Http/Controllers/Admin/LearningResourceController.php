@@ -7,9 +7,11 @@ use App\Http\Requests\Admin\StoreLearningResourceRequest;
 use App\Http\Requests\Admin\UpdateLearningResourceRequest;
 use App\Models\LearningResource;
 use App\Models\LearningResourceAccessLog;
+use App\Models\ResourcePurchase;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\LearningResourceService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -46,10 +48,28 @@ class LearningResourceController extends Controller
 
         $resources = $resourcesQuery->latest()->paginate(15)->withQueryString();
 
+        $purchasesQuery = ResourcePurchase::query()
+            ->with(['resource:id,title', 'student:id,name'])
+            ->where('status', 'pending_review')
+            ->latest();
+
+        if ($teacherView) {
+            $purchasesQuery->whereHas('resource', function ($resource) use ($classroomIds, $courseIds): void {
+                $resource->where(function ($scope) use ($classroomIds, $courseIds): void {
+                    $scope->whereIn('classroom_id', clone $classroomIds)
+                        ->orWhere(function ($courseOnly) use ($courseIds): void {
+                            $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                        });
+                });
+            });
+        }
+
+        $purchases = $purchasesQuery->paginate(15, ['*'], 'purchases')->withQueryString();
+
         $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
         $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.resources.index', compact('resources', 'courses', 'classrooms', 'teacherView'));
+        return view('admin.resources.index', compact('resources', 'purchases', 'courses', 'classrooms', 'teacherView'));
     }
 
     public function store(
@@ -82,6 +102,27 @@ class LearningResourceController extends Controller
         $resources->delete($resource);
 
         return back()->with('success', 'منبع آموزشی حذف شد.');
+    }
+
+    public function verifyPurchase(Request $request, ResourcePurchase $purchase): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('admin'), 403);
+        abort_unless($purchase->status === 'pending_review', 422, 'این درخواست خرید قبلاً تعیین تکلیف شده است.');
+
+        $purchase->update([
+            'status' => 'paid',
+            'verified_by' => $request->user()->id,
+            'verified_at' => now(),
+            'paid_at' => now(),
+        ]);
+
+        $purchase->loadMissing('student');
+        $purchase->student?->notify(new \App\Notifications\ResourcePurchaseNotification(
+            $purchase,
+            'پرداخت شما تأیید شد و دسترسی به محصول فعال است.'
+        ));
+
+        return back()->with('success', 'خرید تأیید شد؛ دسترسی محصول برای دانش‌آموز فعال گردید.');
     }
 
     public function download(LearningResource $resource, ClassroomWorkspaceService $workspace)

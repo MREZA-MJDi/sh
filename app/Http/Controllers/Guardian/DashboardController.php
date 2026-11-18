@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Guardian;
 use App\Http\Controllers\Controller;
 use App\Services\GuardianDashboardService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Support\JalaliDate;
 use Illuminate\View\View;
 
 final class DashboardController extends Controller
@@ -33,7 +33,7 @@ final class DashboardController extends Controller
             'avg_note' => $scores->isNotEmpty() ? 'بر اساس نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
             'open_homework' => (int) $data['pending_homework_count'],
             'open_homework_note' => 'تکلیف بدون ارسال',
-            'next_meeting' => optional($data['meetings']->firstWhere('status', 'scheduled')?->starts_at)->format('m/d') ?? '—',
+            'next_meeting' => optional($data['meetings']->firstWhere('status', 'scheduled')?->starts_at)->format('Y/m/d H:i') ?? '—',
             'next_meeting_note' => 'جلسه ثبت‌شده',
         ];
 
@@ -45,9 +45,18 @@ final class DashboardController extends Controller
                 'class_avg' => null,
             ])->values();
 
-        $trend = $data['result_trend']->groupBy(fn ($result) => $result->created_at->format('Y-m'));
-        $periods = collect(range(5, 0))->map(fn ($offset) => now()->subMonths($offset)->format('Y-m'));
-        $data['months'] = $periods->map(fn ($month) => Carbon::createFromFormat('Y-m', $month)->translatedFormat('M'))->values();
+        $trend = $data['result_trend']->groupBy(function ($result): string {
+            $date = JalaliDate::fromGregorian($result->created_at);
+            return JalaliDate::monthKey($date['year'], $date['month']);
+        });
+        $currentJalali = JalaliDate::fromGregorian(now());
+        $periods = collect(range(5, 0))->map(
+            fn ($offset) => JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], $offset)
+        );
+        $data['months'] = $periods->map(function (string $month): string {
+            [$year, $monthNumber] = array_map('intval', explode('-', $month));
+            return JalaliDate::monthLabel($year, $monthNumber);
+        })->values();
         $data['scores'] = $periods->map(function ($month) use ($trend) {
             $items = $trend->get($month, collect());
             return $items->isEmpty() ? null : round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1);
@@ -73,15 +82,22 @@ final class DashboardController extends Controller
     public function attendance(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
-        $records = $data['attendance_calendar']->groupBy(fn ($record) => Carbon::parse($record->session_date)->day);
-        $start = now()->startOfMonth();
-        $days = collect(range(1, now()->daysInMonth))->map(function (int $day) use ($records): array {
+        $now = now();
+        $jalaliNow = JalaliDate::fromGregorian($now);
+        $start = JalaliDate::toGregorian($jalaliNow['year'], $jalaliNow['month'], 1);
+        $monthDays = JalaliDate::daysInMonth($jalaliNow['year'], $jalaliNow['month']);
+        $todayJalaliDay = $jalaliNow['day'];
+
+        $records = $data['attendance_calendar']->groupBy(
+            fn ($record) => JalaliDate::fromGregorian($record->session_date)['day']
+        );
+        $days = collect(range(1, $monthDays))->map(function (int $day) use ($records, $todayJalaliDay): array {
             $dayRecords = $records->get($day, collect());
             $statuses = $dayRecords->pluck('status');
             $status = $statuses->contains('absent') ? 'a'
                 : ($statuses->contains('late') ? 'l'
                 : ($statuses->contains('present') ? 'p' : 'future'));
-            return ['day' => $day, 'status' => $status, 'today' => $day === now()->day];
+            return ['day' => $day, 'status' => $status, 'today' => $day === $todayJalaliDay];
         });
 
         $monthBreakdown = $data['attendance_calendar']->groupBy('status')->map->count();
@@ -97,7 +113,7 @@ final class DashboardController extends Controller
             'kid' => $data['selected_child'], 'kids' => $data['children'],
             'attendance' => $monthAttendance,
             'calendar' => $days, 'monthOffset' => ($start->dayOfWeek + 1) % 7,
-            'monthTitle' => $start->translatedFormat('F Y'),
+            'monthTitle' => JalaliDate::monthLabel($jalaliNow['year'], $jalaliNow['month']),
             'absencePattern' => $data['attendance_breakdown']->get('absent', 0).' غیبت ثبت‌شده',
             'lastLate' => $data['attendance']->firstWhere('status', 'late')?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
         ]);
@@ -144,6 +160,17 @@ final class DashboardController extends Controller
         return view('parent.homework', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
             'homework' => $homework, 'hwTotals' => $totals,
+        ]);
+    }
+
+    public function resources(Request $request, GuardianDashboardService $dashboard): View
+    {
+        $data = $this->build($request, $dashboard);
+
+        return view('parent.resources', [
+            'kids' => $data['children'],
+            'kid' => $data['selected_child'],
+            'resources' => $data['resources'],
         ]);
     }
 

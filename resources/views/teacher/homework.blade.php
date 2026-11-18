@@ -20,7 +20,11 @@
         @forelse ($submissions as $submission)
             <form method="POST" action="{{ route('teacher.homework.review', $submission) }}" class="row">
                 @csrf @method('PATCH')
-                <div>{{ $submission->student?->name }}<small>{{ $submission->homework?->title }}</small></div>
+                <div>{{ $submission->student?->name }}<small>{{ $submission->homework?->title }}</small>
+                    @foreach($submission->files as $file)
+                        <a href="{{ route('admin.homework-submission-files.download', $file) }}">{{ $file->original_name }}</a>
+                    @endforeach
+                </div>
                 <input class="grade" type="number" min="0" max="20" step="0.25" name="score" value="{{ $submission->score }}" placeholder="نمره">
                 <input type="text" name="feedback" maxlength="30000" required placeholder="بازخورد">
                 <button class="b s" type="submit">ثبت</button>

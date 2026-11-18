@@ -31,10 +31,39 @@ final class LearningResourceAccessService
             $resource->status === 'published'
                 && (! $resource->release_at || $resource->release_at->lte(now()))
                 && $resource->file_path
-                && $resource->is_free,
+                && ($resource->downloadable || $resource->kind === 'pdf'),
             404
         );
 
+        $this->authorizePortalScope($student, $resource);
+
+        $hasPaidAccess = $resource->is_free || \App\Models\ResourcePurchase::query()
+            ->where('learning_resource_id', $resource->id)
+            ->where('student_id', $student->id)
+            ->where('status', 'paid')
+            ->exists();
+
+        abort_unless($hasPaidAccess, 403, 'برای دسترسی به این محصول، ابتدا خرید باید توسط آموزشگاه تأیید شود.');
+    }
+
+    public function authorizePurchase(User $student, LearningResource $resource): void
+    {
+        abort_unless(
+            $student->is_active
+                && $student->hasRole('student')
+                && $resource->status === 'published'
+                && (! $resource->release_at || $resource->release_at->lte(now()))
+                && ! $resource->is_free
+                && (int) $resource->price > 0
+                && filled($resource->file_path),
+            404
+        );
+
+        $this->authorizePortalScope($student, $resource);
+    }
+
+    private function authorizePortalScope(User $student, LearningResource $resource): void
+    {
         if ($resource->classroom_id) {
             $classroom = Classroom::query()
                 ->whereKey($resource->classroom_id)
@@ -59,8 +88,8 @@ final class LearningResourceAccessService
             return;
         }
 
-        // Unscoped public/authenticated resources are available to signed-in
-        // portal users. "Enrolled" resources always need a real class/course scope.
+        // Unscoped public/authenticated resources can be used by signed-in portal users.
+        // "Enrolled" visibility is never allowed without an actual course/class scope.
         abort_unless(in_array($resource->visibility, ['public', 'authenticated'], true), 404);
     }
 

@@ -56,6 +56,43 @@
   </table></div>
   <x-slot:footer>{{ $resources->links() }}</x-slot:footer>
 </x-admin.panel>
+
+@if(!$teacherView)
+<x-admin.panel title="درخواست‌های خرید در انتظار بررسی" desc="پس از تطبیق رسید بانکی با واریز واقعی، خرید را تأیید کنید." flush data-tone="shop">
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <thead><tr><th>دانش‌آموز</th><th>محصول</th><th>مبلغ (تومان)</th><th>شناسه رسید</th><th>زمان درخواست</th><th>تأیید</th></tr></thead>
+            <tbody>
+                @forelse($purchases as $purchase)
+                    <tr>
+                        <td>{{ $purchase->student?->name ?? '—' }}</td>
+                        <td>{{ $purchase->resource?->title ?? 'محصول حذف‌شده' }}</td>
+                        <td class="adm-num">{{ number_format($purchase->amount) }} تومان</td>
+                        <td dir="ltr">{{ $purchase->provider_reference }}</td>
+                        <td>{{ $purchase->created_at?->format('Y/m/d H:i') }}</td>
+                        <td>
+                            @if(auth()->user()->hasRole('admin'))
+                                <form method="POST" action="{{ route('admin.resources.purchases.verify', $purchase) }}"
+                                      onsubmit="return confirm('فقط پس از بررسی واریز واقعی، خرید را تأیید کنید.')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button class="adm-btn adm-btn-primary adm-btn-sm" type="submit">تأیید خرید</button>
+                                </form>
+                            @else
+                                <span class="adm-muted">در انتظار تأیید مدیر سامانه</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="6">درخواست خرید در انتظار بررسی وجود ندارد.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <x-slot:footer>{{ $purchases->links() }}</x-slot:footer>
+</x-admin.panel>
+@endif
+
 @endsection
 
 @push('modals')

@@ -8,33 +8,50 @@ use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Illuminate\Http\BinaryFileResponse;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use App\Services\Learning\LearningAccessService;
 
 final class VideoController extends Controller
 {
-    public function index(Request $request): RedirectResponse
+    public function index(Request $request, LearningAccessService $access): View
     {
-        return redirect()->route('student.courses.index');
+        $videos = $this->accessibleVideos($request->user(), $access)
+            ->with(['course:id,title,slug', 'classroom:id,name'])
+            ->latest('created_at')
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('student.videos.index', compact('videos'));
     }
 
-    public function show(Request $request, int $video, LearningAccessService $access): RedirectResponse
+    public function show(Request $request, int $video, LearningAccessService $access): View
     {
         $video = $this->findAccessibleVideo($request->user(), $video, $access);
 
-        return redirect()->route('public.courses.show', $video->course->slug);
+        return view('student.videos.show', compact('video'));
     }
 
-    public function stream(Request $request, int $video, LearningAccessService $access): Response
+    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse|Response
     {
-        $this->findAccessibleVideo($request->user(), $video, $access);
+        $video = $this->findAccessibleVideo($request->user(), $video, $access);
 
-        return response(
-            'فایل خام ویدئوی آموزشی ارائه نمی‌شود. پخش فقط از طریق پلیر محافظت‌شده SpotPlayer پس از فعال‌شدن اتصال سرویس ممکن است.',
-            409
-        )->header('Cache-Control', 'private, no-store, max-age=0')
-            ->header('X-Content-Type-Options', 'nosniff');
+        // Local staged files can be streamed only after the same enrollment checks
+        // used by the video catalogue. External SpotPlayer IDs stay gated by the
+        // provider contract; no fake player URL is generated.
+        abort_unless(filled($video->file_path) && Storage::disk('local')->exists($video->file_path), 409,
+            'این ویدئو هنوز روی سرور محلی آماده پخش نیست و اتصال SpotPlayer نیز فعال نشده است.');
+
+        $path = Storage::disk('local')->path($video->file_path);
+
+        return response()->file($path, [
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'same-origin',
+        ]);
     }
 
     private function findAccessibleVideo(User $student, int $videoId, LearningAccessService $access): SpotPlayerVideo

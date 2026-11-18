@@ -4,6 +4,8 @@ namespace App\Services\Admin;
 
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
+use App\Models\User;
+use App\Notifications\HomeworkReviewedNotification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -78,6 +80,14 @@ final class HomeworkService
             'reviewed_by' => $reviewedBy,
             'reviewed_at' => now(),
         ]);
+
+        $submission->load(['student.guardians', 'homework']);
+        $notification = new HomeworkReviewedNotification($submission);
+        $submission->student?->notify($notification);
+        $submission->student?->guardians()
+            ->where('users.is_active', true)
+            ->get()
+            ->each(fn (User $guardian) => $guardian->notify($notification));
 
         return $submission->refresh();
     }

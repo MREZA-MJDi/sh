@@ -141,6 +141,9 @@ final class ParentMeetingController extends Controller
         $guardian->notify(new ParentMeetingNotification($meeting, $isTeacher
             ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی فرزند پیشنهاد جلسه ثبت کرده است.'
             : 'جلسه‌ای برای شما و فرزندتان زمان‌بندی شده است.'));
+        $student->notify(new ParentMeetingNotification($meeting, $isTeacher
+            ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی شما پیشنهاد جلسه ثبت کرده است.'
+            : 'جلسه‌ای با ولی شما زمان‌بندی شده است.'));
 
         return back()->with('success', $isTeacher
             ? 'پیشنهاد جلسه برای بررسی مدیر ثبت شد.'
@@ -181,8 +184,10 @@ final class ParentMeetingController extends Controller
             'responded_at' => now(),
         ]);
 
-        $record->loadMissing('guardian');
-        $record->guardian?->notify(new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.'));
+        $record->loadMissing(['guardian', 'student']);
+        $notification = new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.');
+        $record->guardian?->notify($notification);
+        $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
 
         return back()->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }

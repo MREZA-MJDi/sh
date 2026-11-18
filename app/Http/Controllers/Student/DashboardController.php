@@ -8,6 +8,7 @@ use App\Models\CourseEnrollment;
 use App\Models\Payment;
 use App\Services\Learning\LearningAccessService;
 use App\Services\StudentDashboardService;
+use App\Support\JalaliDate;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -33,16 +34,22 @@ final class DashboardController extends Controller
     {
         $student = $request->user();
         $classroomIds = $access->activeClassroomIds($student);
-        $start = now()->startOfMonth();
+        $now = now();
+        [$jalaliYear, $jalaliMonth] = JalaliDate::fromGregorian($now);
+        $start = JalaliDate::toGregorian($jalaliYear, $jalaliMonth, 1);
+        $monthDays = JalaliDate::daysInMonth($jalaliYear, $jalaliMonth);
+
         $monthRecords = Attendance::query()
             ->where('student_id', $student->id)
             ->whereIn('classroom_id', clone $classroomIds)
-            ->whereBetween('session_date', [$start->toDateString(), now()->toDateString()])
+            ->whereBetween('session_date', [$start->toDateString(), $now->toDateString()])
             ->with(['classroom:id,name', 'session:id,starts_at'])
             ->get();
-        $records = $monthRecords->groupBy(fn ($record) => $record->session_date->day);
+        $records = $monthRecords->groupBy(
+            fn ($record) => JalaliDate::fromGregorian($record->session_date)['day']
+        );
 
-        $calendar = collect(range(1, now()->daysInMonth))->map(function (int $day) use ($records): array {
+        $calendar = collect(range(1, $monthDays))->map(function (int $day) use ($records): array {
             $statuses = $records->get($day, collect())->pluck('status');
             return [
                 'day' => $day,
@@ -59,7 +66,7 @@ final class DashboardController extends Controller
         return view('student.attendance', [
             'calendar' => $calendar,
             'monthOffset' => ($start->dayOfWeek + 1) % 7,
-            'monthTitle' => $start->translatedFormat('F Y'),
+            'monthTitle' => JalaliDate::monthLabel($jalaliYear, $jalaliMonth),
             'attendance_count' => $total,
             'attendance_rate' => $rate,
         ]);

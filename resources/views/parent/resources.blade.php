@@ -1,0 +1,34 @@
+@extends('parent.layouts.app')
+@section('title', 'منابع آموزشی')
+@section('content')
+<h2>منابع، جزوه‌ها و محصولات آموزشی {{ data_get($kid ?? null, 'name') }}</h2>
+@include('parent.partials.kid-picker')
+<div class="g g3">
+    @forelse(($resources ?? collect()) as $resource)
+        @php $purchase = $resource->purchases->first(); @endphp
+        <article class="c">
+            <h3>{{ $resource->title }}</h3>
+            <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }} · {{ $resource->kind }}</p>
+            <b>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</b>
+            @if($resource->file_path && ($resource->is_free || $purchase?->status === 'paid'))
+                <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $kid?->id]) }}">مشاهده / دریافت منبع</a>
+            @elseif(!$resource->file_path)
+                <span class="tag">فایل هنوز بارگذاری نشده است</span>
+            @elseif($purchase?->status === 'pending_review')
+                <span class="tag">رسید خرید در انتظار تأیید آموزشگاه</span>
+            @else
+                <form method="POST" action="{{ route('guardian.resources.purchase', ['resource' => $resource, 'child' => $kid?->id]) }}">
+                    @csrf
+                    <label>شماره پیگیری واریز</label>
+                    <input name="provider_reference" maxlength="190" required>
+                    <label>توضیح (اختیاری)</label>
+                    <input name="note" maxlength="1000">
+                    <button class="b s" type="submit">ثبت درخواست خرید</button>
+                </form>
+            @endif
+        </article>
+    @empty
+        <p>منبعی برای کلاس‌ها یا دوره‌های فرزند انتخاب‌شده منتشر نشده است.</p>
+    @endforelse
+</div>
+@endsection

@@ -1,3 +1,4 @@
+import '../shared/iranian-locale.js';
 /* فقط رفتار (action) + رندر نمودار از data-chart-config؛ هیچ داده‌ای در JS نیست. */
 (function () {
   'use strict';
