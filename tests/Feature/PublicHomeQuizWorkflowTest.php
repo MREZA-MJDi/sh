@@ -15,13 +15,24 @@ final class PublicHomeQuizWorkflowTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_homepage_renders_the_quiz_and_its_public_api_endpoints(): void
+    public function test_homepage_renders_quiz_configuration_on_the_element_read_by_its_script(): void
     {
-        $this->get(route('home'))
+        $response = $this->get(route('home'))
             ->assertOk()
             ->assertSee('id="homeQuiz"', false)
             ->assertSee('data-question-url="'.url('/home-quiz/question').'"', false)
             ->assertSee('data-answer-url="'.route('public.home.quiz.answer').'"', false);
+
+        $html = $response->getContent();
+        $rootPosition = strpos($html, 'id="homeQuiz"');
+        $questionUrlPosition = strpos($html, 'data-question-url="'.url('/home-quiz/question').'"');
+        $cardPosition = strpos($html, 'class="home-quiz-card"');
+
+        $this->assertNotFalse($rootPosition);
+        $this->assertNotFalse($questionUrlPosition);
+        $this->assertNotFalse($cardPosition);
+        $this->assertGreaterThan($rootPosition, $questionUrlPosition);
+        $this->assertLessThan($cardPosition, $questionUrlPosition);
     }
 
     public function test_quiz_question_endpoint_returns_options_without_leaking_the_answer(): void
