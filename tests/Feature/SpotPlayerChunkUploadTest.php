@@ -84,6 +84,30 @@ final class SpotPlayerChunkUploadTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_upload_course_video_when_feature_matrix_is_enabled_without_legacy_delivery_type(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $course = Course::query()->create([
+            'title' => 'دوره ویدیویی مستقل',
+            'slug' => 'course-video-feature-matrix',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'learning_features' => ['recorded_video' => true],
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.uploads.start'), [
+                'target' => 'spotplayer_video',
+                'target_id' => $course->id,
+                'total' => 1,
+                'title' => 'ویدیوی جلسه اول',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+    }
+
     public function test_teacher_cannot_start_video_upload_for_an_unassigned_course(): void
     {
         $teacher = $this->userWithRole('teacher');
