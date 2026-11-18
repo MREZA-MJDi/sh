@@ -10,7 +10,7 @@
                 <article class="card cc">
                     <div class="th"><svg class="i"><use href="#i-video"/></svg></div>
                     <h3>{{ $video->title }}</h3>
-                    <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}</p>
+                    <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif</p>
                     @if(filled($video->file_path))
                         <a class="btn s" href="{{ route('student.videos.show', $video) }}">مشاهده ویدئو</a>
                     @else
