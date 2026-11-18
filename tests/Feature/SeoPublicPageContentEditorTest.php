@@ -69,12 +69,14 @@ final class SeoPublicPageContentEditorTest extends TestCase
                     'teachers_cta_label' => 'درخواست همکاری',
                     'contact_page_title' => 'تماس به‌روزشده',
                     'contact_page_description' => 'توضیح صفحه تماس',
-                    'contact_topics' => ['پشتیبانی دوره', 'مسائل مالی'],
+                    'contact_topics' => ['پشتیبانی دوره', 'مسائل مالی', '', '', '', '', '', ''],
                     'contact_support_title' => 'پشتیبانی اختصاصی',
                     'contact_support_body' => 'شرح پشتیبانی',
                     'contact_faq_title' => 'پرسش‌های تماس',
                     'contact_faq_items' => [
                         ['question' => 'چطور پیام بدهم؟', 'answer' => 'از فرم تماس استفاده کنید.'],
+                        ['question' => '', 'answer' => ''],
+                        ['question' => '', 'answer' => ''],
                     ],
                     'cart_page_title' => 'سبد خرید به‌روزشده',
                     'cart_page_description' => 'توضیح سبد خرید',
@@ -101,6 +103,8 @@ final class SeoPublicPageContentEditorTest extends TestCase
         $this->assertSame('گام ویرایش‌شده اول', $settings->home_sections['steps'][0]['title']);
         $this->assertSame('سؤال پنل چیست؟', $settings->home_sections['faq_items'][0]['question']);
         $this->assertSame('https://x.com/sheykhan', $settings->social_links['x']);
+        $this->assertSame(['پشتیبانی دوره', 'مسائل مالی'], $settings->home_sections['contact_topics']);
+        $this->assertCount(1, $settings->home_sections['contact_faq_items']);
 
         $this->get(route('home'))->assertOk()
             ->assertSee('نشان جدید صفحه خانه')
