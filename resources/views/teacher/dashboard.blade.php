@@ -1,7 +1,7 @@
 @extends('teacher.layouts.app')
 @section('title', 'داشبورد')
 @section('content')
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">فضای کاری آموزشی</span><h1>سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h1><p>کلاس‌ها، محتوا و ارتباط با خانواده‌ها را از یک محیط مدیریت کنید.</p></div><a class="b" href="{{ route('teacher.consultations.index') }}">درخواست هماهنگی با مدیریت</a></div>
+<div class="teacher-page-head"><div><span class="teacher-eyebrow">فضای کاری مدرس</span><h1>سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h1><p>کلاس‌ها، محتوا و ارتباط با خانواده‌ها را از یک محیط مدیریت کنید.</p></div><a class="b" href="{{ route('teacher.consultations.index') }}">درخواست هماهنگی با مدیریت</a></div>
 <div class="g g4 teacher-stat-grid">
     <div class="st am"><b>{{ $stats['classes_today'] }}</b><span>کلاس‌های تحت مدیریت</span><small>کلاس‌های فعال تخصیص‌یافته</small></div>
     <div class="st bl"><b>{{ $stats['homework_review'] }}</b><span>پاسخ در انتظار بررسی</span><small>نیازمند رسیدگی مدرس</small></div>
