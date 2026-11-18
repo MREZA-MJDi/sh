@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 final class HomeQuizQuestionController extends Controller
 {
@@ -60,8 +61,7 @@ final class HomeQuizQuestionController extends Controller
 
         if ($data['type'] === 'multiple_choice') {
             if (! in_array($data['correct_answer'], ['A', 'B', 'C', 'D'], true)) {
-                validator([], [])->errors();
-                abort(422, 'برای آزمون چهارگزینه‌ای، پاسخ صحیح باید A، B، C یا D باشد.');
+                throw ValidationException::withMessages(['correct_answer' => 'برای آزمون چهارگزینه‌ای، پاسخ صحیح باید A، B، C یا D باشد.']);
             }
 
             $data['options'] = [
