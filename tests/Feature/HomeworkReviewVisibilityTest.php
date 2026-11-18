@@ -71,8 +71,15 @@ final class HomeworkReviewVisibilityTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.dashboard'))
             ->assertOk()
+            ->assertSee('تکالیف')
+            ->assertSee('/student/homework', false)
+            ->assertDontSee('بازخورد نهایی مدرس برای این تکلیف');
+
+        $this->actingAs($student)
+            ->get(route('student.homework.index'))
+            ->assertOk()
             ->assertSee('بازخورد نهایی مدرس برای این تکلیف')
-            ->assertSee('نتیجه بررسی مدرس');
+            ->assertSee('بازخورد مدرس');
 
         $this->actingAs($guardian)
             ->get(route('guardian.dashboard'))
