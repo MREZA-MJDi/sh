@@ -407,6 +407,46 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->assertSee('آزمون کلاس بدون انتخاب مجدد دوره');
     }
 
+    public function test_teacher_message_recipient_search_is_limited_to_active_owned_classrooms(): void
+    {
+        $teacher = $this->teacherWithPermissions(['messages.view.assigned']);
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس جستجوی مخاطب',
+            'status' => 'active',
+        ]);
+
+        $student = User::factory()->create(['name' => 'دانش‌آموز قابل جستجو']);
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $classroom->students()->attach($student->id);
+
+        $guardian = User::factory()->create(['name' => 'ولی قابل جستجو']);
+        $guardian->roles()->attach(Role::query()->where('name', 'parent')->value('id'));
+        $student->guardians()->attach($guardian->id);
+
+        $otherTeacher = User::factory()->create();
+        $otherClassroom = Classroom::query()->create([
+            'teacher_id' => $otherTeacher->id,
+            'name' => 'کلاس مدرس دیگر',
+            'status' => 'active',
+        ]);
+        $otherStudent = User::factory()->create(['name' => 'دانش‌آموز قابل جستجو خارج از کلاس']);
+        $otherStudent->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $otherClassroom->students()->attach($otherStudent->id);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.messages.create'))
+            ->assertOk()
+            ->assertDontSee('دانش‌آموز قابل جستجو');
+
+        $this->actingAs($teacher)
+            ->getJson(route('teacher.messages.recipients', ['q' => 'قابل جستجو']))
+            ->assertOk()
+            ->assertJsonFragment(['target' => "student:{$classroom->id}:{$student->id}"])
+            ->assertJsonFragment(['target' => "parent:{$classroom->id}:{$student->id}:{$guardian->id}"])
+            ->assertJsonMissing(['target' => "student:{$otherClassroom->id}:{$otherStudent->id}"]);
+    }
+
     public function test_teacher_uses_dedicated_shell_and_consultation_requests_appear_in_admin_inbox(): void
     {
         $teacher = $this->teacherWithPermissions(['consultations.create', 'messages.view.assigned']);
