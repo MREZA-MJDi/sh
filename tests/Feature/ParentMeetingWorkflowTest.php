@@ -50,6 +50,7 @@ final class ParentMeetingWorkflowTest extends TestCase
     {
         $teacher = $this->userWithRole('teacher');
         $student = $this->userWithRole('student');
+        $student->update(['name' => 'دانش‌آموز هدف']);
         $guardian = $this->userWithRole('parent');
         $guardian->children()->attach($student);
         $course = \App\Models\Course::query()->create([
@@ -98,6 +99,7 @@ final class ParentMeetingWorkflowTest extends TestCase
 
         $otherTeacher = $this->userWithRole('teacher');
         $otherStudent = $this->userWithRole('student');
+        $otherStudent->update(['name' => 'دانش‌آموز خارج از کلاس']);
         $otherClassroom = Classroom::query()->create([
             'teacher_id' => $otherTeacher->id,
             'name' => 'کلاس مدرس دیگر',
@@ -107,7 +109,7 @@ final class ParentMeetingWorkflowTest extends TestCase
 
         $this->actingAs($teacher)
             ->getJson(route('admin.parent-meetings.lookup', [
-                'q' => mb_substr($student->name, 0, 3),
+                'q' => 'هدف',
                 'classroom_id' => $classroom->id,
             ]))
             ->assertOk()
@@ -117,7 +119,7 @@ final class ParentMeetingWorkflowTest extends TestCase
 
         $this->actingAs($teacher)
             ->getJson(route('admin.parent-meetings.lookup', [
-                'q' => mb_substr($otherStudent->name, 0, 3),
+                'q' => 'خارج',
                 'classroom_id' => $otherClassroom->id,
             ]))
             ->assertNotFound();
