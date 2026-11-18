@@ -241,6 +241,17 @@ final class PortalController extends Controller
             $query->where('meeting_provider', $request->input('provider'));
         }
 
+        $liveCount = (clone $query)
+            ->where('starts_at', '<=', now())
+            ->where(function ($window): void {
+                $window->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+            })->count();
+        $upcomingCount = (clone $query)->where('starts_at', '>', now())->count();
+        $waitingCount = (clone $query)
+            ->whereNull('meeting_url')
+            ->whereDoesntHave('classroom', fn ($classroom) => $classroom->whereNotNull('meeting_url'))
+            ->count();
+
         $sessions = $query
             ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
             ->orderBy('starts_at')
@@ -253,7 +264,7 @@ final class PortalController extends Controller
             'provider' => $request->input('provider'),
         ];
 
-        return view('teacher.live', compact('sessions', 'skyroomHealth', 'assignedClassrooms', 'filters'));
+        return view('teacher.live', compact('sessions', 'skyroomHealth', 'assignedClassrooms', 'filters', 'liveCount', 'upcomingCount', 'waitingCount'));
     }
 
     public function meetings(Request $request, ClassroomWorkspaceService $workspace): View
