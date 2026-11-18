@@ -11,6 +11,7 @@ use App\Models\Homework;
 use App\Models\LearningResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Services\Learning\LearningAccessService;
 
 final class StudentDashboardService
@@ -169,6 +170,35 @@ final class StudentDashboardService
             'announcements' => $announcements,
             'notes' => $student->studentNotes()->latest()->limit(8)->get(),
         ];
+    }
+
+    /**
+     * Fetch only the data required by the assignments page.
+     *
+     * @return LengthAwarePaginator<int, Homework>
+     */
+    public function assignments(User $student): LengthAwarePaginator
+    {
+        $classroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
+
+        return Homework::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'published')
+            ->with([
+                'classroom:id,name,course_id',
+                'submissions' => fn (Builder $query) => $query
+                    ->where('student_id', $student->id)
+                    ->with('files'),
+            ])
+            ->withCount([
+                'submissions as submitted_by_student_count' => fn (Builder $query) => $query
+                    ->where('student_id', $student->id),
+            ])
+            ->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('due_at')
+            ->latest('created_at')
+            ->paginate(12)
+            ->withQueryString();
     }
 
 }
