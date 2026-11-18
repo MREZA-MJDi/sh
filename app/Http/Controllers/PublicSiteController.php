@@ -88,6 +88,7 @@ final class PublicSiteController extends Controller
         }
         if ($subject = $request->query('subject')) $query->where('subject', $subject);
         if ($grade = $request->query('grade')) $query->where('grade', $grade);
+        if ($season = $request->query('season')) $query->where('season', $season);
         if ($request->query('price') === 'free') $query->where('type', 'free');
         if ($request->query('price') === 'paid') $query->where('type', 'paid');
 
@@ -103,8 +104,9 @@ final class PublicSiteController extends Controller
             ->where('subject', '<>', '')->distinct()->orderBy('subject')->pluck('subject');
         $grades = Course::query()->where('status', 'published')->whereNotNull('grade')
             ->distinct()->orderBy('grade')->pluck('grade');
+        $seasons = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
 
-        return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades'));
+        return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades', 'seasons'));
     }
 
     public function course(
