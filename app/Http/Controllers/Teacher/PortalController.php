@@ -33,7 +33,7 @@ final class PortalController extends Controller
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
             ->with([
-                'course:id,title,subject',
+                'course:id,title,subject,grade,season',
                 'spotPlayerVideos' => fn ($query) => $query->latest()->limit(4),
                 'learningResources' => fn ($query) => $query->latest()->limit(4),
                 'sessions' => fn ($query) => $query
@@ -47,7 +47,11 @@ final class PortalController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('teacher.classes', compact('classrooms'));
+        $visibleClassrooms = $classrooms->getCollection();
+        $videos = $visibleClassrooms->flatMap(fn ($classroom) => $classroom->spotPlayerVideos);
+        $resources = $visibleClassrooms->flatMap(fn ($classroom) => $classroom->learningResources);
+
+        return view('teacher.classes', compact('classrooms', 'videos', 'resources'));
     }
 
     public function homework(Request $request, ClassroomWorkspaceService $workspace): View
@@ -55,7 +59,7 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $classrooms = $workspace->queryFor($request->user())
             ->where('classrooms.status', 'active')
-            ->with('course:id,title')
+            ->with('course:id,title,grade,season')
             ->orderBy('classrooms.name')
             ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
@@ -84,7 +88,7 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
 
         $videos = SpotPlayerVideo::query()
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title,grade,season', 'classroom:id,name'])
             ->where(function ($scope) use ($courseIds, $classroomIds): void {
                 $scope->where(function ($classScope) use ($courseIds, $classroomIds): void {
                     $classScope->whereNotNull('classroom_id')
@@ -107,7 +111,7 @@ final class PortalController extends Controller
                 })->orWhere('learning_features->recorded_video', true);
             })
             ->orderBy('title')
-            ->get(['id', 'title']);
+            ->get(['id', 'title', 'grade', 'season']);
 
         $classrooms = $workspace->queryFor($user)
             ->whereIn('course_id', $courses->modelKeys())
@@ -125,7 +129,7 @@ final class PortalController extends Controller
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
         $resources = LearningResource::query()
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title,grade,season', 'classroom:id,name'])
             ->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function ($classScope) use ($classroomIds, $courseIds): void {
                     $classScope->whereNotNull('classroom_id')
@@ -147,7 +151,7 @@ final class PortalController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
+        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title', 'grade', 'season']);
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
             ->orderBy('name')

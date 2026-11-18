@@ -1,6 +1,7 @@
 @extends('teacher.layouts.app')
 @section('title', 'منابع آموزشی')
 @section('content')
+@php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">محتوای آموزشی</span><h1>بارگذاری جزوه و منابع</h1><p>منابع فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شوند.</p></div></div>
 <div class="g g2">
 <section class="c"><h2>ثبت منبع جدید</h2>
@@ -8,7 +9,7 @@
 <label>عنوان منبع</label><input name="title" maxlength="180" required value="{{ old('title') }}">
 <label>توضیحات</label><textarea name="description" rows="4">{{ old('description') }}</textarea>
 <label>نوع منبع</label><select name="kind" required><option value="pdf">PDF</option><option value="book">کتاب</option><option value="other">سایر</option></select>
-<label>دوره</label><select name="course_id"><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select>
+<label>دوره</label><select name="course_id"><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}" >{{ $course->title }}@if($course->grade) · پایه {{ $course->grade }}@endif @if($course->season) · {{ $seasonLabels[$course->season] ?? $course->season }}@endif</option>@endforeach</select>
 <label>کلاس (اختیاری)</label><select name="classroom_id"><option value="">سطح کل دوره</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}">{{ $classroom->name }}</option>@endforeach</select>
 <label>قیمت (تومان)</label><input type="number" name="price" min="0" value="{{ old('price',0) }}">
 <label>دسترسی</label><select name="visibility"><option value="enrolled">فقط دانش‌آموزان ثبت‌نام‌شده</option><option value="authenticated">کاربران واردشده</option></select>
@@ -19,7 +20,7 @@
 <button class="b" type="submit">ثبت منبع</button>
 </form></section>
 <section class="c"><h2>منابع ثبت‌شده</h2>
-@forelse($resources as $resource)<div class="teacher-list-card"><div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? '—' }} · {{ $resource->classroom?->name ?? 'کل دوره' }}</small></div><div class="teacher-list-meta"><span>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</span><span>{{ $resource->status }}</span>@if($resource->file_path && $resource->downloadable)<a href="{{ route('teacher.resources.download',$resource) }}">دریافت فایل</a>@endif</div></div>
+@forelse($resources as $resource)<div class="teacher-list-card"><div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? '—' }}@if($resource->course?->grade) · پایه {{ $resource->course->grade }}@endif @if($resource->course?->season) · {{ $seasonLabels[$resource->course->season] ?? $resource->course->season }}@endif · {{ $resource->classroom?->name ?? 'کل دوره' }}</small></div><div class="teacher-list-meta"><span>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</span><span>{{ $resource->status }}</span>@if($resource->file_path && $resource->downloadable)<a href="{{ route('teacher.resources.download',$resource) }}">دریافت فایل</a>@endif</div></div>
 @empty<p>هنوز منبعی برای دوره‌ها و کلاس‌های شما ثبت نشده است.</p>@endforelse
 {{ $resources->links() }}</section></div>
 @endsection

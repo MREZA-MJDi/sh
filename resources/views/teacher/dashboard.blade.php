@@ -18,7 +18,7 @@
 <div class="teacher-week-calendar" data-teacher-week-calendar>
 @foreach(($weekCalendar ?? collect()) as $day)
 <div class="teacher-week-day" data-gregorian-date="{{ $day['date'] }}"><div class="teacher-week-day-head"><span data-weekday>—</span><strong data-day-number>—</strong><small>{{ $day['count'] }} جلسه</small></div><div class="teacher-week-events">
-@forelse($day['sessions'] as $session)<div class="teacher-week-event"><strong>{{ $session->title ?: $session->classroom?->name }}</strong><small>{{ $session->starts_at?->format('H:i') }} · {{ $session->classroom?->course?->title ?? $session->classroom?->name }}</small></div>
+@forelse($day['sessions'] as $session)<div class="teacher-week-event"><strong>{{ $session->title ?: $session->classroom?->name }}</strong><small>{{ $session->starts_at?->format('H:i') }} · {{ $session->classroom?->course?->title ?? $session->classroom?->name }}@if($session->classroom?->course?->grade) · پایه {{ $session->classroom->course->grade }}@endif @if($session->classroom?->course?->season) · {{ ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'][$session->classroom->course->season] ?? $session->classroom->course->season }}@endif</small></div>
 @empty<span class="teacher-no-event">بدون جلسه</span>@endforelse
 </div></div>
 @endforeach

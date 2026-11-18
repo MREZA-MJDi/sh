@@ -28,9 +28,13 @@ class CourseService
             $usesSpotPlayer = (bool) ($features['recorded_video'] ?? ($deliveryType === 'spotplayer'));
             $externalId = $usesSpotPlayer ? ($data['spotplayer_course_id'] ?? null) : null;
 
+            $academicGradeId = $this->resolveAcademicGradeId($data);
+            $academicGradeName = $academicGradeId ? AcademicGrade::query()->whereKey($academicGradeId)->value('name') : null;
+
             $course = Course::create([
                 ...$data,
-                'academic_grade_id' => $this->resolveAcademicGradeId($data),
+                'grade' => $academicGradeName ?? ($data['grade'] ?? null),
+                'academic_grade_id' => $academicGradeId,
                 'season' => $data['season'] ?? null,
                 'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(7)),
                 'price' => $data['type'] === 'paid' ? (int) $data['price'] : 0,
@@ -59,9 +63,13 @@ class CourseService
             $usesSpotPlayer = (bool) ($features['recorded_video'] ?? ($deliveryType === 'spotplayer'));
             $externalId = $usesSpotPlayer ? ($data['spotplayer_course_id'] ?? null) : null;
 
+            $academicGradeId = $this->resolveAcademicGradeId($data);
+            $academicGradeName = $academicGradeId ? AcademicGrade::query()->whereKey($academicGradeId)->value('name') : null;
+
             $course->update([
                 ...$data,
-                'academic_grade_id' => $this->resolveAcademicGradeId($data),
+                'grade' => $academicGradeName,
+                'academic_grade_id' => $academicGradeId,
                 'season' => $data['season'] ?? $course->season,
                 'price' => $data['type'] === 'paid' ? (int) $data['price'] : 0,
                 'spotplayer_course_id' => $externalId,

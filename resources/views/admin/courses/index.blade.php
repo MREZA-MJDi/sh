@@ -3,10 +3,7 @@
 
 @section('content')
 @php
-  $grades = [
-    '7' => 'هفتم', '8' => 'هشتم', '9' => 'نهم', '10' => 'دهم', '11' => 'یازدهم', '12' => 'دوازدهم',
-    'هفتم' => 'هفتم', 'هشتم' => 'هشتم', 'نهم' => 'نهم', 'دهم' => 'دهم', 'یازدهم' => 'یازدهم', 'دوازدهم' => 'دوازدهم',
-  ];
+  $seasons = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
   $types = ['free' => 'رایگان', 'paid' => 'پرداختی'];
   $deliveryTypes = ['spotplayer' => 'ویدیوی محافظت‌شده (SpotPlayer)', 'skyroom' => 'کلاس آنلاین (Skyroom)', 'onsite' => 'حضوری / ترکیبی'];
   $statuses = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی‌شده'];
@@ -66,7 +63,9 @@
           <h3>{{ $course->title }}</h3>
           <div class="adm-meta">
             <span><x-admin.icon name="user"/>{{ $teacherName }}</span>
-            @if($course->grade)<span>{{ $grades[$course->grade] ?? $course->grade }}</span>@endif
+            @if($course->grade)<span>{{ $course->grade }}</span>@endif
+            @if($course->season)<span>{{ $seasons[$course->season] ?? $course->season }}</span>@endif
+            @if($course->subject)<span>{{ $course->subject }}</span>@endif
             <span class="adm-num"><x-admin.icon name="users"/>{{ number_format($course->active_enrollments_count) }} دانش‌آموز</span>
             <span class="adm-num"><x-admin.icon name="cls"/>{{ number_format($course->active_classrooms_count) }} کلاس</span>
             <span class="adm-num"><x-admin.icon name="file"/>{{ number_format($course->sections_count) }} فصل</span>

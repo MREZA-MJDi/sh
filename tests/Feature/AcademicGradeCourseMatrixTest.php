@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use Database\Seeders\AcademicGradeSeeder;
+use Database\Seeders\AcademicPortalContentSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -27,6 +28,19 @@ final class AcademicGradeCourseMatrixTest extends TestCase
             AcademicGradeSeeder::class,
         ]);
         $this->withoutVite();
+    }
+
+
+    public function test_academic_grade_seeder_is_idempotent_and_provides_all_twelve_grades(): void
+    {
+        $this->seed(AcademicGradeSeeder::class);
+        $this->seed(AcademicGradeSeeder::class);
+
+        $this->assertSame(12, AcademicGrade::query()->count());
+        $this->assertSame(
+            range(1, 12),
+            AcademicGrade::query()->orderBy('level')->pluck('level')->all()
+        );
     }
 
     public function test_grade_ten_owns_seasonal_courses_with_multiple_classroom_delivery_modes_and_course_videos(): void
@@ -139,6 +153,114 @@ final class AcademicGradeCourseMatrixTest extends TestCase
         $this->assertSame($grade->id, $course->academic_grade_id);
         $this->assertSame('autumn', $course->season);
         $this->assertSame($grade->name, $course->academicGrade->name);
+    }
+
+
+    public function test_admin_course_form_uses_the_canonical_grade_catalog_and_exposes_season(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.courses.create'))
+            ->assertOk()
+            ->assertSee('name="academic_grade_id"', false)
+            ->assertSee('name="season"', false)
+            ->assertSee('اول')
+            ->assertSee('دوازدهم')
+            ->assertSee('بهار')
+            ->assertSee('زمستان');
+    }
+
+
+    public function test_academic_content_seeder_builds_all_grade_and_season_combinations_idempotently(): void
+    {
+        $teacher = User::factory()->create(['email' => 'teacher@sh.local']);
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->firstOrFail());
+
+        $student = User::factory()->create(['email' => 'student@sh.local']);
+        $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
+
+        $this->seed(AcademicPortalContentSeeder::class);
+
+        $this->assertSame(49, Course::query()->count());
+        $this->assertSame(47, Course::query()->where('status', 'draft')->count());
+
+        foreach (AcademicGrade::query()->get() as $grade) {
+            foreach (['spring', 'summer', 'autumn', 'winter'] as $season) {
+                $this->assertDatabaseHas('courses', [
+                    'academic_grade_id' => $grade->id,
+                    'season' => $season,
+                ]);
+            }
+        }
+
+        $this->seed(AcademicPortalContentSeeder::class);
+
+        $this->assertSame(49, Course::query()->count());
+    }
+
+
+    public function test_teacher_class_workspace_displays_assigned_course_grade_and_season(): void
+    {
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+        $teacher = $this->userWithRole('teacher');
+
+        $course = Course::query()->create([
+            'title' => 'ریاضی تکمیلی',
+            'slug' => 'teacher-grade-season-course',
+            'subject' => 'ریاضی',
+            'grade' => $grade->name,
+            'academic_grade_id' => $grade->id,
+            'season' => 'autumn',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'skyroom',
+            'status' => 'published',
+        ]);
+
+        Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'گروه آزمایشی ریاضی',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.classes'))
+            ->assertOk()
+            ->assertSee('ریاضی تکمیلی')
+            ->assertSee('پایه دهم')
+            ->assertSee('پاییز');
+    }
+
+
+    public function test_public_course_catalog_filters_by_the_course_season(): void
+    {
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+        $teacher = $this->userWithRole('teacher');
+
+        foreach (['autumn' => 'پاییز', 'winter' => 'زمستان'] as $season => $label) {
+            Course::query()->create([
+                'title' => "ریاضی {$label}",
+                'slug' => "public-math-{$season}",
+                'subject' => 'ریاضی',
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+                'season' => $season,
+                'teacher_id' => $teacher->id,
+                'type' => 'free',
+                'price' => 0,
+                'delivery_type' => 'skyroom',
+                'status' => 'published',
+            ]);
+        }
+
+        $this->withoutVite()
+            ->get(route('public.courses.index', ['season' => 'winter']))
+            ->assertOk()
+            ->assertSee('ریاضی زمستان')
+            ->assertDontSee('ریاضی پاییز');
     }
 
     private function userWithRole(string $role, array $attributes = []): User

@@ -1,11 +1,12 @@
 @extends('teacher.layouts.app')
 @section('title', 'تکالیف')
 @section('content')
+@php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">محتوای آموزشی</span><h1>تکالیف کلاس‌ها</h1><p>تمرین متنی یا فایل PDF تعریف کنید و پاسخ‌های ارسال‌شده را بررسی کنید.</p></div></div>
 <div class="g g2"><section class="c"><h2>تعریف تکلیف جدید</h2>
 @if(auth()->user()->hasPermissionTo('homework.manage.assigned'))
 <form class="teacher-form" method="POST" action="{{ route('teacher.homework.store') }}" enctype="multipart/form-data">@csrf
-<label>کلاس</label><select name="classroom_id" required><option value="">انتخاب کلاس تخصیص‌یافته</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected((string)old('classroom_id') === (string)$classroom->id)>{{ $classroom->name }}{{ $classroom->course?->title ? ' · '.$classroom->course->title : '' }}</option>@endforeach</select>
+<label>کلاس</label><select name="classroom_id" required><option value="">انتخاب کلاس تخصیص‌یافته</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected((string)old('classroom_id') === (string)$classroom->id)>{{ $classroom->name }}{{ $classroom->course?->title ? ' · '.$classroom->course->title : '' }}{{ $classroom->course?->grade ? ' · پایه '.$classroom->course->grade : '' }}{{ $classroom->course?->season ? ' · '.($seasonLabels[$classroom->course->season] ?? $classroom->course->season) : '' }}</option>@endforeach</select>
 <label>عنوان تکلیف</label><input name="title" maxlength="180" value="{{ old('title') }}" required>
 <label>شرح و دستورالعمل</label><textarea name="instructions" rows="5" maxlength="40000" placeholder="شرح تمرین را بنویسید…">{{ old('instructions') }}</textarea>
 <label>مهلت تحویل (اختیاری)</label><input type="datetime-local" name="due_at" value="{{ old('due_at') }}">

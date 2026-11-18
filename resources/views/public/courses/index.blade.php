@@ -41,6 +41,14 @@
                     <input type="hidden" name="grade" value="{{ request('grade') }}">
                 @endif
 
+                <h4>فصل آموزشی</h4>
+                <select class="inp" name="season" onchange="this.form.submit()">
+                    <option value="">همه فصل‌ها</option>
+                    @foreach($seasons as $seasonValue => $seasonLabel)
+                        <option value="{{ $seasonValue }}" @selected(request('season') === $seasonValue)>{{ $seasonLabel }}</option>
+                    @endforeach
+                </select>
+
                 <input class="inp" id="qs" name="q" value="{{ request('q') }}" placeholder="جستجوی دوره…">
 
                 <h4>درس و موضوع</h4>
@@ -78,7 +86,7 @@
 
                 <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px">
                     <button class="btn s" type="submit" style="width:100%">اعمال فیلتر</button>
-                    @if(request()->hasAny(['q', 'subject', 'grade', 'price', 'sort']))
+                    @if(request()->hasAny(['q', 'subject', 'grade', 'season', 'price', 'sort']))
                         <a class="btn s o" href="{{ route('public.courses.index') }}" style="width:100%;text-align:center;color:var(--mute)">
                             پاک کردن فیلترها
                         </a>
