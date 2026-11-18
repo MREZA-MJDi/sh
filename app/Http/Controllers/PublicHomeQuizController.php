@@ -22,7 +22,7 @@ class PublicHomeQuizController extends Controller
             'step' => $step,
             'total' => $questions->count(),
             'question' => [
-                'id' => (string) $question->id,
+                'id' => 'q'.$step,
                 'category' => $question->category,
                 'type' => $question->type,
                 'question' => $question->question,
@@ -34,7 +34,7 @@ class PublicHomeQuizController extends Controller
     public function answer(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'step' => ['required', 'integer', 'min:1', 'max:500'],
+            'step' => ['required', 'integer', 'min:1', function ($attribute, $value, $fail): void {\n                if ((int) $value > HomeQuizQuestion::published()->count()) {\n                    $fail('مرحله موردنظر وجود ندارد.');\n                }\n            }],
             'answer' => ['required', 'string', 'max:255'],
         ]);
 
