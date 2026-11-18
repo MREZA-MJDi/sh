@@ -125,6 +125,53 @@ final class AcademicPortalContentSeeder extends Seeder
                 'season' => 'autumn',
             ])->save();
 
+            // Build a complete, unpublished matrix catalog for local/testing.
+            // The dedicated grade-ten autumn course above remains the only
+            // fully populated public demo course; catalog rows are drafts.
+            $seasonLabels = [
+                'spring' => 'بهار',
+                'summer' => 'تابستان',
+                'autumn' => 'پاییز',
+                'winter' => 'زمستان',
+            ];
+
+            foreach (AcademicGrade::query()->where('is_active', true)->orderBy('level')->get() as $matrixGrade) {
+                foreach ($seasonLabels as $seasonCode => $seasonLabel) {
+                    if ($matrixGrade->is($grade) && $seasonCode === 'autumn') {
+                        continue;
+                    }
+
+                    $slug = "matrix-math-grade-{$matrixGrade->code}-{$seasonCode}";
+
+                    Course::query()->firstOrCreate(
+                        ['slug' => $slug],
+                        [
+                            'title' => "ریاضی پایه {$matrixGrade->name} - دوره {$seasonLabel}",
+                            'description' => "دوره نمونه ریاضی پایه {$matrixGrade->name} برای فصل {$seasonLabel}.",
+                            'subject' => 'ریاضی',
+                            'grade' => $matrixGrade->name,
+                            'academic_grade_id' => $matrixGrade->id,
+                            'season' => $seasonCode,
+                            'teacher_id' => $teacher->id,
+                            'type' => 'free',
+                            'price' => 0,
+                            'delivery_type' => 'skyroom',
+                            'learning_features' => [
+                                'recorded_video' => false,
+                                'live_class' => true,
+                                'resources' => true,
+                                'assignments' => true,
+                                'exams' => true,
+                                'projects' => false,
+                            ],
+                            'status' => 'draft',
+                            'integration_status' => 'not_required',
+                            'integration_note' => null,
+                        ]
+                    );
+                }
+            }
+
             $classroom = Classroom::query()->firstOrCreate(
                 ['course_id' => $course->id, 'name' => 'کلاس ریاضی تکمیلی - گروه اول'],
                 [
