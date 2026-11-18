@@ -93,3 +93,9 @@ document.addEventListener('submit', (e) => {
   form.closest('dialog')?.close();
   toast(form.dataset.demoMessage || 'ذخیره شد (نمایشی — بدون ارتباط با بک‌اند)');
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('dialog.adm-modal').forEach((dialog) => {
+    if (dialog.querySelector('.adm-err')) dialog.showModal();
+  });
+});
