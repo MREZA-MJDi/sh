@@ -2,7 +2,6 @@
 
 namespace App\Services\Admin;
 
-use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
@@ -13,7 +12,6 @@ use Illuminate\Validation\ValidationException;
 final class UserManagementService
 {
     public function __construct(
-        private readonly TeacherAccessService $teacherAccess,
         private readonly CourseEnrollmentService $enrollments,
     ) {}
 
@@ -31,9 +29,11 @@ final class UserManagementService
                 'external_student_id' => $role === 'student' ? ($data['external_student_id'] ?? null) : null,
                 'password' => $data['password'],
                 'grade' => $role === 'student' ? ($data['grade'] ?? null) : null,
-                'subject' => in_array($role, ['teacher'], true) ? ($data['subject'] ?? null) : null,
-                'profile_note' => in_array($role, ['teacher'], true) ? ($data['profile_note'] ?? null) : null,
+                'subject' => $role === 'teacher' ? ($data['subject'] ?? null) : null,
+                'profile_note' => $role === 'teacher' ? ($data['profile_note'] ?? null) : null,
                 'is_active' => $role === 'teacher' ? (($data['status'] ?? 'active') === 'active') : true,
+                // Keep the role's permission set. Teacher CRUD must not replace it
+                // with a partial custom set or assign courses as a side effect.
                 'permissions_customized' => false,
             ]);
 
@@ -55,19 +55,9 @@ final class UserManagementService
                 $user->children()->sync($data['child_ids']);
             }
 
-            if ($role === 'teacher') {
-                $this->teacherAccess->sync(
-                    $user,
-                    $data['teacher_access'] ?? [],
-                    $data['course_ids'] ?? [],
-                    $actor
-                );
-            }
-
             return $user->refresh();
         });
     }
-
 
     public function updateStudent(User $student, array $data, User $actor): User
     {
@@ -134,7 +124,7 @@ final class UserManagementService
             throw ValidationException::withMessages(['teacher' => 'حساب انتخاب‌شده مدرس قابل ویرایش نیست.']);
         }
 
-        return DB::transaction(function () use ($teacher, $data, $actor): User {
+        return DB::transaction(function () use ($teacher, $data): User {
             $teacher->fill([
                 'name' => $data['name'],
                 'phone' => $data['phone'],
@@ -148,14 +138,9 @@ final class UserManagementService
                 $teacher->password = $data['password'];
             }
 
+            // Editing a teacher's identity must not mutate role permissions,
+            // course ownership, or classroom membership.
             $teacher->save();
-
-            $this->teacherAccess->sync(
-                $teacher,
-                $data['teacher_access'] ?? [],
-                $data['course_ids'] ?? [],
-                $actor
-            );
 
             return $teacher->refresh();
         });
