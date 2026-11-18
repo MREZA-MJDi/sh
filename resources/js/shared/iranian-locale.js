@@ -168,7 +168,10 @@
     function prepareLocalizedField(original) {
         if (!original || original.dataset.localeEnhanced === 'true' || original.disabled) return;
         const originalType = original.type;
-        if (!['date', 'datetime-local', 'number'].includes(originalType)) return;
+        // Keep native date/time inputs intact so the browser calendar remains available.
+        // Only numeric fields use the localized text companion; date fields must never
+        // degrade into manual Jalali text inputs.
+        if (originalType !== 'number') return;
 
         const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
         if (!valueDescriptor || !valueDescriptor.get || !valueDescriptor.set) return;
