@@ -7,8 +7,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Demo users are never created unless explicitly enabled. Login cards
-    | require a second explicit flag and may be enabled for a short production
-    | demo window. The SEO role is intentionally excluded from public cards.
+    | require a second explicit flag. Demo accounts and credentials are
+    | restricted to local/testing and must never be exposed in production.
+    | The SEO role is intentionally excluded from public cards.
     |
     */
     'enabled' => (bool) env('SHIKHAN_DEMO_ACCOUNTS', false),
