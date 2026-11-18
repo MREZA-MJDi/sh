@@ -467,7 +467,7 @@ final class ChunkUploadController extends Controller
 
     private function chunkSizeBytes(): int
     {
-        $configured = max(1, (int) config('learning.chunk_mb')) * 1024 * 1024;
+        $configured = max(1, (int) config('learning.chunk_mb')) * 1024 * 1024 - 65536;
         $limits = [$configured];
         $uploadLimit = $this->iniSizeToBytes((string) ini_get('upload_max_filesize'));
         $postLimit = $this->iniSizeToBytes((string) ini_get('post_max_size'));
