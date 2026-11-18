@@ -130,7 +130,7 @@
             @forelse($videos as $video)
               <div>
                 <span class="adm-stat-ico" data-tone="edu"><x-admin.icon name="video"/></span>
-                <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }} · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small></div>
+                <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }} · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small>@if($video->processing_error)<small class="adm-muted">{{ $video->processing_error }}</small>@endif</div>
                 @php
                   $videoState = match ($video->status) {
                     'active' => ['ok', 'آماده پخش'],
