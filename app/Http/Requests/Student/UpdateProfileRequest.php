@@ -25,6 +25,7 @@ final class UpdateProfileRequest extends FormRequest
         $this->merge([
             'name' => is_string($this->input('name')) ? trim($this->input('name')) : $this->input('name'),
             'phone' => $phone,
+            'remove_avatar' => $this->boolean('remove_avatar'),
         ]);
     }
 
@@ -43,6 +44,8 @@ final class UpdateProfileRequest extends FormRequest
                 'max:30',
                 Rule::unique('users', 'phone')->ignore($this->user()->id),
             ],
+            'avatar' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'remove_avatar' => ['nullable', 'boolean'],
         ];
     }
 }

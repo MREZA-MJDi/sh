@@ -26,7 +26,13 @@
 @endphp
 <aside class="side">
     <div class="me">
-        <div class="av"><svg viewBox="0 0 120 120" width="100%" height="100%"><use href="#avatar"/></svg></div>
+        <div class="av">
+            @if(auth()->user()?->avatarUrl())
+                <img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()->name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+            @else
+                <svg viewBox="0 0 120 120" width="100%" height="100%"><use href="#avatar"/></svg>
+            @endif
+        </div>
         <h3>سلام {{ auth()->user()->name ?? '' }}!</h3>
     </div>
 

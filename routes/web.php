@@ -304,6 +304,8 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
     ->group(function (): void {
         // Independent teacher portal backed by the teacher-scoped dashboard service.
         Route::get('/', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\Teacher\ProfileController::class, 'show'])->name('profile.edit');
+        Route::put('/profile', [\App\Http\Controllers\Teacher\ProfileController::class, 'update'])->name('profile.update');
         Route::get('/classes', [TeacherPortalController::class, 'classes'])->middleware('permission:classes.view.assigned')->name('classes');
         Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
         Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.assigned')->name('homework.store');

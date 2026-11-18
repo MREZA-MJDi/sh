@@ -286,8 +286,12 @@
                 <div class="card blk" id="c3">
                     <h2>مدرس دوره</h2>
                     <div class="tc">
-                        <div class="av">
-                            {{ mb_substr($teacher->name, 0, 1) }}
+                        <div class="av" style="overflow:hidden">
+                            @if($teacher->avatarUrl())
+                                <img src="{{ $teacher->avatarUrl() }}" alt="{{ $teacher->name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                            @else
+                                {{ mb_substr($teacher->name, 0, 1) }}
+                            @endif
                         </div>
                         <div style="flex:1">
                             <b style="font-size:18px;display:block;margin-bottom:4px">

@@ -56,10 +56,22 @@
     </details>
 
     <details class="adm-menu adm-profile-menu" data-admin-topbar-menu>
-      <summary class="adm-avatar adm-profile-trigger" aria-label="پروفایل کاربری">{{ $topbarInitial }}</summary>
+      <summary class="adm-avatar adm-profile-trigger" aria-label="پروفایل کاربری" @if($topbarUser?->avatarUrl()) style="overflow:hidden;padding:0" @endif>
+        @if($topbarUser?->avatarUrl())
+          <img src="{{ $topbarUser->avatarUrl() }}" alt="{{ $topbarUser->name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+        @else
+          {{ $topbarInitial }}
+        @endif
+      </summary>
       <div class="adm-menu-pop adm-profile-pop" aria-label="پروفایل کاربری">
         <div class="adm-profile-summary">
-          <span class="adm-avatar adm-profile-avatar" aria-hidden="true">{{ $topbarInitial }}</span>
+          <span class="adm-avatar adm-profile-avatar" aria-hidden="true" @if($topbarUser?->avatarUrl()) style="overflow:hidden;padding:0" @endif>
+            @if($topbarUser?->avatarUrl())
+              <img src="{{ $topbarUser->avatarUrl() }}" alt="{{ $topbarUser->name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+            @else
+              {{ $topbarInitial }}
+            @endif
+          </span>
           <div class="adm-profile-identity">
             <b class="adm-profile-name">{{ $topbarUser?->name ?? 'کاربر' }}</b>
             <small>{{ $topbarRoleLabel }}</small>
