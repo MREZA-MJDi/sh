@@ -57,10 +57,47 @@ class SeoDashboardController extends Controller
             ->all();
 
         if (array_key_exists('social_links', $data)) {
-            $data['social_links'] = array_filter($data['social_links'] ?? [], fn ($url) => filled($url));
+            $data['social_links'] = collect($data['social_links'] ?? [])
+                ->map(fn ($url) => trim((string) $url))
+                ->filter(fn (string $url): bool => $url !== '')
+                ->all();
         }
         if (array_key_exists('home_sections', $data)) {
-            $data['home_sections'] = array_replace_recursive(SeoSetting::defaultHomeSections(), $data['home_sections'] ?? []);
+            $submittedHomeSections = $data['home_sections'] ?? [];
+            $homeSections = array_replace_recursive(SeoSetting::defaultHomeSections(), $submittedHomeSections);
+
+            // Dynamic repeatable rows render directly on public pages. Remove
+            // blank trailing form rows so the contact dropdown and FAQ never
+            // expose empty choices after a normal form save.
+            foreach (['steps', 'panel_cards', 'benefits', 'faq_items', 'contact_faq_items'] as $collectionKey) {
+                if (! array_key_exists($collectionKey, $submittedHomeSections)) {
+                    continue;
+                }
+
+                $homeSections[$collectionKey] = collect($homeSections[$collectionKey] ?? [])
+                    ->filter(function ($item): bool {
+                        if (! is_array($item)) {
+                            return false;
+                        }
+
+                        return collect($item)->contains(fn ($value): bool => filled($value));
+                    })
+                    ->values()
+                    ->all();
+            }
+
+            if (array_key_exists('contact_topics', $submittedHomeSections)) {
+                $topics = collect($submittedHomeSections['contact_topics'] ?? [])
+                    ->map(fn ($topic): string => trim((string) $topic))
+                    ->filter(fn (string $topic): bool => $topic !== '')
+                    ->values();
+
+                $homeSections['contact_topics'] = $topics->isNotEmpty()
+                    ? $topics->all()
+                    : SeoSetting::defaultHomeSections()['contact_topics'];
+            }
+
+            $data['home_sections'] = $homeSections;
         }
         if (array_key_exists('footer_links', $data)) {
             $data['footer_links'] = collect($data['footer_links'] ?? [])
