@@ -182,7 +182,7 @@ final class AcademicGradeCourseMatrixTest extends TestCase
 
         $this->seed(AcademicPortalContentSeeder::class);
 
-        $this->assertSame(48, Course::query()->count());
+        $this->assertSame(49, Course::query()->count());
         $this->assertSame(47, Course::query()->where('status', 'draft')->count());
 
         foreach (AcademicGrade::query()->get() as $grade) {
@@ -196,7 +196,7 @@ final class AcademicGradeCourseMatrixTest extends TestCase
 
         $this->seed(AcademicPortalContentSeeder::class);
 
-        $this->assertSame(48, Course::query()->count());
+        $this->assertSame(49, Course::query()->count());
     }
 
 
