@@ -117,19 +117,35 @@
           <a href="{{ $courses->previousPageUrl() }}" rel="prev" aria-label="صفحه قبلی">قبلی</a>
         @endif
 
-        @foreach ($courses->onEachSide(1)->elements() as $element)
-          @if (is_string($element))
-            <span class="is-gap" aria-hidden="true">{{ $element }}</span>
+        @php
+          $currentPage = $courses->currentPage();
+          $lastPage = $courses->lastPage();
+          $startPage = max(1, $currentPage - 1);
+          $endPage = min($lastPage, $currentPage + 1);
+          $pageUrls = $courses->getUrlRange($startPage, $endPage);
+        @endphp
+
+        @if ($startPage > 1)
+          <a href="{{ $courses->url(1) }}" aria-label="رفتن به صفحه 1">1</a>
+          @if ($startPage > 2)
+            <span class="is-gap" aria-hidden="true">…</span>
+          @endif
+        @endif
+
+        @foreach ($pageUrls as $page => $url)
+          @if ($page === $currentPage)
+            <span class="is-on" aria-current="page" aria-label="صفحه فعلی، صفحه {{ $page }}">{{ $page }}</span>
           @else
-            @foreach ($element as $page => $url)
-              @if ($page === $courses->currentPage())
-                <span class="is-on" aria-current="page" aria-label="صفحه فعلی، صفحه {{ $page }}">{{ $page }}</span>
-              @else
-                <a href="{{ $url }}" aria-label="رفتن به صفحه {{ $page }}">{{ $page }}</a>
-              @endif
-            @endforeach
+            <a href="{{ $url }}" aria-label="رفتن به صفحه {{ $page }}">{{ $page }}</a>
           @endif
         @endforeach
+
+        @if ($endPage < $lastPage)
+          @if ($endPage < $lastPage - 1)
+            <span class="is-gap" aria-hidden="true">…</span>
+          @endif
+          <a href="{{ $courses->url($lastPage) }}" aria-label="رفتن به صفحه {{ $lastPage }}">{{ $lastPage }}</a>
+        @endif
 
         @if ($courses->hasMorePages())
           <a href="{{ $courses->nextPageUrl() }}" rel="next" aria-label="صفحه بعدی">بعدی</a>
