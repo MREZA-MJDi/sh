@@ -131,7 +131,16 @@
               <div>
                 <span class="adm-stat-ico" data-tone="edu"><x-admin.icon name="video"/></span>
                 <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }} · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small></div>
-                <x-admin.badge :tone="$video->status === 'active' ? 'ok' : 'warn'">{{ $video->status === 'active' ? 'فعال' : 'در انتظار اتصال' }}</x-admin.badge>
+                @php
+                  $videoState = match ($video->status) {
+                    'active' => ['ok', 'آماده پخش'],
+                    'processing' => ['warn', 'در حال پردازش'],
+                    'failed' => ['bad', 'پردازش ناموفق'],
+                    'waiting_contract' => ['warn', 'در انتظار قرارداد'],
+                    default => ['mute', $video->status],
+                  };
+                @endphp
+                <x-admin.badge :tone="$videoState[0]">{{ $videoState[1] }}</x-admin.badge>
               </div>
             @empty
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
