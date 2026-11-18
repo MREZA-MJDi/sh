@@ -26,7 +26,7 @@
  </div>
  <div class="row">
   <div class="card">
-   <div class="chead"><h2>کلاس‌های پیش‌رو</h2><a class="pill" href="{{ url('student/live-classes') }}">همه</a></div>
+   <div class="chead"><h2>کلاس‌های پیش‌رو</h2><div><a class="pill" href="{{ url('student/live-classes') }}">همه جلسات</a> <a class="pill" href="{{ route('student.videos.index') }}">ویدیوهای ضبط‌شده</a></div></div>
    @forelse ($sessions as $session)
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
