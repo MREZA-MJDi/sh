@@ -35,7 +35,7 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('courses', ['slug' => 'riyazi-pishrafte-dore-pooli']);
         $this->assertDatabaseHas('courses', ['slug' => 'video-only-demo-course']);
         $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
-        $this->assertDatabaseCount('courses', 4);
+        $this->assertDatabaseCount('courses', 51);
         $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
         $course = Course::query()->where('slug', 'riyazi-takmili-nomre')->firstOrFail();
         $this->assertSame($grade->id, $course->academic_grade_id);
