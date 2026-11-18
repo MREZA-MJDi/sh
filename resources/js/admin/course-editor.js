@@ -273,6 +273,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         }
       }
     } catch (error) {
+      if (completedUpload && widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
       const resumable = started?.upload_id && !completedUpload;
       const suffix = resumable
         ? ' نشست آپلود حفظ شد؛ با انتخاب همین فایل و زدن دوباره دکمه، از بخش‌های دریافت‌شده ادامه می‌دهید.'
