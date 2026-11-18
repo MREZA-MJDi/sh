@@ -57,28 +57,25 @@
             </div>
         @endif
 
-        @php
-            $featured = $articles->first();
-            $rest = $articles->slice(1);
-        @endphp
+        @php($rest = $articles->slice(1))
 
-        @if($featured && empty($search) && $articles->currentPage() === 1)
+        @if($featuredSeoArticle && empty($search) && $articles->currentPage() === 1)
             {{-- Featured Article --}}
-            <a class="card feat" href="{{ route('seo.articles.show', $featured->slug) }}">
+            <a class="card feat" href="{{ route('seo.articles.show', $featuredSeoArticle->slug) }}">
                 <div class="th" style="background:linear-gradient(135deg,#0d9488,#2563eb)">
-                    @if($featured->featured_image_path)
-                        <img src="{{ Storage::disk('public')->url($featured->featured_image_path) }}" alt="{{ $featured->image_alt ?: $featured->title }}" style="object-position: {{ $featured->image_position ?? '50% 50%' }}" loading="lazy">
+                    @if($featuredSeoArticle->featured_image_path)
+                        <img src="{{ Storage::disk('public')->url($featuredSeoArticle->featured_image_path) }}" alt="{{ $featuredSeoArticle->image_alt ?: $featuredSeoArticle->title }}" style="object-position: {{ $featuredSeoArticle->image_position ?? '50% 50%' }}" loading="lazy">
                     @else
                         <svg class="i"><use href="#pen"/></svg>
                     @endif
                 </div>
                 <div class="cb">
-                    <span class="bd">{{ !empty($featured->keywords) ? $featured->keywords[0] : 'مقاله برگزیده' }}</span>
-                    <h2>{{ $featured->title }}</h2>
-                    <p>{{ $featured->excerpt }}</p>
+                    <span class="bd">{{ !empty($featuredSeoArticle->keywords) ? $featuredSeoArticle->keywords[0] : 'مقاله برگزیده' }}</span>
+                    <h2>{{ $featuredSeoArticle->title }}</h2>
+                    <p>{{ $featuredSeoArticle->excerpt }}</p>
                     <div class="mt" style="margin-bottom:16px">
-                        <span><svg class="i" style="width:14px;height:14px;vertical-align:middle;margin-left:4px"><use href="#clock"/></svg>{{ $featured->published_at ? $featured->published_at->format('Y/m/d') : '' }}</span>
-                        <span>نویسنده: {{ $featured->author->name ?? 'شیخان' }}</span>
+                        <span><svg class="i" style="width:14px;height:14px;vertical-align:middle;margin-left:4px"><use href="#clock"/></svg>{{ $featuredSeoArticle->published_at ? $featuredSeoArticle->published_at->format('Y/m/d') : '' }}</span>
+                        <span>نویسنده: {{ $featuredSeoArticle->author->name ?? 'شیخان' }}</span>
                     </div>
                     <div><span class="btn s">ادامه مطلب</span></div>
                 </div>
@@ -87,7 +84,7 @@
 
         {{-- Article Cards Grid --}}
         <div class="g g3">
-            @php $articlesToLoop = ($featured && empty($search) && $articles->currentPage() === 1) ? $rest : $articles; @endphp
+            @php $articlesToLoop = ($featuredSeoArticle && empty($search) && $articles->currentPage() === 1) ? $rest : $articles; @endphp
             @forelse($articlesToLoop as $index => $article)
                 @php
                     $gradients = [
