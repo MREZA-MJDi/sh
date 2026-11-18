@@ -589,10 +589,16 @@ class SeoContentManagementTest extends TestCase
             ->assertSessionHasErrors('placement');
 
         $this->assertDatabaseCount('seo_banners', 3);
+        $this->actingAs($seo)->get(route('admin.seo.banners.index'))->assertOk()
+            ->assertSee('اسلایدهای ثبت‌شده Hero')
+            ->assertSee('3 / 3');
+
         $this->get(route('home'))->assertOk()
             ->assertSee('اسلاید 1')
             ->assertSee('اسلاید 2')
             ->assertSee('اسلاید 3')
+            ->assertSee('og:image:alt', false)
+            ->assertSee('تصویر اسلاید 1')
             ->assertDontSee('اسلاید چهارم');
     }
 
