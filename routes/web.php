@@ -99,6 +99,21 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
+    // Backward-compatible URLs for the retired demo screens. Keep bookmarks working
+    // while all data and actions live in the canonical workflows.
+    Route::get('/assignments', fn () => redirect()->route('admin.homework.index'))
+        ->middleware('permission:homework.manage.all,homework.manage.assigned,homework.view.assigned')
+        ->name('assignments.legacy');
+    Route::get('/recordings', fn () => redirect()->route('admin.spotplayer.index'))
+        ->middleware('permission:integrations.manage,videos.manage.assigned')
+        ->name('recordings.legacy');
+    Route::get('/meetings', fn () => redirect()->route('admin.parent-meetings.index'))
+        ->middleware('permission:classes.manage,classes.manage.assigned')
+        ->name('meetings.legacy');
+    Route::get('/parent-messages', fn () => redirect()->route('admin.messages.index'))
+        ->middleware('permission:messages.view.all,messages.view.assigned')
+        ->name('parent-messages.legacy');
+
     Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
     Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');
     Route::delete('/contact-messages/{message}', [ContactMessageController::class, 'destroy'])->middleware('permission:messages.view.all')->name('contact-messages.destroy');
