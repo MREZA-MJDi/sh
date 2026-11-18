@@ -80,7 +80,7 @@ const showPreview = (input) => {
     };
 
     image.src = objectUrl;
-}
+};
 
 document.addEventListener('change', (event) => {
     const input = event.target;
