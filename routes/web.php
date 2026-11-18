@@ -304,6 +304,8 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.assigned')->name('homework.store');
         Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
         Route::get('/videos', [TeacherPortalController::class, 'videos'])->middleware('permission:videos.manage.assigned')->name('videos');
+        Route::post('/videos', [SpotPlayerController::class, 'storeVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.store');
+        Route::get('/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.download');
         Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
         Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
         Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
