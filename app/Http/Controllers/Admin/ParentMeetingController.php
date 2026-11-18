@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -62,9 +63,9 @@ final class ParentMeetingController extends Controller
         $students = User::query()
             ->where('is_active', true)
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
-            ->when($classroom, fn (Builder $query) => $query->whereHas(
-                'enrolledClasses',
-                fn (Builder $classes) => $classes->whereKey($classroom->id)
+            ->when($classroom, fn (Builder $query) => $query->whereIn(
+                'users.id',
+                DB::table('classroom_student')->select('student_id')->where('classroom_id', $classroom->id)
             ))
             ->where(fn (Builder $search) => $search
                 ->where('name', 'like', "%{$term}%")
