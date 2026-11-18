@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
 use App\Models\Course;
+use App\Models\HomeQuizQuestion;
 use App\Models\CourseEnrollment;
 use App\Models\ClassSession;
 use App\Models\Lesson;
@@ -28,6 +29,7 @@ final class PublicSiteController extends Controller
         $homeContent = is_array($settings->home_sections) ? $settings->home_sections : SeoSetting::defaultHomeSections();
         $homeBanners = SeoBanner::query()->active()->where('placement', 'home_hero')
             ->orderBy('sort_order')->orderBy('id')->limit(3)->get();
+        $homeQuizTotal = HomeQuizQuestion::published()->count();
 
         $courseQuery = Course::query()->where('status', 'published')
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
