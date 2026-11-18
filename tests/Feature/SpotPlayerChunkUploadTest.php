@@ -80,6 +80,44 @@ final class SpotPlayerChunkUploadTest extends TestCase
         Storage::disk('local')->assertExists($video->file_path);
 
         $this->assertDatabaseMissing('integration_runs', ['entity_id' => $video->id]);
+
+        $this->postJson(route('admin.uploads.status'), ['upload_id' => $uploadId])
+            ->assertOk()
+            ->assertJsonPath('status', 'processing');
+    }
+
+    public function test_teacher_can_resume_an_interrupted_chunk_upload_without_reuploading_received_parts(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $course = Course::query()->create([
+            'title' => 'دوره ادامه آپلود',
+            'slug' => 'teacher-video-resume',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'learning_features' => ['recorded_video' => true],
+            'status' => 'draft',
+        ]);
+
+        $start = $this->actingAs($teacher)->postJson(route('admin.uploads.start'), [
+            'target' => 'spotplayer_video',
+            'target_id' => $course->id,
+            'total_bytes' => 128,
+            'title' => 'جلسه قابل ادامه',
+        ])->assertOk();
+
+        $uploadId = $start->json('upload_id');
+        $this->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId,
+            'index' => 0,
+            'chunk' => UploadedFile::fake()->createWithContent('part', str_repeat("\\0", 128)),
+        ])->assertOk();
+
+        $this->postJson(route('admin.uploads.resume'), ['upload_id' => $uploadId])
+            ->assertOk()
+            ->assertJsonPath('upload_id', $uploadId)
+            ->assertJsonPath('total_chunks', 1)
+            ->assertJsonPath('received_chunks.0', 0);
     }
 
     public function test_admin_can_upload_course_video_when_feature_matrix_is_enabled_without_legacy_delivery_type(): void
