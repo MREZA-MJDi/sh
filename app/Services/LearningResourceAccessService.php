@@ -43,7 +43,8 @@ final class LearningResourceAccessService
             ->where('status', 'paid')
             ->exists();
 
-        abort_unless($hasPaidAccess, 403, 'برای دسترسی به این محصول، ابتدا خرید باید توسط آموزشگاه تأیید شود.');
+        // Do not reveal the existence of unpaid/private material to an unentitled user.
+        abort_unless($hasPaidAccess, 404);
     }
 
     public function authorizePurchase(User $student, LearningResource $resource): void

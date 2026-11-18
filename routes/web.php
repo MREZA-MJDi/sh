@@ -176,6 +176,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.manage.all,attendance.manage.assigned,attendance.view.assigned')->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.store');
+    Route::post('/attendance/{classroom}/{student}/notify', [AttendanceController::class, 'notifyAbsence'])->middleware('permission:attendance.manage.all,attendance.manage.assigned')->name('attendance.notify');
 
     Route::get('/homework', [HomeworkController::class, 'index'])->middleware('permission:homework.manage.all,homework.manage.assigned,homework.view.assigned')->name('homework.index');
     Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.all,homework.manage.assigned')->name('homework.store');

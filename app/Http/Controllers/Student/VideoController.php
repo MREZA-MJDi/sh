@@ -3,55 +3,68 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Http\BinaryFileResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use App\Services\Learning\LearningAccessService;
 
 final class VideoController extends Controller
 {
-    public function index(Request $request, LearningAccessService $access): View
+    public function index(Request $request, LearningAccessService $access): RedirectResponse|View
     {
         $videos = $this->accessibleVideos($request->user(), $access)
+            ->where('status', '!=', 'waiting_contract')
+            ->where(function (Builder $delivery): void {
+                $delivery->whereNotNull('external_id')
+                    ->orWhereNotNull('embed_url');
+            })
             ->with(['course:id,title,slug', 'classroom:id,name'])
             ->latest('created_at')
             ->paginate(12)
             ->withQueryString();
 
+        if ($videos->total() === 0) {
+            return redirect()->route('student.courses.index');
+        }
+
         return view('student.videos.index', compact('videos'));
     }
 
-    public function show(Request $request, int $video, LearningAccessService $access): View
+    public function show(Request $request, int $video, LearningAccessService $access): RedirectResponse|View
     {
         $video = $this->findAccessibleVideo($request->user(), $video, $access);
+
+        // Staged files and IDs waiting for the provider contract are not playable
+        // student-facing recordings; keep the student on the existing course page.
+        if (
+            $video->status === 'waiting_contract'
+            || (blank($video->external_id) && blank($video->embed_url))
+        ) {
+            return redirect()->route('public.courses.show', $video->course->slug);
+        }
 
         return view('student.videos.show', compact('video'));
     }
 
-    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse|Response
+    public function stream(Request $request, int $video, LearningAccessService $access): Response
     {
-        $video = $this->findAccessibleVideo($request->user(), $video, $access);
+        // Enforce course and classroom membership but never expose a raw staged file.
+        $this->findAccessibleVideo($request->user(), $video, $access);
 
-        // Local staged files can be streamed only after the same enrollment checks
-        // used by the video catalogue. External SpotPlayer IDs stay gated by the
-        // provider contract; no fake player URL is generated.
-        abort_unless(filled($video->file_path) && Storage::disk('local')->exists($video->file_path), 409,
-            'این ویدئو هنوز روی سرور محلی آماده پخش نیست و اتصال SpotPlayer نیز فعال نشده است.');
-
-        $path = Storage::disk('local')->path($video->file_path);
-
-        return response()->file($path, [
-            'Cache-Control' => 'private, no-store, max-age=0',
-            'Pragma' => 'no-cache',
-            'X-Content-Type-Options' => 'nosniff',
-            'Referrer-Policy' => 'same-origin',
-        ]);
+        return response(
+            'پخش مستقیم فایل خام فعال نیست؛ ویدئو فقط پس از اتصال رسمی پخش‌کننده در دسترس خواهد بود.',
+            409,
+            [
+                'Cache-Control' => 'private, no-store, max-age=0',
+                'Pragma' => 'no-cache',
+                'X-Content-Type-Options' => 'nosniff',
+                'Referrer-Policy' => 'same-origin',
+            ]
+        );
     }
 
     private function findAccessibleVideo(User $student, int $videoId, LearningAccessService $access): SpotPlayerVideo
@@ -67,19 +80,19 @@ final class VideoController extends Controller
         $activeClassroomIds = $access->activeClassroomIds($student, 'recorded_video');
 
         return SpotPlayerVideo::query()
-            ->where(function (Builder $delivery) {
+            ->where(function (Builder $delivery): void {
                 $delivery->whereNotNull('file_path')->orWhereNotNull('external_id');
             })
             ->whereHas('course', fn (Builder $course) => $course
                 ->where('status', 'published')
                 ->where(function (Builder $videoDelivery): void {
                     $videoDelivery->where(function (Builder $legacy): void {
-                            $legacy->whereNull('learning_features')
-                                ->where('delivery_type', 'spotplayer');
-                        })->orWhere('learning_features->recorded_video', true);
+                        $legacy->whereNull('learning_features')
+                            ->where('delivery_type', 'spotplayer');
+                    })->orWhere('learning_features->recorded_video', true);
                 })
                 ->whereIn('courses.id', clone $activeCourseIds))
-            ->where(function (Builder $scope) use ($student, $activeClassroomIds): void {
+            ->where(function (Builder $scope) use ($activeClassroomIds): void {
                 $scope->whereNull('classroom_id')
                     ->orWhere(function (Builder $classScope) use ($activeClassroomIds): void {
                         $classScope->whereIn('classroom_id', clone $activeClassroomIds)
