@@ -105,7 +105,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             ->assertJsonPath('ok', true);
     }
 
-    public function test_course_video_upload_rejects_files_larger_than_250_mb_before_creating_a_session(): void
+    public function test_course_video_upload_rejects_files_larger_than_300_mb_before_creating_a_session(): void
     {
         $admin = $this->userWithRole('admin');
         $course = Course::query()->create([
@@ -122,12 +122,12 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'target' => 'spotplayer_video',
             'target_id' => $course->id,
             'total' => 51,
-            'total_bytes' => 250 * 1024 * 1024 + 1,
+            'total_bytes' => 300 * 1024 * 1024 + 1,
             'title' => 'ویدیوی بیش از حد مجاز',
         ])->assertUnprocessable()->assertJsonValidationErrors('file');
 
         $this->assertDatabaseCount('video_upload_sessions', 0);
-        $this->assertSame(250, (int) config('learning.max_lesson_mb'));
+        $this->assertSame(300, (int) config('learning.max_lesson_mb'));
     }
 
     public function test_teacher_cannot_start_video_upload_for_an_unassigned_course(): void

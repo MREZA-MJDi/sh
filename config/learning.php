@@ -9,7 +9,7 @@ return [
     'embed_url_template' => env('LEARNING_EMBED_URL'), // مثال: https://.../{video_id}
 
     'max_teaser_mb' => 200,
-    'max_lesson_mb' => 250,
+    'max_lesson_mb' => 300,
     'chunk_mb' => 5,
 
     // نام route شروع پرداخت پروژه (باید یک Enrollment بگیرد)
