@@ -104,9 +104,9 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->assertSame(8, $dashboard['openMessageCount']);
         $this->assertSame(7, $dashboard['pendingConsultationCount']);
         $this->assertSame(6, $dashboard['publishedAnnouncementCount']);
-        $this->assertCount(5, $dashboard['recentMessages']);
-        $this->assertCount(5, $dashboard['pendingConsultations']);
-        $this->assertCount(4, $dashboard['recentAnnouncements']);
+        $this->assertArrayNotHasKey('recentMessages', $dashboard);
+        $this->assertArrayNotHasKey('pendingConsultations', $dashboard);
+        $this->assertArrayNotHasKey('recentAnnouncements', $dashboard);
 
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
@@ -115,6 +115,8 @@ final class AdminDashboardDataBindingTest extends TestCase
             ->assertSee('اطلاعیه‌های منتشرشده')
             ->assertSee('>8</strong>', false)
             ->assertSee('>7</strong>', false)
-            ->assertSee('>6</strong>', false);
+            ->assertSee('>6</strong>', false)
+            ->assertDontSee('گروه‌های آموزشی فعال</th>', false)
+            ->assertDontSee('پیام‌های اخیر');
     }
 }
