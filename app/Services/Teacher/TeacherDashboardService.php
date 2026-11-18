@@ -4,6 +4,7 @@ namespace App\Services\Teacher;
 
 use App\Models\Attendance;
 use App\Models\ClassSession;
+use App\Models\Course;
 use App\Models\HomeworkSubmission;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
@@ -17,7 +18,7 @@ final class TeacherDashboardService
         private readonly MessageWorkspaceService $messages,
     ) {}
 
-    private function courseLabel(?\\App\\Models\\Course $course): string
+    private function courseLabel(?Course $course): string
     {
         if (! $course) {
             return 'جلسه آموزشی';
