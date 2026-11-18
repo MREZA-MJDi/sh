@@ -562,6 +562,17 @@ class SeoContentManagementTest extends TestCase
     }
 
 
+    public function test_home_hero_management_tab_forces_uploaded_banners_into_the_home_hero_placement(): void
+    {
+        $seo = $this->seoUser();
+
+        $this->actingAs($seo)->get(route('admin.seo.banners.index', ['placement' => 'home_hero']))
+            ->assertOk()
+            ->assertSee('مدیریت اسلایدر Hero صفحه اصلی')
+            ->assertSee('<input type="hidden" name="placement" value="home_hero">', false)
+            ->assertDontSee('<select class="adm-select" name="placement"', false);
+    }
+
     public function test_home_hero_allows_exactly_three_banners_and_rejects_a_fourth(): void
     {
         $seo = $this->seoUser();
