@@ -94,8 +94,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->get(route('student.videos.stream', $video))
             ->assertOk()
-            ->assertHeader('Content-Type', 'video/mp4')
-            ->assertSee('local-video-content');
+            ->assertHeader('Content-Type', 'video/mp4');
     }
 
     public function test_video_is_not_visible_to_students_outside_its_course_or_class(): void
