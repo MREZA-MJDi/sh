@@ -24,7 +24,8 @@ The course recording upload path stores assembled source files on Laravel's priv
 
 ## Upload behaviour
 
-- The server calculates chunk size from the configured chunk limit and the PHP `upload_max_filesize` / `post_max_size` limits.
+- The server calculates chunk size from the configured chunk limit (`LEARNING_CHUNK_MB`, default 1 MB) and the PHP `upload_max_filesize` / `post_max_size` limits, reserving room for multipart overhead.
+- The web server's request-body limit is outside PHP's control. If Nginx returns 413 before Laravel runs, raise `client_max_body_size` above the configured chunk size plus multipart overhead.
 - Browser upload IDs are stored locally per selected file. Selecting the same file again resumes from chunks already received by the server.
 - Interrupted uploads remain resumable for two hours; a resume request extends the session by another two hours.
 - The final assembled file is size-checked, then moved into the private course-video area.
