@@ -2,6 +2,7 @@
 
 namespace App\Services\SpotPlayer;
 
+use App\Jobs\Learning\ProcessCourseRecordingVideo;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Integrations\IntegrationOperationService;
