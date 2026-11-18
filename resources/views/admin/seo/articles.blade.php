@@ -6,7 +6,8 @@
   $statusLabels = ['draft' => 'پیش‌نویس', 'scheduled' => 'زمان‌بندی‌شده', 'published' => 'منتشرشده', 'archived' => 'بایگانی'];
   $statusTones = ['draft' => 'warn', 'scheduled' => 'info', 'published' => 'ok', 'archived' => 'mute'];
 @endphp
-@include('admin.seo.partials.workspace-tabs')\n<x-admin.page-head tone="shop" icon="file" title="مقاله‌ها و محتوای سئو" desc="انتشار محتوای ساختاریافته، متادیتا و تصویر Open Graph">
+@include('admin.seo.partials.workspace-tabs')
+<x-admin.page-head tone="shop" icon="file" title="مقاله‌ها و محتوای سئو" desc="انتشار محتوای ساختاریافته، متادیتا و تصویر Open Graph">
   <x-admin.btn icon="plus" data-modal-open="article-modal">ایجاد مقاله جدید</x-admin.btn>
 </x-admin.page-head>
 
