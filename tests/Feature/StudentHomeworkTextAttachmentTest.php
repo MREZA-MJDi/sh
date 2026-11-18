@@ -86,6 +86,50 @@ final class StudentHomeworkTextAttachmentTest extends TestCase
         Storage::disk('local')->assertExists($attachment->path);
     }
 
+    public function test_student_homework_page_is_paginated_and_does_not_truncate_at_dashboard_preview_limit(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+
+        $course = Course::query()->create([
+            'title' => 'دوره صفحه‌بندی تکالیف',
+            'slug' => 'paginated-homework-course',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس صفحه‌بندی تکالیف',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        for ($index = 1; $index <= 13; $index++) {
+            Homework::query()->create([
+                'classroom_id' => $classroom->id,
+                'title' => 'تکلیف صفحه '.$index,
+                'status' => 'published',
+                'created_by' => $teacher->id,
+            ]);
+        }
+
+        $this->actingAs($student)
+            ->get(route('student.homework.index'))
+            ->assertOk()
+            ->assertViewHas('homeworks', fn ($homeworks) => $homeworks->total() === 13 && $homeworks->perPage() === 12);
+
+        $this->actingAs($student)
+            ->get(route('student.homework.index', ['page' => 2]))
+            ->assertOk()
+            ->assertSee('تکلیف صفحه ۱');
+    }
+
     /**
      * @param array<string, mixed> $attributes
      */
