@@ -199,6 +199,12 @@ final class AcademicPortalContentSeeder extends Seeder
                 'جلسه پنجم پاییز؛ مرور و آمادگی آزمون',
             ];
 
+            // Upgrade the original one-session fixture in-place on existing databases.
+            ClassSession::query()
+                ->where('classroom_id', $classroom->id)
+                ->where('title', 'جلسه آنلاین پاییز - ریاضی دهم گروه اول')
+                ->update(['title' => $onlineSessionTopics[0]]);
+
             foreach ($onlineSessionTopics as $sessionIndex => $title) {
                 $sessionDate = $today->copy()->addDays(2 + ($sessionIndex * 3));
                 ClassSession::query()->firstOrCreate(
