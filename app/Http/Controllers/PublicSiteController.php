@@ -30,7 +30,9 @@ final class PublicSiteController extends Controller
             ->orderBy('sort_order')->orderBy('id')->limit(8)->get();
 
         $courseQuery = Course::query()->where('status', 'published')
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)])
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
+                ->where('status', 'published')
+                ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
