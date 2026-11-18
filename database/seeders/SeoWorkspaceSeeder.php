@@ -110,7 +110,7 @@ final class SeoWorkspaceSeeder extends Seeder
         ];
 
         foreach ($articles as $article) {
-            SeoArticle::query()->firstOrCreate(
+            $record = SeoArticle::query()->firstOrCreate(
                 ['slug' => $article['slug']],
                 [
                     ...$article,
@@ -119,6 +119,10 @@ final class SeoWorkspaceSeeder extends Seeder
                     'published_at' => now()->subDays(2),
                 ]
             );
+
+            if ($author && $record->author_id === null) {
+                $record->forceFill(['author_id' => $author->id])->save();
+            }
         }
     }
 }
