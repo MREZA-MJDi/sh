@@ -33,7 +33,7 @@ final class PortalController extends Controller
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
             ->with([
-                'course:id,title,subject',
+                'course:id,title,subject,grade,season',
                 'spotPlayerVideos' => fn ($query) => $query->latest()->limit(4),
                 'learningResources' => fn ($query) => $query->latest()->limit(4),
                 'sessions' => fn ($query) => $query
@@ -55,7 +55,7 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $classrooms = $workspace->queryFor($request->user())
             ->where('classrooms.status', 'active')
-            ->with('course:id,title')
+            ->with('course:id,title,grade,season')
             ->orderBy('classrooms.name')
             ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
@@ -107,7 +107,7 @@ final class PortalController extends Controller
                 })->orWhere('learning_features->recorded_video', true);
             })
             ->orderBy('title')
-            ->get(['id', 'title']);
+            ->get(['id', 'title', 'grade', 'season']);
 
         $classrooms = $workspace->queryFor($user)
             ->whereIn('course_id', $courses->modelKeys())
