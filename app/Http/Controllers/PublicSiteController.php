@@ -115,12 +115,7 @@ final class PublicSiteController extends Controller
     ): View
     {
         $settings = SeoSetting::current();
-        $isAdminPreview = $request->boolean('preview')
-            && $request->user()?->hasRole('admin')
-            && $request->user()?->hasAnyPermission(['courses.manage']);
-        $course = Course::query()
-            ->when(! $isAdminPreview, fn ($query) => $query->where('status', 'published'))
-            ->where('slug', $slug)
+        $course = Course::query()->where('status', 'published')->where('slug', $slug)
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)->select('id', 'name', 'subject', 'profile_note')])
             ->withCount([
                 'enrollments' => fn ($query) => $query->currentlyActive(),
@@ -240,8 +235,7 @@ final class PublicSiteController extends Controller
             'upcomingSessions',
             'features',
             'canWatchCourseVideos',
-            'playableVideos',
-            'isAdminPreview'
+            'playableVideos'
         ));
     }
 

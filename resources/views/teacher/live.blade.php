@@ -2,7 +2,7 @@
 @section('title', 'کلاس آنلاین')
 @section('content')
 @php
-    $providerNames = ['skyroom' => 'اسکای‌روم', 'jitsi' => 'Jitsi Meet', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی'];
+    $providerNames = ['skyroom' => 'اسکای‌روم', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی'];
 @endphp
 <h2>کلاس آنلاین</h2>
 <div class="g">
@@ -44,7 +44,7 @@
                             @endforeach
                         </select>
                         <label>لینک دستی (در صورت وجود)</label>
-                        <input type="url" name="meeting_url" value="{{ $session->meeting_url }}" placeholder="لینک جلسه Skyroom یا Jitsi (https://...)">
+                        <input type="url" name="meeting_url" value="{{ $session->meeting_url }}" placeholder="https://...">
                         <button class="b s" type="submit">ذخیره تنظیمات همین جلسه</button>
                     </form>
                 </div>

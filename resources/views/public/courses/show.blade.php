@@ -3,12 +3,8 @@
 @section('title', $course->title . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
 @section('description', \Illuminate\Support\Str::limit(strip_tags($course->description ?: $course->title), 155))
 @section('canonical', route('public.courses.show', $course->slug))
-@if(!empty($isAdminPreview))@section('robots', 'noindex,nofollow')@endif
 
 @section('content')
-@if(!empty($isAdminPreview))
-    <div class="c" style="padding-top:16px"><div role="status" style="padding:14px 18px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a;color:#7a4b08;display:flex;align-items:center;gap:10px"><strong>پیش‌نمایش مدیر</strong><span>این همان قالب صفحه عمومی دوره است؛ این دوره هنوز برای بازدیدکنندگان منتشر نشده است.</span></div></div>
-@endif
 @php
     $teacher = $course->teacher;
     $learningBenefits = [];
@@ -189,13 +185,10 @@
                                                             @if($isUnlocked)
                                                                 <span class="lesson-badge-free">محتوای دوره در دسترس است</span>
                                                             @else
-                                                                <span class="lesson-badge-locked" aria-label="این درس قفل است"><svg class="i" aria-hidden="true" style="width:15px;height:15px;vertical-align:-3px;margin-inline-end:5px"><use href="#lock"/></svg>ویژه دانش‌آموزان ثبت‌نام‌شده</span>
+                                                                <span class="lesson-badge-locked">قفل‌شده</span>
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    @if(filled($lesson->body))
-                                                        <p class="lesson-description" style="margin:10px 0 0 42px;color:var(--mute);font-size:13px;line-height:1.9;white-space:pre-line">{{ $lesson->body }}</p>
-                                                    @endif
 
                                                     <div class="lesson-meta">
                                                         <span class="lesson-time">
@@ -205,7 +198,7 @@
                                                         @if($isUnlocked)
                                                             <a class="btn s" href="{{ route('public.courses.show', $course->slug).'#c2' }}">ادامه یادگیری در همین صفحه</a>
                                                         @else
-                                                            <span class="lesson-lock-label"><svg class="i" aria-hidden="true" style="width:15px;height:15px;vertical-align:-3px;margin-inline-end:5px"><use href="#lock"/></svg>پس از ثبت‌نام فعال می‌شود</span>
+                                                            <span class="lesson-lock-label">پس از ثبت‌نام فعال می‌شود</span>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -267,7 +260,7 @@
                                     <button type="submit" class="btn s">ورود به کلاس</button>
                                 </form>
                             @elseif(auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
-                                <span class="lesson-lock-label">{{ $session->meeting_provider === 'jitsi' ? 'لینک Jitsi هنوز توسط مدرس ثبت نشده است' : 'اتصال Skyroom در انتظار فعال‌سازی سرویس' }}</span>
+                                <span class="lesson-lock-label">اتصال Skyroom در انتظار فعال‌سازی سرویس</span>
                             @elseif(auth()->check() && auth()->user()->hasRole('student') && $hasCourseAccess)
                                 <span class="lesson-lock-label">برای ورود، عضویت در گروه این کلاس لازم است</span>
                             @else

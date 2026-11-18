@@ -41,9 +41,9 @@ final class DashboardController extends Controller
                 'title' => $session->title ?: $session->classroom?->name,
                 'time' => $session->starts_at?->format('H:i').' · '.($session->classroom?->course?->title ?? 'جلسه آموزشی'),
                 'status' => $session->session_type === 'online'
-                    ? (filled($session->meeting_url) || ($session->meeting_provider === 'skyroom' && filled($session->classroom?->meeting_url)) ? 'link' : ($session->meeting_provider === 'jitsi' ? 'waiting_jitsi' : 'waiting'))
+                    ? (filled($session->meeting_url) || filled($session->classroom?->meeting_url) ? 'link' : 'waiting')
                     : 'onsite',
-                'url' => $session->meeting_url ?: ($session->meeting_provider === 'skyroom' ? $session->classroom?->meeting_url : null),
+                'url' => $session->meeting_url ?: $session->classroom?->meeting_url,
             ]);
 
         $pending = HomeworkSubmission::query()

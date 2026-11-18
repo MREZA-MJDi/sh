@@ -46,13 +46,12 @@
               'starts_at' => $session->starts_at?->format('Y-m-d\TH:i'),
               'ends_at' => $session->ends_at?->format('Y-m-d\TH:i'),
               'meeting_url' => $session->meeting_url,
-              'meeting_provider' => $session->meeting_provider,
               'status' => $session->status,
               'teacher_notes' => $session->teacher_notes,
             ];
           @endphp
           <tr data-name="{{ $session->title }}" data-state="{{ $session->status }}" data-type="{{ $session->session_type }}">
-            <td><b>{{ $session->title }}</b><small>{{ ['skyroom' => 'ارائه‌دهنده: Skyroom', 'jitsi' => 'ارائه‌دهنده: Jitsi Meet', 'bbb' => 'ارائه‌دهنده: BigBlueButton', 'link' => 'لینک اختصاصی'][$session->meeting_provider] ?? 'جلسه داخلی' }}</small></td>
+            <td><b>{{ $session->title }}</b><small>{{ $session->meeting_provider === 'skyroom' ? 'ارائه‌دهنده: Skyroom' : 'جلسه داخلی' }}</small></td>
             <td>{{ $typeLabels[$session->session_type] ?? $session->session_type }}</td>
             <td class="adm-num is-nowrap">{{ $session->starts_at?->format('Y/m/d H:i') }}</td>
             <td class="adm-num is-nowrap">{{ $session->ends_at?->format('Y/m/d H:i') ?? '—' }}</td>
@@ -86,10 +85,9 @@
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" required/>
   <x-admin.input label="زمان شروع" name="starts_at" type="datetime-local" required/>
   <x-admin.input label="زمان پایان" name="ends_at" type="datetime-local"/>
-  <x-admin.select label="ارائه‌دهنده کلاس آنلاین" name="meeting_provider" :options="['skyroom' => 'Skyroom', 'jitsi' => 'Jitsi Meet', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی']"/>
-  <x-admin.input label="لینک جلسه (برای Jitsi یا لینک دستی)" name="meeting_url" placeholder="https://meet.jit.si/..." wide/>
+  <x-admin.input label="لینک اختصاصی جلسه (اختیاری)" name="meeting_url" placeholder="پس از فعال‌شدن Skyroom یا لینک امن جلسه"/>
   <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
-  <p class="adm-muted" style="grid-column:1/-1">برای جلسه آنلاین، ثبت زمان‌بندی به لینک خارجی وابسته نیست. برای Jitsi یا لینک دستی، لینک جلسه را وارد کنید. برای Skyroom، ورود پس از آماده‌شدن اتصال سرویس فعال می‌شود.</p>
+  <p class="adm-muted" style="grid-column:1/-1">برای جلسه آنلاین، ثبت زمان‌بندی به لینک خارجی وابسته نیست. تا پیش از آماده‌شدن اتصال Skyroom، جلسه ذخیره می‌شود اما دکمه ورود دانش‌آموز نمایش داده نمی‌شود.</p>
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="session-delete" title="حذف جلسه" text="جلسه دارای سابقه حضور یا کلیک ورود حذف نمی‌شود؛ آن را لغو کنید تا سوابق حفظ شود."/>
 @endpush

@@ -779,6 +779,3 @@ a.row:hover{background:var(--bg)}
 .st-btn{cursor:pointer}
 .send .b{white-space:nowrap}
 .grade{width:60px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);border-radius:8px;padding:3px 6px}
-
-/* Teacher account action */
-.logout-form{margin:0}.logout-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--ln);border-radius:10px;background:var(--rds);color:var(--rd);font:600 13px Vazirmatn,Tahoma,sans-serif}.logout-btn:hover{background:var(--rd);color:#fff}

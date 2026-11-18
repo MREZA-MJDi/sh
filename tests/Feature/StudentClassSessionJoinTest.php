@@ -114,42 +114,4 @@ final class StudentClassSessionJoinTest extends TestCase
             'meeting_url' => 'https://meet.example.test/room',
         ]);
     }
-
-    public function test_student_can_join_a_jitsi_session_using_its_saved_meeting_url(): void
-    {
-        [$student, $classroom] = $this->studentWithClassroom();
-        $session = $this->makeSession($classroom, now()->addMinutes(5), now()->addHour());
-        $session->update([
-            'meeting_provider' => 'jitsi',
-            'meeting_url' => 'https://meet.jit.si/shikhan-student-room-2026',
-        ]);
-
-        $this->actingAs($student)
-            ->post(route('student.class-sessions.join', $session))
-            ->assertRedirect('https://meet.jit.si/shikhan-student-room-2026');
-
-        $this->assertDatabaseHas('class_session_join_logs', [
-            'class_session_id' => $session->id,
-            'user_id' => $student->id,
-        ]);
-    }
-
-
-
-    public function test_jitsi_session_never_falls_back_to_a_classroom_skyroom_url(): void
-    {
-        [$student, $classroom] = $this->studentWithClassroom();
-        $session = $this->makeSession($classroom, now()->addMinutes(5), now()->addHour());
-        $session->update(['meeting_provider' => 'jitsi', 'meeting_url' => null]);
-
-        $this->actingAs($student)
-            ->from(route('student.dashboard'))
-            ->post(route('student.class-sessions.join', $session))
-            ->assertRedirect(route('student.dashboard'))
-            ->assertSessionHasErrors('join');
-
-        $this->assertDatabaseCount('class_session_join_logs', 0);
-    }
-
-
 }

@@ -32,9 +32,8 @@ final class JoinClassSessionController extends Controller
             return back()->withErrors(['join' => 'ورود به کلاس فقط از ۱۵ دقیقه پیش از شروع تا زمان پایان جلسه فعال است.']);
         }
 
-        $url = $classSession->meeting_url;
-        if (blank($url) && in_array($classSession->meeting_provider, ['skyroom', null, ''], true)) {
-            $url = $classroom->meeting_url;
+        $url = $classSession->meeting_url ?: $classroom->meeting_url;
+        if (blank($url) && $classSession->meeting_provider === 'skyroom') {
             $health = $liveClasses->health();
 
             if (! $health->available) {
