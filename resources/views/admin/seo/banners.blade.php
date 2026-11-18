@@ -66,7 +66,12 @@
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
   <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 9" data-preview-mobile-ratio="4 / 5" data-preview-fit="cover"/>
   <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%" hint="پیش‌نمایش دسکتاپ ۱۶:۹ و موبایل ۴:۵ است؛ در هر دو حالت برش نهایی با object-fit: cover شبیه‌سازی می‌شود. برای جابه‌جایی نقطه کانونی درصد افقی و عمودی را تنظیم کنید."/>
+  @if($selectedPlacement === 'home_hero')
+  <input type="hidden" name="placement" value="home_hero">
+  <p class="adm-muted wide">این فرم مخصوص اسلایدر Hero صفحه اصلی است؛ تصویر با وضعیت «فعال» و در بازه زمانی معتبر روی صفحه اصلی نمایش داده می‌شود.</p>
+  @else
   <x-admin.select label="جایگاه نمایش" name="placement" :options="$placementLabels" :selected="$selectedPlacement ?? 'articles_top'" required/>
+  @endif
   <x-admin.input label="نشانی مقصد" name="target_url" placeholder="/courses یا https://..."/>
   <x-admin.switch label="باز شدن در زبانه جدید" name="open_in_new_tab"/>
   <x-admin.input label="اولویت نمایش" name="sort_order" type="number" min="0" :value="0" required/>
