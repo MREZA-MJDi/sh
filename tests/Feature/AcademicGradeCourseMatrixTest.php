@@ -170,6 +170,34 @@ final class AcademicGradeCourseMatrixTest extends TestCase
             ->assertSee('زمستان');
     }
 
+
+    public function test_academic_content_seeder_builds_all_grade_and_season_combinations_idempotently(): void
+    {
+        $teacher = User::factory()->create(['email' => 'teacher@sh.local']);
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->firstOrFail());
+
+        $student = User::factory()->create(['email' => 'student@sh.local']);
+        $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
+
+        $this->seed(AcademicPortalContentSeeder::class);
+
+        $this->assertSame(48, Course::query()->count());
+        $this->assertSame(47, Course::query()->where('status', 'draft')->count());
+
+        foreach (AcademicGrade::query()->get() as $grade) {
+            foreach (['spring', 'summer', 'autumn', 'winter'] as $season) {
+                $this->assertDatabaseHas('courses', [
+                    'academic_grade_id' => $grade->id,
+                    'season' => $season,
+                ]);
+            }
+        }
+
+        $this->seed(AcademicPortalContentSeeder::class);
+
+        $this->assertSame(48, Course::query()->count());
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);
