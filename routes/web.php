@@ -291,6 +291,7 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
             Route::post('/consultations', [TeacherConsultationController::class, 'store'])->middleware('throttle:5,1')->name('consultations.store');
         });
         Route::middleware('permission:messages.view.assigned')->group(function (): void {
+            Route::get('/message-recipients', [TeacherMessageController::class, 'recipients'])->middleware('throttle:30,1')->name('messages.recipients');
             Route::get('/messages/create', [TeacherMessageController::class, 'create'])->name('messages.create');
             Route::post('/messages', [TeacherMessageController::class, 'store'])->name('messages.store');
         });
