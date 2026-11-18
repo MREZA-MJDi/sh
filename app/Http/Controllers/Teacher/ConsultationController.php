@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Consultation;
+use App\Models\User;
+use App\Notifications\ConsultationRequestNotification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -41,6 +44,12 @@ final class ConsultationController extends Controller
             'notes' => trim($data['body']),
             'status' => 'pending',
         ]);
+
+        User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new ConsultationRequestNotification($consultation)));
 
         return redirect()
             ->route('teacher.consultations.index')
