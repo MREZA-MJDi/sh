@@ -392,7 +392,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
         $video = \App\Models\SpotPlayerVideo::where('title', 'جلسه اول')->firstOrFail();
 
-        $this->assertSame('waiting_contract', $video->status);
+        $this->assertSame('active', $video->status);
         $this->assertSame('lesson.mp4', $video->file_original_name);
         $this->assertNotNull($video->file_sha256);
         $this->assertSame(64, strlen($video->file_sha256));
