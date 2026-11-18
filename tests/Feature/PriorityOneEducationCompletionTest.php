@@ -175,7 +175,7 @@ class PriorityOneEducationCompletionTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.homework.index'))
             ->assertOk()
-            ->assertSee('۱۸')
+            ->assertSee('18')
             ->assertSee('راه‌حل درست است؛ محاسبات را مرتب‌تر بنویس.');
 
         $this->actingAs($parent)
