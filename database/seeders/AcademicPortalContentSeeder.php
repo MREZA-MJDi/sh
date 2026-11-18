@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\AcademicGrade;
 use App\Models\Announcement;
+use App\Models\ClassSession;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Consultation;
@@ -70,6 +72,18 @@ final class AcademicPortalContentSeeder extends Seeder
                 return;
             }
 
+            $grade = AcademicGrade::query()->firstOrCreate(
+                ['code' => '10'],
+                ['name' => 'دهم', 'level' => 10, 'sort_order' => 10, 'is_active' => true]
+            );
+
+            foreach ($students as $student) {
+                $student->forceFill([
+                    'grade' => $grade->name,
+                    'academic_grade_id' => $grade->id,
+                ])->save();
+            }
+
             $parent = $parentRole
                 ? User::query()
                     ->where('email', 'parent@sh.local')
@@ -84,16 +98,32 @@ final class AcademicPortalContentSeeder extends Seeder
                     'title' => 'ریاضی تکمیلی و حل مسئله',
                     'description' => 'دوره آموزشی حل مسئله، تقویت مهارت محاسباتی و آمادگی آزمون با تمرین‌های مرحله‌ای.',
                     'subject' => 'ریاضی',
-                    'grade' => $students->first()->grade ?: 'هفتم',
+                    'grade' => $grade->name,
+                    'academic_grade_id' => $grade->id,
+                    'season' => 'autumn',
                     'teacher_id' => $teacher->id,
                     'type' => 'free',
                     'price' => 0,
-                    'delivery_type' => 'spotplayer',
+                    'delivery_type' => 'skyroom',
+                    'learning_features' => [
+                        'recorded_video' => true,
+                        'live_class' => true,
+                        'resources' => true,
+                        'assignments' => true,
+                        'exams' => true,
+                        'projects' => false,
+                    ],
                     'status' => 'published',
                     'integration_status' => 'not_required',
                     'integration_note' => null,
                 ]
             );
+
+            $course->forceFill([
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+                'season' => 'autumn',
+            ])->save();
 
             $classroom = Classroom::query()->firstOrCreate(
                 ['course_id' => $course->id, 'name' => 'کلاس ریاضی تکمیلی - گروه اول'],
@@ -102,6 +132,20 @@ final class AcademicPortalContentSeeder extends Seeder
                     'schedule' => [
                         ['day' => 'شنبه', 'start' => '16:00', 'end' => '17:30', 'label' => 'جلسه حل مسئله'],
                         ['day' => 'دوشنبه', 'start' => '16:00', 'end' => '17:30', 'label' => 'تمرین و رفع اشکال'],
+                    ],
+                    'meeting_url' => null,
+                    'status' => 'active',
+                    'created_by' => $teacher->id,
+                ]
+            );
+
+            $onsiteClassroom = Classroom::query()->firstOrCreate(
+                ['course_id' => $course->id, 'name' => 'کلاس حضوری ریاضی دهم - گروه دوم'],
+                [
+                    'teacher_id' => $teacher->id,
+                    'schedule' => [
+                        ['day' => 'یکشنبه', 'start' => '15:00', 'end' => '16:30', 'label' => 'آموزش حضوری ریاضی'],
+                        ['day' => 'سه‌شنبه', 'start' => '15:00', 'end' => '16:00', 'label' => 'حل تمرین حضوری'],
                     ],
                     'meeting_url' => null,
                     'status' => 'active',
@@ -146,8 +190,40 @@ final class AcademicPortalContentSeeder extends Seeder
             }
 
             $today = Carbon::today();
+
+            ClassSession::query()->firstOrCreate(
+                ['classroom_id' => $classroom->id, 'title' => 'جلسه آنلاین پاییز - ریاضی دهم گروه اول'],
+                [
+                    'session_type' => 'online',
+                    'starts_at' => $today->copy()->addDays(2)->setTime(16, 0),
+                    'ends_at' => $today->copy()->addDays(2)->setTime(17, 30),
+                    'meeting_provider' => 'skyroom',
+                    'meeting_url' => null,
+                    'status' => 'scheduled',
+                    'teacher_notes' => 'جلسه آنلاین دوره پاییزه؛ لینک واقعی پس از تنظیم سرویس ثبت می‌شود.',
+                    'created_by' => $teacher->id,
+                ]
+            );
+
+            ClassSession::query()->firstOrCreate(
+                ['classroom_id' => $onsiteClassroom->id, 'title' => 'جلسه حضوری پاییز - ریاضی دهم گروه دوم'],
+                [
+                    'session_type' => 'in_person',
+                    'starts_at' => $today->copy()->addDays(3)->setTime(15, 0),
+                    'ends_at' => $today->copy()->addDays(3)->setTime(16, 30),
+                    'meeting_provider' => null,
+                    'meeting_url' => null,
+                    'status' => 'scheduled',
+                    'teacher_notes' => 'جلسه حضوری دوره پاییزه در محل آموزشگاه.',
+                    'created_by' => $teacher->id,
+                ]
+            );
+
             foreach ($students as $studentIndex => $student) {
                 $classroom->students()->syncWithoutDetaching([
+                    $student->id => ['assigned_by' => $teacher->id],
+                ]);
+                $onsiteClassroom->students()->syncWithoutDetaching([
                     $student->id => ['assigned_by' => $teacher->id],
                 ]);
 
@@ -285,6 +361,16 @@ final class AcademicPortalContentSeeder extends Seeder
                 ]
             );
 
+            SpotPlayerVideo::query()->firstOrCreate(
+                ['course_id' => $course->id, 'classroom_id' => null, 'title' => 'ویدیوی ضبط‌شده دوره پاییزه ریاضی دهم'],
+                [
+                    'created_by' => $teacher->id,
+                    'external_id' => null,
+                    'embed_url' => null,
+                    'status' => 'draft',
+                ]
+            );
+
             Announcement::query()->firstOrCreate(
                 ['title' => 'آغاز برنامه آموزشی دوره ریاضی تکمیلی'],
                 [
@@ -368,7 +454,17 @@ final class AcademicPortalContentSeeder extends Seeder
                     'title' => 'ریاضی پیشرفته؛ دوره جامع پولی',
                     'description' => 'دوره واقعی نمونه برای نمایش ثبت‌نام پولی، قفل محتوای آموزشی و فعال‌شدن دسترسی پس از تأیید پرداخت.',
                     'subject' => 'ریاضی',
-                    'grade' => $students->first()->grade ?: 'هفتم',
+                    'grade' => $grade->name,
+                    'academic_grade_id' => $grade->id,
+                    'season' => 'autumn',
+                    'learning_features' => [
+                        'recorded_video' => true,
+                        'live_class' => true,
+                        'resources' => true,
+                        'assignments' => true,
+                        'exams' => true,
+                        'projects' => false,
+                    ],
                     'teacher_id' => $teacher->id,
                     'type' => 'paid',
                     'price' => 1250000,
@@ -376,6 +472,22 @@ final class AcademicPortalContentSeeder extends Seeder
                     'status' => 'published',
                     'integration_status' => 'not_required',
                     'integration_note' => null,
+                ]
+            );
+
+            $paidCourse->forceFill([
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+                'season' => 'autumn',
+            ])->save();
+
+            SpotPlayerVideo::query()->firstOrCreate(
+                ['course_id' => $paidCourse->id, 'classroom_id' => null, 'title' => 'ویدیوهای آموزشی دوره پاییزه ریاضی پیشرفته'],
+                [
+                    'created_by' => $teacher->id,
+                    'external_id' => null,
+                    'embed_url' => null,
+                    'status' => 'draft',
                 ]
             );
 

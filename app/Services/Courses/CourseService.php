@@ -2,6 +2,7 @@
 
 namespace App\Services\Courses;
 
+use App\Models\AcademicGrade;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\IntegrationRun;
@@ -29,6 +30,8 @@ class CourseService
 
             $course = Course::create([
                 ...$data,
+                'academic_grade_id' => $this->resolveAcademicGradeId($data),
+                'season' => $data['season'] ?? null,
                 'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(7)),
                 'price' => $data['type'] === 'paid' ? (int) $data['price'] : 0,
                 'spotplayer_course_id' => $externalId,
@@ -58,6 +61,8 @@ class CourseService
 
             $course->update([
                 ...$data,
+                'academic_grade_id' => $this->resolveAcademicGradeId($data),
+                'season' => $data['season'] ?? $course->season,
                 'price' => $data['type'] === 'paid' ? (int) $data['price'] : 0,
                 'spotplayer_course_id' => $externalId,
                 'integration_status' => $usesSpotPlayer
@@ -114,6 +119,15 @@ class CourseService
         }
 
         $course->delete();
+    }
+
+    private function resolveAcademicGradeId(array $data): ?int
+    {
+        if (filled($data['academic_grade_id'] ?? null)) {
+            return AcademicGrade::query()->whereKey((int) $data['academic_grade_id'])->value('id');
+        }
+
+        return AcademicGrade::resolveIdFromLegacyName($data['grade'] ?? null);
     }
 
     private function queueCourseMapping(Course $course): IntegrationRun

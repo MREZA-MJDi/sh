@@ -39,6 +39,8 @@ class StoreCourseRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:10000'],
             'subject' => ['nullable', 'string', 'max:100'],
             'grade' => ['nullable', 'string', 'max:50'],
+            'academic_grade_id' => ['nullable', 'integer', 'exists:academic_grades,id'],
+            'season' => ['nullable', Rule::in(['spring', 'summer', 'autumn', 'winter'])],
             'teacher_id' => ['nullable', 'integer', 'exists:users,id'],
             'type' => ['required', Rule::in(['free', 'paid'])],
             'price' => ['nullable', 'integer', 'min:0', 'max:1000000000'],

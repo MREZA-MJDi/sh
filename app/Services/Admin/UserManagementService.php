@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Models\AcademicGrade;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
@@ -29,6 +30,9 @@ final class UserManagementService
                 'external_student_id' => $role === 'student' ? ($data['external_student_id'] ?? null) : null,
                 'password' => $data['password'],
                 'grade' => $role === 'student' ? ($data['grade'] ?? null) : null,
+                'academic_grade_id' => $role === 'student'
+                    ? AcademicGrade::resolveIdFromLegacyName($data['grade'] ?? null)
+                    : null,
                 'subject' => $role === 'teacher' ? ($data['subject'] ?? null) : null,
                 'profile_note' => $role === 'teacher' ? ($data['profile_note'] ?? null) : null,
                 'is_active' => $role === 'teacher' ? (($data['status'] ?? 'active') === 'active') : true,
@@ -72,6 +76,7 @@ final class UserManagementService
                 'phone' => $data['phone'] ?? null,
                 'external_student_id' => $data['external_student_id'] ?? null,
                 'grade' => $data['grade'],
+                'academic_grade_id' => AcademicGrade::resolveIdFromLegacyName($data['grade'] ?? null),
             ]);
 
             if (filled($data['password'] ?? null)) {
