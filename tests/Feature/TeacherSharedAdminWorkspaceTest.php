@@ -247,7 +247,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $classroom->students()->attach($student->id);
 
         $this->actingAs($teacher)
-            ->post(route('admin.homework.store'), [
+            ->post(route('teacher.homework.store'), [
                 'classroom_id' => $classroom->id,
                 'title' => 'تکلیف قابل بررسی',
                 'instructions' => 'حل تمرین‌های فصل اول',
@@ -266,7 +266,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         ]);
 
         $this->actingAs($teacher)
-            ->patch(route('admin.homework.review', $submission), [
+            ->patch(route('teacher.homework.review', $submission), [
                 'score' => 18,
                 'feedback' => 'پاسخ درست است؛ چند مرحله را کامل‌تر بنویس.',
             ])
@@ -301,7 +301,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         ]);
 
         $this->actingAs($teacher)
-            ->patch(route('admin.homework.review', $otherSubmission), [
+            ->patch(route('teacher.homework.review', $otherSubmission), [
                 'score' => 19,
                 'feedback' => 'تلاش خوب',
             ])
@@ -365,7 +365,7 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         }
 
         $this->actingAs($teacher)
-            ->get(route('admin.homework.index', ['submissions' => 2]))
+            ->get(route('teacher.homework', ['submissions' => 2]))
             ->assertOk()
             ->assertSee('دانش‌آموز قدیمی 16');
     }
