@@ -128,8 +128,8 @@ class PriorityOneEducationCompletionTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.dashboard'))
             ->assertOk()
-            ->assertSee('پیشرفت دوره‌های من')
-            ->assertSee('۱ از ۱ درس تکمیل‌شده');
+            ->assertSee('کلاس‌های فعال')
+            ->assertSee('/student/courses', false);
 
         $this->actingAs($parent)
             ->get(route('guardian.dashboard', ['child' => $student->id]))
@@ -168,7 +168,13 @@ class PriorityOneEducationCompletionTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.dashboard'))
             ->assertOk()
-            ->assertSee('نتیجه بررسی مدرس')
+            ->assertSee('تکالیف')
+            ->assertSee('/student/homework', false)
+            ->assertDontSee('راه‌حل درست است؛ محاسبات را مرتب‌تر بنویس.');
+
+        $this->actingAs($student)
+            ->get(route('student.homework.index'))
+            ->assertOk()
             ->assertSee('۱۸')
             ->assertSee('راه‌حل درست است؛ محاسبات را مرتب‌تر بنویس.');
 
@@ -335,6 +341,13 @@ class PriorityOneEducationCompletionTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.dashboard'))
+            ->assertOk()
+            ->assertSee('آزمون‌ها و کارنامه')
+            ->assertSee('/student/exams', false)
+            ->assertDontSee('استدلال صحیح و کامل بود.');
+
+        $this->actingAs($student)
+            ->get(route('student.results'))
             ->assertOk()
             ->assertSee('آزمون فصل اول')
             ->assertSee('استدلال صحیح و کامل بود.');
