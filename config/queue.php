@@ -45,7 +45,7 @@ return [
         ],
         'video' => [
             'driver' => 'database',
-            'connection' => env('DB_QUEUE_CONNECTION'),
+            'connection' => null,
             'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
             'queue' => env('VIDEO_QUEUE', 'video'),
             'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3700),
