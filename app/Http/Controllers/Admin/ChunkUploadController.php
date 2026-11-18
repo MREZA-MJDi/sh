@@ -223,7 +223,7 @@ final class ChunkUploadController extends Controller
 
         $destination = $session->target === 'teaser'
             ? 'uploads/'.Str::uuid().".{$extension}"
-            : 'private/spotplayer-staging/'.Str::uuid().".{$extension}";
+            : 'private/course-videos/'.Str::uuid().".{$extension}";
 
         try {
             $disk->makeDirectory(dirname($destination));
