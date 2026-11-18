@@ -104,7 +104,9 @@ final class StudentVideoAccessTest extends TestCase
             ->assertHeader('Content-Length', '5');
 
         ob_start();
+        ob_start();
         $rangeResponse->baseResponse->sendContent();
+        ob_end_flush();
         $rangeBody = ob_get_clean();
         $this->assertSame('local', $rangeBody);
 
