@@ -34,7 +34,7 @@ final class HomeQuizQuestionManagementTest extends TestCase
 
         $this->actingAs($seo)->get(route('admin.seo.quiz.index'))
             ->assertOk()
-            ->assertSee('Quiz & Riddles')
+            ->assertSee('Quiz & Riddles', false)
             ->assertSee('آزمون و معماهای صفحه اصلی');
 
         $this->actingAs($seo)->post(route('admin.seo.quiz.store'), [
