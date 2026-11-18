@@ -67,7 +67,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     setStatus('در حال آماده‌سازی آپلود امن…');
 
     try {
-      const chunkSizeFallback = 4 * 1024 * 1024;
+      const chunkSizeFallback = Number(widget.dataset.chunkMb || 5) * 1024 * 1024;
       const startPayload = {
         target,
         target_id: Number(widget.dataset.courseId),
@@ -81,14 +81,10 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         if (externalId) startPayload.external_id = externalId;
       }
 
-      // The server returns its configured chunk size. Start once with the
-      // provisional count, then restart with the exact count if necessary.
-      let started = await jsonRequest(widget.dataset.startUrl, startPayload);
+      const started = await jsonRequest(widget.dataset.startUrl, startPayload);
       const chunkSize = Number(started.chunk_size_bytes || chunkSizeFallback);
       const total = Math.ceil(file.size / chunkSize);
-      if (total !== startPayload.total) {
-        throw new Error('اندازه قطعه آپلود با تنظیمات سرور هماهنگ نیست؛ صفحه را تازه کنید و دوباره تلاش کنید.');
-      }
+      if (total !== startPayload.total) throw new Error('تنظیم اندازه قطعه آپلود با سرور هماهنگ نیست.');
 
       for (let index = 0; index < total; index++) {
         const form = new FormData();
