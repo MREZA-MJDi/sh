@@ -37,6 +37,12 @@ final class PublicIntegrationSmokeTest extends TestCase
             'subject' => 'زیست',
         ]);
         $teacher->roles()->attach($teacherRole);
+        $secondTeacher = \App\Models\User::factory()->create([
+            'name' => 'مدرس دوم آزمون رندر',
+            'is_active' => true,
+            'subject' => 'شیمی',
+        ]);
+        $secondTeacher->roles()->attach($teacherRole);
 
         $course = Course::query()->create([
             'title' => 'دوره آزمون رندر عمومی',
@@ -56,6 +62,24 @@ final class PublicIntegrationSmokeTest extends TestCase
             'title' => 'درس آزمون رندر',
             'status' => 'published',
         ]);
+        $secondSection = $course->sections()->create([
+            'title' => 'فصل دوم آزمون رندر',
+            'status' => 'published',
+        ]);
+        $secondSection->lessons()->create([
+            'title' => 'درس دوم آزمون رندر',
+            'status' => 'published',
+        ]);
+        Course::query()->create([
+            'title' => 'دوره دوم آزمون رندر عمومی',
+            'slug' => 'public-render-regression-course-two',
+            'teacher_id' => $secondTeacher->id,
+            'subject' => 'شیمی',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
 
         \App\Models\SeoArticle::query()->create([
             'author_id' => $teacher->id,
@@ -66,6 +90,16 @@ final class PublicIntegrationSmokeTest extends TestCase
             'keywords' => ['آموزش'],
             'status' => 'published',
             'published_at' => now()->subMinute(),
+        ]);
+        \App\Models\SeoArticle::query()->create([
+            'author_id' => $secondTeacher->id,
+            'title' => 'مقاله دوم آزمون رندر',
+            'slug' => 'public-render-regression-article-two',
+            'excerpt' => 'خلاصه مقاله دوم آزمون رندر',
+            'body' => '<h2>بخش دوم مقاله</h2><p>متن دوم مقاله برای تست رندر.</p>',
+            'keywords' => ['شیمی'],
+            'status' => 'published',
+            'published_at' => now()->subSeconds(30),
         ]);
 
         \Illuminate\Database\Eloquent\Model::preventLazyLoading();
