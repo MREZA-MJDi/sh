@@ -115,3 +115,6 @@
 .adm-profile-logout{align-items:center!important;gap:9px!important;font-weight:700;color:var(--bad)!important}
 .adm-profile-logout .adm-icon{width:17px;height:17px}
 .adm-notification-empty{padding:18px 16px;font-size:12px}
+
+/* Keep the profile panel inside the page edge in the RTL header. */
+.adm-profile-pop{inset-inline-start:auto;inset-inline-end:0}
