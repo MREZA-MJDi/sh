@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AcademicGrade;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
@@ -40,6 +41,8 @@ final class DatabaseSeederTest extends TestCase
         $this->assertSame($grade->id, $course->academic_grade_id);
         $this->assertSame('autumn', $course->season);
         $this->assertSame(2, $course->classrooms()->count());
+        $this->assertSame(5, ClassSession::query()->whereIn('classroom_id', $course->classrooms()->pluck('id'))
+            ->where('session_type', 'online')->count());
         $this->assertTrue($course->spotPlayerVideos()->whereNull('classroom_id')->exists());
         $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
         $this->assertDatabaseCount('classrooms', 4);
