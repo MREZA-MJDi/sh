@@ -199,17 +199,28 @@ final class PublicSiteController extends Controller
             : null;
 
         $allowedEmbedHosts = array_map('strtolower', config('services.spotplayer.embed_hosts', []));
-        $playableVideos = $videoLicense && $allowedEmbedHosts !== []
+        $playableVideos = $hasCourseAccess && ($features['recorded_video'] ?? false)
             ? SpotPlayerVideo::query()
                 ->where('course_id', $course->id)
                 ->where('status', 'active')
-                ->whereNotNull('embed_url')
+                ->where(function ($query): void {
+                    $query->where(function ($local): void {
+                        $local->whereNotNull('file_path')->whereNull('external_id');
+                    })->orWhere(function ($external): void {
+                        $external->whereNotNull('embed_url')->whereNotNull('external_id');
+                    });
+                })
                 ->orderBy('id')
-                ->get(['id', 'title', 'embed_url'])
-                ->filter(function (SpotPlayerVideo $video) use ($allowedEmbedHosts): bool {
+                ->get(['id', 'title', 'embed_url', 'file_path', 'external_id'])
+                ->filter(function (SpotPlayerVideo $video) use ($allowedEmbedHosts, $videoLicense): bool {
+                    if (filled($video->file_path) && blank($video->external_id)) {
+                        return true;
+                    }
+                    if (! $videoLicense || blank($video->embed_url)) {
+                        return false;
+                    }
                     $parts = parse_url((string) $video->embed_url);
                     $host = strtolower((string) ($parts['host'] ?? ''));
-
                     return ($parts['scheme'] ?? null) === 'https'
                         && $host !== ''
                         && in_array($host, $allowedEmbedHosts, true);
@@ -217,7 +228,7 @@ final class PublicSiteController extends Controller
                 ->values()
             : collect();
 
-        $canWatchCourseVideos = $hasCourseAccess && $videoLicense !== null && $playableVideos->isNotEmpty();
+        $canWatchCourseVideos = $hasCourseAccess && $playableVideos->isNotEmpty();
 
         $relatedCourses = Course::query()->where('status', 'published')->where('id', '<>', $course->id)
             ->when($course->subject, fn ($query) => $query->where('subject', $course->subject))
@@ -261,6 +272,16 @@ final class PublicSiteController extends Controller
         abort_unless($enrollments->hasActiveAccess($student, $course), 403);
         abort_unless($course->featureEnabled('recorded_video'), 404);
 
+        $courseVideo = SpotPlayerVideo::query()
+            ->where('id', $video)
+            ->where('course_id', $course->id)
+            ->where('status', 'active')
+            ->firstOrFail();
+
+        if (filled($courseVideo->file_path) && blank($courseVideo->external_id)) {
+            return redirect()->route('student.videos.show', $courseVideo);
+        }
+
         $license = SpotPlayerLicense::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
@@ -270,14 +291,7 @@ final class PublicSiteController extends Controller
             ->whereNotNull('license_key')
             ->first();
 
-        abort_unless($license, 403);
-
-        $courseVideo = SpotPlayerVideo::query()
-            ->where('id', $video)
-            ->where('course_id', $course->id)
-            ->where('status', 'active')
-            ->whereNotNull('embed_url')
-            ->firstOrFail();
+        abort_unless($license && filled($courseVideo->embed_url) && filled($courseVideo->external_id), 403);
 
         $parts = parse_url((string) $courseVideo->embed_url);
         $host = strtolower((string) ($parts['host'] ?? ''));
