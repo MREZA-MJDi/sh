@@ -461,6 +461,7 @@ final class ChunkUploadController extends Controller
         if (filled($metadata['class_session_id'] ?? null)) {
             $classSession = ClassSession::query()
                 ->whereKey((int) $metadata['class_session_id'])
+                ->where('status', '!=', 'cancelled')
                 ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
                 ->firstOrFail();
 
