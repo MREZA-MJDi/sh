@@ -80,7 +80,7 @@
         @endif
         <div data-course-upload data-target="teaser" data-course-id="{{ $course->id }}"
           data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
-          data-complete-url="{{ route('admin.uploads.complete') }}" data-status-url="{{ route('admin.courses.teaser.status', $course) }}"
+          data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-status-url="{{ route('admin.courses.teaser.status', $course) }}"
           data-max-mb="{{ config('learning.max_teaser_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
           <label class="adm-field">
             <span class="adm-label">انتخاب فایل تریلر</span>
@@ -105,7 +105,7 @@
         <x-admin.panel title="۵. ویدیوهای آموزشی دوره" desc="هر ویدیو به‌عنوان یک جلسه در کتابخانه ویدیویی دوره ثبت می‌شود؛ فایل خام در فضای خصوصی نگهداری خواهد شد." data-tone="edu">
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
-            data-complete-url="{{ route('admin.uploads.complete') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
+            data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
             <div class="adm-form">
               <x-admin.input label="عنوان جلسه / ویدیو" name="video_title" placeholder="مثلاً جلسه اول: ساختار اتم" data-upload-title/>
               <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="مشترک در سطح کل دوره" data-upload-classroom/>
