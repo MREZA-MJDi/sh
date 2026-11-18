@@ -69,13 +69,6 @@ final class CourseController extends Controller
 
         $user = auth()->user();
         $teacherView = $workspace->isTeacher($user);
-        $teachers = $teacherView
-            ? collect([$user])
-            : User::query()
-                ->whereHas('roles', fn ($query) => $query->where('name', 'teacher'))
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name']);
 
         $visibleCourseIds = $workspace->coursesQueryFor($user)->select('courses.id');
         $stats = [
@@ -93,7 +86,7 @@ final class CourseController extends Controller
         $canManage = $user->hasPermissionTo('courses.manage');
         $canManageContent = $user->hasAnyPermission(['courses.manage', 'courses.content.manage.assigned']);
 
-        return view('admin.courses.index', compact('courses', 'teachers', 'stats', 'canManage', 'canManageContent', 'teacherView'));
+        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
