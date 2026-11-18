@@ -68,7 +68,6 @@ final class CourseController extends Controller
             ->paginate(12);
 
         $user = auth()->user();
-        $teacherView = $workspace->isTeacher($user);
 
         $visibleCourseIds = $workspace->coursesQueryFor($user)->select('courses.id');
         $stats = [
