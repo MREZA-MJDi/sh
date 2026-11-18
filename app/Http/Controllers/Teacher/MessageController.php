@@ -40,12 +40,12 @@ final class MessageController extends Controller
                 ->where('name', 'like', "%{$term}%")
                 ->orWhere('phone', 'like', "%{$term}%"))
             ->with([
-                'enrolledClasses' => fn (Builder $classes) => $classes
+                'enrolledClasses' => fn ($classes) => $classes
                     ->whereIn('classrooms.id', clone $classroomIds)
                     ->where('classrooms.status', 'active')
                     ->orderBy('classrooms.name')
                     ->select('classrooms.id', 'classrooms.name'),
-                'guardians' => fn (Builder $guardians) => $guardians
+                'guardians' => fn ($guardians) => $guardians
                     ->where('users.is_active', true)
                     ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'parent'))
                     ->orderBy('users.name')
