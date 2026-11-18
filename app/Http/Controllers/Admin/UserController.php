@@ -32,7 +32,7 @@ class UserController extends Controller
 
         $users = User::query()
             ->when($role === 'student', fn ($query) => $query->with('enrolledClasses:id,name'))
-            ->when($role === 'teacher', fn ($query) => $query->with('assignedCourses:id,title,teacher_id'))
+            ->when($role === 'teacher', fn ($query) => $query->withCount('assignedCourses'))
             ->when($role === 'parent', fn ($query) => $query->with('children:id,name'))
             ->whereHas('roles', fn ($roles) => $roles->where('name', $role))
             ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
@@ -71,7 +71,7 @@ class UserController extends Controller
                 ->orderBy('name')->get(['id', 'name']);
         }
 
-        return view('admin.users.index', compact('users', 'role', 'classrooms', 'selectedChildren'));
+        return view('admin.users.index', compact('users', 'role', 'classrooms', 'selectedChildren', 'teacherView'));
     }
 
     public function store(StoreUserRequest $request, string $role, UserManagementService $users): RedirectResponse
