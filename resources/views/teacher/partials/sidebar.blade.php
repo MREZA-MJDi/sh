@@ -1,15 +1,23 @@
 @php
     $t = $teacher ?? auth()->user();
-    $nav = [
-        ['teacher', 'داشبورد', '🏠'],
-        ['teacher/classes', 'کلاس‌ها', '🎬'],
-        ['teacher/homework', 'تکالیف', '📝'],
-        ['teacher/attendance', 'حضور و غیاب', '✅'],
-        ['teacher/live', 'کلاس آنلاین', '🎥'],
-        ['teacher/messages', 'پیام اولیا', '💬'],
-        ['teacher/consultations', 'درخواست مشاوره', '🗨️'],
-        ['teacher/meetings', 'جلسات', '🤝'],
-    ];
+    $nav = [['teacher', 'داشبورد', '🏠']];
+    if ($t?->hasPermissionTo('classes.view.assigned')) {
+        $nav[] = ['teacher/classes', 'کلاس‌ها', '🎬'];
+        $nav[] = ['teacher/live', 'کلاس آنلاین', '🎥'];
+        $nav[] = ['teacher/meetings', 'جلسات', '🤝'];
+    }
+    if ($t?->hasPermissionTo('homework.view.assigned')) {
+        $nav[] = ['teacher/homework', 'تکالیف', '📝'];
+    }
+    if ($t?->hasPermissionTo('attendance.view.assigned')) {
+        $nav[] = ['teacher/attendance', 'حضور و غیاب', '✅'];
+    }
+    if ($t?->hasPermissionTo('messages.view.assigned')) {
+        $nav[] = ['teacher/messages', 'پیام اولیا', '💬'];
+    }
+    if ($t?->hasPermissionTo('consultations.create')) {
+        $nav[] = ['teacher/consultations', 'درخواست مشاوره', '🗨️'];
+    }
 
     if ($t?->hasPermissionTo('resources.manage.assigned')) {
         $nav[] = ['teacher/resources', 'بارگذاری جزوه و منابع', '📚'];
