@@ -84,7 +84,7 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
 
         $videos = SpotPlayerVideo::query()
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title,grade,season', 'classroom:id,name'])
             ->where(function ($scope) use ($courseIds, $classroomIds): void {
                 $scope->where(function ($classScope) use ($courseIds, $classroomIds): void {
                     $classScope->whereNotNull('classroom_id')
@@ -147,7 +147,7 @@ final class PortalController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
+        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title', 'grade', 'season']);
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
             ->orderBy('name')
