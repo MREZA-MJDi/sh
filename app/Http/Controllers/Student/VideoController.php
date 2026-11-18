@@ -27,7 +27,7 @@ final class VideoController extends Controller
                         $local->where('status', 'active')->whereNotNull('file_path');
                     });
             })
-            ->with(['course:id,title,slug', 'classroom:id,name'])
+            ->with(['course:id,title,slug', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->latest('created_at')
             ->paginate(12)
             ->withQueryString();
@@ -93,7 +93,7 @@ final class VideoController extends Controller
     private function findAccessibleVideo(User $student, int $videoId, LearningAccessService $access): SpotPlayerVideo
     {
         return $this->accessibleVideos($student, $access)
-            ->with(['course:id,title,slug,delivery_type,spotplayer_course_id', 'classroom:id,name'])
+            ->with(['course:id,title,slug,delivery_type,spotplayer_course_id', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->findOrFail($videoId);
     }
 
