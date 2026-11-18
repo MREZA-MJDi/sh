@@ -191,19 +191,36 @@ final class AcademicPortalContentSeeder extends Seeder
 
             $today = Carbon::today();
 
-            ClassSession::query()->firstOrCreate(
-                ['classroom_id' => $classroom->id, 'title' => 'جلسه آنلاین پاییز - ریاضی دهم گروه اول'],
-                [
-                    'session_type' => 'online',
-                    'starts_at' => $today->copy()->addDays(2)->setTime(16, 0),
-                    'ends_at' => $today->copy()->addDays(2)->setTime(17, 30),
-                    'meeting_provider' => 'skyroom',
-                    'meeting_url' => null,
-                    'status' => 'scheduled',
-                    'teacher_notes' => 'جلسه آنلاین دوره پاییزه؛ لینک واقعی پس از تنظیم سرویس ثبت می‌شود.',
-                    'created_by' => $teacher->id,
-                ]
-            );
+            $onlineSessionTopics = [
+                'جلسه اول پاییز؛ مبانی و هدف‌گذاری',
+                'جلسه دوم پاییز؛ آموزش و حل مثال',
+                'جلسه سوم پاییز؛ تمرین گروهی و رفع اشکال',
+                'جلسه چهارم پاییز؛ جمع‌بندی فصل',
+                'جلسه پنجم پاییز؛ مرور و آمادگی آزمون',
+            ];
+
+            // Upgrade the original one-session fixture in-place on existing databases.
+            ClassSession::query()
+                ->where('classroom_id', $classroom->id)
+                ->where('title', 'جلسه آنلاین پاییز - ریاضی دهم گروه اول')
+                ->update(['title' => $onlineSessionTopics[0]]);
+
+            foreach ($onlineSessionTopics as $sessionIndex => $title) {
+                $sessionDate = $today->copy()->addDays(2 + ($sessionIndex * 3));
+                ClassSession::query()->firstOrCreate(
+                    ['classroom_id' => $classroom->id, 'title' => $title],
+                    [
+                        'session_type' => 'online',
+                        'starts_at' => $sessionDate->setTime(16, 0),
+                        'ends_at' => $sessionDate->copy()->setTime(17, 30),
+                        'meeting_provider' => 'skyroom',
+                        'meeting_url' => null,
+                        'status' => 'scheduled',
+                        'teacher_notes' => 'جلسه آنلاین دوره پاییزه؛ لینک واقعی پس از تنظیم سرویس ثبت می‌شود.',
+                        'created_by' => $teacher->id,
+                    ]
+                );
+            }
 
             ClassSession::query()->firstOrCreate(
                 ['classroom_id' => $onsiteClassroom->id, 'title' => 'جلسه حضوری پاییز - ریاضی دهم گروه دوم'],

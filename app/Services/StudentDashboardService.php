@@ -40,7 +40,7 @@ final class StudentDashboardService
             ->where('status', 'scheduled')
             ->whereNotNull('ends_at')
             ->where('ends_at', '>=', now())
-            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
+            ->with(['classroom:id,name,course_id,meeting_url,skyroom_room_id,skyroom_status', 'classroom.course:id,title'])
             ->orderBy('starts_at')
             ->limit(10)
             ->get();
@@ -265,11 +265,10 @@ final class StudentDashboardService
 
         return ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
-            ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->whereNotNull('ends_at')
             ->where('ends_at', '>=', now())
-            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
+            ->with(['classroom:id,name,course_id,meeting_url,skyroom_room_id,skyroom_status', 'classroom.course:id,title'])
             ->orderBy('starts_at')
             ->paginate(12)
             ->withQueryString();
