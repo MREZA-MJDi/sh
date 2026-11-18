@@ -17,6 +17,18 @@
 <div class="app">
     @include('teacher.partials.sidebar')
     <main data-fa>
+        @if (session('success'))
+            <div class="teacher-alert success" role="status">{{ session('success') }}</div>
+        @endif
+        @if (session('error'))
+            <div class="teacher-alert error" role="alert">{{ session('error') }}</div>
+        @endif
+        @if ($errors->any())
+            <div class="teacher-alert error" role="alert">
+                <strong>ذخیره انجام نشد؛ لطفاً موارد زیر را بررسی کنید.</strong>
+                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
+        @endif
         @yield('content')
     </main>
 </div>

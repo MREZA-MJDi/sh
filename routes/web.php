@@ -43,6 +43,7 @@ use App\Http\Controllers\Student\HomeworkSubmissionController as StudentHomework
 use App\Http\Controllers\Portal\MessageController as PortalMessageController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use App\Http\Controllers\Teacher\ConsultationController as TeacherConsultationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Teacher\PortalController as TeacherPortalController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +89,8 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 });
 
 Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('admin.')->group(function (): void {

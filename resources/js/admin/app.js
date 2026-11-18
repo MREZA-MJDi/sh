@@ -5,6 +5,7 @@ import './toast.js';
 import './modal.js';
 import './reveal.js';
 import './filter.js';
+import './global-search.js';
 import './tabs.js';
 import './upload.js';
 import './sortable.js';

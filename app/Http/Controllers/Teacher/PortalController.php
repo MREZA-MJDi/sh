@@ -28,11 +28,16 @@ final class PortalController extends Controller
     {
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
-            ->with(['course:id,title,subject', 'spotPlayerVideos', 'learningResources', 'sessions' => fn ($query) => $query
-                ->where('starts_at', '>=', now())
-                ->where('status', 'scheduled')
-                ->orderBy('starts_at')
-                ->limit(4)])
+            ->with([
+                'course:id,title,subject',
+                'spotPlayerVideos' => fn ($query) => $query->latest()->limit(4),
+                'learningResources' => fn ($query) => $query->latest()->limit(4),
+                'sessions' => fn ($query) => $query
+                    ->where('starts_at', '>=', now())
+                    ->where('status', 'scheduled')
+                    ->orderBy('starts_at')
+                    ->limit(4),
+            ])
             ->withCount('students')
             ->orderBy('name')
             ->paginate(12)
@@ -46,15 +51,21 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $homework = Homework::query()
             ->whereIn('classroom_id', clone $classroomIds)
-            ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students'), 'submissions' => fn ($query) => $query
-                ->with(['student:id,name', 'homework:id,title'])
-                ->latest('submitted_at')])
+            ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students')])
             ->withCount('submissions')
             ->latest()
             ->paginate(12)
             ->withQueryString();
 
-        return view('teacher.homework', compact('homework'));
+        $submissions = HomeworkSubmission::query()
+            ->where('status', 'submitted')
+            ->whereHas('homework', fn ($query) => $query->whereIn('classroom_id', clone $classroomIds))
+            ->with(['homework:id,title,classroom_id', 'student:id,name'])
+            ->latest('submitted_at')
+            ->paginate(15, ['*'], 'submissions')
+            ->withQueryString();
+
+        return view('teacher.homework', compact('homework', 'submissions'));
     }
 
     public function attendance(Request $request, ClassroomWorkspaceService $workspace): View
@@ -187,7 +198,7 @@ final class PortalController extends Controller
     public function messages(Request $request, MessageWorkspaceService $messages): View
     {
         $conversations = $messages->queryFor($request->user())
-            ->with(['sender:id,name', 'recipient:id,name', 'student:id,name', 'replies.sender:id,name'])
+            ->with(['sender:id,name', 'recipient:id,name', 'student:id,name'])
             ->latest()
             ->paginate(15)
             ->withQueryString();

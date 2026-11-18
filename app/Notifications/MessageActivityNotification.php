@@ -27,7 +27,7 @@ final class MessageActivityNotification extends Notification
             'message' => $this->summary,
             'message_id' => $this->message->id,
             'url' => $notifiable->hasRole('teacher')
-                ? route('admin.messages.index', ['message' => $this->message->id])
+                ? route('teacher.messages.index', ['message' => $this->message->id])
                 : ($notifiable->hasRole('parent')
                     ? route('guardian.messages.show', $this->message->id)
                     : ($notifiable->hasRole('student')

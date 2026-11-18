@@ -16,7 +16,7 @@
     </section>
 
     <section class="c"><h3>نمره‌دهی سریع</h3>
-        @php $submissions = $homework->getCollection()->flatMap(fn ($item) => $item->submissions)->where('status', 'submitted'); @endphp
+        @php $submissions = $submissions ?? collect(); @endphp
         @forelse ($submissions as $submission)
             <form method="POST" action="{{ route('teacher.homework.review', $submission) }}" class="row">
                 @csrf @method('PATCH')
@@ -28,6 +28,9 @@
         @empty
             <p>موردی برای نمره‌دهی در این صفحه نیست.</p>
         @endforelse
+        @if($submissions instanceof \\Illuminate\\Contracts\\Pagination\\Paginator || $submissions instanceof \\Illuminate\\Contracts\\Pagination\\LengthAwarePaginator)
+            {{ $submissions->links() }}
+        @endif
     </section>
 </div>
 @endsection

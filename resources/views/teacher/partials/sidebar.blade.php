@@ -7,6 +7,7 @@
         ['teacher/attendance', 'حضور و غیاب', '✅'],
         ['teacher/live', 'کلاس آنلاین', '🎥'],
         ['teacher/messages', 'پیام اولیا', '💬'],
+        ['teacher/consultations', 'درخواست مشاوره', '🗨️'],
         ['teacher/meetings', 'جلسات', '🤝'],
     ];
 @endphp

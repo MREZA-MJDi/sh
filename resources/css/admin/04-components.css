@@ -91,3 +91,14 @@
 .adm-pager-nav .is-on{background:var(--primary);color:var(--primary-ink);border-color:transparent}
 .adm-pager-nav .is-off{opacity:.45;pointer-events:none}
 .adm-pager-nav .is-gap{border:0;background:none}
+
+
+/* Live notification dropdown and global page search. */
+.adm-notification-pop{width:min(360px,calc(100vw - 32px));max-height:min(70vh,480px);overflow:auto}
+.adm-notification-pop form{margin:0}
+.adm-notification-item{display:flex!important;flex-direction:column;align-items:flex-start!important;gap:3px;width:100%;padding:10px 12px!important;border:0!important;border-radius:10px;background:transparent!important;text-align:right}
+.adm-notification-item:hover{background:var(--surface-2)!important}
+.adm-notification-item b{font-size:13px}
+.adm-notification-item small{color:var(--muted);font-size:11px;line-height:1.7}
+.adm-notification-read-all{width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--primary);font-weight:700}
+.is-global-search-hidden{display:none!important}

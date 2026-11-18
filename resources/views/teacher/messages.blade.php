@@ -7,7 +7,7 @@
         @forelse ($conversations as $conversation)
             <a class="row" href="{{ route('teacher.messages.index', ['message' => $conversation->id]) }}">
                 <div>{{ $conversation->subject }}<small>{{ $conversation->student?->name ?? $conversation->sender?->name }} · {{ $conversation->created_at?->format('Y/m/d H:i') }}</small></div>
-                <i class="bd {{ $conversation->status === 'open' ? 'am' : 'gn' }}">{{ $conversation->status }}</i>
+                <i class="bd {{ $conversation->status === 'open' ? 'am' : 'gn' }}">{{ $conversation->status === 'open' ? 'باز' : ($conversation->status === 'answered' ? 'پاسخ‌داده‌شده' : 'بسته') }}</i>
             </a>
         @empty
             <p>گفت‌وگویی نیست.</p>

@@ -29,7 +29,7 @@ final class ParentMeetingNotification extends Notification
             'status' => $this->meeting->status,
             'url' => $notifiable->hasRole('parent')
                 ? route('guardian.meetings.index')
-                : route('admin.parent-meetings.index'),
+                : route('teacher.meetings'),
         ];
     }
 }
