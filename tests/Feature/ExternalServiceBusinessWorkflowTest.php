@@ -399,12 +399,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
         \Illuminate\Support\Facades\Storage::disk('local')->assertExists($video->file_path);
 
-        $this->assertDatabaseHas('integration_runs', [
-            'provider' => 'spotplayer',
-            'action' => 'upload_video',
-            'status' => 'waiting_contract',
-            'entity_id' => $video->id,
-        ]);
+        $this->assertDatabaseMissing('integration_runs', ['entity_id' => $video->id]);
 
         $this->get(route('admin.spotplayer.videos.download', $video))->assertOk();
         Http::assertNothingSent();
