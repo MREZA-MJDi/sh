@@ -122,9 +122,9 @@ class SpotPlayerController extends Controller
         $video = $videos->stage($request->validated(), $request->user());
 
         $message = $video->file_path && blank($video->external_id)
-            ? 'ویدیو در فضای خصوصی شیخان ذخیره شد و بدون نیاز به SpotPlayer برای دانش‌آموزان دارای دسترسی دوره قابل پخش است. شناسه داخلی: '.$video->id
+            ? 'ویدیو در فضای خصوصی ذخیره شد و در صف پردازش قرار گرفت؛ پس از آماده‌شدن برای دانش‌آموزان دارای دسترسی دوره قابل پخش می‌شود. شناسه داخلی: '.$video->id
             : ($video->file_path
-                ? 'فایل ویدیو در فضای خصوصی ذخیره شد؛ اتصال SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
+                ? 'فایل ویدیو در فضای خصوصی ذخیره و در حال پردازش است؛ اتصال SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
                 : 'شناسه ویدیوی موجود در SpotPlayer ثبت شد؛ اتصال و نمایش پلیر رسمی پس از تأیید قرارداد سرویس فعال می‌شود. شناسه داخلی: '.$video->id);
 
         return back()->with('success', $message);
