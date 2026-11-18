@@ -26,12 +26,19 @@ final class ChunkUploadController extends Controller
             'target' => ['required', 'in:teaser,spotplayer_video'],
             'target_id' => ['required', 'integer', 'exists:courses,id'],
             'total' => ['required', 'integer', 'min:1', 'max:2000'],
+            'total_bytes' => ['required', 'integer', 'min:1', 'max:2147483647'],
             'title' => ['required_if:target,spotplayer_video', 'nullable', 'string', 'max:180'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'external_id' => ['nullable', 'string', 'max:190'],
         ]);
 
         $course = $this->authorizeTarget($request, $data['target'], (int) $data['target_id'], $data, $workspace);
+
+        if ((int) $data['total_bytes'] > $this->maxBytes($data['target'])) {
+            throw ValidationException::withMessages([
+                'file' => 'حجم فایل از سقف مجاز '.number_format((int) config($data['target'] === 'teaser' ? 'learning.max_teaser_mb' : 'learning.max_lesson_mb')).' مگابایت بیشتر است.',
+            ]);
+        }
 
         if ($data['target'] === 'teaser' && $course->teaser_status === 'processing') {
             return $this->fail('تیزر قبلی هنوز در حال پردازش است؛ پس از پایان دوباره تلاش کنید.', 409);
@@ -65,7 +72,7 @@ final class ChunkUploadController extends Controller
             $course->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
         }
 
-        $metadata = ['total_chunks' => (int) $data['total']];
+        $metadata = ['total_chunks' => (int) $data['total'], 'total_bytes' => (int) $data['total_bytes']];
         if ($data['target'] === 'spotplayer_video') {
             $metadata += [
                 'title' => trim($data['title']),
@@ -230,7 +237,9 @@ final class ChunkUploadController extends Controller
             fclose($output);
 
             $actualBytes = filesize($disk->path($destination));
-            if ($actualBytes === false || $actualBytes > $this->maxBytes($session->target) || $actualBytes !== (int) $session->bytes_uploaded) {
+            if ($actualBytes === false || $actualBytes > $this->maxBytes($session->target)
+                || $actualBytes !== (int) $session->bytes_uploaded
+                || $actualBytes !== (int) ($session->metadata['total_bytes'] ?? 0)) {
                 throw ValidationException::withMessages([
                     'file' => 'اندازه فایل نهایی با تکه‌های دریافت‌شده سازگار نیست یا از سقف مجاز بیشتر است.',
                 ]);
