@@ -69,6 +69,38 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             ->exists());
     }
 
+    public function test_free_course_curriculum_is_visible_without_a_spotplayer_license_or_prior_enrollment(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $course = $this->course($teacher, [
+            'title' => 'دوره رایگان با سرفصل عمومی',
+            'slug' => 'free-course-public-curriculum',
+            'type' => 'free',
+            'price' => 0,
+        ]);
+        $section = CourseSection::query()->create([
+            'course_id' => $course->id,
+            'title' => 'سرفصل آزاد',
+            'description' => 'معرفی عمومی محتوای دوره',
+            'sort_order' => 1,
+            'status' => 'published',
+        ]);
+        Lesson::query()->create([
+            'course_section_id' => $section->id,
+            'title' => 'درس آزاد بدون قفل',
+            'body' => 'متن آموزشی عمومی دوره رایگان',
+            'duration_minutes' => 20,
+            'sort_order' => 1,
+            'status' => 'published',
+        ]);
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSeeText('درس آزاد بدون قفل')
+            ->assertSeeText('محتوای دوره در دسترس است')
+            ->assertDontSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده');
+    }
+
     private function course(User $teacher, array $overrides = []): Course
     {
         return Course::query()->create(array_merge([
