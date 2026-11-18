@@ -392,19 +392,14 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
         $video = \App\Models\SpotPlayerVideo::where('title', 'جلسه اول')->firstOrFail();
 
-        $this->assertSame('waiting_contract', $video->status);
+        $this->assertSame('active', $video->status);
         $this->assertSame('lesson.mp4', $video->file_original_name);
         $this->assertNotNull($video->file_sha256);
         $this->assertSame(64, strlen($video->file_sha256));
 
         \Illuminate\Support\Facades\Storage::disk('local')->assertExists($video->file_path);
 
-        $this->assertDatabaseHas('integration_runs', [
-            'provider' => 'spotplayer',
-            'action' => 'upload_video',
-            'status' => 'waiting_contract',
-            'entity_id' => $video->id,
-        ]);
+        $this->assertDatabaseMissing('integration_runs', ['entity_id' => $video->id]);
 
         $this->get(route('admin.spotplayer.videos.download', $video))->assertOk();
         Http::assertNothingSent();

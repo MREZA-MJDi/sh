@@ -25,7 +25,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_teacher_can_stage_private_spotplayer_video_for_a_class_they_teach_using_chunks(): void
+    public function test_teacher_can_upload_a_self_hosted_course_video_for_their_class_using_chunks(): void
     {
         $teacher = $this->userWithRole('teacher');
         $course = Course::query()->create([
@@ -49,6 +49,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'target' => 'spotplayer_video',
             'target_id' => $course->id,
             'total' => 1,
+            'total_bytes' => 128,
             'title' => 'جلسه اول',
             'classroom_id' => $classroom->id,
         ])->assertOk();
@@ -65,23 +66,18 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'upload_id' => $uploadId,
             'total' => 1,
             'filename' => 'lesson-one.mp4',
-        ])->assertOk()->assertJsonPath('status', 'waiting_contract');
+        ])->assertOk()->assertJsonPath('status', 'ready');
 
         $video = SpotPlayerVideo::query()->findOrFail($complete->json('video_id'));
 
-        $this->assertSame('waiting_contract', $video->status);
+        $this->assertSame('active', $video->status);
         $this->assertSame($classroom->id, $video->classroom_id);
-        $this->assertStringStartsWith('private/spotplayer-staging/', $video->file_path);
+        $this->assertStringStartsWith('private/course-videos/', $video->file_path);
         $this->assertSame(128, $video->file_size_bytes);
         $this->assertNotNull($video->file_sha256);
         Storage::disk('local')->assertExists($video->file_path);
 
-        $this->assertDatabaseHas('integration_runs', [
-            'provider' => 'spotplayer',
-            'action' => 'upload_video',
-            'status' => 'waiting_contract',
-            'entity_id' => $video->id,
-        ]);
+        $this->assertDatabaseMissing('integration_runs', ['entity_id' => $video->id]);
     }
 
     public function test_admin_can_upload_course_video_when_feature_matrix_is_enabled_without_legacy_delivery_type(): void
@@ -102,10 +98,36 @@ final class SpotPlayerChunkUploadTest extends TestCase
                 'target' => 'spotplayer_video',
                 'target_id' => $course->id,
                 'total' => 1,
+                'total_bytes' => 128,
                 'title' => 'ویدیوی جلسه اول',
             ])
             ->assertOk()
             ->assertJsonPath('ok', true);
+    }
+
+    public function test_course_video_upload_rejects_files_larger_than_250_mb_before_creating_a_session(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $course = Course::query()->create([
+            'title' => 'دوره با محدودیت حجم',
+            'slug' => 'course-video-size-limit',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'learning_features' => ['recorded_video' => true],
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'spotplayer_video',
+            'target_id' => $course->id,
+            'total' => 51,
+            'total_bytes' => 250 * 1024 * 1024 + 1,
+            'title' => 'ویدیوی بیش از حد مجاز',
+        ])->assertUnprocessable()->assertJsonValidationErrors('file');
+
+        $this->assertDatabaseCount('video_upload_sessions', 0);
+        $this->assertSame(250, (int) config('learning.max_lesson_mb'));
     }
 
     public function test_teacher_cannot_start_video_upload_for_an_unassigned_course(): void
@@ -127,6 +149,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'target' => 'spotplayer_video',
             'target_id' => $course->id,
             'total' => 1,
+            'total_bytes' => 64,
             'title' => 'نباید ثبت شود',
         ])->assertNotFound();
     }
@@ -150,6 +173,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'target' => 'spotplayer_video',
             'target_id' => $course->id,
             'total' => 1,
+            'total_bytes' => 64,
             'title' => 'جلسه خصوصی',
         ])->assertOk();
 

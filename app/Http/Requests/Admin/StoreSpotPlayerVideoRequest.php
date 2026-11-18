@@ -23,7 +23,7 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'external_id' => ['nullable', 'required_without:file', 'string', 'max:190'],
-            'file' => ['nullable', 'required_without:external_id', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:1048576'],
+            'file' => ['nullable', 'required_without:external_id', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:'.((int) config('learning.max_lesson_mb') * 1024)],
             'status' => ['required', Rule::in(['draft', 'waiting_contract'])],
         ];
     }
@@ -69,7 +69,7 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             'external_id.required_without' => 'اگر فایل را بارگذاری نمی‌کنید، شناسه ویدئوی موجود در SpotPlayer الزامی است.',
             'file.required_without' => 'فایل ویدیو یا شناسه ویدئوی موجود در SpotPlayer را وارد کنید.',
             'file.mimes' => 'فرمت فایل باید MP4، MOV، M4V، WebM یا MKV باشد.',
-            'file.max' => 'حجم فایل ویدیو نباید از یک گیگابایت بیشتر باشد.',
+            'file.max' => 'حجم فایل ویدیو نباید از '.number_format((int) config('learning.max_lesson_mb')).' مگابایت بیشتر باشد.',
         ];
     }
 }

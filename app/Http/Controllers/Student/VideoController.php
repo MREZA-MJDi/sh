@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 final class VideoController extends Controller
@@ -20,7 +22,10 @@ final class VideoController extends Controller
             ->where('status', '!=', 'waiting_contract')
             ->where(function (Builder $delivery): void {
                 $delivery->whereNotNull('external_id')
-                    ->orWhereNotNull('embed_url');
+                    ->orWhereNotNull('embed_url')
+                    ->orWhere(function (Builder $local): void {
+                        $local->where('status', 'active')->whereNotNull('file_path');
+                    });
             })
             ->with(['course:id,title,slug', 'classroom:id,name'])
             ->latest('created_at')
@@ -42,7 +47,7 @@ final class VideoController extends Controller
         // student-facing recordings; keep the student on the existing course page.
         if (
             $video->status === 'waiting_contract'
-            || (blank($video->external_id) && blank($video->embed_url))
+            || (blank($video->external_id) && blank($video->embed_url) && ! ($video->status === 'active' && filled($video->file_path)))
         ) {
             return redirect()->route('public.courses.show', $video->course->slug);
         }
@@ -50,21 +55,39 @@ final class VideoController extends Controller
         return view('student.videos.show', compact('video'));
     }
 
-    public function stream(Request $request, int $video, LearningAccessService $access): Response
+    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse|Response
     {
-        // Enforce course and classroom membership but never expose a raw staged file.
-        $this->findAccessibleVideo($request->user(), $video, $access);
+        $recording = $this->findAccessibleVideo($request->user(), $video, $access);
 
-        return response(
-            'پخش مستقیم فایل خام فعال نیست؛ ویدئو فقط پس از اتصال رسمی پخش‌کننده در دسترس خواهد بود.',
-            409,
-            [
-                'Cache-Control' => 'private, no-store, max-age=0',
-                'Pragma' => 'no-cache',
-                'X-Content-Type-Options' => 'nosniff',
-                'Referrer-Policy' => 'same-origin',
-            ]
-        );
+        if (
+            $recording->status !== 'active'
+            || blank($recording->file_path)
+            || filled($recording->external_id)
+            || ! Storage::disk('local')->exists($recording->file_path)
+        ) {
+            return response(
+                'پخش این فایل تا زمان آماده‌شدن منبع ویدیو فعال نیست.',
+                409,
+                [
+                    'Cache-Control' => 'private, no-store, max-age=0',
+                    'Pragma' => 'no-cache',
+                    'X-Content-Type-Options' => 'nosniff',
+                    'Referrer-Policy' => 'same-origin',
+                ]
+            );
+        }
+
+        $mimeType = str_starts_with((string) $recording->file_mime_type, 'video/')
+            ? $recording->file_mime_type
+            : 'application/octet-stream';
+
+        return response()->file(Storage::disk('local')->path($recording->file_path), [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'same-origin',
+        ]);
     }
 
     private function findAccessibleVideo(User $student, int $videoId, LearningAccessService $access): SpotPlayerVideo

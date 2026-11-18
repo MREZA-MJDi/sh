@@ -121,9 +121,11 @@ class SpotPlayerController extends Controller
     ): RedirectResponse {
         $video = $videos->stage($request->validated(), $request->user());
 
-        $message = $video->file_path
-            ? 'فایل ویدیو در فضای خصوصی ذخیره شد؛ انتقال به SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
-            : 'شناسه ویدیوی موجود در SpotPlayer ثبت شد؛ اتصال و نمایش پلیر رسمی پس از تأیید قرارداد سرویس فعال می‌شود. شناسه داخلی: '.$video->id;
+        $message = $video->file_path && blank($video->external_id)
+            ? 'ویدیو در فضای خصوصی شیخان ذخیره شد و بدون نیاز به SpotPlayer برای دانش‌آموزان دارای دسترسی دوره قابل پخش است. شناسه داخلی: '.$video->id
+            : ($video->file_path
+                ? 'فایل ویدیو در فضای خصوصی ذخیره شد؛ اتصال SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
+                : 'شناسه ویدیوی موجود در SpotPlayer ثبت شد؛ اتصال و نمایش پلیر رسمی پس از تأیید قرارداد سرویس فعال می‌شود. شناسه داخلی: '.$video->id);
 
         return back()->with('success', $message);
     }
