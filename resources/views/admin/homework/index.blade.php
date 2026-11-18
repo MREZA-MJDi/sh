@@ -93,7 +93,7 @@
   <x-admin.legend title="اطلاعات تکلیف"/>
   <x-admin.input label="عنوان تکلیف" name="title" wide required/>
   <x-admin.select label="کلاس / گروه" name="classroom_id" :options="$classOptions" required/>
-  <x-admin.input label="مهلت تحویل" name="due_at" type="datetime-local"/>
+  <x-admin.input label="مهلت تحویل" name="due_at" type="datetime-local" :min="now()->format('Y-m-d\\TH:i')" step="60" hint="تاریخ و ساعت را از تقویم انتخاب کنید؛ تکلیف منتشرشده برای دانش‌آموزان فعال همین کلاس نمایش داده می‌شود."/>
   <x-admin.textarea label="دستورالعمل و توضیحات" name="instructions" wide/>
   <x-admin.input label="فایل پیوست" name="attachment" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"/>
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" required/>
