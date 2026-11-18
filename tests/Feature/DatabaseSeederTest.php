@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AcademicGrade;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
