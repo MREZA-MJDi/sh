@@ -301,7 +301,16 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::get('/', [\App\Http\Controllers\Teacher\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/classes', [TeacherPortalController::class, 'classes'])->middleware('permission:classes.view.assigned')->name('classes');
         Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
+        Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.assigned')->name('homework.store');
         Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
+        Route::get('/videos', [TeacherPortalController::class, 'videos'])->middleware('permission:videos.manage.assigned')->name('videos');
+        Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
+        Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
+        Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
+        Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
+        Route::get('/resources', [TeacherPortalController::class, 'resources'])->middleware('permission:resources.manage.assigned')->name('resources');
+        Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage.assigned')->name('resources.store');
+        Route::get('/resources/{resource}/download', [LearningResourceController::class, 'download'])->middleware('permission:resources.manage.assigned')->name('resources.download');
         Route::get('/attendance', [TeacherPortalController::class, 'attendance'])->middleware('permission:attendance.view.assigned')->name('attendance');
         Route::post('/attendance', [TeacherPortalController::class, 'storeAttendance'])->middleware('permission:attendance.manage.assigned')->name('attendance.store');
         Route::get('/live', [TeacherPortalController::class, 'live'])->middleware('permission:classes.view.assigned')->name('live');

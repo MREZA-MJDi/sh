@@ -1,12 +1,9 @@
 @extends('teacher.layouts.app')
 @section('title', 'کلاس‌ها و فیلم‌ها')
 @section('content')
-<h2>کلاس‌ها و فیلم‌ها</h2>
+<div class="teacher-page-head"><div><span class="teacher-eyebrow">آموزش و اجرا</span><h1>کلاس‌ها و فیلم‌ها</h1><p>محتوای آموزشی و جلسه‌های کلاس‌های تخصیص‌یافته را پیگیری کنید.</p></div><div class="teacher-head-actions">@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}">بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="b s" href="{{ route('teacher.resources') }}">افزودن جزوه</a>@endif</div></div>
 <div class="g g2">
-    <section class="c"><h3>ویدئوهای کلاس</h3>
-        <p>ویدئوهای ثبت‌شده برای کلاس‌های تحت مدیریت شما در بخش زیر نمایش داده می‌شوند.</p>
-        <a class="b s" href="{{ url('teacher/live') }}">مشاهده جلسات آنلاین</a>
-    </section>
+    <section class="c"><h3>مدیریت ویدئوهای آموزشی</h3><p>ویدئوهای دوره و کلاس را از مسیر آپلود امن بارگذاری کنید و وضعیت اتصال را پیگیری کنید.</p><a class="b s" href="{{ route('teacher.videos') }}">رفتن به بارگذاری ویدئو</a><a class="b s" href="{{ route('teacher.live') }}">مشاهده جلسات آنلاین</a></section>
 
     <section class="c"><h3>لینک کلاس آنلاین</h3>
         @forelse ($classrooms as $classroom)
@@ -33,7 +30,7 @@
         @endforelse
     </section>
 
-    <section class="c"><h3>منابع و جزوه‌ها</h3>
+    <section class="c"><div class="teacher-section-head"><h3>منابع و جزوه‌ها</h3><a href="{{ route('teacher.resources') }}">مدیریت منابع</a></div>
         @php $resources = $classrooms->getCollection()->flatMap(fn ($classroom) => $classroom->learningResources); @endphp
         @forelse ($resources as $resource)
             <div class="row"><div>{{ $resource->title }}<small>{{ $resource->kind }}</small></div>

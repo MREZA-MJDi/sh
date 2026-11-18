@@ -155,4 +155,33 @@ import '../shared/iranian-locale.js';
       });
     });
   });
+
+  /* Persian calendar labels for the seven-day teacher dashboard. */
+  (function () {
+    var calendar = $('[data-teacher-week-calendar]');
+    if (!calendar || !window.Intl || !Intl.DateTimeFormat) return;
+    try {
+      var weekdayFormatter = new Intl.DateTimeFormat('fa-IR', {
+        weekday: 'long',
+        timeZone: 'Asia/Tehran'
+      });
+      var dayFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+        day: 'numeric',
+        timeZone: 'Asia/Tehran'
+      });
+      $$('[data-gregorian-date]', calendar).forEach(function (day) {
+        var value = day.getAttribute('data-gregorian-date');
+        if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value || '')) return;
+        var date = new Date(value + 'T12:00:00+03:30');
+        if (Number.isNaN(date.getTime())) return;
+        var weekday = day.querySelector('[data-weekday]');
+        var dayNumber = day.querySelector('[data-day-number]');
+        if (weekday) weekday.textContent = weekdayFormatter.format(date);
+        if (dayNumber) dayNumber.textContent = dayFormatter.format(date);
+      });
+    } catch (e) {
+      // Leave neutral placeholders visible if the browser lacks Persian ICU data.
+    }
+  })();
+
 })();

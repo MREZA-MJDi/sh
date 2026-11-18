@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Http\Requests\Admin\StoreAttendanceRequest;
 use App\Models\Attendance;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\ClassSession;
 use App\Models\Homework;
 use App\Models\HomeworkSubmission;
@@ -50,6 +51,11 @@ final class PortalController extends Controller
     public function homework(Request $request, ClassroomWorkspaceService $workspace): View
     {
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
+        $classrooms = $workspace->queryFor($request->user())
+            ->where('classrooms.status', 'active')
+            ->with('course:id,title')
+            ->orderBy('classrooms.name')
+            ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
             ->whereIn('classroom_id', clone $classroomIds)
             ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students')])
@@ -66,7 +72,17 @@ final class PortalController extends Controller
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
-        return view('teacher.homework', compact('homework', 'submissions'));
+        return view('teacher.homework', compact('homework', 'submissions', 'classrooms'));
+    }
+
+    public function videos(Request $request): RedirectResponse
+    {
+        return redirect()->route('admin.spotplayer.index');
+    }
+
+    public function resources(Request $request): RedirectResponse
+    {
+        return redirect()->route('admin.resources.index');
     }
 
     public function attendance(Request $request, ClassroomWorkspaceService $workspace): View

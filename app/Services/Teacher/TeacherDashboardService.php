@@ -57,6 +57,24 @@ final class TeacherDashboardService
                 'url' => $session->meeting_url ?: ($session->meeting_provider === 'skyroom' ? $session->classroom?->meeting_url : null),
             ]);
 
+        $calendarStart = today()->copy()->startOfDay();
+        $calendarEnd = today()->copy()->addDays(6)->endOfDay();
+        $calendarSessions = ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'scheduled')
+            ->whereBetween('starts_at', [$calendarStart, $calendarEnd])
+            ->with(['classroom:id,name', 'classroom.course:id,title'])
+            ->orderBy('starts_at')->get();
+
+        $weekCalendar = collect(range(0, 6))->map(function (int $offset) use ($calendarSessions): array {
+            $date = today()->copy()->addDays($offset);
+            $sessions = $calendarSessions->filter(
+                fn (ClassSession $session) => $session->starts_at?->isSameDay($date)
+            )->values();
+
+            return ['date' => $date->toDateString(), 'count' => $sessions->count(), 'sessions' => $sessions];
+        });
+
         $pendingSubmissions = HomeworkSubmission::query()
             ->where('status', 'submitted')
             ->whereHas('homework', fn (Builder $homework) => $homework->whereIn('classroom_id', clone $classroomIds));
@@ -132,6 +150,7 @@ final class TeacherDashboardService
             ],
             'todayClasses' => $todayClasses,
             'todaySessions' => $todaySessions,
+            'weekCalendar' => $weekCalendar,
             'weekAttendance' => $weekAttendance,
             'pendingHomework' => $pendingHomework,
             'newMessages' => $newMessages,

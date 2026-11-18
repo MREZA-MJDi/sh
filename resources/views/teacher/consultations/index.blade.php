@@ -3,7 +3,7 @@
 @section('content')
 @php($statusLabels = ['pending' => 'در انتظار بررسی', 'in_progress' => 'در حال پیگیری', 'done' => 'انجام‌شده', 'rejected' => 'ردشده'])
 @php($typeLabels = ['ticket' => 'پیام و تیکت', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'])
-<h2>درخواست مشاوره</h2>
+<div class="teacher-page-head"><div><span class="teacher-eyebrow">هماهنگی با مدیریت سایت</span><h1>درخواست مشاوره و هماهنگی</h1><p>زمان پیشنهادی را ثبت کنید تا مدیر سایت درخواست را بررسی و پیگیری کند.</p></div></div>
 <div class="g g2">
     <section class="c">
         <h3>ثبت درخواست جدید</h3>
@@ -30,7 +30,7 @@
         <h3>درخواست‌های من</h3>
         @forelse ($consultations as $consultation)
             <div class="row">
-                <div>{{ $consultation->topic }}<small>{{ $typeLabels[$consultation->type] ?? $consultation->type }} · {{ $consultation->desired_at?->format('Y/m/d H:i') }}</small></div>
+                <div>{{ $consultation->topic }}<small>{{ $typeLabels[$consultation->type] ?? $consultation->type }} · <time data-jalali-display="{{ $consultation->desired_at?->format('Y-m-d H:i') }}">{{ $consultation->desired_at?->format('Y/m/d H:i') }}</time></small></div>
                 <i class="bd {{ $consultation->status === 'done' ? 'gn' : 'am' }}">{{ $statusLabels[$consultation->status] ?? $consultation->status }}</i>
             </div>
         @empty
