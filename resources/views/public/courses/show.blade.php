@@ -172,8 +172,8 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    $isUnlocked = (bool) $hasCourseAccess
-                                                        && (! ($features['recorded_video'] ?? false) || (bool) $canWatchCourseVideos);
+                                                    // Free course curriculum is public; provider licenses only gate protected video playback.
+                                                    $isUnlocked = $course->type === 'free' || (bool) $hasCourseAccess;
                                                 @endphp
                                                 <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
                                                     <div class="lesson-main">
