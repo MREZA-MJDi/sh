@@ -84,7 +84,7 @@
         {{-- Article Cards Grid --}}
         <div class="g g3">
             @if($articlesToLoop->isNotEmpty())
-            @foreach($articlesToLoop as $index => $article)
+            @foreach($articlesToLoop as $article)
                 @php
                     $gradients = [
                         'linear-gradient(135deg,#0d9488,#0f766e)',
@@ -94,7 +94,7 @@
                         'linear-gradient(135deg,#059669,#047857)',
                         'linear-gradient(135deg,#d97706,#b45309)'
                     ];
-                    $bgGrad = $gradients[$index % count($gradients)];
+                    $bgGrad = $gradients[$loop->index % count($gradients)];
                 @endphp
                 <a class="card cc" href="{{ route('seo.articles.show', $article->slug) }}">
                     <div class="th" style="background:{{ $bgGrad }}">
