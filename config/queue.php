@@ -49,7 +49,7 @@ return [
             'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
             'queue' => env('VIDEO_QUEUE', 'video'),
             'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3700),
-            'after_commit' => true,
+            'after_commit' => false,
         ],
 
         'beanstalkd' => [
