@@ -88,7 +88,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
 
     public function test_teacher_can_resume_an_interrupted_chunk_upload_without_reuploading_received_parts(): void
     {
-        $teacher = $this->userWithRole('teacher');
+        $teacher = $this->userWithRole('admin');
         $course = Course::query()->create([
             'title' => 'دوره ادامه آپلود',
             'slug' => 'teacher-video-resume',
