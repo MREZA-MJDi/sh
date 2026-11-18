@@ -26,11 +26,11 @@
  </div>
  <div class="row">
   <div class="card">
-   <div class="chead"><h2>کلاس‌های پیش‌رو</h2><a class="pill" href="{{ url('student/live-classes') }}">همه</a></div>
+   <div class="chead"><h2>کلاس‌های پیش‌رو</h2><div><a class="pill" href="{{ url('student/live-classes') }}">همه جلسات</a> <a class="pill" href="{{ route('student.videos.index') }}">ویدیوهای ضبط‌شده</a></div></div>
    @forelse ($sessions as $session)
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
-     <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ $session->session_type === 'onsite' ? 'حضوری' : 'آنلاین' }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
+     <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ in_array($session->session_type, ['onsite', 'in_person'], true) ? 'حضوری' : 'آنلاین' }} · {{ $session->classroom?->course?->title ?? $session->classroom?->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
      @if ($session->session_type === 'online')
       @php
        $joinReady = filled($session->meeting_url)
