@@ -194,7 +194,9 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
           setStatus('تریلر بارگذاری شد و در صف پردازش قرار گرفت.');
         }
       } else {
-        setStatus('ویدیو با موفقیت دریافت و در کتابخانه خصوصی ثبت شد. وضعیت اتصال ارائه‌دهنده: در انتظار قرارداد.');
+        setStatus(completed.status === 'ready'
+          ? 'ویدیو با موفقیت در فضای خصوصی دوره ذخیره شد؛ پخش آن بدون لینک SpotPlayer و برای دانش‌آموزان دارای دسترسی دوره فعال است.'
+          : 'ویدیو ثبت شد؛ اتصال ارائه‌دهنده SpotPlayer در انتظار قرارداد است.');
         window.setTimeout(() => window.location.reload(), 1600);
       }
     } catch (error) {
