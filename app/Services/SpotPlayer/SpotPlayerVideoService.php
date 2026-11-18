@@ -127,7 +127,6 @@ final class SpotPlayerVideoService
                 ]);
 
                 if (filled($video->external_id)) {
-                    if (filled($video->external_id)) {
                     $this->operations->waitForContract(
                             provider: 'spotplayer',
                             action: 'register_existing_video',
@@ -178,24 +177,26 @@ final class SpotPlayerVideoService
                     'staged_at' => now(),
                 ]);
 
-                $this->operations->waitForContract(
-                    provider: 'spotplayer',
-                    action: 'upload_video',
-                    entity: $video,
-                    safeRequestMeta: [
-                        'video_id' => $video->id,
-                        'local_course_id' => $video->course_id,
-                        'local_classroom_id' => $video->classroom_id,
-                        'storage_disk' => 'local',
-                        'storage_path' => $storagePath,
-                        'original_name' => $video->file_original_name,
-                        'mime_type' => $video->file_mime_type,
-                        'file_size_bytes' => $video->file_size_bytes,
-                        'sha256' => $video->file_sha256,
-                        'external_video_id_supplied' => filled($video->external_id),
-                    ],
-                    idempotencyKey: 'spotplayer:upload-video:'.$video->id.':'.$sha256,
-                );
+                if (filled($video->external_id)) {
+                    $this->operations->waitForContract(
+                        provider: 'spotplayer',
+                        action: 'upload_video',
+                        entity: $video,
+                        safeRequestMeta: [
+                            'video_id' => $video->id,
+                            'local_course_id' => $video->course_id,
+                            'local_classroom_id' => $video->classroom_id,
+                            'storage_disk' => 'local',
+                            'storage_path' => $storagePath,
+                            'original_name' => $video->file_original_name,
+                            'mime_type' => $video->file_mime_type,
+                            'file_size_bytes' => $video->file_size_bytes,
+                            'sha256' => $video->file_sha256,
+                            'external_video_id_supplied' => filled($video->external_id),
+                        ],
+                        idempotencyKey: 'spotplayer:upload-video:'.$video->id.':'.$sha256,
+                    );
+                }
 
                 return $video->refresh();
             });
