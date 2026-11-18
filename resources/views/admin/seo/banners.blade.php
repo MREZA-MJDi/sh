@@ -6,7 +6,8 @@
   $statusLabels = ['active' => 'فعال', 'draft' => 'پیش‌نویس', 'inactive' => 'غیرفعال'];
   $placementLabels = ['home_hero' => 'بنر اصلی صفحه خانه', 'sitewide' => 'سراسری در بلاگ', 'articles_top' => 'بالای فهرست مقاله‌ها', 'articles_sidebar' => 'ستون کناری مقاله'];
 @endphp
-@include('admin.seo.partials.workspace-tabs')\n<x-admin.page-head tone="shop" icon="image" title="بنرها و جایگاه‌های تبلیغاتی" desc="مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش">
+@include('admin.seo.partials.workspace-tabs')
+<x-admin.page-head tone="shop" icon="image" title="بنرها و جایگاه‌های تبلیغاتی" desc="مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش">
   <x-admin.btn icon="plus" data-modal-open="banner-modal">ثبت بنر جدید</x-admin.btn>
 </x-admin.page-head>
 
