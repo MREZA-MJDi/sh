@@ -113,14 +113,14 @@
               <label class="adm-field wide">
                 <span class="adm-label">فایل ویدیوی جلسه</span>
                 <input class="adm-input" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v" data-upload-file>
-                <small class="adm-muted">حداکثر {{ config('learning.max_lesson_mb') }} مگابایت</small>
+                <small class="adm-muted">حداکثر {{ config('learning.max_lesson_mb') }} مگابایت · MP4، MOV، MKV یا WebM</small>
               </label>
             </div>
             <div class="adm-actions" style="margin-top:12px">
               <button type="button" class="adm-btn adm-btn-primary" data-upload-start>بارگذاری ویدیو</button>
             </div>
             <div class="adm-progress" data-upload-progress hidden><div class="adm-progress-bar" data-upload-bar></div></div>
-            <p class="adm-muted" data-upload-status role="status" aria-live="polite">فایل‌ها به‌صورت امن و تکه‌ای ارسال می‌شوند.</p>
+            <p class="adm-muted" data-upload-status role="status" aria-live="polite">فایل‌ها به‌صورت امن و تکه‌ای ارسال می‌شوند. پس از انتخاب، پیش‌نمایش ویدیو همین‌جا نمایش داده می‌شود. اگر فایل یا شناسه SpotPlayer وارد نکنید، ویدیو فقط در کتابخانه خصوصی ذخیره می‌شود و تا آماده‌شدن اتصال، رایگان/بدون لینک پخش باقی می‌ماند.</p>
           </div>
 
           <div class="adm-divider"></div>
