@@ -44,9 +44,9 @@
     <x-admin.input label="شناسه X / Twitter" name="twitter_handle" :value="$settings->twitter_handle"/>
     <x-admin.input label="کد Google Search Console" name="google_site_verification" :value="$settings->google_site_verification"/>
     <x-admin.input label="کد Bing Webmaster" name="bing_site_verification" :value="$settings->bing_site_verification"/>
-    <x-admin.input label="تصویر Open Graph پیش‌فرض" name="default_og_image" type="file" accept="image/jpeg,image/png,image/webp"/>
-    <x-admin.input label="لوگوی سازمان" name="organization_logo" type="file" accept="image/jpeg,image/png,image/webp"/>
-    <x-admin.input label="نشان اعتماد" name="trust_badge" type="file" accept="image/jpeg,image/png,image/webp"/>
+    <x-admin.input label="تصویر Open Graph پیش‌فرض" name="default_og_image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="1200 / 630" data-preview-fit="cover"/>
+    <x-admin.input label="لوگوی سازمان" name="organization_logo" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="5 / 2" data-preview-fit="contain"/>
+    <x-admin.input label="نشان اعتماد" name="trust_badge" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="120 / 76" data-preview-fit="contain"/>
     <x-admin.textarea label="توضیح فوتر" name="footer_description" :value="$settings->footer_description" wide/>
 
 

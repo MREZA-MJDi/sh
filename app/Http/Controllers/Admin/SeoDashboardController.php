@@ -127,6 +127,7 @@ class SeoDashboardController extends Controller
             'banners' => $banners,
             'settings' => SeoSetting::current(),
             'activeBannerCount' => SeoBanner::active()->count(),
+            'homeHeroCount' => SeoBanner::query()->where('placement', 'home_hero')->count(),
             'draftBannerCount' => SeoBanner::query()->where('status', 'draft')->count(),
             'inactiveBannerCount' => SeoBanner::query()->where('status', 'inactive')->count(),
         ]);

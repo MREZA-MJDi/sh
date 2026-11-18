@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use App\Models\SeoBanner;
 
 class SaveSeoBannerRequest extends FormRequest
 {
@@ -37,6 +38,18 @@ class SaveSeoBannerRequest extends FormRequest
             $isInternalPath = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, chr(92));
             $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
             $isSafeExternalUrl = filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true);
+
+            if ($this->input('placement') === 'home_hero') {
+                $bannerId = $this->route('banner')?->id;
+                $heroCount = SeoBanner::query()
+                    ->where('placement', 'home_hero')
+                    ->when($bannerId, fn ($query) => $query->where('id', '!=', $bannerId))
+                    ->count();
+
+                if ($heroCount >= 3) {
+                    $validator->errors()->add('placement', 'اسلایدر صفحه اصلی حداکثر ۳ تصویر دارد؛ یکی از اسلایدهای فعلی را ویرایش یا حذف کنید.');
+                }
+            }
 
             if ($url !== '' && ! $isInternalPath && ! $isSafeExternalUrl) {
                 $validator->errors()->add('target_url', 'نشانی مقصد باید یک مسیر داخلی یا نشانی کامل HTTP/HTTPS معتبر باشد.');
