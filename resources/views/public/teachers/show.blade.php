@@ -10,8 +10,12 @@
             <a href="{{ route('home') }}">خانه</a> ‹ <a href="{{ route('public.teachers.index') }}">مدرسان</a> ‹ {{ $teacher->name }}
         </div>
         <div style="display:flex;align-items:center;gap:22px;margin-top:18px;flex-wrap:wrap">
-            <div class="ac-avatar" style="width:96px;height:96px;font-size:38px;margin:0;box-shadow:0 10px 25px rgba(0,0,0,0.25)">
-                {{ mb_substr($teacher->name, 0, 1) }}
+            <div class="ac-avatar" style="width:96px;height:96px;font-size:38px;margin:0;box-shadow:0 10px 25px rgba(0,0,0,0.25);overflow:hidden">
+                @if($teacher->avatarUrl())
+                    <img src="{{ $teacher->avatarUrl() }}" alt="{{ $teacher->name }}" style="width:100%;height:100%;object-fit:cover">
+                @else
+                    {{ mb_substr($teacher->name, 0, 1) }}
+                @endif
             </div>
             <div>
                 <h1 style="margin:0 0 6px">{{ $teacher->name }}</h1>
@@ -79,7 +83,13 @@
 
     <aside class="ac-card ac-sticky">
         <div style="text-align:center;padding:10px 0 16px;border-bottom:1px solid var(--ac-line)">
-            <div class="ac-avatar" style="width:78px;height:78px;font-size:28px">{{ mb_substr($teacher->name, 0, 1) }}</div>
+            <div class="ac-avatar" style="width:78px;height:78px;font-size:28px;overflow:hidden">
+                @if($teacher->avatarUrl())
+                    <img src="{{ $teacher->avatarUrl() }}" alt="{{ $teacher->name }}" style="width:100%;height:100%;object-fit:cover">
+                @else
+                    {{ mb_substr($teacher->name, 0, 1) }}
+                @endif
+            </div>
             <h3 style="margin:8px 0 4px;font-size:18px">{{ $teacher->name }}</h3>
             <span class="ac-pill">{{ $teacher->subject ?: 'مدرس' }}</span>
         </div>

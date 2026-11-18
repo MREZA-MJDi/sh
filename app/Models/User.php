@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -17,7 +18,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'phone', 'password', 'is_active', 'grade', 'academic_grade_id', 'subject',
-        'profile_note', 'external_student_id', 'legacy_login', 'permissions_customized',
+        'profile_note', 'external_student_id', 'legacy_login', 'permissions_customized', 'avatar_path',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -186,4 +187,12 @@ class User extends Authenticatable
         return $this->hasMany(CourseEnrollment::class, 'student_id');
     }
 
+    public function avatarUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->avatar_path);
+    }
 }

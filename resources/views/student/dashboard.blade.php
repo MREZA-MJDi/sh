@@ -11,7 +11,11 @@
 @endphp
 <section class="page" id="overview">
  <div class="hero">
-  <svg class="av" viewBox="0 0 120 120"><use href="#avatar"/></svg>
+  @if($student->avatarUrl())
+   <img class="av" src="{{ $student->avatarUrl() }}" alt="{{ $student->name }}" style="border-radius:24px;object-fit:cover">
+  @else
+   <svg class="av" viewBox="0 0 120 120"><use href="#avatar"/></svg>
+  @endif
   <div class="txt">
    <h2>سلام {{ $student->name }}!</h2>
    <p>{{ $classroom_count }} کلاس فعال و {{ $pending_homework_count }} تکلیف ثبت‌نشده داری.</p>
