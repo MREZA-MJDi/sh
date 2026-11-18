@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\SpotPlayerVideo;
@@ -47,6 +48,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'name' => 'کلاس مدرس',
             'status' => 'active',
         ]);
+        $classSession = $this->sessionFor($classroom);
 
         $start = $this->actingAs($teacher)->postJson(route('admin.uploads.start'), [
             'target' => 'spotplayer_video',
@@ -55,6 +57,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'total_bytes' => 128,
             'title' => 'جلسه اول',
             'classroom_id' => $classroom->id,
+            'class_session_id' => $classSession->id,
         ])->assertOk();
 
         $uploadId = $start->json('upload_id');
@@ -76,6 +79,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
         $this->assertSame('processing', $video->status);
         Queue::assertPushed(ProcessCourseRecordingVideo::class, fn ($job) => $job->videoId === $video->id);
         $this->assertSame($classroom->id, $video->classroom_id);
+        $this->assertSame($classSession->id, $video->class_session_id);
         $this->assertStringStartsWith('private/course-videos/', $video->file_path);
         $this->assertSame(128, $video->file_size_bytes);
         $this->assertNotNull($video->file_sha256);
@@ -101,12 +105,21 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'learning_features' => ['recorded_video' => true],
             'status' => 'draft',
         ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس ادامه آپلود',
+            'status' => 'active',
+        ]);
+        $classSession = $this->sessionFor($classroom);
 
         $start = $this->actingAs($teacher)->postJson(route('admin.uploads.start'), [
             'target' => 'spotplayer_video',
             'target_id' => $course->id,
             'total_bytes' => 128,
             'title' => 'جلسه قابل ادامه',
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $classSession->id,
         ])->assertOk();
 
         $uploadId = $start->json('upload_id');
@@ -248,6 +261,13 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'spotplayer_course_id' => 'spot-course-session-owner',
             'status' => 'published',
         ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $owner->id,
+            'name' => 'کلاس مالک نشست',
+            'status' => 'active',
+        ]);
+        $classSession = $this->sessionFor($classroom);
 
         $start = $this->actingAs($owner)->postJson(route('admin.uploads.start'), [
             'target' => 'spotplayer_video',
@@ -255,6 +275,8 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'total' => 1,
             'total_bytes' => 64,
             'title' => 'جلسه خصوصی',
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $classSession->id,
         ])->assertOk();
 
         $uploadId = $start->json('upload_id');
@@ -270,6 +292,19 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'total' => 1,
             'filename' => 'private.mp4',
         ])->assertNotFound();
+    }
+
+    private function sessionFor(Classroom $classroom): ClassSession
+    {
+        return ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه آزمایشی',
+            'session_type' => 'online',
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(2),
+            'meeting_provider' => 'jitsi',
+            'status' => 'scheduled',
+        ]);
     }
 
     private function userWithRole(string $role): User
