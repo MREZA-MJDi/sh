@@ -27,11 +27,11 @@
    </div></div>
   </div>
   <div class="card"><div class="chead"><h2>آخرین نمرات</h2></div>
-   <div class="tw"><table class="tbl"><tr><th>آزمون</th><th>درس</th><th>نمره</th></tr>
+   <div class="tw"><table class="tbl"><tr><th>آزمون</th><th>درس</th><th>نمره</th><th>بازخورد مدرس</th></tr>
     @forelse ($results as $result)
-     <tr><td>{{ $result->exam?->title ?? 'آزمون' }}</td><td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td><td>{{ $result->score === null ? '—' : $result->score.' / '.$result->max_score }}</td></tr>
+     <tr><td>{{ $result->exam?->title ?? 'آزمون' }}</td><td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td><td>{{ $result->score === null ? '—' : $result->score.' / '.$result->max_score }}</td><td>{{ $result->feedback ?: '—' }}</td></tr>
     @empty
-     <tr><td colspan="3">نتیجه‌ای ثبت نشده است.</td></tr>
+     <tr><td colspan="4">نتیجه‌ای ثبت نشده است.</td></tr>
     @endforelse
    </table></div>
   </div>

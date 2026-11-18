@@ -82,8 +82,8 @@ final class CourseLearningProgressTest extends TestCase
             $compiledLines = file($compiledView);
         }
         $response->assertOk()
-            ->assertSee('پیشرفت دوره‌های من')
-            ->assertSee('دوره پیشرفت');
+            ->assertSee('کلاس‌های فعال')
+            ->assertSee('/student/courses', false);
 
         $this->actingAs($guardian)
             ->get(route('guardian.dashboard'))

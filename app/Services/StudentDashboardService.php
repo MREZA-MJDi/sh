@@ -173,6 +173,50 @@ final class StudentDashboardService
         ];
     }
 
+    public function buildSummary(User $student): array
+    {
+        // The dashboard is a notification hub: fetch aggregate counts only.
+        // Full records stay on their dedicated, independently paginated pages.
+        $classroomIds = $this->learningAccess->activeClassroomIds($student);
+        $assignmentClassroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
+
+        $classroomCount = (clone $classroomIds)->count();
+
+        $upcomingSessionCount = ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'scheduled')
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '>=', now())
+            ->count();
+
+        $homeworkQuery = Homework::query()
+            ->whereIn('classroom_id', clone $assignmentClassroomIds)
+            ->where('status', 'published');
+
+        $homeworkCount = (clone $homeworkQuery)->count();
+        $pendingHomeworkCount = (clone $homeworkQuery)
+            ->whereDoesntHave('submissions', fn (Builder $query) => $query->where('student_id', $student->id))
+            ->count();
+
+        $resultCount = ExamResult::query()
+            ->where('student_id', $student->id)
+            ->count();
+
+        $announcementCount = Announcement::query()
+            ->where('status', 'published')
+            ->whereIn('audience', ['all', 'students'])
+            ->count();
+
+        return [
+            'classroom_count' => $classroomCount,
+            'upcoming_session_count' => $upcomingSessionCount,
+            'homework_count' => $homeworkCount,
+            'pending_homework_count' => $pendingHomeworkCount,
+            'result_count' => $resultCount,
+            'announcement_count' => $announcementCount,
+        ];
+    }
+
     /**
      * Fetch only the data required by the assignments page.
      *
