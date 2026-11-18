@@ -35,6 +35,7 @@ final class AdminCourseWorkflowTest extends TestCase
             ->assertSee('امکاناتی که دانش‌آموز در صفحه دوره می‌بیند');
 
         $course = $this->course();
+        $course->update(['learning_features' => ['recorded_video' => true]]);
 
         $this->actingAs($admin)
             ->get(route('admin.courses.edit', $course))
