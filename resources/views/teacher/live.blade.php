@@ -29,6 +29,9 @@
     @php
         $isLive = $session->starts_at && $session->starts_at->lte(now()) && (! $session->ends_at || $session->ends_at->gte(now()));
         $joinUrl = $session->meeting_url ?: $session->classroom?->meeting_url;
+        if (! is_string($joinUrl) || ! str_starts_with(strtolower($joinUrl), 'https://')) {
+            $joinUrl = null;
+        }
         $provider = $providerNames[$session->meeting_provider] ?? ($session->meeting_provider ?: 'نامشخص');
     @endphp
     <article class="c teacher-live-session-card">
