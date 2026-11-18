@@ -30,6 +30,7 @@ final class SessionController extends Controller
     {
         $demoPassword = config('demo.password');
         $showDemoAccounts = config('demo.enabled')
+            && config('demo.login_cards_enabled')
             && app()->environment(['local', 'testing'])
             && is_string($demoPassword)
             && mb_strlen($demoPassword) >= 12;
