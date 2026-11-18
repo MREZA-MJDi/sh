@@ -60,12 +60,11 @@ final class SeoWorkspaceSeederTest extends TestCase
             ->get(route('admin.students.index'))
             ->assertForbidden();
 
-        $this->actingAs($seo)
-            ->post(route('login.store'), [
-                'email' => 'seo.operator@example.test',
-                'password' => 'Secure-Seo-Password-2026!',
-            ])
-            ->assertRedirect(route('admin.seo.index'));
+        auth()->logout();
+        $this->post(route('login.store'), [
+            'email' => 'seo.operator@example.test',
+            'password' => 'Secure-Seo-Password-2026!',
+        ])->assertRedirect(route('admin.seo.index'));
     }
 
     public function test_seo_workspace_seeder_is_repeatable_and_does_not_overwrite_existing_editorial_content(): void
