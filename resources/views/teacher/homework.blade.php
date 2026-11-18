@@ -22,13 +22,11 @@
 @empty<p>هنوز تکلیفی برای کلاس‌های شما ثبت نشده است.</p>@endforelse{{ $homework->links() }}</section></div>
 <section class="c teacher-review-panel"><div class="teacher-section-head"><div><h2>بررسی و نمره‌دهی پاسخ‌ها</h2><p>فقط پاسخ‌های کلاس‌های تخصیص‌یافته به شما نمایش داده می‌شوند.</p></div></div>
 @forelse($submissions as $submission)
-<div class="teacher-review-row"><div><strong>{{ $submission->student?->name }}</strong><small>{{ $submission->homework?->title }}</small></div>
 @if(auth()->user()->hasPermissionTo('homework.grade'))
-<form method="POST" action="{{ route('teacher.homework.review',$submission) }}" class="teacher-review-form">@csrf @method('PATCH')<input class="grade" type="number" min="0" max="20" step="0.25" name="score" value="{{ $submission->score }}" placeholder="نمره" aria-label="نمره"><input type="text" name="feedback" maxlength="30000" required placeholder="بازخورد مدرس" aria-label="بازخورد مدرس"><button class="b s" type="submit">ثبت نتیجه</button></form>
+<form method="POST" action="{{ route('teacher.homework.review',$submission) }}" class="teacher-review-row">@csrf @method('PATCH')<div><strong>{{ $submission->student?->name }}</strong><small>{{ $submission->homework?->title }}</small></div><input class="grade" type="number" min="0" max="20" step="0.25" name="score" value="{{ $submission->score }}" placeholder="نمره" aria-label="نمره"><input type="text" name="feedback" maxlength="30000" required placeholder="بازخورد مدرس" aria-label="بازخورد مدرس"><button class="b s" type="submit">ثبت نتیجه</button></form>
 @else
-<span class="bd am">فقط مشاهده</span>
+<div class="teacher-review-row"><div><strong>{{ $submission->student?->name }}</strong><small>{{ $submission->homework?->title }}</small></div><span class="bd am">فقط مشاهده</span></div>
 @endif
-</div>
 @empty<p>پاسخی برای بررسی در این صفحه وجود ندارد.</p>@endforelse{{ $submissions->links() }}
 </section>
 @endsection
