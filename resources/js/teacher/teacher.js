@@ -138,7 +138,7 @@ import '../shared/iranian-locale.js';
   var ms = $('.msgs'); if (ms) ms.scrollTop = ms.scrollHeight;
 
   /* جلوگیری از ارسال دوباره؛ قفل تا زمان بازگشت صفحه حفظ می‌شود. */
-  $('form').forEach(function (f) {
+  $$('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       if (f.getAttribute('data-busy')) { e.preventDefault(); return; }
       f.setAttribute('data-busy', '1');
@@ -148,7 +148,7 @@ import '../shared/iranian-locale.js';
     });
   });
   window.addEventListener('pageshow', function () {
-    $('form[data-busy]').forEach(function (f) {
+    $$('form[data-busy]').forEach(function (f) {
       f.removeAttribute('data-busy');
       $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         button.disabled = false;
