@@ -107,10 +107,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/recordings', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.videos') : redirect()->route('admin.spotplayer.index'))
         ->middleware('permission:integrations.manage,videos.manage.assigned')
         ->name('recordings.legacy');
-    Route::get('/meetings', fn () => redirect()->route('admin.parent-meetings.index'))
+    Route::get('/meetings', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.meetings') : redirect()->route('admin.parent-meetings.index'))
         ->middleware('permission:classes.manage,classes.manage.assigned')
         ->name('meetings.legacy');
-    Route::get('/parent-messages', fn () => redirect()->route('admin.messages.index'))
+    Route::get('/parent-messages', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.messages.index') : redirect()->route('admin.messages.index'))
         ->middleware('permission:messages.view.all,messages.view.assigned')
         ->name('parent-messages.legacy');
 
