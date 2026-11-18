@@ -73,6 +73,7 @@ final class CourseController extends Controller
             ->paginate(12);
 
         $user = auth()->user();
+        $grades = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->pluck('name', 'name')->all();
 
         $visibleCourseIds = $workspace->coursesQueryFor($user)->select('courses.id');
         $stats = [
@@ -90,7 +91,7 @@ final class CourseController extends Controller
         $canManage = $user->hasPermissionTo('courses.manage');
         $canManageContent = $user->hasAnyPermission(['courses.manage', 'courses.content.manage.assigned']);
 
-        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent'));
+        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent', 'grades'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
