@@ -43,7 +43,7 @@ final class PublicSiteController extends Controller
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
             ->orderBy('name')->limit(8)->get(['id', 'name', 'subject']);
 
-        $articles = SeoArticle::published()->latest('published_at')->limit(3)->get();
+        $articles = SeoArticle::published()->with('author')->latest('published_at')->limit(3)->get();
         $testimonials = SeoTestimonial::query()->where('status', 'published')->orderBy('sort_order')->orderByDesc('id')->limit(6)->get();
         $categories = Course::query()->where('status', 'published')->whereNotNull('subject')
             ->where('subject', '<>', '')->distinct()->orderBy('subject')->pluck('subject');
