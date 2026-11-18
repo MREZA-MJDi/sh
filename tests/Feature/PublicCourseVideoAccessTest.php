@@ -144,8 +144,10 @@ final class PublicCourseVideoAccessTest extends TestCase
         $course = $this->makeCourse();
         $this->grantActiveEnrollment($student, $course);
 
+        $teacher = User::factory()->create();
         $classroom = Classroom::query()->create([
             'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
             'name' => 'کلاس ریاضی',
             'status' => 'active',
         ]);
@@ -191,8 +193,10 @@ final class PublicCourseVideoAccessTest extends TestCase
         $course = $this->makeCourse();
         $this->grantActiveEnrollment($student, $course);
 
+        $teacher = User::factory()->create();
         $classroom = Classroom::query()->create([
             'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
             'name' => 'کلاس اختصاصی',
             'status' => 'active',
         ]);
