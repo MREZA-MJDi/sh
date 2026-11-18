@@ -9,10 +9,8 @@ use App\Http\Requests\Admin\UpdateStudentRequest;
 use App\Http\Requests\Admin\UpdateParentRequest;
 use App\Http\Requests\Admin\UpdateUserStatusRequest;
 use App\Models\Classroom;
-use App\Models\Course;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
-use App\Services\Admin\TeacherAccessService;
 use App\Services\Admin\UserManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,12 +20,8 @@ class UserController extends Controller
 {
     private const MANAGED_ROLES = ['student', 'teacher', 'parent'];
 
-    public function index(
-        Request $request,
-        string $role,
-        TeacherAccessService $teacherAccess,
-        ClassroomWorkspaceService $workspace
-    ): View {
+    public function index(Request $request, string $role, ClassroomWorkspaceService $workspace): View
+    {
         abort_unless(in_array($role, self::MANAGED_ROLES, true), 404);
 
         $teacherView = $workspace->isTeacher($request->user());
@@ -37,8 +31,8 @@ class UserController extends Controller
         $courseIds = $workspace->coursesQueryFor($request->user())->select('courses.id');
 
         $users = User::query()
-            ->with(['roles.permissions', 'permissions', 'assignedCourses'])
             ->when($role === 'student', fn ($query) => $query->with('enrolledClasses:id,name'))
+            ->when($role === 'teacher', fn ($query) => $query->with('assignedCourses:id,title,teacher_id'))
             ->when($role === 'parent', fn ($query) => $query->with('children:id,name'))
             ->whereHas('roles', fn ($roles) => $roles->where('name', $role))
             ->when($teacherView, fn ($query) => $query->where(function ($scope) use ($classroomIds, $courseIds): void {
@@ -59,9 +53,6 @@ class UserController extends Controller
         $classrooms = collect();
         $selectedChildren = collect();
 
-        // Only prepare the selector data required by the active user form.
-        // This avoids loading the full student roster on teacher pages or the
-        // classroom list on parent/teacher pages.
         if ($role === 'parent') {
             $previousChildIds = array_slice((array) session()->get('_old_input.child_ids', []), 0, 30);
 
@@ -79,33 +70,17 @@ class UserController extends Controller
             $classrooms = $workspace->queryFor($request->user())->where('status', 'active')
                 ->orderBy('name')->get(['id', 'name']);
         }
-        $courses = $role === 'teacher'
-            ? Course::orderBy('title')->get(['id', 'title', 'teacher_id'])
-            : collect();
 
-        $teacherAccessGroups = TeacherAccessService::ACCESS_GROUPS;
-        $teacherSelectedGroups = $role === 'teacher'
-            ? $users->getCollection()->mapWithKeys(fn (User $teacher) => [
-                $teacher->id => $teacherAccess->selectedGroups($teacher),
-            ])
-            : collect();
-
-        return view('admin.users.index', compact(
-            'users', 'role', 'classrooms', 'courses', 'selectedChildren',
-            'teacherAccessGroups', 'teacherSelectedGroups'
-        ));
+        return view('admin.users.index', compact('users', 'role', 'classrooms', 'selectedChildren'));
     }
 
-    public function store(
-        StoreUserRequest $request,
-        string $role,
-        UserManagementService $users
-    ): RedirectResponse {
+    public function store(StoreUserRequest $request, string $role, UserManagementService $users): RedirectResponse
+    {
         abort_unless(in_array($role, self::MANAGED_ROLES, true), 404);
         $users->create($request->validated(), $role, $request->user());
 
         return back()->with('success', $role === 'teacher'
-            ? 'مدرس ساخته شد و دوره‌ها و دسترسی‌های انتخاب‌شده برای او ثبت شد. برای این حساب گذرواژه اولیه تعیین شده است؛ پیامک خودکار در سامانه فعال نیست.'
+            ? 'حساب مدرس ایجاد شد؛ دسترسی‌های پایه از نقش مدرس دریافت می‌شود و تخصیص دوره از بخش مدیریت دوره‌ها انجام می‌شود.'
             : 'کاربر با موفقیت ایجاد شد.');
     }
 
@@ -114,11 +89,10 @@ class UserController extends Controller
         User $teacher,
         UserManagementService $users
     ): RedirectResponse {
-        $users->updateTeacher($teacher, $request->validated(), $request->user());
+        $users->updateTeacher($teacher, $request->validated());
 
-        return back()->with('success', 'اطلاعات، دوره‌ها و دسترسی‌های مدرس به‌روزرسانی شد.');
+        return back()->with('success', 'اطلاعات حساب مدرس به‌روزرسانی شد.');
     }
-
 
     public function updateStudent(
         UpdateStudentRequest $request,

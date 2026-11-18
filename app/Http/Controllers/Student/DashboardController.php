@@ -23,10 +23,8 @@ final class DashboardController extends Controller
 
     public function homework(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
-
         return view('student.assignments', [
-            'homeworks' => $data['homeworks'],
+            'homeworks' => $dashboard->assignments($request->user()),
             'student' => $request->user(),
         ]);
     }
@@ -69,8 +67,8 @@ final class DashboardController extends Controller
 
     public function results(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
-        $results = $data['results'];
+        $student = $request->user();
+        $results = $dashboard->results($student);
         $scored = $results->filter(fn ($result) => $result->score !== null && $result->max_score > 0);
         $courseScores = $scored->groupBy(fn ($result) => $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? 'سایر')
             ->map(fn ($items, $name) => [
@@ -82,38 +80,30 @@ final class DashboardController extends Controller
             'results' => $results,
             'averageScore' => $scored->isNotEmpty() ? round($scored->avg(fn ($result) => $result->score / $result->max_score * 20), 1) : null,
             'highestScore' => $scored->isNotEmpty() ? round($scored->max(fn ($result) => $result->score / $result->max_score * 20), 1) : null,
-            'submittedHomeworkCount' => $data['homeworks']->filter(fn ($homework) => $homework->submitted_by_student_count > 0)->count(),
+            'submittedHomeworkCount' => $dashboard->submittedHomeworkCount($student),
             'courseScores' => $courseScores,
         ]);
     }
 
     public function resources(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
-
-        return view('student.resources', ['resources' => $data['resources']]);
+        return view('student.resources', [
+            'resources' => $dashboard->resources($request->user()),
+        ]);
     }
 
     public function liveClasses(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
-
         return view('student.live-classes', [
-            'sessions' => $data['upcoming_sessions']->where('session_type', 'online')->values(),
-            'classrooms' => $data['classrooms'],
+            'sessions' => $dashboard->liveClasses($request->user()),
         ]);
     }
 
     public function achievements(Request $request, StudentDashboardService $dashboard): View
     {
-        $data = $dashboard->build($request->user());
-
-        return view('student.achievements', [
-            'course_progress' => $data['course_progress'],
-            'attendance_rate' => $data['attendance_rate'],
-            'results' => $data['results'],
-        ]);
+        return view('student.achievements', $dashboard->achievements($request->user()));
     }
+
     public function library(Request $request): View
     {
         $student = $request->user();

@@ -815,3 +815,20 @@ a.row:hover{background:var(--bg)}
   .top{gap:8px;padding:9px 12px}
   .logout-btn{font-size:12px}
 }
+
+
+/* Responsive teacher forms and compact grading rows. */
+.recipient-search{display:flex;gap:8px;align-items:center;min-width:0}
+.recipient-search input{flex:1;min-width:0}
+.teacher-help{margin:0;color:var(--mu);font-size:12px}
+.c>form.row{flex-wrap:wrap;align-items:center}
+.c>form.row input{width:auto;min-width:0;flex:1 1 140px}
+.c>form.row input.grade{flex:0 0 76px;width:76px}
+@media(max-width:640px){
+ .recipient-search{align-items:stretch;flex-direction:column}
+ .recipient-search .b{width:100%}
+ .c>form.row{align-items:stretch}
+ .c>form.row>div{flex:1 1 100%}
+ .c>form.row input{flex:1 1 100%;width:100%}
+ .c>form.row input.grade{flex:1 1 76px;width:76px}
+}

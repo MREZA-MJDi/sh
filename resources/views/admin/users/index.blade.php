@@ -8,8 +8,6 @@
   $rolePlural = ['student' => 'students', 'teacher' => 'teachers', 'parent' => 'parents'];
   $roleLabel = $roleLabels[$role] ?? 'کاربران';
   $classOptions = $classrooms->pluck('name', 'id')->all();
-  $courseOptions = $courses->pluck('title', 'id')->all();
-  $teacherAccessOptions = collect($teacherAccessGroups)->mapWithKeys(fn ($group, $key) => [$key => $group['label']])->all();
   $createAction = route('admin.'.$rolePlural[$role].'.store');
   $canManage = ! $teacherView && auth()->user()->hasPermissionTo('users.manage');
 @endphp
@@ -56,8 +54,6 @@
             'profile_note' => $user->profile_note,
             'status' => $user->is_active ? 'active' : 'pending',
             'classroom_ids' => $role === 'student' ? $user->enrolledClasses->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
-            'course_ids' => $role === 'teacher' ? $user->assignedCourses->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
-            'teacher_access' => $role === 'teacher' ? collect($teacherSelectedGroups[$user->id] ?? [])->filter()->keys()->values()->all() : [],
             'child_ids' => $role === 'parent' ? $user->children->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
             'child_ids_labels' => $role === 'parent' ? $user->children->pluck('name')->values()->all() : [],
           ];
@@ -105,9 +101,7 @@
     <x-admin.input label="درس / تخصص" name="subject" required/>
     <x-admin.textarea label="یادداشت پروفایل" name="profile_note" wide/>
     <x-admin.select label="وضعیت حساب" name="status" :options="['active' => 'فعال', 'pending' => 'در انتظار تأیید']" required/>
-    <x-admin.chips label="دوره‌های تخصیص‌یافته" name="course_ids" :options="$courseOptions"/>
-    <x-admin.chips label="دسترسی‌ها" name="teacher_access" :options="$teacherAccessOptions"/>
-    <div class="wide"><b>گروه‌های دسترسی مدرس</b><ul class="adm-list">@foreach($teacherAccessGroups as $group)<li>{{ $group['label'] }}</li>@endforeach</ul></div>
+    <p class="adm-muted wide">دسترسی‌های پایه از نقش مدرس دریافت می‌شود. تخصیص دوره و کلاس از بخش‌های آموزشی مدیریت می‌شود.</p>
   @else
     <div class="wide" data-student-lookup data-remote-lookup data-endpoint="{{ route('admin.lookups.students') }}">
       <label class="adm-label" for="parent-student-search">جستجوی فرزند بر اساس نام یا شماره تماس</label>

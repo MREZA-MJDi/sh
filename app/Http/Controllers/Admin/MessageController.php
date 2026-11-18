@@ -17,13 +17,17 @@ class MessageController extends Controller
     public function index(Request $request, MessageWorkspaceService $workspace): View
     {
         $messages = $workspace->queryFor($request->user())
-            ->with(['sender', 'recipient', 'student', 'replies.sender'])
+            ->with(['sender:id,name', 'recipient:id,name', 'student:id,name'])
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()->paginate(15)->withQueryString();
 
         $selected = $request->filled('message')
             ? $workspace->findVisible($request->user(), $request->integer('message'))
             : $messages->first();
+
+        if ($selected) {
+            $selected->loadMissing('replies.sender:id,name');
+        }
 
         return view('admin.messages.index', compact('messages', 'selected'));
     }

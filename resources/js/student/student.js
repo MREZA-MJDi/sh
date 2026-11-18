@@ -50,12 +50,23 @@
     });
   });
 
-  /* فرم‌ها: جلوگیری از ارسال مجدد (دوبار کلیک) */
-  $$('form').forEach(function (f) {
+  /* فرم‌ها: جلوگیری از ارسال مجدد تا پایان درخواست و بازگشت صفحه. */
+  $('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       if (f.dataset.busy) { e.preventDefault(); return; }
       f.dataset.busy = '1';
-      setTimeout(function () { delete f.dataset.busy; }, 1500);
+      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+        // Preserve the clicked submitter so name/value fields remain in the request.
+        if (button !== e.submitter) button.disabled = true;
+      });
+    });
+  });
+  window.addEventListener('pageshow', function () {
+    $('form[data-busy]').forEach(function (f) {
+      delete f.dataset.busy;
+      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+        button.disabled = false;
+      });
     });
   });
 

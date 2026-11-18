@@ -82,6 +82,49 @@ final class ParentMeetingWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_parent_meeting_lookup_is_scoped_and_returns_only_active_guardians(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $student->update(['name' => 'دانش‌آموز هدف']);
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس جستجوی جلسه',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $otherTeacher = $this->userWithRole('teacher');
+        $otherStudent = $this->userWithRole('student');
+        $otherStudent->update(['name' => 'دانش‌آموز خارج از کلاس']);
+        $otherClassroom = Classroom::query()->create([
+            'teacher_id' => $otherTeacher->id,
+            'name' => 'کلاس مدرس دیگر',
+            'status' => 'active',
+        ]);
+        $otherClassroom->students()->attach($otherStudent->id);
+
+        $this->actingAs($teacher)
+            ->getJson(route('admin.parent-meetings.lookup', [
+                'q' => 'دانش‌آموز',
+                'classroom_id' => $classroom->id,
+            ]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $student->id, 'name' => $student->name])
+            ->assertJsonFragment(['id' => $guardian->id, 'name' => $guardian->name])
+            ->assertJsonMissing(['id' => $otherStudent->id, 'name' => $otherStudent->name]);
+
+        $this->actingAs($teacher)
+            ->getJson(route('admin.parent-meetings.lookup', [
+                'q' => 'خارج',
+                'classroom_id' => $otherClassroom->id,
+            ]))
+            ->assertNotFound();
+    }
+
     public function test_parent_meeting_list_is_scoped_to_the_selected_child(): void
     {
         $guardian = $this->userWithRole('parent');

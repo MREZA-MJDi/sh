@@ -197,3 +197,30 @@ button:disabled{opacity:.45;cursor:not-allowed}
  .trk{align-items:flex-start}
  .tag{white-space:normal}
 }
+
+
+/* Assignment page: accessible feedback, forms and compact mobile rows. */
+.student-alert{padding:12px 16px;border:1px solid var(--panel-b);border-radius:16px;background:var(--panel);box-shadow:var(--in);line-height:1.8}
+.student-alert p{margin:0}
+.student-alert ul{margin:6px 0 0;padding-inline-start:22px}
+.student-alert.is-success{border-color:rgba(22,137,90,.35);color:var(--gn,#16895a)}
+.student-alert.is-error{border-color:rgba(200,55,45,.4);color:#b8322a;background:rgba(255,235,232,.82)}
+.assignment-form{display:grid;gap:10px;min-width:0;margin-top:10px;padding:12px;border:1px solid var(--panel-b);border-radius:14px;background:var(--panel)}
+.assignment-form textarea,.assignment-form input[type=file]{width:100%;min-width:0;padding:10px 12px;border:1px solid var(--panel-b);border-radius:12px;background:var(--panel);color:var(--text);font:inherit}
+.assignment-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.assignment-files a,.assignment-files button{font-size:12px}
+.assignment-feedback{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(63,142,156,.14);line-height:1.8}
+.assignment-table td{vertical-align:top}
+.assignment-table .assignment-action{min-width:220px}
+.assignment-table .assignment-title{font-weight:700}
+.assignment-table .assignment-meta{display:block;color:var(--muted);font-size:12px}
+@media(max-width:640px){
+ .assignment-table thead{display:none}
+ .assignment-table,.assignment-table tbody,.assignment-table tr,.assignment-table td{display:block;width:100%}
+ .assignment-table tr{padding:12px 0;border-top:1px solid var(--panel-b)}
+ .assignment-table td{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;padding:7px 4px;border:0}
+ .assignment-table td:before{content:attr(data-label);font-size:12px;font-weight:700;color:var(--muted)}
+ .assignment-table td.assignment-action{display:block;min-width:0}
+ .assignment-table td.assignment-action:before{display:block;margin-bottom:8px}
+ .assignment-form .btn{width:100%}
+}

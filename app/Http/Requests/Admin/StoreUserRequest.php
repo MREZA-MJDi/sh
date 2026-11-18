@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
 use App\Models\User;
-use App\Services\Admin\TeacherAccessService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -22,13 +21,9 @@ class StoreUserRequest extends FormRequest
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        if ($this->route('role') === 'teacher') {
-            $this->merge([
-                'phone' => preg_replace('/[\\s-]+/u', '', trim($digits)) ?? trim($digits),
-                'teacher_access' => $this->input('teacher_access', []),
-                'course_ids' => $this->input('course_ids', []),
-            ]);
-        }
+        $this->merge([
+            'phone' => preg_replace('/[\\s-]+/u', '', trim($digits)) ?? trim($digits),
+        ]);
     }
 
     public function authorize(): bool
@@ -70,10 +65,6 @@ class StoreUserRequest extends FormRequest
             'classroom_ids.*' => ['integer', 'distinct', 'exists:classrooms,id'],
             'child_ids' => [$role === 'parent' ? 'nullable' : 'prohibited', 'array', 'max:30'],
             'child_ids.*' => ['integer', 'distinct', 'exists:users,id'],
-            'course_ids' => [$isTeacher ? 'nullable' : 'prohibited', 'array', 'max:100'],
-            'course_ids.*' => ['integer', 'distinct', 'exists:courses,id'],
-            'teacher_access' => [$isTeacher ? 'nullable' : 'prohibited', 'array', 'max:'.count(TeacherAccessService::ACCESS_GROUPS)],
-            'teacher_access.*' => ['string', 'distinct', Rule::in(array_keys(TeacherAccessService::ACCESS_GROUPS))],
         ];
     }
 
