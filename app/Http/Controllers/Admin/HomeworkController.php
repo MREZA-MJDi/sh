@@ -84,7 +84,11 @@ class HomeworkController extends Controller
 
         $data = $request->validated();
         $classroom = $workspace->queryFor($request->user())->with('course')->findOrFail($data['classroom_id']);
-        abort_unless(! $classroom->course || $classroom->course->featureEnabled('assignments'), 422);
+        if ($classroom->course && ! $classroom->course->featureEnabled('assignments')) {
+            throw ValidationException::withMessages([
+                'classroom_id' => 'قابلیت ثبت تکلیف برای دوره انتخاب‌شده غیرفعال است. ابتدا آن را از تنظیمات قابلیت‌های دوره فعال کنید.',
+            ]);
+        }
 
         if ($homework->submissions()->exists() && (int) $data['classroom_id'] !== (int) $homework->classroom_id) {
             return back()->withInput()->withErrors(['classroom_id' => 'پس از دریافت پاسخ دانش‌آموز، انتقال تکلیف به کلاس دیگر مجاز نیست.']);
