@@ -30,7 +30,7 @@
     <form method="POST" action="{{ $formAction }}" class="adm-stack">
       @csrf
       @if($isEditing) @method('PATCH') @endif
-      <input type="hidden" name="delivery_type" value="spotplayer">
+      <input type="hidden" name="delivery_type" value="onsite">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
       <x-admin.panel title="۱. سربرگ صفحه عمومی دوره" desc="این بخش در بالای صفحه دوره، زیر مسیر خانه ← دوره‌ها نمایش داده می‌شود." data-tone="edu">
@@ -81,7 +81,7 @@
         <div data-course-upload data-target="teaser" data-course-id="{{ $course->id }}"
           data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
           data-complete-url="{{ route('admin.uploads.complete') }}" data-status-url="{{ route('admin.courses.teaser.status', $course) }}"
-          data-max-mb="{{ config('learning.max_teaser_mb') }}">
+          data-max-mb="{{ config('learning.max_teaser_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
           <label class="adm-field">
             <span class="adm-label">انتخاب فایل تریلر</span>
             <input class="adm-input" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v" data-upload-file>
@@ -105,7 +105,7 @@
         <x-admin.panel title="۵. ویدیوهای آموزشی دوره" desc="هر ویدیو به‌عنوان یک جلسه در کتابخانه ویدیویی دوره ثبت می‌شود؛ فایل خام در فضای خصوصی نگهداری خواهد شد." data-tone="edu">
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
-            data-complete-url="{{ route('admin.uploads.complete') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}">
+            data-complete-url="{{ route('admin.uploads.complete') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
             <div class="adm-form">
               <x-admin.input label="عنوان جلسه / ویدیو" name="video_title" placeholder="مثلاً جلسه اول: ساختار اتم" data-upload-title/>
               <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="مشترک در سطح کل دوره" data-upload-classroom/>
