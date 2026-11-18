@@ -215,19 +215,45 @@ final class PortalController extends Controller
 
     public function live(Request $request, ClassroomWorkspaceService $workspace, SkyroomService $skyroom): View
     {
-        $sessions = ClassSession::query()
-            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+        $teacher = $request->user();
+        $assignedClassrooms = $workspace->queryFor($teacher)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $query = ClassSession::query()
+            ->whereIn('classroom_id', $assignedClassrooms->modelKeys())
             ->where('session_type', 'online')
             ->where('status', 'scheduled')
-            ->where('ends_at', '>=', now())
+            ->where(function ($window): void {
+                $window->where('ends_at', '>=', now())
+                    ->orWhere(function ($withoutEnd): void {
+                        $withoutEnd->whereNull('ends_at')->where('starts_at', '>=', now());
+                    });
+            });
+
+        if ($request->filled('classroom_id')) {
+            $query->where('classroom_id', $assignedClassrooms->modelKeys())
+                ->where('classroom_id', $request->integer('classroom_id'));
+        }
+
+        if ($request->filled('provider') && in_array($request->input('provider'), ['skyroom', 'jitsi', 'bbb', 'link'], true)) {
+            $query->where('meeting_provider', $request->input('provider'));
+        }
+
+        $sessions = $query
             ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
             ->orderBy('starts_at')
             ->paginate(12)
             ->withQueryString();
 
         $skyroomHealth = $skyroom->health();
+        $filters = [
+            'classroom_id' => $request->integer('classroom_id') ?: null,
+            'provider' => $request->input('provider'),
+        ];
 
-        return view('teacher.live', compact('sessions', 'skyroomHealth'));
+        return view('teacher.live', compact('sessions', 'skyroomHealth', 'assignedClassrooms', 'filters'));
     }
 
     public function meetings(Request $request, ClassroomWorkspaceService $workspace): View
@@ -329,7 +355,7 @@ final class PortalController extends Controller
     {
         $data = $request->validate([
             'meeting_provider' => ['required', 'in:skyroom,jitsi,bbb,link'],
-            'meeting_url' => ['nullable', 'url', 'max:2048'],
+            'meeting_url' => ['nullable', 'url', 'starts_with:https://', 'max:2048'],
         ]);
 
         $record = ClassSession::query()
