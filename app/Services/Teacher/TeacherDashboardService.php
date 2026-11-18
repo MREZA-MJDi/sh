@@ -84,7 +84,7 @@ final class TeacherDashboardService
             ->whereIn('classroom_id', clone $classroomIds)
             ->where('status', 'scheduled')
             ->whereBetween('starts_at', [$calendarStart, $calendarEnd])
-            ->with(['classroom:id,name', 'classroom.course:id,title'])
+            ->with(['classroom:id,name', 'classroom.course:id,title,grade,season'])
             ->orderBy('starts_at')->get();
 
         $weekCalendar = collect(range(0, 6))->map(function (int $offset) use ($calendarSessions): array {
