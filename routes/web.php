@@ -146,6 +146,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
     Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
     Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
+    Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
 
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->middleware('permission:courses.manage')->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->middleware('permission:courses.manage')->name('courses.destroy');
