@@ -103,6 +103,11 @@
 
     @endphp
 
+    @if($bannersCollection->first()?->image_path)
+        @section('seo-image', Storage::disk('public')->url($bannersCollection->first()->image_path))
+        @section('seo-image-alt', $bannersCollection->first()->alt_text ?: $bannersCollection->first()->title)
+    @endif
+
     {{-- =========================================================
          HERO / BANNERS
     ========================================================= --}}
