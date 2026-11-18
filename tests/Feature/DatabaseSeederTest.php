@@ -69,7 +69,7 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseHas('courses', ['slug' => 'video-only-demo-course']);
         $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
         $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
-        $this->assertDatabaseCount('courses', 4);
+        $this->assertDatabaseCount('courses', 51);
         $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
         $this->assertDatabaseHas('courses', [
             'slug' => 'hybrid-live-demo-course',
