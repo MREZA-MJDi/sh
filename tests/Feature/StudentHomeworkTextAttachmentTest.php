@@ -127,7 +127,7 @@ final class StudentHomeworkTextAttachmentTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.homework.index', ['page' => 2]))
             ->assertOk()
-            ->assertSee('تکلیف صفحه 1');
+            ->assertViewHas('homeworks', fn ($homeworks) => $homeworks->total() === 13 && $homeworks->count() === 1);
     }
 
     /**
