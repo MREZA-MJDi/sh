@@ -237,6 +237,7 @@
          INTERACTIVE HOMEPAGE QUIZ
     ========================================================= --}}
 
+    @if(($homeQuizTotal ?? 0) > 0)
     <section class="home-quiz-section" id="homeQuiz">
 
         <div class="c">
@@ -372,6 +373,7 @@
         </div>
 
     </section>
+    @endif
 
     <style>
         /* =========================================================
