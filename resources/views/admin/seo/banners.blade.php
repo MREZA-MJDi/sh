@@ -2,7 +2,10 @@
 @section('title', 'بنرهای سئو')
 
 @section('content')
-@php $statusLabels = ['active' => 'فعال', 'draft' => 'پیش‌نویس', 'inactive' => 'غیرفعال']; @endphp
+@php
+  $statusLabels = ['active' => 'فعال', 'draft' => 'پیش‌نویس', 'inactive' => 'غیرفعال'];
+  $placementLabels = ['home_hero' => 'بنر اصلی صفحه خانه', 'sitewide' => 'سراسری در بلاگ', 'articles_top' => 'بالای فهرست مقاله‌ها', 'articles_sidebar' => 'ستون کناری مقاله'];
+@endphp
 <x-admin.page-head tone="shop" icon="image" title="بنرها و جایگاه‌های تبلیغاتی" desc="مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش">
   <x-admin.btn icon="plus" data-modal-open="banner-modal">ثبت بنر جدید</x-admin.btn>
 </x-admin.page-head>
@@ -23,6 +26,7 @@
           $fill = [
             'title' => $banner->title,
             'alt_text' => $banner->alt_text,
+            'image_position' => $banner->image_position ?: '50% 50%',
             'placement' => $banner->placement,
             'target_url' => $banner->target_url,
             'open_in_new_tab' => (bool) $banner->open_in_new_tab,
@@ -33,8 +37,8 @@
           ];
         @endphp
         <tr>
-          <td><b>{{ $banner->title }}</b><small>{{ $banner->alt_text }}</small></td>
-          <td>{{ $banner->placement }}</td>
+          <td><div style="display:flex;align-items:center;gap:10px"><img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" loading="lazy" style="width:76px;height:48px;object-fit:cover;border-radius:8px"><div><b>{{ $banner->title }}</b><small>{{ $banner->alt_text }}</small></div></div></td>
+          <td>{{ $placementLabels[$banner->placement] ?? $banner->placement }}</td>
           <td>{{ $banner->target_url ?: '—' }}</td>
           <td>{{ $banner->starts_at?->format('Y/m/d') ?? 'بدون شروع' }} تا {{ $banner->ends_at?->format('Y/m/d') ?? 'بدون پایان' }}</td>
           <td><x-admin.badge :tone="$banner->status === 'active' ? 'ok' : 'mute'">{{ $statusLabels[$banner->status] ?? $banner->status }}</x-admin.badge></td>
@@ -58,10 +62,11 @@
   <x-admin.input label="عنوان داخلی" name="title" required/>
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
   <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp"/>
-  <x-admin.select label="جایگاه نمایش" name="placement" :options="['sitewide' => 'سراسری', 'articles_top' => 'بالای مقاله‌ها', 'articles_sidebar' => 'ستون کناری مقاله‌ها']" required/>
+  <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%"/>
+  <x-admin.select label="جایگاه نمایش" name="placement" :options="$placementLabels" required/>
   <x-admin.input label="نشانی مقصد" name="target_url" placeholder="/courses یا https://..."/>
   <x-admin.switch label="باز شدن در زبانه جدید" name="open_in_new_tab"/>
-  <x-admin.input label="اولویت نمایش" name="sort_order" type="number" min="0"/>
+  <x-admin.input label="اولویت نمایش" name="sort_order" type="number" min="0" :value="0" required/>
   <x-admin.input label="شروع نمایش" name="starts_at" type="datetime-local"/>
   <x-admin.input label="پایان نمایش" name="ends_at" type="datetime-local"/>
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" required/>

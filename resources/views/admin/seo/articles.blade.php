@@ -33,6 +33,7 @@
             'keywords' => implode(', ', $article->keywords ?? []),
             'canonical_url' => $article->canonical_url,
             'image_alt' => $article->image_alt,
+            'image_position' => $article->image_position ?: '50% 50%',
             'status' => $article->status,
             'published_at' => $article->published_at?->format('Y-m-d\TH:i'),
           ];
@@ -72,6 +73,7 @@
   <x-admin.input label="Canonical URL" name="canonical_url" type="url" wide/>
   <x-admin.input label="تصویر شاخص" name="featured_image" type="file" accept="image/jpeg,image/png,image/webp"/>
   <x-admin.input label="متن جایگزین تصویر" name="image_alt"/>
+  <x-admin.input label="موقعیت تصویر شاخص (افقی و عمودی)" name="image_position" placeholder="50% 50%"/>
   <x-admin.input label="تصویر Open Graph" name="og_image" type="file" accept="image/jpeg,image/png,image/webp"/>
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" required/>
 </x-admin.modal>

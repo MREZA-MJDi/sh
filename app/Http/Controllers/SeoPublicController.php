@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
+use App\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -74,6 +75,11 @@ class SeoPublicController extends Controller
         $courses = $settings->robots_index
             ? Course::query()->where('status', 'published')->orderBy('updated_at')->limit(22000)->get(['slug', 'updated_at'])
             : collect();
+        $teachers = $settings->robots_index
+            ? User::query()->where('is_active', true)
+                ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
+                ->orderBy('id')->limit(22000)->get(['id', 'updated_at'])
+            : collect();
 
         $urls = collect();
         if ($settings->robots_index) {
@@ -84,6 +90,10 @@ class SeoPublicController extends Controller
             $urls = $urls->merge($courses->map(fn (Course $course): array => [
                 'loc' => $baseUrl.'/courses/'.rawurlencode($course->slug),
                 'lastmod' => $course->updated_at?->toAtomString(),
+            ]));
+            $urls = $urls->merge($teachers->map(fn (User $teacher): array => [
+                'loc' => $baseUrl.'/teachers/'.$teacher->id,
+                'lastmod' => $teacher->updated_at?->toAtomString(),
             ]));
             $urls->push([
                 'loc' => $baseUrl.'/articles',

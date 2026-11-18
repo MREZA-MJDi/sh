@@ -31,6 +31,8 @@ class SeoSetting extends Model
     public static function defaultHomeSections(): array
     {
         return [
+            'home_meta_title' => 'آکادمی شیخان | آموزش آنلاین',
+            'home_meta_description' => 'آکادمی آموزشی شیخان؛ همراه مسیر یادگیری و پیشرفت دانش‌آموزان.',
             'hero_badge' => 'ویژه دانش‌آموزان شیخان',
             'hero_description' => 'آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای منتشرشده.',
             'hero_primary_label' => 'مشاهده اطلاعات',
