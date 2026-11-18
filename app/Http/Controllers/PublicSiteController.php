@@ -30,9 +30,7 @@ final class PublicSiteController extends Controller
             ->orderBy('sort_order')->orderBy('id')->limit(8)->get();
 
         $courseQuery = Course::query()->where('status', 'published')
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
-                ->where('status', 'published')
-                ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
@@ -63,9 +61,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $query = Course::query()->where('status', 'published')
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
-                ->where('status', 'published')
-                ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
 
         if ($search = trim((string) $request->query('q'))) {
@@ -314,7 +310,7 @@ final class PublicSiteController extends Controller
 
         $teachers = $query
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
-            ->with(['assignedCourses' => fn ($courses) => $courses->where('status', 'published')->select('id', 'teacher_id', 'title', 'slug')])
+            ->with(['assignedCourses' => fn ($courses) => $courses->where('status', 'published')->select('id', 'teacher_id', 'title', 'slug')->latest()->limit(3)])
             ->orderBy('name')->paginate(12)->withQueryString();
 
         $subjects = User::query()->where('is_active', true)
