@@ -220,7 +220,7 @@ final class PublicSiteController extends Controller
                     });
                 })
                 ->orderBy('id')
-                ->get(['id', 'title', 'embed_url', 'file_path', 'external_id'])
+                ->get(['id', 'title', 'embed_url', 'file_path', 'external_id', 'class_session_id'])
                 ->filter(function (SpotPlayerVideo $video) use ($allowedEmbedHosts, $videoLicense): bool {
                     if (filled($video->file_path) && blank($video->external_id)) {
                         return true;
