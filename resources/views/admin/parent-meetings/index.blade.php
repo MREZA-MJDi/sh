@@ -4,8 +4,6 @@
 @section('content')
 @php
   $classOptions = $classrooms->pluck('name', 'id')->all();
-  $studentOptions = $students->pluck('name', 'id')->all();
-  $guardianOptions = $students->flatMap(fn ($student) => $student->guardians)->unique('id')->pluck('name', 'id')->all();
   $statusLabels = ['requested' => 'درخواست‌شده', 'proposed' => 'پیشنهاد مدرس', 'scheduled' => 'زمان‌بندی‌شده', 'completed' => 'انجام‌شده', 'declined' => 'ردشده', 'cancelled' => 'لغوشده'];
   $isTeacher = auth()->user()?->hasRole('teacher') ?? false;
 @endphp
@@ -18,7 +16,7 @@
   <x-admin.stat tone="comm" icon="calendar" label="کل جلسات" :value="number_format($meetings->total())"/>
   <x-admin.stat tone="comm" icon="clock" label="درخواست / پیشنهاد" :value="number_format($meetings->getCollection()->whereIn('status', ['requested', 'proposed'])->count())"/>
   <x-admin.stat tone="comm" icon="check" label="زمان‌بندی‌شده" :value="number_format($meetings->getCollection()->where('status', 'scheduled')->count())"/>
-  <x-admin.stat tone="comm" icon="users" label="کلاس‌های فعال در دسترس" :value="number_format($classrooms->count())"/>
+  <x-admin.stat tone="comm" icon="users" label="کلاس‌های فعال در دسترس" :value="number_format($classroomCount)"/>
 </div>
 
 <x-admin.panel flush>
@@ -66,12 +64,94 @@
 </x-admin.panel>
 @endsection
 
+@push('scripts')
+<script>
+(() => {
+ const button = document.querySelector('[data-parent-meeting-search]');
+ const input = document.querySelector('#parent-meeting-student-search');
+ const classroom = document.querySelector('#parent-meeting-classroom');
+ const student = document.querySelector('#parent-meeting-student');
+ const guardian = document.querySelector('#parent-meeting-guardian');
+ const status = document.querySelector('[data-parent-meeting-status]');
+ if (!button || !input || !student || !guardian || !status) return;
+
+ const reset = () => {
+  student.replaceChildren(new Option('ابتدا جستجو کنید', ''));
+  guardian.replaceChildren(new Option('ابتدا دانش‌آموز را انتخاب کنید', ''));
+  guardian.disabled = true;
+ };
+ const fillGuardians = () => {
+  const selected = student.selectedOptions[0];
+  let guardians = [];
+  try { guardians = JSON.parse(selected?.dataset.guardians || '[]'); } catch (error) {}
+  guardian.replaceChildren(new Option('انتخاب ولی دانش‌آموز', ''));
+  guardians.forEach((item) => guardian.add(new Option(item.name, item.id)));
+  guardian.disabled = guardians.length === 0;
+  if (!guardians.length && student.value) status.textContent = 'برای این دانش‌آموز ولی فعال ثبت نشده است.';
+ };
+ const search = async () => {
+  const query = input.value.trim();
+  if (query.length < 2) {
+   status.textContent = 'برای جستجو حداقل دو حرف وارد کنید.';
+   input.focus();
+   return;
+  }
+  if (button.dataset.requiresClass === '1' && !classroom?.value) {
+   status.textContent = 'ابتدا کلاس موردنظر را انتخاب کنید.';
+   classroom?.focus();
+   return;
+  }
+
+  button.disabled = true;
+  reset();
+  status.textContent = 'در حال جستجوی دانش‌آموزان…';
+  try {
+   const params = new URLSearchParams({q: query});
+   if (classroom?.value) params.set('classroom_id', classroom.value);
+   const response = await fetch(button.dataset.endpoint + '?' + params.toString(), {
+    headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+    credentials: 'same-origin'
+   });
+   const payload = await response.json();
+   if (!response.ok) throw new Error(payload.message || 'جستجوی دانش‌آموزان انجام نشد.');
+   (payload.data || []).forEach((item) => {
+    const option = new Option(item.name, item.id);
+    option.dataset.guardians = JSON.stringify(item.guardians || []);
+    student.add(option);
+   });
+   status.textContent = payload.data?.length
+    ? payload.data.length + ' دانش‌آموز پیدا شد.'
+    : 'دانش‌آموزی با این مشخصات در محدوده انتخاب‌شده پیدا نشد.';
+  } catch (error) {
+   status.textContent = error.message || 'خطا در جستجوی دانش‌آموز.';
+  } finally {
+   button.disabled = false;
+  }
+ };
+
+ button.addEventListener('click', search);
+ input.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') { event.preventDefault(); search(); }
+ });
+ student.addEventListener('change', fillGuardians);
+ classroom?.addEventListener('change', () => {
+  reset();
+  status.textContent = 'کلاس تغییر کرد؛ دوباره دانش‌آموز را جستجو کنید.';
+ });
+ guardian.disabled = true;
+})();
+</script>
+@endpush
+
 @push('modals')
 <x-admin.modal :demo="false" id="parent-meeting-modal" title="ثبت جلسه با ولی" size="lg" :action="route('admin.parent-meetings.store')">
   <x-admin.legend title="افراد و موضوع جلسه"/>
-  <x-admin.select label="کلاس مرتبط" name="classroom_id" :options="$classOptions" :required="$isTeacher" placeholder="بدون کلاس / جلسه مستقل"/>
-  <x-admin.select label="دانش‌آموز" name="student_id" :options="$studentOptions" required/>
-  <x-admin.select label="ولی دانش‌آموز" name="guardian_id" :options="$guardianOptions" required/>
+  <x-admin.select id="parent-meeting-classroom" label="کلاس مرتبط" name="classroom_id" :options="$classOptions" :required="$isTeacher" placeholder="بدون کلاس / جلسه مستقل"/>
+  <x-admin.input id="parent-meeting-student-search" label="جستجوی دانش‌آموز" name="student_search" type="search" wide placeholder="نام یا شماره تماس را وارد کنید"/>
+  <button type="button" class="adm-btn adm-btn-line" data-parent-meeting-search data-endpoint="{{ route('admin.parent-meetings.lookup') }}" data-requires-class="{{ $isTeacher ? '1' : '0' }}">جستجو</button>
+  <p class="adm-muted" data-parent-meeting-status aria-live="polite">برای نمایش دانش‌آموزان، حداقل دو حرف جستجو کنید.</p>
+  <x-admin.select id="parent-meeting-student" label="دانش‌آموز" name="student_id" :options="[]" required placeholder="ابتدا جستجو و انتخاب کنید"/>
+  <x-admin.select id="parent-meeting-guardian" label="ولی دانش‌آموز" name="guardian_id" :options="[]" required placeholder="ابتدا دانش‌آموز را انتخاب کنید"/>
   <x-admin.input label="موضوع جلسه" name="title" wide required/>
   <x-admin.textarea label="توضیحات" name="message" wide/>
   <x-admin.legend title="زمان‌بندی"/>
