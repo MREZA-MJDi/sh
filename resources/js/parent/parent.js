@@ -34,10 +34,14 @@ function gridLines(w, h, min, max, y) {
     }).join('');
 }
 /** Line chart. series: [{ name, c: '--var', data, area?, dash? }] */
-function lineChart(labels, series, { min = 10, max = 20, w = 360, h = 190 } = {}) {
-    const id = ++chartId, n = labels.length;
+function lineChart(labels, series, options = {}) {
+    const id = ++chartId, n = labels.length, w = options.w || 360, h = options.h || 190;
+    const values = series.reduce((all, item) => all.concat(item.data), []).filter(Number.isFinite);
+    const min = Number.isFinite(options.min) ? options.min : Math.min(0, ...values);
+    const rawMax = Number.isFinite(options.max) ? options.max : Math.max(20, ...values);
+    const max = rawMax <= min ? min + 1 : rawMax;
     const iw = w - PAD.l - PAD.r, ih = h - PAD.t - PAD.b;
-    const x = i => PAD.l + iw * (1 - i / (n - 1));
+    const x = i => PAD.l + iw * (n < 2 ? 0.5 : 1 - i / (n - 1));
     const y = v => PAD.t + ih * (1 - (v - min) / (max - min));
     const xLabels = labels.map((l, i) => `<text class="ax" x="${x(i)}" y="${h - 6}" text-anchor="middle">${l}</text>`).join('');
     const lines = series.map((s, k) => {
@@ -53,7 +57,12 @@ function lineChart(labels, series, { min = 10, max = 20, w = 360, h = 190 } = {}
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="نمودار خطی">${gridLines(w, h, min, max, y)}${xLabels}${lines}</svg>`;
 }
 /** Bar chart, grouped or stacked. series: [{ name, c, data }] */
-function barChart(labels, series, { max = 20, stacked = false, w = 360, h = 190 } = {}) {
+function barChart(labels, series, options = {}) {
+    const w = options.w || 360, h = options.h || 190, stacked = !!options.stacked;
+    const totals = labels.map((_, i) => series.reduce((sum, item) => sum + (Number(item.data[i]) || 0), 0));
+    const values = series.reduce((all, item) => all.concat(item.data.map(Number)), []);
+    const rawMax = Number.isFinite(options.max) ? options.max : Math.max(1, ...(stacked ? totals : values));
+    const max = rawMax * 1.1;
     const iw = w - PAD.l - PAD.r, ih = h - PAD.t - PAD.b, slot = iw / labels.length;
     const bw = stacked ? slot * 0.5 : slot * 0.7 / series.length;
     const y = v => PAD.t + ih * (1 - v / max);
@@ -126,14 +135,18 @@ function radar(labels, series) {
     if (type === 'donut') {
       var parts = (cfg.parts || []).map(function (p) { return { l: esc(p.l), v: Number(p.v) || 0, c: color(p.c) }; });
       if (parts.some(function (p) { return p.v > 0; })) html = donut(parts, faStr(esc(cfg.big)), esc(cfg.small));
-    } else if (type === 'line' && hasData && labels.length >= 2) {
+    } else if (type === 'line' && hasData && labels.length >= 1) {
       html = lineChart(labels, series, o) + legendHtml(series);
     } else if (type === 'bar' && hasData && labels.length >= 1) {
       html = barChart(labels, series, o) + legendHtml(series);
     } else if (type === 'radar' && hasData && labels.length >= 3) {
       html = radar(labels, series) + legendHtml(series);
     }
-    if (html) el.innerHTML = html;
+    if (html) {
+      el.innerHTML = html;
+    } else {
+      el.innerHTML = '<p class="chart-empty" role="status">برای این نمودار هنوز داده کافی ثبت نشده است.</p>';
+    }
   });
 
   /* ---------- ارقام فارسی برای هر عنصر با data-fa ---------- */

@@ -8,4 +8,8 @@
     <input class="sr" id="globalSearch" type="search" placeholder="جستجو…" aria-label="جستجو" autocomplete="off">
     <a class="ic" href="{{ url('parent/messages') }}" aria-label="اعلان‌ها" data-fa>🔔<sup style="color:var(--rd)">{{ $notificationsCount ?? '' }}</sup></a>
     <button type="button" class="ic" id="themeToggle" aria-label="تم تیره و روشن">◐</button>
+    <form method="POST" action="{{ route('logout') }}" class="logout-form">
+        @csrf
+        <button type="submit" class="ic logout-btn">خروج از حساب</button>
+    </form>
 </header>

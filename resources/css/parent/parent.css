@@ -777,3 +777,39 @@ button.b,a.b,.sel a{cursor:pointer}.b:disabled{opacity:.5;cursor:not-allowed}
 .chips .chip:has(input:checked){background:var(--ps);border-color:var(--pri);color:var(--pri)}
 .send .b{white-space:nowrap}
 .hr{border:0;border-top:1px solid var(--ln);margin:14px 0}
+
+
+/* Parent panel: consistent, accessible form controls and logout action. */
+.logout-form{display:inline-flex;margin:0}
+.logout-btn{border-color:var(--rd);color:var(--rd);font-weight:700}
+.logout-btn:hover{background:var(--rds)}
+.parent-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.parent-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.parent-field label{font-weight:700;color:var(--tx);font-size:13px}
+.parent-field input,.parent-field select,.parent-field textarea,.send textarea,.send input{
+  width:100%;min-width:0;border:1px solid var(--ln);border-radius:12px;
+  background:var(--bg);color:var(--tx);padding:11px 13px;font:inherit;line-height:1.8;
+  transition:border-color .15s,box-shadow .15s;
+}
+.parent-field textarea,.send textarea{resize:vertical;min-height:130px}
+.parent-field input:focus,.parent-field select:focus,.parent-field textarea:focus,.send textarea:focus{
+  outline:0;border-color:var(--pri);box-shadow:0 0 0 3px var(--ps)
+}
+.parent-field-wide{grid-column:1/-1}
+.parent-form-heading{margin-bottom:18px}
+.parent-form-heading h3{margin:0 0 5px}
+.parent-form-heading p,.field-hint{margin:0;color:var(--mu);font-size:12px}
+.parent-form-actions{display:flex;justify-content:flex-end;gap:10px;align-items:center}
+.field-error{color:var(--rd);font-size:12px}
+.parent-alert{padding:12px 15px;border-radius:12px;margin:0 0 14px;border:1px solid var(--ln)}
+.parent-alert ul{margin:6px 0 0;padding-inline-start:20px}
+.parent-alert.success{background:var(--gns);color:var(--gn)}
+.parent-alert.error{background:var(--rds);color:var(--rd)}
+.chart-empty{padding:20px;text-align:center;color:var(--mu);font-size:13px}
+@media(max-width:640px){
+  .parent-form{grid-template-columns:minmax(0,1fr)}
+  .parent-field-wide{grid-column:auto}
+  .parent-form-actions{flex-wrap:wrap}
+  .parent-form-actions>*{flex:1;text-align:center}
+  .logout-btn{font-size:12px;padding:5px 8px}
+}
