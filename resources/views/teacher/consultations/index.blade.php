@@ -1,17 +1,19 @@
 @extends('teacher.layouts.app')
 @section('title', 'درخواست مشاوره')
 @section('content')
+@php($statusLabels = ['pending' => 'در انتظار بررسی', 'in_progress' => 'در حال پیگیری', 'done' => 'انجام‌شده', 'rejected' => 'ردشده'])
+@php($typeLabels = ['ticket' => 'پیام و تیکت', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'])
 <h2>درخواست مشاوره</h2>
 <div class="g g2">
     <section class="c">
         <h3>ثبت درخواست جدید</h3>
-        <form method="POST" action="{{ route('teacher.consultations.store') }}">
+        <form class="teacher-form" method="POST" action="{{ route('teacher.consultations.store') }}">
             @csrf
             <label>نوع درخواست</label>
             <select name="type" required>
-                <option value="ticket">پیام و تیکت</option>
-                <option value="phone">تماس تلفنی</option>
-                <option value="in_person">حضوری</option>
+                <option value="ticket" @selected(old('type') === 'ticket')>پیام و تیکت</option>
+                <option value="phone" @selected(old('type') === 'phone')>تماس تلفنی</option>
+                <option value="in_person" @selected(old('type') === 'in_person')>حضوری</option>
             </select>
             <label>موضوع</label>
             <input name="topic" required minlength="3" maxlength="190" value="{{ old('topic') }}">
@@ -28,8 +30,8 @@
         <h3>درخواست‌های من</h3>
         @forelse ($consultations as $consultation)
             <div class="row">
-                <div>{{ $consultation->topic }}<small>{{ $consultation->type }} · {{ $consultation->desired_at?->format('Y/m/d H:i') }}</small></div>
-                <i class="bd {{ $consultation->status === 'done' ? 'gn' : 'am' }}">{{ $consultation->status }}</i>
+                <div>{{ $consultation->topic }}<small>{{ $typeLabels[$consultation->type] ?? $consultation->type }} · {{ $consultation->desired_at?->format('Y/m/d H:i') }}</small></div>
+                <i class="bd {{ $consultation->status === 'done' ? 'gn' : 'am' }}">{{ $statusLabels[$consultation->status] ?? $consultation->status }}</i>
             </div>
         @empty
             <p>درخواستی ثبت نشده است.</p>

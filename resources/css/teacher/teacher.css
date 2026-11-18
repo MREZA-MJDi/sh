@@ -782,3 +782,36 @@ a.row:hover{background:var(--bg)}
 
 /* Teacher account action */
 .logout-form{margin:0}.logout-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--ln);border-radius:10px;background:var(--rds);color:var(--rd);font:600 13px Vazirmatn,Tahoma,sans-serif}.logout-btn:hover{background:var(--rd);color:#fff}
+
+
+/* Notification menu, shared feedback and accessible form polish. */
+.notification-menu{position:relative}
+.notification-menu>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.notification-menu>summary::-webkit-details-marker{display:none}
+.notification-menu>summary sup{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--rd);color:#fff;font-size:10px;font-weight:800}
+.notification-pop{position:absolute;top:calc(100% + 9px);inset-inline-end:0;z-index:20;width:min(360px,calc(100vw - 24px));max-height:min(70vh,480px);overflow:auto;padding:12px;border:1px solid var(--ln);border-radius:14px;background:var(--sf);box-shadow:0 16px 40px #10102024}
+.notification-pop>strong{display:block;margin:2px 4px 10px}
+.notification-pop form{margin:0}
+.notification-item{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:10px;border:0;border-radius:10px;background:transparent;text-align:right}
+.notification-item:hover{background:var(--bg)}
+.notification-item b{font-size:13px}
+.notification-item small{color:var(--mu);font-size:11px;line-height:1.7}
+.notification-read-all{width:100%;margin-top:8px;padding:8px;border:1px solid var(--ln);border-radius:9px;background:var(--bg);color:var(--pri);font-weight:700}
+.teacher-alert{padding:12px 15px;margin:0 0 14px;border:1px solid var(--ln);border-radius:12px}
+.teacher-alert.success{background:var(--gns);color:var(--gn)}
+.teacher-alert.error{background:var(--rds);color:var(--rd)}
+.teacher-alert ul{margin:6px 0 0;padding-inline-start:20px}
+.teacher-form{display:grid;gap:10px}
+.teacher-form label{display:grid;gap:5px;font-weight:700}
+.teacher-form input,.teacher-form select,.teacher-form textarea,.c>form input,.c>form select,.c>form textarea{
+  width:100%;min-width:0;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;
+  background:var(--sf);color:var(--tx);font:inherit
+}
+.teacher-form input:focus,.teacher-form select:focus,.teacher-form textarea:focus,.c>form input:focus,.c>form select:focus,.c>form textarea:focus{
+  outline:2px solid var(--ps);border-color:var(--pri)
+}
+@media(max-width:640px){
+  .notification-pop{inset-inline-end:auto;inset-inline-start:0}
+  .top{gap:8px;padding:9px 12px}
+  .logout-btn{font-size:12px}
+}

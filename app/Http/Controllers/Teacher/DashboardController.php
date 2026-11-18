@@ -49,7 +49,7 @@ final class DashboardController extends Controller
         $pending = HomeworkSubmission::query()
             ->where('status', 'submitted')
             ->whereHas('homework', fn (Builder $homework) => $homework->whereIn('classroom_id', clone $classroomIds))
-            ->with(['homework:id,title,classroom_id', 'homework.classroom.students'])
+            ->with(['homework:id,title,classroom_id'])
             ->latest('submitted_at')
             ->limit(8)
             ->get()
@@ -57,7 +57,6 @@ final class DashboardController extends Controller
             ->map(fn ($items) => [
                 'title' => $items->first()->homework?->title ?? 'تکلیف',
                 'submitted' => $items->count(),
-                'total' => $items->first()->homework?->classroom?->students?->count() ?? 0,
                 'type' => 'در انتظار بررسی',
             ])->values();
 

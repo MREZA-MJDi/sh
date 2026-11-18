@@ -10,7 +10,7 @@
     <section class="c"><h3>درخواست‌های جدید</h3>
         @forelse ($requests as $meeting)
             <div class="row"><div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · {{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y/m/d H:i') }}</small></div>
-                <i class="bd am">{{ $meeting->status }}</i>
+                <i class="bd am">{{ ['requested' => 'درخواست جدید', 'proposed' => 'پیشنهادشده', 'scheduled' => 'زمان‌بندی‌شده', 'declined' => 'ردشده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده'][$meeting->status] ?? $meeting->status }}</i>
                 <form method="POST" action="{{ route('teacher.meetings.update', $meeting) }}" class="row">
                     @csrf @method('PATCH')
                     <input type="datetime-local" name="starts_at" value="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d\\TH:i') }}" aria-label="زمان جلسه">
