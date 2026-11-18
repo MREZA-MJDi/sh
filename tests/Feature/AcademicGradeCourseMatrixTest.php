@@ -147,4 +147,15 @@ final class AcademicGradeCourseMatrixTest extends TestCase
         $user->roles()->attach(Role::query()->where('name', $role)->firstOrFail());
         return $user;
     }
+
+    public function test_legacy_grade_aliases_resolve_to_one_canonical_academic_grade(): void
+    {
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+
+        $this->assertSame($grade->id, AcademicGrade::resolveIdFromLegacyName('10'));
+        $this->assertSame($grade->id, AcademicGrade::resolveIdFromLegacyName('۱۰'));
+        $this->assertSame($grade->id, AcademicGrade::resolveIdFromLegacyName('١٠'));
+        $this->assertSame($grade->id, AcademicGrade::resolveIdFromLegacyName('پایه دهم'));
+    }
+
 }
