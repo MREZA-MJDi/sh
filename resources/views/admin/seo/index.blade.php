@@ -11,6 +11,7 @@
   <x-admin.stat tone="shop" icon="image" label="بنرهای فعال" :value="number_format($activeBannerCount).' / '.number_format($bannerCount)"/>
 </div>
 
+<p class="adm-muted">محتوای متن‌محور صفحه اصلی، صفحه دوره‌ها، مدرسان، تماس، سبد خرید، وبلاگ و فوتر از فرم تنظیمات همین صفحه کنترل می‌شود. بنرها و مقاله‌های وبلاگ از بخش‌های مستقل مدیریت می‌شوند.</p>
 <div class="adm-actions" style="margin-bottom:18px">
   <x-admin.btn icon="file" :href="route('admin.seo.articles.index')">مدیریت مقاله‌ها</x-admin.btn>
   <x-admin.btn variant="line" icon="image" :href="route('admin.seo.banners.index')">مدیریت بنرها</x-admin.btn>
@@ -61,10 +62,14 @@
     <x-admin.input label="عنوان صفحه تماس" name="home_sections[contact_page_title]" :value="data_get($settings->home_sections, 'contact_page_title')" maxlength="180"/>
     <x-admin.textarea label="توضیحات صفحه تماس" name="home_sections[contact_page_description]" :value="data_get($settings->home_sections, 'contact_page_description')" wide/>
 
+    @include('admin.seo.partials.public-content-fields')
+
     <x-admin.legend title="شبکه‌های اجتماعی و لینک‌های فوتر"/>
     <x-admin.input label="Instagram" name="social_links[instagram]" type="url" :value="data_get($settings->social_links, 'instagram')"/>
     <x-admin.input label="Telegram" name="social_links[telegram]" type="url" :value="data_get($settings->social_links, 'telegram')"/>
     <x-admin.input label="LinkedIn" name="social_links[linkedin]" type="url" :value="data_get($settings->social_links, 'linkedin')"/>
+    <x-admin.input label="X" name="social_links[x]" type="url" :value="data_get($settings->social_links, 'x')"/>
+    <x-admin.input label="YouTube" name="social_links[youtube]" type="url" :value="data_get($settings->social_links, 'youtube')"/>
     @php($seoFooterLinks = $settings->footer_links ?? [])
     @foreach (range(0, 3) as $footerIndex)
       <x-admin.input label="عنوان لینک فوتر {{ $footerIndex + 1 }}" name="footer_links[{{ $footerIndex }}][label]" :value="$seoFooterLinks[$footerIndex]['label'] ?? ''"/>
