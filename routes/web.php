@@ -168,6 +168,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/class-sessions/{classSession}', [ClassSessionController::class, 'update'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.update');
     Route::delete('/class-sessions/{classSession}', [ClassSessionController::class, 'destroy'])->middleware('permission:classes.manage,classes.manage.assigned')->name('classes.sessions.destroy');
 
+    Route::get('/parent-meetings/lookup', [AdminParentMeetingController::class, 'lookup'])->middleware(['permission:classes.manage,classes.manage.assigned', 'throttle:30,1'])->name('parent-meetings.lookup');
     Route::get('/parent-meetings', [AdminParentMeetingController::class, 'index'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.index');
     Route::post('/parent-meetings', [AdminParentMeetingController::class, 'store'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.store');
     Route::patch('/parent-meetings/{meeting}/status', [AdminParentMeetingController::class, 'updateStatus'])->middleware('permission:classes.manage,classes.manage.assigned')->name('parent-meetings.status');
