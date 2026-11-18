@@ -10,6 +10,7 @@ use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class PublicCourseVideoAccessTest extends TestCase
@@ -103,6 +104,36 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertSee('course-video-dialog')
             ->assertSee('جلسه اول دوره')
             ->assertSee(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => SpotPlayerVideo::query()->where('course_id', $course->id)->value('id')]), false);
+    }
+
+    public function test_enrolled_student_can_watch_manually_uploaded_course_video_without_spotplayer_license(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+
+        Storage::fake('local');
+        Storage::disk('local')->put('private/course-videos/local-public-preview.mp4', 'video-content');
+
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'title' => 'ویدیوی بارگذاری مستقیم',
+            'status' => 'active',
+            'file_path' => 'private/course-videos/local-public-preview.mp4',
+            'file_original_name' => 'local-public-preview.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'video-content'),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('تماشای ویدیوهای دوره')
+            ->assertSee('ویدیوی بارگذاری مستقیم');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertRedirect(route('student.videos.show', $video));
     }
 
     public function test_student_without_enrollment_does_not_receive_the_player_even_with_a_provider_license(): void
