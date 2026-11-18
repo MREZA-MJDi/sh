@@ -28,6 +28,41 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   const bar = widget.querySelector('[data-upload-bar]');
   if (!fileInput || !startButton || !status || !progress || !bar) return;
 
+  const preview = document.createElement('div');
+  preview.hidden = true;
+  preview.className = 'adm-video-upload-preview';
+  preview.style.cssText = 'margin-top:12px;max-width:100%;';
+  const previewVideo = document.createElement('video');
+  previewVideo.controls = true;
+  previewVideo.preload = 'metadata';
+  previewVideo.playsInline = true;
+  previewVideo.style.cssText = 'display:block;width:100%;max-height:320px;border-radius:12px;background:#0f172a;';
+  const previewMeta = document.createElement('p');
+  previewMeta.className = 'adm-muted';
+  previewMeta.style.marginTop = '8px';
+  preview.append(previewVideo, previewMeta);
+  fileInput.insertAdjacentElement('afterend', preview);
+  let previewUrl = null;
+
+  fileInput.addEventListener('change', () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    previewVideo.removeAttribute('src');
+    previewVideo.load();
+    const selected = fileInput.files?.[0];
+    if (!selected) {
+      preview.hidden = true;
+      return;
+    }
+    previewUrl = URL.createObjectURL(selected);
+    previewVideo.src = previewUrl;
+    previewMeta.textContent = selected.name + ' · ' + (selected.size / 1048576).toFixed(1) + ' مگابایت';
+    preview.hidden = false;
+  });
+  window.addEventListener('beforeunload', () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  });
+
   const setStatus = (message, isError = false) => {
     status.textContent = message;
     status.dataset.state = isError ? 'error' : 'info';
@@ -74,6 +109,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         target,
         target_id: Number(widget.dataset.courseId),
         total: Math.ceil(file.size / chunkSizeFallback),
+        total_bytes: file.size,
       };
       if (target === 'spotplayer_video') {
         startPayload.title = title;
