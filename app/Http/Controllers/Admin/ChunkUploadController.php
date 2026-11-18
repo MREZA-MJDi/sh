@@ -308,7 +308,11 @@ final class ChunkUploadController extends Controller
         abort_unless($request->user()->hasAnyPermission(['integrations.manage', 'videos.manage.assigned']), 403);
 
         $course = $workspace->coursesQueryFor($request->user())
-            ->where('delivery_type', 'spotplayer')
+            ->where(function ($query): void {
+                $query->where(function ($legacy): void {
+                    $legacy->whereNull('learning_features')->where('delivery_type', 'spotplayer');
+                })->orWhere('learning_features->recorded_video', true);
+            })
             ->findOrFail($courseId);
 
         if (filled($metadata['classroom_id'] ?? null)) {
