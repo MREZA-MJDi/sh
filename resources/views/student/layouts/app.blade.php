@@ -19,6 +19,14 @@
 
     <main class="main">
         @include('student.partials.topbar')
+        @if (session('status') || session('success') || session('error') || $errors->any())
+            <div class="student-alert {{ $errors->any() || session('error') ? 'is-error' : 'is-success' }}" role="{{ $errors->any() || session('error') ? 'alert' : 'status' }}">
+                @if (session('status'))<p>{{ session('status') }}</p>@endif
+                @if (session('success'))<p>{{ session('success') }}</p>@endif
+                @if (session('error'))<p>{{ session('error') }}</p>@endif
+                @if ($errors->any())<ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>@endif
+            </div>
+        @endif
         @yield('content')
     </main>
 </div>
