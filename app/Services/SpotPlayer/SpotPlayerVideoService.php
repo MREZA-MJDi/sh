@@ -48,6 +48,7 @@ final class SpotPlayerVideoService
         if ($classSessionId) {
             $classSession = ClassSession::query()
                 ->whereKey($classSessionId)
+                ->where('status', '!=', 'cancelled')
                 ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
                 ->firstOrFail();
 
