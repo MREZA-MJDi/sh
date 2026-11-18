@@ -7,7 +7,7 @@
 <section class="c"><h2>ثبت ویدئوی جدید</h2>
 <form class="teacher-form" data-learning-scope method="POST" action="{{ route('teacher.spotplayer.videos.store') }}" enctype="multipart/form-data">@csrf
 <label>عنوان ویدئو</label><input name="title" maxlength="180" required>
-<label>دوره</label><select name="course_id" required><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}" >{{ $course->title }}@if($course->grade) · پایه {{ $course->grade }}@endif @if($course->season) · {{ $seasonLabels[$course->season] ?? $course->season }}@endif</option>@endforeach</select>
+<label>دوره</label><select name="course_id" required><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}" >{{ $course->title }}@if($course->subject) · {{ $course->subject }}@endif @if($course->grade) · پایه {{ $course->grade }}@endif @if($course->season) · {{ $seasonLabels[$course->season] ?? $course->season }}@endif</option>@endforeach</select>
 <label>کلاس</label><select name="classroom_id" required><option value="">کل دوره</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" data-course-id="{{ $classroom->course_id }}">{{ $classroom->name }}</option>@endforeach</select>
 <label>جلسه</label><select name="class_session_id" required><option value="">انتخاب جلسه</option>@foreach($classrooms as $classroom)@foreach($classroom->sessions as $session)<option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>@endforeach @endforeach</select>
 <label>شناسه ویدئوی SpotPlayer (در صورت نداشتن فایل)</label><input name="external_id" maxlength="190" required>
@@ -22,7 +22,7 @@
   data-resume-url="{{ route('teacher.uploads.resume') }}" data-status-url="{{ route('teacher.uploads.status') }}"
   data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
   <label>عنوان جلسه</label><input data-upload-title maxlength="180" placeholder="مثلاً جلسه اول: مبانی ریاضی" required>
-  <label>دوره</label><select data-upload-course required><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}</option>@endforeach</select>
+  <label>دوره</label><select data-upload-course required><option value="">انتخاب دوره</option>@foreach($courses as $course)<option value="{{ $course->id }}">{{ $course->title }}@if($course->subject) · {{ $course->subject }}@endif @if($course->grade) · پایه {{ $course->grade }}@endif</option>@endforeach</select>
   <label>کلاس</label><select data-upload-classroom required><option value="">کل دوره</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" data-course-id="{{ $classroom->course_id }}">{{ $classroom->name }}</option>@endforeach</select>
   <label>جلسه</label><select data-upload-session required><option value="">انتخاب جلسه</option>@foreach($classrooms as $classroom)@foreach($classroom->sessions as $session)<option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>@endforeach @endforeach</select>
   <label>شناسه خارجی SpotPlayer (اختیاری)</label><input data-upload-external maxlength="190" placeholder="در صورت نیاز به اتصال بعدی">
