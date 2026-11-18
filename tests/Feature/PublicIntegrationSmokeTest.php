@@ -30,8 +30,8 @@ final class PublicIntegrationSmokeTest extends TestCase
 
     public function test_all_public_pages_render_without_lazy_loading_relationships(): void
     {
-        $teacherRole = \\App\\Models\\Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
-        $teacher = \\App\\Models\\User::factory()->create([
+        $teacherRole = \App\Models\Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
+        $teacher = \App\Models\User::factory()->create([
             'name' => 'مدرس آزمون رندر',
             'is_active' => true,
             'subject' => 'زیست',
@@ -57,7 +57,7 @@ final class PublicIntegrationSmokeTest extends TestCase
             'status' => 'published',
         ]);
 
-        \\App\\Models\\SeoArticle::query()->create([
+        \App\Models\SeoArticle::query()->create([
             'author_id' => $teacher->id,
             'title' => 'مقاله آزمون رندر',
             'slug' => 'public-render-regression-article',
@@ -68,7 +68,7 @@ final class PublicIntegrationSmokeTest extends TestCase
             'published_at' => now()->subMinute(),
         ]);
 
-        \\Illuminate\\Database\\Eloquent\\Model::preventLazyLoading();
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading();
 
         try {
             $this->get(route('home'))->assertOk()->assertSee('مدرس آزمون رندر')->assertSee('مقاله آزمون رندر');
@@ -83,7 +83,7 @@ final class PublicIntegrationSmokeTest extends TestCase
             $this->get(route('seo.robots'))->assertOk();
             $this->get(route('seo.sitemap'))->assertOk();
         } finally {
-            \\Illuminate\\Database\\Eloquent\\Model::preventLazyLoading(false);
+            \Illuminate\Database\Eloquent\Model::preventLazyLoading(false);
         }
     }
 
