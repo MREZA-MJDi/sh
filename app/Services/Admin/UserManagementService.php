@@ -118,7 +118,7 @@ final class UserManagementService
         });
     }
 
-    public function updateTeacher(User $teacher, array $data, User $actor): User
+    public function updateTeacher(User $teacher, array $data): User
     {
         if (! $teacher->hasRole('teacher') || $teacher->hasRole('admin')) {
             throw ValidationException::withMessages(['teacher' => 'حساب انتخاب‌شده مدرس قابل ویرایش نیست.']);
