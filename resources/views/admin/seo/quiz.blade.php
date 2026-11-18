@@ -60,10 +60,10 @@
   <x-admin.select label="نوع سؤال" name="type" :options="['multiple_choice' => 'آزمون چهارگزینه‌ای', 'riddle' => 'معما با پاسخ متنی']" required/>
   <x-admin.textarea label="متن سؤال یا معما" name="question" wide rows="4" required/>
   <x-admin.legend title="گزینه‌ها (فقط برای آزمون چهارگزینه‌ای)"/>
-  <x-admin.input label="گزینه A" name="option_a" required/>
-  <x-admin.input label="گزینه B" name="option_b" required/>
-  <x-admin.input label="گزینه C" name="option_c" required/>
-  <x-admin.input label="گزینه D" name="option_d" required/>
+  <x-admin.input label="گزینه A" name="option_a"/>
+  <x-admin.input label="گزینه B" name="option_b"/>
+  <x-admin.input label="گزینه C" name="option_c"/>
+  <x-admin.input label="گزینه D" name="option_d"/>
   <x-admin.input label="پاسخ صحیح" name="correct_answer" required hint="برای آزمون چهارگزینه‌ای یکی از A/B/C/D و برای معما، متن پاسخ را وارد کنید."/>
   <x-admin.textarea label="توضیح پاسخ" name="explanation" wide rows="3"/>
   <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0" :value="0" required/>
