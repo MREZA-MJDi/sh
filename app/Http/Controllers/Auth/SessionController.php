@@ -24,13 +24,13 @@ final class SessionController extends Controller
 
     /**
      * Use one centered screen for both sign-in and student registration.
-     * Demo credentials are visible locally when demo accounts are explicitly enabled.
+     * Demo credentials are restricted to local and testing environments; never expose them on production login pages.
      */
     private function loginViewData(string $activeTab): array
     {
         $demoPassword = config('demo.password');
         $showDemoAccounts = config('demo.enabled')
-            && (app()->environment(['local', 'testing']) || config('demo.login_cards_enabled'))
+            && app()->environment(['local', 'testing'])
             && is_string($demoPassword)
             && mb_strlen($demoPassword) >= 12;
 
