@@ -43,7 +43,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   previewVideo.playsInline = true;
   previewVideo.style.cssText = 'display:block;width:100%;max-height:320px;border-radius:12px;background:#0f172a;';
   const previewMeta = document.createElement('p');
-  previewMeta.className = 'adm-muted';
+  previewMeta.className = 'teacher-help';
   previewMeta.style.marginTop = '8px';
   preview.append(previewVideo, previewMeta);
   fileInput.insertAdjacentElement('afterend', preview);
