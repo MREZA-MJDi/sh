@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Classroom;
 use App\Models\ParentMeeting;
 use App\Models\User;
 use App\Notifications\ParentMeetingNotification;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -22,21 +20,11 @@ final class ParentMeetingController extends Controller
     {
         $actor = $request->user();
         $classrooms = $workspace->queryFor($actor)
-            ->where('status', 'active')
-            ->with(['course:id,title', 'students:id,name'])
-            ->orderBy('name')
-            ->get();
+            ->where('classrooms.status', 'active')
+            ->orderBy('classrooms.name')
+            ->get(['classrooms.id', 'classrooms.name']);
 
-        $studentIds = $classrooms->flatMap(fn (Classroom $classroom) => $classroom->students->modelKeys())->unique();
-        $students = User::query()
-            ->whereIn('id', $studentIds)
-            ->where('is_active', true)
-            ->with(['guardians' => fn ($guardians) => $guardians
-                ->where('is_active', true)
-                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'parent'))
-                ->orderBy('name')])
-            ->orderBy('name')
-            ->get(['id', 'name', 'grade']);
+        $classroomCount = $classrooms->count();
 
         $meetings = ParentMeeting::query()
             ->when($workspace->isTeacher($actor), fn (Builder $query) => $query->whereIn(
@@ -49,7 +37,57 @@ final class ParentMeetingController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.parent-meetings.index', compact('classrooms', 'students', 'meetings'));
+        return view('admin.parent-meetings.index', compact('classrooms', 'classroomCount', 'meetings'));
+    }
+
+    public function lookup(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
+    {
+        $data = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:80'],
+            'classroom_id' => ['nullable', 'integer'],
+        ]);
+
+        $actor = $request->user();
+        $isTeacher = $workspace->isTeacher($actor);
+        abort_unless(! $isTeacher || filled($data['classroom_id'] ?? null), 422, 'ابتدا کلاس موردنظر را انتخاب کنید.');
+
+        $classroom = null;
+        if (filled($data['classroom_id'] ?? null)) {
+            $classroom = $workspace->queryFor($actor)
+                ->where('classrooms.status', 'active')
+                ->findOrFail((int) $data['classroom_id']);
+        }
+
+        $term = trim($data['q']);
+        $students = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
+            ->when($classroom, fn (Builder $query) => $query->whereHas(
+                'enrolledClasses',
+                fn (Builder $classes) => $classes->whereKey($classroom->id)
+            ))
+            ->where(fn (Builder $search) => $search
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%"))
+            ->with(['guardians' => fn ($guardians) => $guardians
+                ->where('users.is_active', true)
+                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'parent'))
+                ->orderBy('users.name')
+                ->select('users.id', 'users.name')])
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'data' => $students->map(fn (User $student) => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'guardians' => $student->guardians->map(fn (User $guardian) => [
+                    'id' => $guardian->id,
+                    'name' => $guardian->name,
+                ])->values(),
+            ])->values(),
+        ]);
     }
 
     public function store(Request $request, ClassroomWorkspaceService $workspace): RedirectResponse
