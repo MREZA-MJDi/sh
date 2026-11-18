@@ -558,6 +558,8 @@ class SeoContentManagementTest extends TestCase
 
         $this->get(route('home'))->assertOk()
             ->assertSee('بنر اصلی خانه')
+            ->assertSee('has-banner-image')
+            ->assertSee('sl-banner-bg', false)
             ->assertSee('42% 50%');
     }
 
