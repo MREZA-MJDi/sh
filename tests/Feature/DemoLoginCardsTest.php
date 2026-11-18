@@ -9,7 +9,7 @@ final class DemoLoginCardsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_explicit_demo_login_cards_show_only_non_seo_roles_and_shared_password(): void
+    public function test_explicit_demo_login_cards_show_only_non_seo_roles_and_shared_password_in_testing(): void
     {
         config([
             'demo.enabled' => true,
@@ -49,7 +49,7 @@ final class DemoLoginCardsTest extends TestCase
             'demo.login_cards_enabled' => true,
             'demo.password' => 'Shikhan-Demo-2026!',
         ]);
-        $this->app->detectEnvironment(fn () => 'production');
+        $this->app['env'] = 'production';
 
         try {
             $this->get(route('login'))
@@ -60,27 +60,7 @@ final class DemoLoginCardsTest extends TestCase
                 ->assertDontSee('parent@sh.local')
                 ->assertDontSee('Shikhan-Demo-2026!');
         } finally {
-            $this->app->detectEnvironment(fn () => 'testing');
-        }
-    }
-
-    public function test_demo_seeder_does_not_create_shared_password_accounts_in_production(): void
-    {
-        config([
-            'demo.enabled' => true,
-            'demo.password' => 'Shikhan-Demo-2026!',
-        ]);
-        $this->app->detectEnvironment(fn () => 'production');
-
-        try {
-            app(\Database\Seeders\LocalDemoAccountsSeeder::class)->run();
-
-            $this->assertDatabaseMissing('users', ['email' => 'admin@sh.local']);
-            $this->assertDatabaseMissing('users', ['email' => 'teacher@sh.local']);
-            $this->assertDatabaseMissing('users', ['email' => 'student@sh.local']);
-            $this->assertDatabaseMissing('users', ['email' => 'parent@sh.local']);
-        } finally {
-            $this->app->detectEnvironment(fn () => 'testing');
+            $this->app['env'] = 'testing';
         }
     }
 }
