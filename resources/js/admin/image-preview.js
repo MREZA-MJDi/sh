@@ -18,10 +18,11 @@ const createPreview = (input) => {
     const meta = document.createElement('div');
     meta.className = 'adm-image-preview-meta';
     meta.setAttribute('aria-live', 'polite');
+    meta.hidden = true;
 
-    stage.append(image, meta);
+    stage.append(image);
     stage.addEventListener('click', (event) => event.preventDefault());
-    field.append(stage);
+    field.append(stage, meta);
 
     return stage;
 };
@@ -36,6 +37,7 @@ const showPreview = (input) => {
 
     if (!file) {
         stage.hidden = true;
+        stage.parentElement.querySelector(':scope > .adm-image-preview-meta')?.setAttribute('hidden', '');
         stage.querySelector('img')?.removeAttribute('src');
         stage.dataset.objectUrl = '';
         return;
@@ -47,7 +49,8 @@ const showPreview = (input) => {
     }
 
     const image = stage.querySelector('img');
-    const meta = stage.querySelector('.adm-image-preview-meta');
+    const meta = stage.parentElement.querySelector(':scope > .adm-image-preview-meta');
+    meta.hidden = false;
     const objectUrl = URL.createObjectURL(file);
     stage.dataset.objectUrl = objectUrl;
     stage.style.aspectRatio = input.dataset.previewRatio || '16 / 9';
