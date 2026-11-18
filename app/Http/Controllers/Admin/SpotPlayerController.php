@@ -194,7 +194,7 @@ class SpotPlayerController extends Controller
             'processing_error' => null,
             'processed_at' => null,
         ]);
-        ProcessCourseRecordingVideo::dispatch($video->id)->afterCommit();
+        ProcessCourseRecordingVideo::dispatch($video->id);
 
         return back()->with('success', 'پردازش دوباره ویدیو در صف قرار گرفت.');
     }
