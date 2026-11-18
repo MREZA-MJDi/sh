@@ -30,7 +30,7 @@
    @forelse ($sessions as $session)
     <div class="trk">
      <div class="th" style="background:linear-gradient(160deg,#9bd3d0,#4b6fb3)"></div>
-     <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ $session->session_type === 'onsite' ? 'حضوری' : 'آنلاین' }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
+     <div><b>{{ $session->title ?: ($session->classroom?->name ?? 'کلاس') }}</b><span>{{ in_array($session->session_type, ['onsite', 'in_person'], true) ? 'حضوری' : 'آنلاین' }} · {{ $session->classroom?->course?->title ?? $session->classroom?->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</span></div>
      @if ($session->session_type === 'online')
       @php
        $joinReady = filled($session->meeting_url)
