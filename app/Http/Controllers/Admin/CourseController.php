@@ -70,7 +70,8 @@ final class CourseController extends Controller
                     ->where('status', 'pending_payment'),
             ])
             ->latest()
-            ->paginate(12);
+            ->paginate(10)
+            ->withQueryString();
 
         $user = auth()->user();
         $grades = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->pluck('name', 'name')->all();
