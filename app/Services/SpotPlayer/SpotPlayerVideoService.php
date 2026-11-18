@@ -4,6 +4,7 @@ namespace App\Services\SpotPlayer;
 
 use App\Jobs\Learning\ProcessCourseRecordingVideo;
 use App\Models\SpotPlayerVideo;
+use App\Models\ClassSession;
 use App\Models\User;
 use App\Services\Integrations\IntegrationOperationService;
 use App\Services\Admin\ClassroomWorkspaceService;
@@ -42,6 +43,18 @@ final class SpotPlayerVideoService
             ->findOrFail((int) $data['course_id']);
 
         $classroomId = filled($data['classroom_id'] ?? null) ? (int) $data['classroom_id'] : null;
+        $classSessionId = filled($data['class_session_id'] ?? null) ? (int) $data['class_session_id'] : null;
+
+        if ($classSessionId) {
+            $classSession = ClassSession::query()
+                ->whereKey($classSessionId)
+                ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
+                ->firstOrFail();
+
+            abort_if($classroomId && (int) $classSession->classroom_id !== $classroomId, 422, 'جلسه انتخاب‌شده متعلق به کلاس انتخاب‌شده نیست.');
+            $classroomId = (int) $classSession->classroom_id;
+        }
+
         if ($classroomId) {
             $this->workspace->queryFor($actor)
                 ->where('course_id', $course->id)
@@ -56,11 +69,12 @@ final class SpotPlayerVideoService
             throw new RuntimeException('محاسبه checksum فایل ویدیو انجام نشد.');
         }
 
-        return DB::transaction(function () use ($data, $actor, $course, $classroomId, $storagePath, $originalName, $mimeType, $size, $sha256): SpotPlayerVideo {
+        return DB::transaction(function () use ($data, $actor, $course, $classroomId, $classSessionId, $storagePath, $originalName, $mimeType, $size, $sha256): SpotPlayerVideo {
             $video = SpotPlayerVideo::query()->create([
                 'title' => trim($data['title']),
                 'course_id' => $course->id,
                 'classroom_id' => $classroomId,
+                'class_session_id' => $classSessionId,
                 'external_id' => filled($data['external_id'] ?? null) ? trim($data['external_id']) : null,
                 'embed_url' => null,
                 'status' => 'processing',
