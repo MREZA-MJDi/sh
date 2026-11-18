@@ -86,6 +86,31 @@ final class AdminTeacherWorkspacePolishTest extends TestCase
             ->assertDontSee('۷ پرداخت منتظر تأیید است');
     }
 
+    public function test_teacher_notifications_never_redirect_into_admin_screens(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $notificationId = (string) Str::uuid();
+
+        DB::table('notifications')->insert([
+            'id' => $notificationId,
+            'type' => 'test',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $teacher->id,
+            'data' => json_encode([
+                'title' => 'بررسی تکلیف',
+                'message' => 'پاسخی برای بررسی ثبت شده است.',
+                'url' => route('admin.homework.index'),
+            ], JSON_UNESCAPED_UNICODE),
+            'read_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('notifications.read', $notificationId))
+            ->assertRedirect(route('teacher.homework'));
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
