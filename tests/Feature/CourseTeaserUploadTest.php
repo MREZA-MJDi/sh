@@ -85,6 +85,7 @@ final class CourseTeaserUploadTest extends TestCase
             'target' => 'teaser',
             'target_id' => $course->id,
             'total' => 1,
+            'total_bytes' => 100,
         ])->assertForbidden();
 
         $this->assertDatabaseCount('video_upload_sessions', 0);
