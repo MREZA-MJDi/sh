@@ -16,7 +16,7 @@ use Illuminate\View\View;
 
 final class CourseController extends Controller
 {
-    public function create(ClassroomWorkspaceService $workspace): View
+    public function create(): View
     {
         abort_unless(auth()->user()->hasPermissionTo('courses.manage'), 403);
 
@@ -27,7 +27,7 @@ final class CourseController extends Controller
             ->get(['id', 'name']);
 
         return view('admin.courses.form', [
-            'course' => new Course(['type' => 'free', 'price' => 0, 'delivery_type' => 'spotplayer', 'status' => 'draft']),
+            'course' => new Course(['type' => 'free', 'price' => 0, 'delivery_type' => 'onsite', 'status' => 'draft', 'learning_features' => ['recorded_video' => false, 'live_class' => false, 'resources' => false, 'assignments' => false, 'exams' => false, 'projects' => false]]),
             'teachers' => $teachers,
             'isEditing' => false,
             'videos' => collect(),
