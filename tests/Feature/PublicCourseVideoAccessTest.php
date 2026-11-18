@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\Classroom;
 use App\Models\CourseEnrollment;
 use App\Models\Role;
 use App\Models\SpotPlayerLicense;
@@ -134,6 +135,40 @@ final class PublicCourseVideoAccessTest extends TestCase
 
         $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
             ->assertRedirect(route('student.videos.show', $video));
+    }
+
+    public function test_course_enrollment_does_not_unlock_recordings_from_an_unassigned_classroom(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'name' => 'کلاس اختصاصی',
+            'status' => 'active',
+        ]);
+        Storage::fake('local');
+        Storage::disk('local')->put('private/course-videos/class-only.mp4', 'private-video');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'title' => 'ویدیوی مخصوص کلاس دیگر',
+            'status' => 'active',
+            'file_path' => 'private/course-videos/class-only.mp4',
+            'file_original_name' => 'class-only.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'private-video'),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertDontSee('ویدیوی مخصوص کلاس دیگر');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertForbidden();
     }
 
     public function test_student_without_enrollment_does_not_receive_the_player_even_with_a_provider_license(): void
