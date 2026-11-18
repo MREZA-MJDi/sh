@@ -136,12 +136,22 @@
   /* ---------- پیام‌ها: اسکرول به آخرین پیام ---------- */
   var ms = $('.msgs'); if (ms) ms.scrollTop = ms.scrollHeight;
 
-  /* جلوگیری از ارسال دوباره‌ی فرم‌ها با دوبار کلیک */
-  $$('form').forEach(function (f) {
+  /* جلوگیری از ارسال دوباره؛ قفل تا زمان بازگشت صفحه حفظ می‌شود. */
+  $('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
       if (f.getAttribute('data-busy')) { e.preventDefault(); return; }
       f.setAttribute('data-busy', '1');
-      setTimeout(function () { f.removeAttribute('data-busy'); }, 1500);
+      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+        button.disabled = true;
+      });
+    });
+  });
+  window.addEventListener('pageshow', function () {
+    $('form[data-busy]').forEach(function (f) {
+      f.removeAttribute('data-busy');
+      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+        button.disabled = false;
+      });
     });
   });
 })();
