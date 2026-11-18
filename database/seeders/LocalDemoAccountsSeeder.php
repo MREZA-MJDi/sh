@@ -12,7 +12,8 @@ final class LocalDemoAccountsSeeder extends Seeder
 {
     public function run(): void
     {
-        if (! config('demo.enabled')) {
+        // Never create shared-password demo identities in a production database.
+        if (app()->environment('production') || ! config('demo.enabled')) {
             return;
         }
 
