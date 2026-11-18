@@ -55,7 +55,7 @@
             </td>
             <td>
               @if($video->file_path)
-                <a href="{{ route('admin.spotplayer.videos.download', $video) }}">دریافت فایل مبدأ</a>
+                <a href="{{ route('admin.spotplayer.videos.download', $video) }}">{{ $video->status === 'active' ? 'دریافت فایل پردازش‌شده' : 'دریافت فایل مبدأ' }}</a>
                 <small>{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} MB</small>
               @else
                 <span class="adm-muted">فقط شناسه خارجی</span>
