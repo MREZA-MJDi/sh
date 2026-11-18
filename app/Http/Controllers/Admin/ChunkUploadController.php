@@ -316,20 +316,24 @@ final class ChunkUploadController extends Controller
                 return response()->json(['ok' => true, 'status' => 'processing']);
             }
 
-            $video = $videos->stageStoredFile(
-                $session->metadata,
-                $request->user(),
-                $destination,
-                $data['filename'],
-                $mime,
-                (int) $actualBytes
-            );
+            $video = DB::transaction(function () use ($videos, $session, $request, $destination, $data, $mime, $actualBytes): SpotPlayerVideo {
+                $video = $videos->stageStoredFile(
+                    $session->metadata,
+                    $request->user(),
+                    $destination,
+                    $data['filename'],
+                    $mime,
+                    (int) $actualBytes
+                );
 
-            $session->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-                'metadata' => [...($session->metadata ?? []), 'result_video_id' => $video->id],
-            ]);
+                $session->update([
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                    'metadata' => [...($session->metadata ?? []), 'result_video_id' => $video->id],
+                ]);
+
+                return $video;
+            });
             $disk->deleteDirectory($chunkDirectory);
 
             return response()->json([
