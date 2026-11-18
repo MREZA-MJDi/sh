@@ -303,6 +303,8 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::get('/homework', [TeacherPortalController::class, 'homework'])->middleware('permission:homework.view.assigned')->name('homework');
         Route::post('/homework', [HomeworkController::class, 'store'])->middleware('permission:homework.manage.assigned')->name('homework.store');
         Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware('permission:homework.grade')->name('homework.review');
+        Route::get('/homework-submission-files/{file}/download', [HomeworkController::class, 'downloadSubmissionFile'])->middleware('permission:homework.view.assigned')->name('homework-submission-files.download');
+        Route::get('/homework/{homework}/attachment', [HomeworkController::class, 'downloadAttachment'])->middleware('permission:homework.view.assigned')->name('homework.attachment');
         Route::get('/videos', [TeacherPortalController::class, 'videos'])->middleware('permission:videos.manage.assigned')->name('videos');
         Route::post('/videos', [SpotPlayerController::class, 'storeVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.store');
         Route::get('/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.download');
