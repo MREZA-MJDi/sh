@@ -312,7 +312,6 @@ final class PublicSiteController extends Controller
 
         $teachers = $query
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
-            ->with(['assignedCourses' => fn ($courses) => $courses->where('status', 'published')->select('id', 'teacher_id', 'title', 'slug')->latest()->limit(3)])
             ->orderBy('name')->paginate(12)->withQueryString();
 
         $subjects = User::query()->where('is_active', true)
