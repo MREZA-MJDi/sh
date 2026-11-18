@@ -25,7 +25,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_teacher_can_stage_private_spotplayer_video_for_a_class_they_teach_using_chunks(): void
+    public function test_teacher_can_upload_a_self_hosted_course_video_for_their_class_using_chunks(): void
     {
         $teacher = $this->userWithRole('teacher');
         $course = Course::query()->create([
@@ -66,23 +66,18 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'upload_id' => $uploadId,
             'total' => 1,
             'filename' => 'lesson-one.mp4',
-        ])->assertOk()->assertJsonPath('status', 'waiting_contract');
+        ])->assertOk()->assertJsonPath('status', 'ready');
 
         $video = SpotPlayerVideo::query()->findOrFail($complete->json('video_id'));
 
-        $this->assertSame('waiting_contract', $video->status);
+        $this->assertSame('active', $video->status);
         $this->assertSame($classroom->id, $video->classroom_id);
-        $this->assertStringStartsWith('private/spotplayer-staging/', $video->file_path);
+        $this->assertStringStartsWith('private/course-videos/', $video->file_path);
         $this->assertSame(128, $video->file_size_bytes);
         $this->assertNotNull($video->file_sha256);
         Storage::disk('local')->assertExists($video->file_path);
 
-        $this->assertDatabaseHas('integration_runs', [
-            'provider' => 'spotplayer',
-            'action' => 'upload_video',
-            'status' => 'waiting_contract',
-            'entity_id' => $video->id,
-        ]);
+        $this->assertDatabaseMissing('integration_runs', ['entity_id' => $video->id]);
     }
 
     public function test_admin_can_upload_course_video_when_feature_matrix_is_enabled_without_legacy_delivery_type(): void
