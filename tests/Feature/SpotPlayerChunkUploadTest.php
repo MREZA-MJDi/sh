@@ -27,6 +27,7 @@ final class SpotPlayerChunkUploadTest extends TestCase
 
     public function test_teacher_can_upload_a_self_hosted_course_video_for_their_class_using_chunks(): void
     {
+        Queue::fake();
         $teacher = $this->userWithRole('teacher');
         $course = Course::query()->create([
             'title' => 'دوره ویدیویی مدرس',
@@ -66,11 +67,12 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'upload_id' => $uploadId,
             'total' => 1,
             'filename' => 'lesson-one.mp4',
-        ])->assertOk()->assertJsonPath('status', 'ready');
+        ])->assertOk()->assertJsonPath('status', 'processing');
 
         $video = SpotPlayerVideo::query()->findOrFail($complete->json('video_id'));
 
-        $this->assertSame('active', $video->status);
+        $this->assertSame('processing', $video->status);
+        Queue::assertPushed(ProcessCourseRecordingVideo::class, fn ($job) => $job->videoId === $video->id);
         $this->assertSame($classroom->id, $video->classroom_id);
         $this->assertStringStartsWith('private/course-videos/', $video->file_path);
         $this->assertSame(128, $video->file_size_bytes);
