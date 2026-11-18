@@ -2,6 +2,7 @@ import '../shared/iranian-locale.js';
 // Admin panel entry. Load with @vite('resources/js/admin/app.js')
 import './theme.js';
 import './sidebar.js';
+import './topbar.js';
 import './toast.js';
 import './modal.js';
 import './reveal.js';

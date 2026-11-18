@@ -3,6 +3,7 @@
   $topbarNotifications = $topbarUser?->unreadNotifications()->latest()->limit(6)->get() ?? collect();
   $unreadNotificationCount = $topbarUser?->unreadNotifications()->count() ?? 0;
   $topbarRoleLabel = $topbarUser?->hasRole('admin') ? 'مدیر سامانه' : ($topbarUser?->hasRole('seo') ? 'کارشناس سئو' : ($topbarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر'));
+  $topbarInitial = mb_substr((string) ($topbarUser?->name ?? '؟'), 0, 1);
 @endphp
 <header class="adm-topbar">
   <x-admin.btn variant="line" size="icon" icon="menu" class="adm-menu-btn" data-menu aria-label="باز کردن منو"/>
@@ -23,13 +24,16 @@
 
     <x-admin.btn variant="line" size="icon" icon="moon" data-theme-toggle aria-label="تغییر تم"/>
 
-    <details class="adm-menu">
-      <summary class="adm-btn adm-btn-line adm-btn-icon" aria-label="اعلان‌ها" style="position:relative">
+    <details class="adm-menu adm-notification-menu" data-admin-topbar-menu>
+      <summary class="adm-btn adm-btn-line adm-btn-icon" aria-label="اعلان‌ها">
         <x-admin.icon name="bell"/>
         @if($unreadNotificationCount > 0)<i class="adm-dot" aria-label="{{ number_format($unreadNotificationCount) }} اعلان خوانده‌نشده"></i>@endif
       </summary>
-      <div class="adm-menu-pop adm-notification-pop">
-        <header>اعلان‌های خوانده‌نشده <b class="adm-num">{{ number_format($unreadNotificationCount) }}</b></header>
+      <div class="adm-menu-pop adm-notification-pop" aria-label="اعلان‌های خوانده‌نشده">
+        <header class="adm-menu-pop-head">
+          <span>اعلان‌های خوانده‌نشده</span>
+          <b class="adm-num">{{ number_format($unreadNotificationCount) }}</b>
+        </header>
         @forelse($topbarNotifications as $notification)
           <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
             @csrf @method('PATCH')
@@ -40,19 +44,32 @@
             </button>
           </form>
         @empty
-          <p class="adm-muted">اعلان خوانده‌نشده‌ای ندارید.</p>
+          <p class="adm-muted adm-notification-empty">اعلان خوانده‌نشده‌ای ندارید.</p>
         @endforelse
         @if($unreadNotificationCount > 0)
-          <form method="POST" action="{{ route('notifications.read-all') }}">@csrf @method('PATCH')<button type="submit" class="adm-notification-read-all">خواندن همه اعلان‌ها</button></form>
+          <form method="POST" action="{{ route('notifications.read-all') }}">
+            @csrf @method('PATCH')
+            <button type="submit" class="adm-notification-read-all">خواندن همه اعلان‌ها</button>
+          </form>
         @endif
       </div>
     </details>
 
-    <details class="adm-menu">
-      <summary class="adm-avatar" aria-label="حساب کاربری" style="cursor:pointer">{{ mb_substr((string) ($topbarUser?->name ?? '؟'), 0, 1) }}</summary>
-      <div class="adm-menu-pop" style="width:220px">
-        <header>{{ $topbarRoleLabel }} · {{ $topbarUser?->name }}</header>
-        <form method="POST" action="{{ url('logout') }}">@csrf<button type="submit"><x-admin.icon name="logout"/>خروج از حساب</button></form>
+    <details class="adm-menu adm-profile-menu" data-admin-topbar-menu>
+      <summary class="adm-avatar adm-profile-trigger" aria-label="پروفایل کاربری">{{ $topbarInitial }}</summary>
+      <div class="adm-menu-pop adm-profile-pop" aria-label="پروفایل کاربری">
+        <div class="adm-profile-summary">
+          <span class="adm-avatar adm-profile-avatar" aria-hidden="true">{{ $topbarInitial }}</span>
+          <div class="adm-profile-identity">
+            <b class="adm-profile-name">{{ $topbarUser?->name ?? 'کاربر' }}</b>
+            <small>{{ $topbarRoleLabel }}</small>
+            @if($topbarUser?->email)<small class="adm-profile-email">{{ $topbarUser->email }}</small>@endif
+          </div>
+        </div>
+        <form method="POST" action="{{ url('logout') }}">
+          @csrf
+          <button type="submit" class="adm-profile-logout"><x-admin.icon name="logout"/>خروج از حساب</button>
+        </form>
       </div>
     </details>
   </div>
