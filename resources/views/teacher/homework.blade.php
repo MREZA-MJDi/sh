@@ -28,9 +28,7 @@
         @empty
             <p>موردی برای نمره‌دهی در این صفحه نیست.</p>
         @endforelse
-        @if($submissions instanceof \\Illuminate\\Contracts\\Pagination\\Paginator || $submissions instanceof \\Illuminate\\Contracts\\Pagination\\LengthAwarePaginator)
-            {{ $submissions->links() }}
-        @endif
+        {{ $submissions->links() }}
     </section>
 </div>
 @endsection

@@ -17,7 +17,7 @@
     $nav = include resource_path('views/admin/nav.php');
     $user = auth()->user();
     $isAdmin = $user?->hasRole('admin') ?? false;
-    if ($user?->hasRole('seo')) {
+    if ($user?->hasRole('seo') && ! $user?->hasRole('admin')) {
       $nav['home']['url'] = 'admin/seo';
       $nav['home']['label'] = 'مرکز مدیریت سئو';
     }

@@ -2,13 +2,13 @@
   $topbarUser = auth()->user();
   $topbarNotifications = $topbarUser?->unreadNotifications()->latest()->limit(6)->get() ?? collect();
   $unreadNotificationCount = $topbarUser?->unreadNotifications()->count() ?? 0;
-  $topbarRoleLabel = $topbarUser?->hasRole('seo') ? 'کارشناس سئو' : ($topbarUser?->hasRole('teacher') ? 'مدرس' : 'مدیر سامانه');
+  $topbarRoleLabel = $topbarUser?->hasRole('admin') ? 'مدیر سامانه' : ($topbarUser?->hasRole('seo') ? 'کارشناس سئو' : ($topbarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر'));
 @endphp
 <header class="adm-topbar">
   <x-admin.btn variant="line" size="icon" icon="menu" class="adm-menu-btn" data-menu aria-label="باز کردن منو"/>
 
   <nav class="adm-crumbs" aria-label="مسیر">
-    <a href="{{ url($topbarUser?->hasRole('seo') ? 'admin/seo' : 'admin') }}">{{ $topbarUser?->hasRole('seo') ? 'مرکز مدیریت سئو' : 'پنل مدیریت' }}</a>
+    <a href="{{ url(($topbarUser?->hasRole('seo') && ! $topbarUser?->hasRole('admin')) ? 'admin/seo' : 'admin') }}">{{ ($topbarUser?->hasRole('seo') && ! $topbarUser?->hasRole('admin')) ? 'مرکز مدیریت سئو' : 'پنل مدیریت' }}</a>
     @if ($activeGroup !== null)
       <x-admin.icon name="chev"/><span>{{ $nav['groups'][$activeGroup]['label'] }}</span>
       <x-admin.icon name="chev"/><b>{{ $nav['groups'][$activeGroup]['items'][$activeItem]['label'] }}</b>

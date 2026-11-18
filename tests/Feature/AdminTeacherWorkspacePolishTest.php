@@ -24,6 +24,7 @@ final class AdminTeacherWorkspacePolishTest extends TestCase
     public function test_teacher_can_read_only_their_own_notifications_from_the_topbar(): void
     {
         $teacher = $this->userWithRole('teacher');
+        $this->assertSame('/teacher/homework-submissions/123/review', parse_url(route('teacher.homework.review', 123), PHP_URL_PATH));
         $notificationId = (string) Str::uuid();
 
         DB::table('notifications')->insert([

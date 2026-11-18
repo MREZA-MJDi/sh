@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\ClassSession;
 use App\Models\Homework;
+use App\Models\HomeworkSubmission;
 use App\Models\MessageReply;
 use App\Models\User;
 use App\Notifications\MessageActivityNotification;
