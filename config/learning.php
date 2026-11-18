@@ -8,8 +8,8 @@ return [
     'player_mode' => env('LEARNING_PLAYER_MODE', 'license'),
     'embed_url_template' => env('LEARNING_EMBED_URL'), // مثال: https://.../{video_id}
 
-    'max_teaser_mb' => 1024,
-    'max_lesson_mb' => 5120,
+    'max_teaser_mb' => 200,
+    'max_lesson_mb' => 250,
     'chunk_mb' => 5,
 
     // نام route شروع پرداخت پروژه (باید یک Enrollment بگیرد)
