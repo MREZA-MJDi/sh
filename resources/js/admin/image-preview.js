@@ -53,7 +53,14 @@ const showPreview = (input) => {
     meta.hidden = false;
     const objectUrl = URL.createObjectURL(file);
     stage.dataset.objectUrl = objectUrl;
-    stage.style.aspectRatio = input.dataset.previewRatio || '16 / 9';
+    stage.style.aspectRatio = input.dataset.previewRatio || 'auto';
+    if (input.dataset.previewMobileRatio) {
+        stage.dataset.mobileRatio = 'true';
+        stage.style.setProperty('--adm-mobile-ratio', input.dataset.previewMobileRatio);
+    } else {
+        delete stage.dataset.mobileRatio;
+        stage.style.removeProperty('--adm-mobile-ratio');
+    }
     stage.dataset.fit = input.dataset.previewFit || 'contain';
     stage.hidden = false;
 
