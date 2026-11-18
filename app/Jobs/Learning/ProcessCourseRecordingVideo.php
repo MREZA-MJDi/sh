@@ -89,18 +89,22 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
                 throw new \RuntimeException('محاسبه checksum فایل پردازش‌شده ناموفق بود.');
             }
 
-            $disk->delete($video->file_path);
+            $sourceRelativePath = $video->file_path;
+            $sourceName = pathinfo($video->file_original_name ?: 'recording', PATHINFO_FILENAME);
 
             $video->update([
                 'file_path' => $outputRelativePath,
-                'file_original_name' => $video->file_original_name,
+                'file_original_name' => $sourceName.'.mp4',
                 'file_mime_type' => 'video/mp4',
-                'file_size_bytes' => filesize($outputPath),
+                'file_size_bytes' => (int) filesize($outputPath),
                 'file_sha256' => $sha256,
                 'status' => filled($video->external_id) ? 'waiting_contract' : 'active',
                 'processing_error' => null,
                 'processed_at' => now(),
             ]);
+
+            // Keep the source until the database points at the verified MP4.
+            $disk->delete($sourceRelativePath);
         } catch (Throwable $exception) {
             $disk->delete($outputRelativePath);
 
