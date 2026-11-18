@@ -94,7 +94,19 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->get(route('student.videos.stream', $video))
             ->assertOk()
-            ->assertHeader('Content-Type', 'video/mp4');
+            ->assertHeader('Content-Type', 'video/mp4')
+            ->assertHeader('Accept-Ranges', 'bytes');
+
+        $this->withHeaders(['Range' => 'bytes=0-4'])
+            ->get(route('student.videos.stream', $video))
+            ->assertStatus(206)
+            ->assertHeader('Content-Range', 'bytes 0-4/19')
+            ->assertSee('local', false);
+
+        $this->withHeaders(['Range' => 'bytes=99-120'])
+            ->get(route('student.videos.stream', $video))
+            ->assertStatus(416)
+            ->assertHeader('Content-Range', 'bytes */19');
     }
 
     public function test_video_is_not_visible_to_students_outside_its_course_or_class(): void
