@@ -26,6 +26,7 @@ final class LearningResourceService
                     'kind' => $data['kind'],
                     'course_id' => $data['course_id'] ?? null,
                     'classroom_id' => $data['classroom_id'] ?? null,
+                    'class_session_id' => $data['class_session_id'] ?? null,
                     'is_free' => $isFree,
                     'price' => $isFree ? 0 : (int) ($data['price'] ?? 0),
                     'visibility' => $data['visibility'],
