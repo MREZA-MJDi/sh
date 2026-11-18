@@ -182,21 +182,22 @@
                                                                 <use href="#{{ $isUnlocked ? 'play' : 'lock' }}"/>
                                                             </svg>
                                                         </div>
-                                                        <div class="lesson-title-box">
-                                                            <span class="lesson-title">
-                                                                جلسه {{ $lessonIndex + 1 }}: {{ $lesson->title }}
-                                                            </span>
-                                                            @if($isUnlocked)
-                                                                <span class="lesson-badge-free">محتوای دوره در دسترس است</span>
-                                                            @else
-                                                                <span class="lesson-badge-locked" aria-label="این درس قفل است"><svg class="i" aria-hidden="true" style="width:15px;height:15px;vertical-align:-3px;margin-inline-end:5px"><use href="#lock"/></svg>ویژه دانش‌آموزان ثبت‌نام‌شده</span>
+                                                        <div class="lesson-content">
+                                                            <div class="lesson-title-box">
+                                                                <span class="lesson-title">
+                                                                    جلسه {{ $lessonIndex + 1 }}: {{ $lesson->title }}
+                                                                </span>
+                                                                @if($isUnlocked)
+                                                                    <span class="lesson-badge-free">محتوای دوره در دسترس است</span>
+                                                                @else
+                                                                    <span class="lesson-badge-locked" aria-label="این درس قفل است"><svg class="i" aria-hidden="true" style="width:15px;height:15px;vertical-align:-3px;margin-inline-end:5px"><use href="#lock"/></svg>ویژه دانش‌آموزان ثبت‌نام‌شده</span>
+                                                                @endif
+                                                            </div>
+                                                            @if(filled($lesson->body))
+                                                                <p class="lesson-description">{{ $lesson->body }}</p>
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    @if(filled($lesson->body))
-                                                        <p class="lesson-description" style="margin:10px 0 0 42px;color:var(--mute);font-size:13px;line-height:1.9;white-space:pre-line">{{ $lesson->body }}</p>
-                                                    @endif
-
                                                     <div class="lesson-meta">
                                                         <span class="lesson-time">
                                                             <svg class="i" style="width:14px;height:14px"><use href="#clock"/></svg>
