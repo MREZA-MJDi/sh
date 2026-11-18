@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use Database\Seeders\AcademicGradeSeeder;
+use Database\Seeders\AcademicPortalContentSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
