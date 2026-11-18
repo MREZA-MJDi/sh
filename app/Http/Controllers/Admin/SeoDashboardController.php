@@ -12,6 +12,7 @@ use App\Models\SeoBanner;
 use App\Models\SeoSetting;
 use App\Models\SeoTestimonial;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -118,13 +119,20 @@ class SeoDashboardController extends Controller
         return back()->with('success', 'تنظیمات سئو ذخیره شد.');
     }
 
-    public function banners(): View
+    public function banners(Request $request): View
     {
+        $selectedPlacement = $request->query('placement');
+        if (! in_array($selectedPlacement, ['home_hero', 'sitewide', 'articles_top', 'articles_sidebar'], true)) {
+            $selectedPlacement = null;
+        }
+
         $banners = SeoBanner::query()->with('creator')
+            ->when($selectedPlacement, fn ($query) => $query->where('placement', $selectedPlacement))
             ->orderBy('sort_order')->latest('id')->paginate(15)->withQueryString();
 
         return view('admin.seo.banners', [
             'banners' => $banners,
+            'selectedPlacement' => $selectedPlacement,
             'settings' => SeoSetting::current(),
             'activeBannerCount' => SeoBanner::active()->count(),
             'homeHeroCount' => SeoBanner::query()->where('placement', 'home_hero')->count(),

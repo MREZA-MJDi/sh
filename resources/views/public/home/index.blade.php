@@ -234,9 +234,10 @@
 
 
     {{-- =========================================================
-         INTERACTIVE FIVE-STEP QUIZ
+         INTERACTIVE HOMEPAGE QUIZ
     ========================================================= --}}
 
+    @if(($homeQuizTotal ?? 0) > 0)
     <section class="home-quiz-section" id="homeQuiz">
 
         <div class="c">
@@ -248,7 +249,7 @@
                 <h2>هوشت رو به چالش بکش!</h2>
 
                 <p>
-                    پنج مرحله جذاب، پنج سؤال متفاوت؛
+                    چند سؤال جذاب و معمای متفاوت؛
                     ببین چند پاسخ صحیح می‌تونی ثبت کنی.
                 </p>
 
@@ -259,6 +260,7 @@
                     data-question-url="{{ url('/home-quiz/question') }}"
                     data-answer-url="{{ route('public.home.quiz.answer') }}"
                     data-csrf="{{ csrf_token() }}"
+                    data-total="{{ $homeQuizTotal ?? 0 }}"
             >
 
                 {{-- Progress --}}
@@ -266,7 +268,7 @@
                 <div class="quiz-progress-area">
 
                     <div class="quiz-progress-top">
-                        <span id="quizStepLabel">مرحله ۱ از ۵</span>
+                        <span id="quizStepLabel">مرحله ۱ از {{ $homeQuizTotal ?? 0 }}</span>
                         <span id="quizScoreLabel">امتیاز: ۰</span>
                     </div>
 
@@ -275,20 +277,14 @@
                             role="progressbar"
                             aria-label="پیشرفت آزمون"
                             aria-valuemin="0"
-                            aria-valuemax="5"
+                            aria-valuemax="{{ $homeQuizTotal ?? 0 }}"
                             aria-valuenow="0"
                             id="quizProgress"
                     >
                         <div class="quiz-progress-fill" id="quizProgressFill"></div>
                     </div>
 
-                    <div class="quiz-step-dots" id="quizStepDots">
-                        <span class="active">۱</span>
-                        <span>۲</span>
-                        <span>۳</span>
-                        <span>۴</span>
-                        <span>۵</span>
-                    </div>
+                    <div class="quiz-step-dots" id="quizStepDots"></div>
 
                 </div>
 
@@ -352,7 +348,7 @@
 
                     <div class="quiz-final-score">
                         <strong id="quizFinalScore">۰</strong>
-                        <span>از ۵ پاسخ صحیح</span>
+                        <span>از {{ $homeQuizTotal ?? 0 }} پاسخ صحیح</span>
                     </div>
 
                     <p id="quizResultDescription"></p>
@@ -377,6 +373,7 @@
         </div>
 
     </section>
+    @endif
 
     <style>
         /* =========================================================
@@ -1707,15 +1704,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const progress = document.getElementById('quizProgress');
     const progressFill = document.getElementById('quizProgressFill');
 
-    const dots = Array.from(
-        document.querySelectorAll('#quizStepDots span')
-    );
+    const dots = [];
+    const dotsContainer = document.getElementById('quizStepDots');
 
     const questionUrl = quiz.dataset.questionUrl;
     const answerUrl = quiz.dataset.answerUrl;
     const csrf = quiz.dataset.csrf;
 
-    const total = 5;
+    const total = Number.parseInt(quiz.dataset.total || '0', 10);
+    for (let index = 0; index < total; index++) {
+        const dot = document.createElement('span');
+        dot.textContent = String(index + 1).replace(/[0-9]/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]);
+        dotsContainer.appendChild(dot);
+        dots.push(dot);
+    }
 
     let currentStep = 1;
     let score = 0;
@@ -1848,7 +1850,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderQuestion(question) {
 
-        const options = Object.entries(question.options);
+        if (question.type === 'riddle') {
+            questionArea.innerHTML = `
+                <div class="quiz-question-category">✦ ${escapeHtml(question.category)}</div>
+                <h3 class="quiz-question-title">${escapeHtml(question.question)}</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <input id="quizRiddleAnswer" class="quiz-option" type="text" maxlength="255" placeholder="پاسخ معما را بنویس..." style="flex:1;min-width:220px">
+                    <button type="button" class="quiz-option" id="quizRiddleSubmit">ثبت پاسخ</button>
+                </div>
+            `;
+            document.getElementById('quizRiddleSubmit').addEventListener('click', function () {
+                submitAnswer(document.getElementById('quizRiddleAnswer').value, this);
+            });
+            return;
+        }
+
+        const options = Object.entries(question.options || {});
 
         questionArea.innerHTML = `
             <div class="quiz-question-category">
@@ -2066,19 +2083,19 @@ document.addEventListener('DOMContentLoaded', function () {
         let description = '';
         let icon = '🏆';
 
-        if (score === 5) {
+        if (score === total) {
 
             title = 'فوق‌العاده بود!';
             description = 'تمام مراحل را درست پاسخ دادی. تو یک قهرمان واقعی هستی!';
             icon = '🏆';
 
-        } else if (score >= 4) {
+        } else if (score >= Math.ceil(total * 0.8)) {
 
             title = 'عالی عمل کردی!';
             description = 'عملکردت بسیار خوب بود. فقط کمی تمرین بیشتر لازم داری.';
             icon = '🌟';
 
-        } else if (score >= 2) {
+        } else if (score >= Math.ceil(total * 0.4)) {
 
             title = 'خوب پیش رفتی!';
             description = 'چند سؤال را درست پاسخ دادی. با تمرین بیشتر بهتر می‌شوی.';
@@ -2105,7 +2122,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         progressFill.style.width = '100%';
 
-        progress.setAttribute('aria-valuenow', '5');
+        progress.setAttribute('aria-valuenow', String(total));
 
         dots.forEach(dot => {
             dot.classList.remove('active');

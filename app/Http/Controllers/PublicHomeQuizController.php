@@ -2,135 +2,75 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HomeQuizQuestion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PublicHomeQuizController extends Controller
 {
-    private function questions(): array
-    {
-        return [
-            1 => [
-                'id' => 'q1',
-                'category' => 'شیمی',
-                'question' => 'در واکنش HCl + NaOH → NaCl + H₂O، این واکنش از چه نوعی است؟',
-                'options' => [
-                    'A' => 'سوختن',
-                    'B' => 'خنثی‌سازی اسید و باز',
-                    'C' => 'تجزیه',
-                    'D' => 'جانشینی یگانه',
-                ],
-                'answer' => 'B',
-                'explanation' => 'اسید هیدروکلریک و سدیم هیدروکسید با هم واکنش می‌دهند و نمک و آب تولید می‌کنند؛ این واکنش نمونه‌ای از خنثی‌سازی است.',
-            ],
-            2 => [
-                'id' => 'q2',
-                'category' => 'زیست‌شناسی',
-                'question' => 'کدام اندامک در بیشتر سلول‌های یوکاریوتی، محل اصلی تولید ATP در تنفس هوازی است؟',
-                'options' => [
-                    'A' => 'ریبوزوم',
-                    'B' => 'دستگاه گلژی',
-                    'C' => 'میتوکندری',
-                    'D' => 'شبکه آندوپلاسمی',
-                ],
-                'answer' => 'C',
-                'explanation' => 'بخش عمده ATP حاصل از تنفس هوازی در میتوکندری و به‌ویژه طی زنجیره انتقال الکترون و فسفریلاسیون اکسایشی تولید می‌شود.',
-            ],
-            3 => [
-                'id' => 'q3',
-                'category' => 'ریاضی',
-                'question' => 'اگر f(x) = x² باشد، مقدار مشتق تابع در x = ۳ چند است؟',
-                'options' => [
-                    'A' => '۶',
-                    'B' => '۳',
-                    'C' => '۹',
-                    'D' => '۱۲',
-                ],
-                'answer' => 'A',
-                'explanation' => 'مشتق x² برابر ۲x است؛ با قرار دادن x = ۳، مقدار مشتق ۲ × ۳ = ۶ می‌شود.',
-            ],
-            4 => [
-                'id' => 'q4',
-                'category' => 'فیزیک',
-                'question' => 'دو مقاومت ۲ و ۴ اهمی به‌صورت سری به هم وصل شده‌اند. مقاومت معادل چقدر است؟',
-                'options' => [
-                    'A' => '۲ اهم',
-                    'B' => '۴ اهم',
-                    'C' => '۶ اهم',
-                    'D' => '۸ اهم',
-                ],
-                'answer' => 'C',
-                'explanation' => 'در اتصال سری، مقاومت‌ها با هم جمع می‌شوند؛ بنابراین مقاومت معادل برابر ۲ + ۴ = ۶ اهم است.',
-            ],
-            5 => [
-                'id' => 'q5',
-                'category' => 'شیمی',
-                'question' => 'اگر غلظت یون هیدروژن در یک محلول اسید قوی برابر ۱۰ به توان منفی ۳ مولار باشد، pH آن تقریباً چند است؟',
-                'options' => [
-                    'A' => '۱',
-                    'B' => '۲',
-                    'C' => '۴',
-                    'D' => '۳',
-                ],
-                'answer' => 'D',
-                'explanation' => 'pH برابر منفی لگاریتم ده‌دهی غلظت یون هیدروژن است؛ پس برای غلظت ۱۰⁻³ مولار، مقدار pH برابر ۳ خواهد بود.',
-            ],
-        ];
-    }
-
-    /**
-     * نمایش سؤال موردنظر
-     */
     public function question(int $step): JsonResponse
     {
-        $questions = $this->questions();
+        $questions = HomeQuizQuestion::published()->get();
+        $question = $questions->get($step - 1);
 
-        if (!isset($questions[$step])) {
-            return response()->json([
-                'message' => 'مرحله موردنظر وجود ندارد.',
-            ], 404);
+        if (! $question) {
+            return response()->json(['message' => 'مرحله موردنظر وجود ندارد.'], 404);
         }
-
-        $question = $questions[$step];
-
-        // پاسخ صحیح هرگز در خروجی سؤال ارسال نمی‌شود.
-        unset($question['answer'], $question['explanation']);
 
         return response()->json([
             'success' => true,
             'step' => $step,
-            'total' => count($questions),
-            'question' => $question,
+            'total' => $questions->count(),
+            'question' => [
+                'id' => 'q'.$step,
+                'category' => $question->category,
+                'type' => $question->type,
+                'question' => $question->question,
+                'options' => $question->type === 'multiple_choice' ? $question->options : null,
+            ],
         ]);
     }
 
-    /**
-     * بررسی پاسخ کاربر
-     */
     public function answer(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'step' => ['required', 'integer', 'between:1,5'],
-            'answer' => ['required', 'string', 'in:A,B,C,D'],
+            'step' => ['required', 'integer', 'min:1', function ($attribute, $value, $fail): void {
+                if ((int) $value > HomeQuizQuestion::published()->count()) {
+                    $fail('مرحله موردنظر وجود ندارد.');
+                }
+            }],
+            'answer' => ['required', 'string', 'max:255'],
         ]);
 
-        $questions = $this->questions();
+        $questions = HomeQuizQuestion::published()->get();
+        $question = $questions->get(((int) $validated['step']) - 1);
 
-        $step = (int) $validated['step'];
-        $question = $questions[$step];
+        if (! $question) {
+            return response()->json(['message' => 'مرحله موردنظر وجود ندارد.'], 404);
+        }
 
-        $isCorrect = $validated['answer'] === $question['answer'];
+        if ($question->type === 'multiple_choice') {
+            if (! in_array($validated['answer'], ['A', 'B', 'C', 'D'], true)) {
+                return response()->json(['message' => 'گزینه انتخاب‌شده معتبر نیست.'], 422);
+            }
+            $isCorrect = $validated['answer'] === $question->correct_answer;
+            $correctLabel = data_get($question->options, $question->correct_answer, $question->correct_answer);
+        } else {
+            $normalize = fn (string $value): string => mb_strtolower(trim(preg_replace('/\s+/u', ' ', $value) ?? $value));
+            $isCorrect = $normalize($validated['answer']) === $normalize($question->correct_answer);
+            $correctLabel = $question->correct_answer;
+        }
 
         return response()->json([
             'success' => true,
             'correct' => $isCorrect,
             'selected' => $validated['answer'],
-            'correct_answer' => $question['answer'],
-            'correct_label' => $question['options'][$question['answer']],
-            'explanation' => $question['explanation'],
-            'is_last' => $step === count($questions),
-            'step' => $step,
-            'total' => count($questions),
+            'correct_answer' => $question->correct_answer,
+            'correct_label' => $correctLabel,
+            'explanation' => $question->explanation,
+            'is_last' => (int) $validated['step'] === $questions->count(),
+            'step' => (int) $validated['step'],
+            'total' => $questions->count(),
         ]);
     }
 }

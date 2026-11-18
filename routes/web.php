@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\ParentMeetingController as AdminParentMeetingCont
 use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
+use App\Http\Controllers\Admin\HomeQuizQuestionController;
 use App\Http\Controllers\SeoPublicController;
 use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\PublicHomeQuizController;
@@ -125,6 +126,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/seo/banners/{banner}', [SeoDashboardController::class, 'updateBanner'])->middleware('permission:seo.manage')->name('seo.banners.update');
     Route::delete('/seo/banners/{banner}', [SeoDashboardController::class, 'destroyBanner'])->middleware('permission:seo.manage')->name('seo.banners.destroy');
     Route::get('/seo/articles', [SeoDashboardController::class, 'articles'])->middleware('permission:seo.manage')->name('seo.articles.index');
+    Route::get('/seo/quiz', [HomeQuizQuestionController::class, 'index'])->middleware('permission:seo.manage')->name('seo.quiz.index');
+    Route::post('/seo/quiz', [HomeQuizQuestionController::class, 'store'])->middleware('permission:seo.manage')->name('seo.quiz.store');
+    Route::patch('/seo/quiz/{question}', [HomeQuizQuestionController::class, 'update'])->middleware('permission:seo.manage')->name('seo.quiz.update');
+    Route::delete('/seo/quiz/{question}', [HomeQuizQuestionController::class, 'destroy'])->middleware('permission:seo.manage')->name('seo.quiz.destroy');
     Route::get('/seo/testimonials', [SeoDashboardController::class, 'testimonials'])->middleware('permission:seo.manage')->name('seo.testimonials.index');
     Route::post('/seo/testimonials', [SeoDashboardController::class, 'storeTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.store');
     Route::patch('/seo/testimonials/{testimonial}', [SeoDashboardController::class, 'updateTestimonial'])->middleware('permission:seo.manage')->name('seo.testimonials.update');
