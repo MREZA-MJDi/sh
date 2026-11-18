@@ -123,6 +123,43 @@ final class SpotPlayerChunkUploadTest extends TestCase
             ->assertJsonPath('received_chunks.0', 0);
     }
 
+    public function test_admin_can_retry_processing_a_failed_private_recording(): void
+    {
+        Queue::fake();
+        $admin = $this->userWithRole('admin');
+        $course = Course::query()->create([
+            'title' => 'دوره پردازش مجدد',
+            'slug' => 'course-video-processing-retry',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'spotplayer',
+            'status' => 'published',
+        ]);
+        Storage::disk('local')->put('private/course-videos/failed-source.mov', 'source-video');
+
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'created_by' => $admin->id,
+            'title' => 'ویدیوی نیازمند پردازش مجدد',
+            'status' => 'failed',
+            'file_path' => 'private/course-videos/failed-source.mov',
+            'file_original_name' => 'failed-source.mov',
+            'file_mime_type' => 'video/quicktime',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'source-video'),
+            'processing_error' => 'FFmpeg در دسترس نبود.',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.spotplayer.videos.retry-processing', $video))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame('processing', $video->fresh()->status);
+        $this->assertNull($video->fresh()->processing_error);
+        Queue::assertPushed(ProcessCourseRecordingVideo::class, fn ($job) => $job->videoId === $video->id);
+    }
+
     public function test_admin_can_upload_course_video_when_feature_matrix_is_enabled_without_legacy_delivery_type(): void
     {
         $admin = $this->userWithRole('admin');
