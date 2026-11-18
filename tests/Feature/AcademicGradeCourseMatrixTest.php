@@ -141,6 +141,22 @@ final class AcademicGradeCourseMatrixTest extends TestCase
         $this->assertSame($grade->name, $course->academicGrade->name);
     }
 
+
+    public function test_admin_course_form_uses_the_canonical_grade_catalog_and_exposes_season(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.courses.create'))
+            ->assertOk()
+            ->assertSee('name="academic_grade_id"', false)
+            ->assertSee('name="season"', false)
+            ->assertSee('اول')
+            ->assertSee('دوازدهم')
+            ->assertSee('بهار')
+            ->assertSee('زمستان');
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);
