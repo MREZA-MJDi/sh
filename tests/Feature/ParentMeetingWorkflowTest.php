@@ -109,7 +109,7 @@ final class ParentMeetingWorkflowTest extends TestCase
 
         $this->actingAs($teacher)
             ->getJson(route('admin.parent-meetings.lookup', [
-                'q' => 'هدف',
+                'q' => 'دانش‌آموز',
                 'classroom_id' => $classroom->id,
             ]))
             ->assertOk()
