@@ -145,29 +145,6 @@ class RolePermissionSeeder extends Seeder
             $admin->roles()->syncWithoutDetaching([$roleModels['admin']->id]);
         }
 
-        $seoEmail = env('SHIKHAN_SEO_EMAIL');
-        $seoPassword = env('SHIKHAN_SEO_PASSWORD');
 
-        if (is_string($seoEmail) && $seoEmail !== '' && is_string($seoPassword) && strlen($seoPassword) >= 12) {
-            if (! filter_var($seoEmail, FILTER_VALIDATE_EMAIL)) {
-                throw new \RuntimeException('SHIKHAN_SEO_EMAIL must be a valid email address.');
-            }
-
-            $existingSeoAccount = User::query()->where('email', $seoEmail)->first();
-            if ($existingSeoAccount && $existingSeoAccount->roles()->whereIn('name', ['admin', 'teacher', 'student', 'parent'])->exists()) {
-                throw new \RuntimeException('The SEO account email is already assigned to a client-facing role.');
-            }
-
-            $seo = User::query()->updateOrCreate(
-                ['email' => $seoEmail],
-                [
-                    'name' => env('SHIKHAN_SEO_NAME', 'کارشناس سئو'),
-                    'password' => Hash::make($seoPassword),
-                    'is_active' => true,
-                ]
-            );
-
-            $seo->roles()->sync([$roleModels['seo']->id]);
-        }
     }
 }
