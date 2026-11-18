@@ -11,3 +11,4 @@ import './upload.js';
 import './sortable.js';
 import './clipboard.js';
 import './attendance.js';
+import './course-editor.js';
