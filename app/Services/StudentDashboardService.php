@@ -201,4 +201,128 @@ final class StudentDashboardService
             ->withQueryString();
     }
 
+    /**
+     * Focused result data for the student results page.
+     */
+    public function results(User $student)
+    {
+        return $this->visibleExamResults($student, 50);
+    }
+
+    public function submittedHomeworkCount(User $student): int
+    {
+        $classroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
+
+        return Homework::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'published')
+            ->whereHas('submissions', fn (Builder $query) => $query->where('student_id', $student->id))
+            ->count();
+    }
+
+    /**
+     * Resource catalogue is paginated independently from dashboard previews.
+     */
+    public function resources(User $student): LengthAwarePaginator
+    {
+        $classroomIds = $this->learningAccess->activeClassroomIds($student, 'resources');
+        $courseIds = $this->learningAccess->activeCourseIds($student, 'resources');
+
+        return LearningResource::query()
+            ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
+            ->where('status', 'published')
+            ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
+            ->where(function (Builder $scope) use ($classroomIds, $courseIds): void {
+                $scope->where(function (Builder $classScoped) use ($classroomIds, $courseIds): void {
+                    $classScoped->whereNotNull('classroom_id')
+                        ->whereIn('classroom_id', clone $classroomIds)
+                        ->where(function (Builder $courseScope) use ($courseIds): void {
+                            $courseScope->whereNull('course_id')
+                                ->orWhere(function (Builder $matchingCourse) use ($courseIds): void {
+                                    $matchingCourse->whereIn('course_id', clone $courseIds)
+                                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                            ->whereColumn('classrooms.course_id', 'learning_resources.course_id'));
+                                });
+                        });
+                })->orWhere(function (Builder $courseOnly) use ($courseIds): void {
+                    $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
+                })->orWhere(function (Builder $unscoped): void {
+                    $unscoped->whereNull('classroom_id')->whereNull('course_id')
+                        ->whereIn('visibility', ['public', 'authenticated']);
+                });
+            })
+            ->with(['course:id,title', 'classroom:id,name'])
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+    public function liveClasses(User $student): LengthAwarePaginator
+    {
+        $classroomIds = $this->learningAccess->activeClassroomIds($student);
+
+        return ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('session_type', 'online')
+            ->where('status', 'scheduled')
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '>=', now())
+            ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
+            ->orderBy('starts_at')
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+    public function achievements(User $student): array
+    {
+        $classroomIds = $this->learningAccess->activeClassroomIds($student);
+        $courseIds = $this->learningAccess->activeCourseIds($student);
+
+        $attendance = Attendance::query()
+            ->where('student_id', $student->id)
+            ->whereIn('classroom_id', clone $classroomIds);
+        $attendanceTotal = (clone $attendance)->whereIn('status', ['present', 'late', 'absent'])->count();
+        $attendancePresent = (clone $attendance)->whereIn('status', ['present', 'late'])->count();
+
+        return [
+            'course_progress' => app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6),
+            'attendance_rate' => $attendanceTotal > 0
+                ? (int) round($attendancePresent / $attendanceTotal * 100)
+                : null,
+            'results' => $this->visibleExamResults($student, 50),
+        ];
+    }
+
+    private function visibleExamResults(User $student, int $limit)
+    {
+        $examClassroomIds = $this->learningAccess->activeClassroomIds($student, 'exams');
+        $examCourseIds = $this->learningAccess->activeCourseIds($student, 'exams');
+
+        return ExamResult::query()
+            ->where('student_id', $student->id)
+            ->whereHas('exam', function (Builder $exam) use ($examClassroomIds, $examCourseIds): void {
+                $exam->where(function (Builder $scope) use ($examClassroomIds, $examCourseIds): void {
+                    $scope->where(function (Builder $classScoped) use ($examClassroomIds): void {
+                        $classScoped->whereIn('exams.classroom_id', clone $examClassroomIds)
+                            ->where(function (Builder $classCourse): void {
+                                $classCourse->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                    ->whereColumn('classrooms.course_id', 'exams.course_id'))
+                                    ->orWhere(function (Builder $classOnly): void {
+                                        $classOnly->whereNull('exams.course_id')
+                                            ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                                ->whereNull('classrooms.course_id'));
+                                    });
+                            });
+                    })->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
+                        $courseLevel->whereNull('exams.classroom_id')
+                            ->whereIn('exams.course_id', clone $examCourseIds);
+                    });
+                });
+            })
+            ->with(['exam:id,title,classroom_id,course_id', 'exam.classroom:id,name', 'exam.course:id,title'])
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
 }
