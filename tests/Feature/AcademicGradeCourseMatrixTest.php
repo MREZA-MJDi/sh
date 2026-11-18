@@ -29,6 +29,19 @@ final class AcademicGradeCourseMatrixTest extends TestCase
         $this->withoutVite();
     }
 
+
+    public function test_academic_grade_seeder_is_idempotent_and_provides_all_twelve_grades(): void
+    {
+        $this->seed(AcademicGradeSeeder::class);
+        $this->seed(AcademicGradeSeeder::class);
+
+        $this->assertSame(12, AcademicGrade::query()->count());
+        $this->assertSame(
+            range(1, 12),
+            AcademicGrade::query()->orderBy('level')->pluck('level')->all()
+        );
+    }
+
     public function test_grade_ten_owns_seasonal_courses_with_multiple_classroom_delivery_modes_and_course_videos(): void
     {
         $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
