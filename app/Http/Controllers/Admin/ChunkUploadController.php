@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
+use App\Models\ClassSession;
 use App\Models\SpotPlayerVideo;
 use App\Models\VideoUploadSession;
 use App\Services\Admin\ClassroomWorkspaceService;
@@ -30,6 +31,7 @@ final class ChunkUploadController extends Controller
             'total_bytes' => ['required', 'integer', 'min:1', 'max:2147483647'],
             'title' => ['required_if:target,spotplayer_video', 'nullable', 'string', 'max:180'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
+            'class_session_id' => ['nullable', 'integer', 'exists:class_sessions,id'],
             'external_id' => ['nullable', 'string', 'max:190'],
         ]);
 
@@ -85,6 +87,7 @@ final class ChunkUploadController extends Controller
                 'title' => trim($data['title']),
                 'course_id' => $course->id,
                 'classroom_id' => filled($data['classroom_id'] ?? null) ? (int) $data['classroom_id'] : null,
+                'class_session_id' => filled($data['class_session_id'] ?? null) ? (int) $data['class_session_id'] : null,
                 'external_id' => filled($data['external_id'] ?? null) ? trim($data['external_id']) : null,
             ];
         }
@@ -445,11 +448,27 @@ final class ChunkUploadController extends Controller
             })
             ->findOrFail($courseId);
 
-        if (filled($metadata['classroom_id'] ?? null)) {
+        $classroomId = filled($metadata['classroom_id'] ?? null)
+            ? (int) $metadata['classroom_id']
+            : null;
+
+        if (filled($metadata['class_session_id'] ?? null)) {
+            $classSession = ClassSession::query()
+                ->whereKey((int) $metadata['class_session_id'])
+                ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
+                ->firstOrFail();
+
+            abort_if($classroomId && (int) $classSession->classroom_id !== $classroomId, 422, 'جلسه انتخاب‌شده متعلق به کلاس انتخاب‌شده نیست.');
+
             $workspace->queryFor($request->user())
                 ->where('course_id', $course->id)
                 ->where('status', 'active')
-                ->findOrFail((int) $metadata['classroom_id']);
+                ->findOrFail((int) $classSession->classroom_id);
+        } elseif ($classroomId) {
+            $workspace->queryFor($request->user())
+                ->where('course_id', $course->id)
+                ->where('status', 'active')
+                ->findOrFail($classroomId);
         }
 
         return $course;
