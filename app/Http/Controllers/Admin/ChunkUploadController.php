@@ -109,12 +109,8 @@ final class ChunkUploadController extends Controller
             'chunk' => ['required', 'file', 'max:'.((((int) config('learning.chunk_mb')) + 1) * 1024)],
         ]);
 
-        $session = VideoUploadSession::query()
-            ->where('upload_id', $data['upload_id'])
-            ->where('user_id', $request->user()->id)
-            ->where('status', 'uploading')
-            ->where('expires_at', '>', now())
-            ->firstOrFail();
+        $session = $this->findUploadSession($data['upload_id'], $request);
+        abort_unless($session->status === 'uploading' && $session->expires_at->isFuture(), 409, 'نشست آپلود منقضی یا بسته شده است؛ بارگذاری را دوباره آغاز کنید.');
 
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
@@ -133,7 +129,9 @@ final class ChunkUploadController extends Controller
                 ->where('status', 'uploading')
                 ->where('expires_at', '>', now())
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
+
+            abort_unless($locked, 409, 'نشست آپلود دیگر فعال نیست؛ بارگذاری را دوباره آغاز کنید.');
 
             $oldChunkBytes = $disk->exists($path) ? $disk->size($path) : 0;
             $newBytes = (int) $locked->bytes_uploaded - $oldChunkBytes + (int) $file->getSize();
@@ -165,10 +163,7 @@ final class ChunkUploadController extends Controller
             'filename' => ['required', 'string', 'max:255'],
         ]);
 
-        $existing = VideoUploadSession::query()
-            ->where('upload_id', $data['upload_id'])
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
+        $existing = $this->findUploadSession($data['upload_id'], $request);
 
         if ($existing->status === 'completed') {
             $existingVideo = isset($existing->metadata['result_video_id'])
@@ -197,7 +192,9 @@ final class ChunkUploadController extends Controller
                 ->where('status', 'uploading')
                 ->where('expires_at', '>', now())
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
+
+            abort_unless($locked, 409, 'نشست آپلود دیگر فعال نیست؛ بارگذاری را دوباره آغاز کنید.');
 
             $locked->update(['status' => 'processing']);
 
@@ -316,11 +313,8 @@ final class ChunkUploadController extends Controller
     {
         $data = $request->validate(['upload_id' => ['required', 'uuid']]);
 
-        $session = VideoUploadSession::query()
-            ->where('upload_id', $data['upload_id'])
-            ->where('user_id', $request->user()->id)
-            ->where('status', 'uploading')
-            ->firstOrFail();
+        $session = $this->findUploadSession($data['upload_id'], $request);
+        abort_unless($session->status === 'uploading', 409, 'این نشست آپلود قبلاً بسته شده است.');
 
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
@@ -371,6 +365,16 @@ final class ChunkUploadController extends Controller
         }
 
         return $course;
+    }
+
+    private function findUploadSession(string $uploadId, Request $request): VideoUploadSession
+    {
+        $session = VideoUploadSession::query()->where('upload_id', $uploadId)->first();
+
+        abort_unless($session, 410, 'نشست آپلود پیدا نشد یا از سامانه حذف شده است؛ لطفاً بارگذاری را دوباره آغاز کنید.');
+        abort_unless((int) $session->user_id === (int) $request->user()->id, 404);
+
+        return $session;
     }
 
     private function maxBytes(string $target): int
