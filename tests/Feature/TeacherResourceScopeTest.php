@@ -121,7 +121,7 @@ final class TeacherResourceScopeTest extends TestCase
         ]);
 
         $this->actingAs($teacher)
-            ->get(route('admin.resources.index'))
+            ->get(route('teacher.resources'))
             ->assertOk()
             ->assertDontSee('جزوه با محدوده ناسازگار');
 
@@ -130,7 +130,7 @@ final class TeacherResourceScopeTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($teacher)
-            ->post(route('admin.resources.store'), [
+            ->post(route('teacher.resources.store'), [
                 'title' => 'جزوه جدید ناسازگار',
                 'kind' => 'pdf',
                 'course_id' => $ownCourse->id,
