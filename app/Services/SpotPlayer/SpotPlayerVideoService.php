@@ -127,19 +127,21 @@ final class SpotPlayerVideoService
                 ]);
 
                 if (filled($video->external_id)) {
+                    if (filled($video->external_id)) {
                     $this->operations->waitForContract(
-                        provider: 'spotplayer',
-                        action: 'register_existing_video',
-                        entity: $video,
-                        safeRequestMeta: [
-                            'video_id' => $video->id,
-                            'local_course_id' => $video->course_id,
-                            'local_classroom_id' => $video->classroom_id,
-                            'external_video_id' => $externalId,
-                            'source' => 'existing_spotplayer_asset',
-                        ],
-                        idempotencyKey: 'spotplayer:register-video:'.$video->id.':'.sha1($externalId),
-                    );
+                            provider: 'spotplayer',
+                            action: 'register_existing_video',
+                            entity: $video,
+                            safeRequestMeta: [
+                                'video_id' => $video->id,
+                                'local_course_id' => $video->course_id,
+                                'local_classroom_id' => $video->classroom_id,
+                                'external_video_id' => $externalId,
+                                'source' => 'existing_spotplayer_asset',
+                            ],
+                            idempotencyKey: 'spotplayer:register-video:'.$video->id.':'.sha1($externalId),
+                        );
+                    }
                 }
 
                 return $video->refresh();
@@ -166,7 +168,7 @@ final class SpotPlayerVideoService
                     'classroom_id' => $data['classroom_id'] ?? null,
                     'external_id' => $data['external_id'] ?? null,
                     'embed_url' => null,
-                    'status' => 'waiting_contract',
+                    'status' => filled($data['external_id'] ?? null) ? 'waiting_contract' : 'active',
                     'created_by' => $actor->id,
                     'file_path' => $storagePath,
                     'file_original_name' => mb_substr($uploadedFile->getClientOriginalName(), 0, 255),
