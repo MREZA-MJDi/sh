@@ -129,7 +129,7 @@
             @foreach($bannersCollection as $index => $banner)
 
                 <div
-                        class="sl {{ $index === 0 ? 'on' : '' }}"
+                        class="sl {{ $index === 0 ? 'on' : '' }} {{ filled($banner->image_path ?? null) ? 'has-banner-image' : '' }}"
                         style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}"
                 >
 
