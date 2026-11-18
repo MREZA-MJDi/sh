@@ -7,7 +7,7 @@
   $placementLabels = ['home_hero' => 'بنر اصلی صفحه خانه', 'sitewide' => 'سراسری در بلاگ', 'articles_top' => 'بالای فهرست مقاله‌ها', 'articles_sidebar' => 'ستون کناری مقاله'];
 @endphp
 @include('admin.seo.partials.workspace-tabs')
-<x-admin.page-head tone="shop" icon="image" title="بنرها و جایگاه‌های تبلیغاتی" desc="مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش">
+<x-admin.page-head tone="shop" icon="image" title="{{ $selectedPlacement === 'home_hero' ? 'مدیریت اسلایدر Hero صفحه اصلی' : 'بنرها و جایگاه‌های تبلیغاتی' }}" :desc="$selectedPlacement === 'home_hero' ? 'مدیریت حداکثر سه اسلاید صفحه اصلی؛ تصویر، ترتیب و وضعیت انتشار هر اسلاید را کنترل کنید.' : 'مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش'">
   <x-admin.btn icon="plus" data-modal-open="banner-modal">ثبت بنر جدید</x-admin.btn>
 </x-admin.page-head>
 
@@ -66,7 +66,7 @@
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
   <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 9" data-preview-mobile-ratio="4 / 5" data-preview-fit="cover"/>
   <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%" hint="پیش‌نمایش دسکتاپ ۱۶:۹ و موبایل ۴:۵ است؛ در هر دو حالت برش نهایی با object-fit: cover شبیه‌سازی می‌شود. برای جابه‌جایی نقطه کانونی درصد افقی و عمودی را تنظیم کنید."/>
-  <x-admin.select label="جایگاه نمایش" name="placement" :options="$placementLabels" required/>
+  <x-admin.select label="جایگاه نمایش" name="placement" :options="$placementLabels" :selected="$selectedPlacement ?? 'home_hero'" required/>
   <x-admin.input label="نشانی مقصد" name="target_url" placeholder="/courses یا https://..."/>
   <x-admin.switch label="باز شدن در زبانه جدید" name="open_in_new_tab"/>
   <x-admin.input label="اولویت نمایش" name="sort_order" type="number" min="0" :value="0" required/>
