@@ -109,7 +109,18 @@
             data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.uploads.status') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
             <div class="adm-form">
               <x-admin.input label="عنوان جلسه / ویدیو" name="video_title" placeholder="مثلاً جلسه اول: ساختار اتم" data-upload-title/>
-              <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="مشترک در سطح کل دوره" data-upload-classroom/>
+              <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="کلاس را انتخاب کنید" data-upload-classroom/>
+              <label class="adm-field">
+                <span class="adm-label">جلسه مشخص</span>
+                <select class="adm-select" name="class_session_id" data-upload-session required>
+                  <option value="">ابتدا جلسه را انتخاب کنید</option>
+                  @foreach($classrooms as $classroom)
+                    @foreach($classroom->sessions as $session)
+                      <option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: 'جلسه' }} · {{ $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>
+                    @endforeach
+                  @endforeach
+                </select>
+              </label>
               <x-admin.input label="شناسه خارجی (در صورت وجود)" name="external_id" placeholder="در صورت داشتن شناسه SpotPlayer" data-upload-external/>
               <label class="adm-field wide">
                 <span class="adm-label">فایل ویدیوی جلسه</span>
