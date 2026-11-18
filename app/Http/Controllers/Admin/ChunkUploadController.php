@@ -37,6 +37,12 @@ final class ChunkUploadController extends Controller
 
         $course = $this->authorizeTarget($request, $data['target'], (int) $data['target_id'], $data, $workspace);
 
+        if ($data['target'] === 'spotplayer_video' && $request->user()->hasRole('teacher') && blank($data['class_session_id'] ?? null)) {
+            throw ValidationException::withMessages([
+                'class_session_id' => 'برای بارگذاری ویدئوی مدرس، انتخاب جلسه الزامی است.',
+            ]);
+        }
+
         $chunkSizeBytes = $this->chunkSizeBytes();
         $totalChunks = (int) ceil((int) $data['total_bytes'] / $chunkSizeBytes);
         if ($totalChunks < 1 || $totalChunks > 2000) {
