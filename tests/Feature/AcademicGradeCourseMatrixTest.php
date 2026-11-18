@@ -234,6 +234,35 @@ final class AcademicGradeCourseMatrixTest extends TestCase
             ->assertSee('پاییز');
     }
 
+
+    public function test_public_course_catalog_filters_by_the_course_season(): void
+    {
+        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
+        $teacher = $this->userWithRole('teacher');
+
+        foreach (['autumn' => 'پاییز', 'winter' => 'زمستان'] as $season => $label) {
+            Course::query()->create([
+                'title' => "ریاضی {$label}",
+                'slug' => "public-math-{$season}",
+                'subject' => 'ریاضی',
+                'grade' => $grade->name,
+                'academic_grade_id' => $grade->id,
+                'season' => $season,
+                'teacher_id' => $teacher->id,
+                'type' => 'free',
+                'price' => 0,
+                'delivery_type' => 'skyroom',
+                'status' => 'published',
+            ]);
+        }
+
+        $this->withoutVite()
+            ->get(route('public.courses.index', ['season' => 'winter']))
+            ->assertOk()
+            ->assertSee('ریاضی زمستان')
+            ->assertDontSee('ریاضی پاییز');
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);
