@@ -1,4 +1,4 @@
-const imageInputs = 'input[type="file"][accept*="image"]';
+const imageInputs = 'input[type="file"]';
 
 const createPreview = (input) => {
     const field = input.closest('.adm-field') || input.parentElement;
@@ -29,24 +29,24 @@ const createPreview = (input) => {
 
 const showPreview = (input) => {
     const file = input.files?.[0];
-    const stage = createPreview(input);
+    const field = input.closest('.adm-field') || input.parentElement;
+    const existingStage = field?.querySelector(':scope > .adm-image-preview');
+
+    if (!file || !file.type.startsWith('image/')) {
+        if (existingStage) {
+            if (existingStage.dataset.objectUrl) URL.revokeObjectURL(existingStage.dataset.objectUrl);
+            existingStage.dataset.objectUrl = '';
+            existingStage.hidden = true;
+            existingStage.querySelector('img')?.removeAttribute('src');
+            existingStage.parentElement.querySelector(':scope > .adm-image-preview-meta')?.setAttribute('hidden', '');
+        }
+        return;
+    }
+
+    const stage = existingStage || createPreview(input);
     if (!stage) return;
 
-    const previousUrl = stage.dataset.objectUrl;
-    if (previousUrl) URL.revokeObjectURL(previousUrl);
-
-    if (!file) {
-        stage.hidden = true;
-        stage.parentElement.querySelector(':scope > .adm-image-preview-meta')?.setAttribute('hidden', '');
-        stage.querySelector('img')?.removeAttribute('src');
-        stage.dataset.objectUrl = '';
-        return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-        stage.hidden = true;
-        return;
-    }
+    if (stage.dataset.objectUrl) URL.revokeObjectURL(stage.dataset.objectUrl);
 
     const image = stage.querySelector('img');
     const meta = stage.parentElement.querySelector(':scope > .adm-image-preview-meta');
@@ -80,7 +80,7 @@ const showPreview = (input) => {
     };
 
     image.src = objectUrl;
-};
+}
 
 document.addEventListener('change', (event) => {
     const input = event.target;
