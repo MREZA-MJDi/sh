@@ -90,6 +90,7 @@ final class ParentMeetingController extends Controller
         $admins = User::query()->where('is_active', true)
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))->get();
         Notification::send($admins, new ParentMeetingNotification($meeting, 'درخواست جدید جلسه از طرف ولی ثبت شد.'));
+        $student->notify(new ParentMeetingNotification($meeting, 'ولی شما درخواست جلسه‌ای را برای بررسی آموزشگاه ثبت کرده است.'));
 
         return redirect()->route('guardian.meetings.index', ['child' => $student->id])->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
     }

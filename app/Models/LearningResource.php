@@ -57,4 +57,9 @@ class LearningResource extends Model
     {
         return $this->hasMany(LearningResourceAccessLog::class, 'learning_resource_id');
     }
+
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(ResourcePurchase::class, 'learning_resource_id');
+    }
 }

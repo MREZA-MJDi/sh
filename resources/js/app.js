@@ -1,3 +1,4 @@
+import './shared/iranian-locale.js';
 import { initVideoPlayers } from './video-player';
 import { initTabs } from './tabs';
 import { initCoursePlayer } from './course-player';

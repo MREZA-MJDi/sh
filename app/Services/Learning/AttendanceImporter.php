@@ -4,71 +4,150 @@ namespace App\Services\Learning;
 
 use App\Models\Attendance;
 use App\Models\ClassSession;
-use App\Models\Enrollment;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-/**
- * ایمپورت گزارش «نشست‌ها» از پنل اسکای‌روم (خروجی اکسل → ذخیره به‌صورت CSV با UTF-8).
- * فرمت دقیق گزارش دیده نشده؛ اسم ستون‌ها در config/learning.php قابل تنظیم است.
- */
 class AttendanceImporter
 {
+    /**
+     * Import a Skyroom CSV report into the canonical classroom/session table.
+     * Participant labels can contain a local user ID (#123) or an external
+     * student identifier configured on the student profile.
+     */
     public function fromCsv(ClassSession $session, string $path): array
     {
-        $h = fopen($path, 'r');
-        $first = fgetcsv($h);
-        if (! $first) {
-            throw new RuntimeException('فایل خالی است.');
+        $session->loadMissing('classroom.students');
+        $classroom = $session->classroom;
+
+        if (! $classroom) {
+            throw new RuntimeException('کلاس این جلسه پیدا نشد.');
         }
 
-        $header = array_map(fn ($c) => trim(preg_replace('/^\xEF\xBB\xBF/', '', (string) $c)), $first);
-        $nameCol = array_search(config('learning.skyroom_report.name_column', 'Nickname'), $header, true);
-        $durCol = array_search(config('learning.skyroom_report.duration_column', 'Duration'), $header, true);
-
-        if ($nameCol === false || $durCol === false) {
-            throw new RuntimeException('ستون نام یا مدت حضور پیدا نشد؛ config/learning.php را تنظیم کن.');
+        if (! $session->ends_at || $session->ends_at->lessThanOrEqualTo($session->starts_at)) {
+            throw new RuntimeException('برای وارد کردن گزارش، زمان شروع و پایان معتبر جلسه لازم است.');
         }
 
-        $minutes = [];
-        while (($row = fgetcsv($h)) !== false) {
-            if (! preg_match('/#(\d+)/', $row[$nameCol] ?? '', $m)) {
-                continue;
-            }
-            $uid = (int) $m[1];
-            $minutes[$uid] = ($minutes[$uid] ?? 0) + $this->toMinutes((string) ($row[$durCol] ?? '0')); // چند بار ورود و خروج جمع می‌شود
+        $handle = fopen($path, 'r');
+        if ($handle === false) {
+            throw new RuntimeException('فایل گزارش حضور قابل خواندن نیست.');
         }
-        fclose($h);
 
-        $length = max(1, $session->starts_at->diffInMinutes($session->ends_at));
-        $enrolled = Enrollment::where('course_id', $session->course_id)->where('status', 'active')->pluck('user_id');
-
-        foreach ($enrolled as $userId) {
-            // رکوردهای «موجه» (excused) دستی بازنویسی نمی‌شوند
-            $existing = Attendance::where('class_session_id', $session->id)->where('user_id', $userId)->first();
-            if ($existing && $existing->status === 'excused') {
-                continue;
+        try {
+            $first = fgetcsv($handle);
+            if (! $first) {
+                throw new RuntimeException('فایل خالی است.');
             }
 
-            $mins = $minutes[$userId] ?? 0;
-            $status = $mins >= $length * 0.6 ? 'present' : ($mins > 0 ? 'late' : 'absent');
-
-            Attendance::updateOrCreate(
-                ['class_session_id' => $session->id, 'user_id' => $userId],
-                ['status' => $status, 'minutes_present' => $mins, 'source' => 'skyroom_import']
+            $header = array_map(
+                fn ($column) => trim(preg_replace('/^\xEF\xBB\xBF/', '', (string) $column)),
+                $first
             );
+            $nameColumn = array_search(config('learning.skyroom_report.name_column', 'Nickname'), $header, true);
+            $durationColumn = array_search(config('learning.skyroom_report.duration_column', 'Duration'), $header, true);
+
+            if ($nameColumn === false || $durationColumn === false) {
+                throw new RuntimeException('ستون نام یا مدت حضور پیدا نشد؛ config/learning.php را تنظیم کنید.');
+            }
+
+            $referenceMap = [];
+            foreach ($classroom->students as $student) {
+                $referenceMap[(string) $student->id] = (int) $student->id;
+                if (filled($student->external_student_id)) {
+                    $referenceMap[$this->normalizeDigits((string) $student->external_student_id)] = (int) $student->id;
+                }
+            }
+
+            $minutesByStudent = [];
+            while (($row = fgetcsv($handle)) !== false) {
+                $participant = (string) ($row[$nameColumn] ?? '');
+                if (! preg_match('/#\s*([^\s#]+)/u', $participant, $matches)) {
+                    continue;
+                }
+
+                $reference = $this->normalizeDigits($matches[1]);
+                $studentId = $referenceMap[$reference] ?? null;
+                if (! $studentId) {
+                    continue;
+                }
+
+                $minutesByStudent[$studentId] = ($minutesByStudent[$studentId] ?? 0)
+                    + $this->toMinutes((string) ($row[$durationColumn] ?? '0'));
+            }
+        } finally {
+            fclose($handle);
         }
 
-        return ['matched' => count($minutes), 'enrolled' => $enrolled->count()];
+        $scheduledMinutes = max(1, intdiv(
+            $session->ends_at->getTimestamp() - $session->starts_at->getTimestamp(),
+            60
+        ));
+        $matched = 0;
+
+        DB::transaction(function () use ($classroom, $session, $minutesByStudent, $scheduledMinutes, &$matched): void {
+            foreach ($classroom->students as $student) {
+                $existing = Attendance::query()
+                    ->where('class_session_id', $session->id)
+                    ->where('student_id', $student->id)
+                    ->first();
+
+                // Keep a teacher's explicit excused decision intact.
+                if ($existing?->status === 'excused') {
+                    continue;
+                }
+
+                $minutes = min($scheduledMinutes, max(0, (int) ($minutesByStudent[$student->id] ?? 0)));
+                if (array_key_exists($student->id, $minutesByStudent)) {
+                    $matched++;
+                }
+
+                $status = $minutes >= (int) ceil($scheduledMinutes * 0.6)
+                    ? 'present'
+                    : ($minutes > 0 ? 'late' : 'absent');
+
+                Attendance::query()->updateOrCreate(
+                    [
+                        'class_session_id' => $session->id,
+                        'student_id' => $student->id,
+                    ],
+                    [
+                        'classroom_id' => $classroom->id,
+                        'session_date' => $session->starts_at->toDateString(),
+                        'scheduled_minutes' => $scheduledMinutes,
+                        'attended_minutes' => $minutes,
+                        'status' => $status,
+                    ]
+                );
+            }
+        });
+
+        return ['matched' => $matched, 'enrolled' => $classroom->students->count()];
     }
 
-    private function toMinutes(string $v): int
+    private function toMinutes(string $value): int
     {
-        if (str_contains($v, ':')) { // HH:MM:SS
-            [$h, $m] = array_pad(explode(':', $v), 3, 0);
+        $value = $this->normalizeDigits(trim($value));
 
-            return (int) $h * 60 + (int) $m;
+        if (preg_match('/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/', $value, $parts)) {
+            $minutes = ((int) $parts[1] * 60) + (int) $parts[2];
+            if (isset($parts[3]) && (int) $parts[3] >= 30) {
+                $minutes++;
+            }
+
+            return $minutes;
         }
 
-        return (int) $v;
+        $value = str_replace([',', '٬'], '', $value);
+
+        return ctype_digit($value) ? (int) $value : 0;
+    }
+
+    private function normalizeDigits(string $value): string
+    {
+        return strtr($value, [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
     }
 }

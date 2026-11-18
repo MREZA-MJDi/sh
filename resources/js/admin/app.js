@@ -1,3 +1,4 @@
+import '../shared/iranian-locale.js';
 // Admin panel entry. Load with @vite('resources/js/admin/app.js')
 import './theme.js';
 import './sidebar.js';

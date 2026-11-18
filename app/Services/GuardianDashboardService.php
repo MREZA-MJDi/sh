@@ -14,6 +14,7 @@ use App\Models\Message;
 use App\Models\ParentMeeting;
 use App\Models\User;
 use App\Services\Learning\LearningAccessService;
+use App\Support\JalaliDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -78,14 +79,19 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
+        $currentJalali = JalaliDate::fromGregorian(now());
+        $trendStartKey = JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], 5);
+        [$trendStartYear, $trendStartMonth] = array_map('intval', explode('-', $trendStartKey));
+        $trendStart = JalaliDate::toGregorian($trendStartYear, $trendStartMonth, 1);
+
         $homeworkTrend = (clone $homeworkQuery)
-            ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->where('created_at', '>=', $trendStart)
             ->with(['submissions' => fn ($query) => $query
                 ->where('student_id', $student->id)
                 ->orderByDesc('submitted_at')
                 ->select(['id', 'homework_id', 'submitted_at'])])
             ->get(['id', 'classroom_id', 'title', 'created_at', 'due_at'])
-            ->groupBy(fn (Homework $homework) => $homework->created_at->format('Y-m'))
+            ->groupBy(function (Homework $homework): string { $date = JalaliDate::fromGregorian($homework->created_at); return JalaliDate::monthKey($date['year'], $date['month']); })
             ->map(function (Collection $items): array {
                 $counts = ['on_time' => 0, 'late' => 0, 'missing' => 0];
                 foreach ($items as $homework) {
@@ -137,8 +143,16 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
+        $currentMonth = JalaliDate::fromGregorian(now());
+        $jalaliMonthStart = JalaliDate::toGregorian($currentMonth['year'], $currentMonth['month'], 1);
+        $jalaliMonthEnd = JalaliDate::toGregorian(
+            $currentMonth['year'],
+            $currentMonth['month'],
+            JalaliDate::daysInMonth($currentMonth['year'], $currentMonth['month'])
+        );
+
         $attendanceCalendar = (clone $attendanceQuery)
-            ->whereBetween('session_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->whereBetween('session_date', [$jalaliMonthStart->toDateString(), $jalaliMonthEnd->toDateString()])
             ->orderBy('session_date')
             ->get(['id', 'session_date', 'status']);
 
@@ -179,7 +193,7 @@ final class GuardianDashboardService
 
         $resultTrend = (clone $resultQuery)
             ->whereNotNull('score')
-            ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->where('created_at', '>=', $trendStart)
             ->orderBy('created_at')
             ->get(['id', 'score', 'max_score', 'created_at']);
 
@@ -209,6 +223,7 @@ final class GuardianDashboardService
 
         $resources = (clone $resourceQuery)
             ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
             ->latest()
             ->limit(6)
             ->get(['id', 'classroom_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'created_at']);

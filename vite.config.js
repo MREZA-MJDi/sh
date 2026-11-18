@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/css/shared/typography.css',
                 'resources/css/public-academy.css',
                 'resources/js/app.js',
+                'resources/js/admin/app.js',
                 'resources/css/student/app.css',
                 'resources/css/parent/parent.css',
                 'resources/css/teacher/teacher.css',

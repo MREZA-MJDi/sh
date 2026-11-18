@@ -4,6 +4,7 @@
         ['parent/attendance', 'حضور و غیاب',   '✅'],
         ['parent/exams',      'آزمون‌ها',      '📊'],
         ['parent/homework',   'تکالیف',        '📝'],
+        ['parent/resources',  'منابع آموزشی', '📚'],
         ['parent/messages',   'پیام به مدرس',  '💬'],
         ['parent/meetings',   'جلسات مشاوره',  '🤝'],
     ];

@@ -8,9 +8,38 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Throwable;
 
 class StoreAttendanceRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $classroomId = $this->input('classroom_id', $this->input('class_id'));
+        $sessionId = $this->input('class_session_id', $this->input('session'));
+        $attendance = $this->input('attendance');
+
+        // Keep compatibility with the existing attendance screen and its
+        // attendance.js radio groups: status[student_id] + note[student_id].
+        if (! is_array($attendance)) {
+            $attendance = [];
+            $statuses = (array) $this->input('status', []);
+            $notes = (array) $this->input('note', []);
+
+            foreach ($statuses as $studentId => $status) {
+                $attendance[$studentId] = [
+                    'status' => $status,
+                    'note' => $notes[$studentId] ?? null,
+                ];
+            }
+        }
+
+        $this->merge([
+            'classroom_id' => $classroomId,
+            'class_session_id' => $sessionId,
+            'attendance' => $attendance,
+        ]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned']) ?? false;
@@ -65,13 +94,21 @@ class StoreAttendanceRequest extends FormRequest
                 }
 
                 $status = $entry['status'] ?? null;
-                $joinedAt = filled($entry['joined_at'] ?? null) ? Carbon::parse($entry['joined_at']) : null;
-                $attendedMinutes = filled($entry['attended_minutes'] ?? null) ? (int) $entry['attended_minutes'] : null;
-
-                if ($status === 'late' && ! $joinedAt) {
-                    $validator->errors()->add("attendance.{$studentId}.joined_at", 'برای ثبت تأخیر، زمان واقعی ورود را وارد کنید.');
+                $joinedAt = null;
+                if (filled($entry['joined_at'] ?? null)) {
+                    try {
+                        $joinedAt = Carbon::parse($entry['joined_at']);
+                    } catch (Throwable) {
+                        continue; // The date rule reports malformed values.
+                    }
                 }
 
+                $attendedMinutes = filled($entry['attended_minutes'] ?? null)
+                    ? (int) $entry['attended_minutes']
+                    : null;
+
+                // The unchanged radio design records status and notes only.
+                // Do not fabricate a check-in timestamp for a "late" status.
                 if ($status === 'late' && $joinedAt && $joinedAt->lessThanOrEqualTo($session->starts_at)) {
                     $validator->errors()->add("attendance.{$studentId}.joined_at", 'زمان ورود ثبت‌شده تأخیر را نشان نمی‌دهد.');
                 }

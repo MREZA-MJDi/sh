@@ -61,7 +61,7 @@ final class PortalController extends Controller
         $submissions = HomeworkSubmission::query()
             ->where('status', 'submitted')
             ->whereHas('homework', fn ($query) => $query->whereIn('classroom_id', clone $classroomIds))
-            ->with(['homework:id,title,classroom_id', 'student:id,name'])
+            ->with(['homework:id,title,classroom_id', 'student:id,name', 'files'])
             ->latest('submitted_at')
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
@@ -185,13 +185,12 @@ final class PortalController extends Controller
             'responded_at' => now(),
         ]);
 
-        $record->loadMissing('guardian');
-        $record->guardian?->notify(new ParentMeetingNotification(
-            $record,
-            $data['status'] === 'scheduled'
-                ? 'درخواست جلسه شما توسط مدرس تأیید شد.'
-                : ($data['status'] === 'declined' ? 'درخواست جلسه شما توسط مدرس رد شد.' : 'وضعیت جلسه شما به‌روزرسانی شد.')
-        ));
+        $record->loadMissing(['guardian', 'student']);
+        $message = $data['status'] === 'scheduled'
+            ? 'درخواست جلسه شما توسط مدرس تأیید شد.'
+            : ($data['status'] === 'declined' ? 'درخواست جلسه شما توسط مدرس رد شد.' : 'وضعیت جلسه شما به‌روزرسانی شد.');
+        $record->guardian?->notify(new ParentMeetingNotification($record, $message));
+        $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
 
         return redirect()->route('teacher.meetings')->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }

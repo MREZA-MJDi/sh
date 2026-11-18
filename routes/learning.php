@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\LearningAdminController;
 use App\Http\Controllers\Portal\LearningResourceController as PortalLearningResourceController;
+use App\Http\Controllers\Portal\ResourcePurchaseController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
 use App\Http\Controllers\Student\EnrollFreeCourseController;
 use App\Http\Controllers\Student\JoinClassSessionController;
@@ -48,6 +49,10 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
                 ->name('courses.lessons.progress');
         });
 
+        Route::post('/resources/{resource}/purchase', [ResourcePurchaseController::class, 'store'])
+            ->middleware(['permission:resources.view.enrolled', 'throttle:5,1'])
+            ->name('resources.purchase');
+
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])
             ->middleware('permission:resources.view.enrolled')
             ->name('resources.download');
@@ -57,6 +62,10 @@ Route::middleware(['auth', 'role:parent'])
     ->prefix('parent')
     ->name('guardian.')
     ->group(function (): void {
+        Route::post('/resources/{resource}/purchase', [ResourcePurchaseController::class, 'store'])
+            ->middleware(['permission:resources.view.enrolled', 'throttle:5,1'])
+            ->name('resources.purchase');
+
         Route::get('/resources/{resource}/download', [PortalLearningResourceController::class, 'download'])
             ->middleware('permission:resources.view.enrolled')
             ->name('resources.download');

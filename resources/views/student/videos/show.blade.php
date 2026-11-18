@@ -1,0 +1,26 @@
+@extends('student.layouts.app')
+@section('title', $video->title)
+@section('content')
+<section class="page">
+    <div class="card">
+        <div class="chead">
+            <h2>{{ $video->title }}</h2>
+            <a class="btn s" href="{{ route('student.videos.index') }}">بازگشت به ویدئوها</a>
+        </div>
+        <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}</p>
+        @if(filled($video->file_path))
+            <video controls controlsList="nodownload" disablepictureinpicture playsinline preload="metadata"
+                   style="display:block;width:100%;max-height:72vh;background:#0b1220;border-radius:16px">
+                <source src="{{ route('student.videos.stream', $video) }}">
+                مرورگر شما از پخش این ویدئو پشتیبانی نمی‌کند.
+            </video>
+            <p class="tag">پخش از مسیر احراز هویت‌شده و فقط برای دانش‌آموز دارای دسترسی فعال</p>
+        @else
+            <div class="card cc">
+                <h3>پلیر SpotPlayer هنوز فعال نشده است</h3>
+                <p>شناسه ویدئو ثبت شده، اما تا دریافت قرارداد رسمی و فعال‌شدن API، لینک پخش معتبر صادر نمی‌شود.</p>
+            </div>
+        @endif
+    </div>
+</section>
+@endsection
