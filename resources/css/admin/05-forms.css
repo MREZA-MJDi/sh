@@ -70,3 +70,13 @@ dialog.adm-modal::backdrop{background:rgba(10,18,36,.55);backdrop-filter:blur(3p
 [data-upload-status]{margin:9px 0 0}
 [data-upload-status][data-state="error"]{color:var(--danger,var(--bad))}
 [data-upload-file]{max-width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+
+
+/* Shared image upload preview: render the full source in the intended slot ratio. */
+.adm-image-preview{position:relative;display:grid;place-items:center;width:100%;max-width:560px;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:var(--surface-3);isolation:isolate}
+.adm-image-preview[hidden]{display:none}
+.adm-image-preview img{display:block;width:100%;height:100%;object-fit:contain;background:var(--surface-3)}
+.adm-image-preview[data-fit="cover"] img{object-fit:cover}
+.adm-image-preview-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:11px}
+.adm-image-preview-meta strong{color:var(--ink-2)}
+@media(max-width:600px){.adm-image-preview{max-width:100%}}

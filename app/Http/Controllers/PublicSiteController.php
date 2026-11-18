@@ -27,7 +27,7 @@ final class PublicSiteController extends Controller
         $settings = SeoSetting::current();
         $homeContent = is_array($settings->home_sections) ? $settings->home_sections : SeoSetting::defaultHomeSections();
         $homeBanners = SeoBanner::query()->active()->where('placement', 'home_hero')
-            ->orderBy('sort_order')->orderBy('id')->limit(8)->get();
+            ->orderBy('sort_order')->orderBy('id')->limit(3)->get();
 
         $courseQuery = Course::query()->where('status', 'published')
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections

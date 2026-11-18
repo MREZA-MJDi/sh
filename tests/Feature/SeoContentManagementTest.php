@@ -561,4 +561,39 @@ class SeoContentManagementTest extends TestCase
             ->assertSee('42% 50%');
     }
 
+
+    public function test_home_hero_allows_exactly_three_banners_and_rejects_a_fourth(): void
+    {
+        $seo = $this->seoUser();
+
+        for ($index = 1; $index <= 3; $index++) {
+            $this->actingAs($seo)->post(route('admin.seo.banners.store'), [
+                'title' => 'اسلاید '.$index,
+                'alt_text' => 'تصویر اسلاید '.$index,
+                'image' => UploadedFile::fake()->image('hero-'.$index.'.jpg', 1600, 600),
+                'placement' => 'home_hero',
+                'sort_order' => $index,
+                'status' => 'active',
+            ])->assertRedirect()->assertSessionHasNoErrors();
+        }
+
+        $this->actingAs($seo)->from(route('admin.seo.banners.index'))
+            ->post(route('admin.seo.banners.store'), [
+                'title' => 'اسلاید چهارم',
+                'alt_text' => 'تصویر اسلاید چهارم',
+                'image' => UploadedFile::fake()->image('hero-4.jpg', 1600, 600),
+                'placement' => 'home_hero',
+                'sort_order' => 4,
+                'status' => 'active',
+            ])
+            ->assertSessionHasErrors('placement');
+
+        $this->assertDatabaseCount('seo_banners', 3);
+        $this->get(route('home'))->assertOk()
+            ->assertSee('اسلاید 1')
+            ->assertSee('اسلاید 2')
+            ->assertSee('اسلاید 3')
+            ->assertDontSee('اسلاید چهارم');
+    }
+
 }

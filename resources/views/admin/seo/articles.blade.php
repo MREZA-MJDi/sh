@@ -19,7 +19,7 @@
 
 <x-admin.panel flush>
   <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>مقاله</th><th>نویسنده</th><th>وضعیت</th><th>انتشار</th><th>نشانی</th><th>اقدام</th></tr></thead>
+    <thead><tr><th>تصویر</th><th>مقاله</th><th>نویسنده</th><th>وضعیت</th><th>انتشار</th><th>نشانی</th><th>اقدام</th></tr></thead>
     <tbody>
       @forelse($articles as $article)
         @php
@@ -39,6 +39,7 @@
           ];
         @endphp
         <tr>
+          <td>@if($article->featured_image_path)<img src="{{ Storage::disk('public')->url($article->featured_image_path) }}" alt="{{ $article->image_alt ?: $article->title }}" loading="lazy" style="width:88px;height:56px;object-fit:cover;border-radius:8px">@else<span class="adm-muted">بدون تصویر</span>@endif</td>
           <td><b>{{ $article->title }}</b><small>{{ \Illuminate\Support\Str::limit($article->excerpt, 90) }}</small></td>
           <td>{{ $article->author?->name ?? '—' }}</td>
           <td><x-admin.badge :tone="$statusTones[$article->status] ?? 'mute'">{{ $statusLabels[$article->status] ?? $article->status }}</x-admin.badge></td>
@@ -50,7 +51,7 @@
           </div></td>
         </tr>
       @empty
-        <tr><td colspan="6">مقاله‌ای ثبت نشده است.</td></tr>
+        <tr><td colspan="7">مقاله‌ای ثبت نشده است.</td></tr>
       @endforelse
     </tbody>
   </table></div>
@@ -65,16 +66,16 @@
   <x-admin.input label="Slug (اختیاری)" name="slug"/>
   <x-admin.input label="تاریخ انتشار" name="published_at" type="datetime-local"/>
   <x-admin.textarea label="خلاصه مقاله" name="excerpt" wide/>
-  <x-admin.textarea label="متن مقاله (HTML مجاز و امن‌سازی می‌شود)" name="body" wide rows="8" required/>
+  <x-admin.textarea label="متن مقاله (HTML مجاز و امن‌سازی می‌شود)" name="body" wide rows="12" required hint="برای ساختار بهتر سئو از تیترهای H2 و H3، پاراگراف‌های کوتاه، فهرست‌ها و لینک‌های مرتبط استفاده کنید."/>
   <x-admin.legend title="بهینه‌سازی موتور جست‌وجو"/>
   <x-admin.input label="عنوان متا" name="meta_title"/>
   <x-admin.input label="توضیحات متا" name="meta_description" wide/>
   <x-admin.input label="کلمات کلیدی" name="keywords" wide/>
   <x-admin.input label="Canonical URL" name="canonical_url" type="url" wide/>
-  <x-admin.input label="تصویر شاخص" name="featured_image" type="file" accept="image/jpeg,image/png,image/webp"/>
+  <x-admin.input label="تصویر شاخص مقاله" name="featured_image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 9" data-preview-fit="cover" hint="پیش‌نمایش با نسبت کارت‌های وبلاگ و تصویر اصلی مقاله نمایش داده می‌شود."/>
   <x-admin.input label="متن جایگزین تصویر" name="image_alt"/>
   <x-admin.input label="موقعیت تصویر شاخص (افقی و عمودی)" name="image_position" placeholder="50% 50%"/>
-  <x-admin.input label="تصویر Open Graph" name="og_image" type="file" accept="image/jpeg,image/png,image/webp"/>
+  <x-admin.input label="تصویر اشتراک‌گذاری Open Graph" name="og_image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="1200 / 630" data-preview-fit="cover" hint="نسبت پیشنهادی برای اشتراک‌گذاری در شبکه‌های اجتماعی ۱۲۰۰×۶۳۰ است."/>
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" required/>
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="article-delete" title="حذف مقاله" text="مقاله و تصاویر مرتبط از فضای عمومی حذف می‌شوند."/>

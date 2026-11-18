@@ -4,6 +4,19 @@
 @section('description', filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description)
 @section('canonical', rtrim($settings->canonical_base_url ?: url('/'), '/').'/articles')
 
+@php($featuredSeoArticle = $articles->first())
+@section('seo-image', $featuredSeoArticle?->featured_image_path ? Storage::disk('public')->url($featuredSeoArticle->og_image_path ?: $featuredSeoArticle->featured_image_path) : ($settings->default_og_image_path ? Storage::disk('public')->url($settings->default_og_image_path) : ''))
+@push('head')
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $settings->home_sections['blog_page_title'] ?? 'مجله شیخان' }}">
+    <meta property="og:description" content="{{ filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description }}">
+    <meta property="og:url" content="{{ rtrim($settings->canonical_base_url ?: url('/'), '/') }}/articles">
+    @if($featuredSeoArticle?->featured_image_path)
+        <meta property="og:image:alt" content="{{ $featuredSeoArticle->image_alt ?: $featuredSeoArticle->title }}">
+        <meta name="twitter:image:alt" content="{{ $featuredSeoArticle->image_alt ?: $featuredSeoArticle->title }}">
+    @endif
+@endpush
+
 @section('content')
     {{-- Header Banner --}}
     <div class="pgh">

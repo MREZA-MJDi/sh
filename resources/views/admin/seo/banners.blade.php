@@ -15,6 +15,7 @@
   <x-admin.stat tone="shop" icon="check" label="فعال" :value="number_format($activeBannerCount)"/>
   <x-admin.stat tone="shop" icon="edit" label="پیش‌نویس" :value="number_format($draftBannerCount)"/>
   <x-admin.stat tone="shop" icon="pause" label="غیرفعال" :value="number_format($inactiveBannerCount)"/>
+  <p class="adm-muted wide">اسلایدر Hero صفحه اصلی دقیقاً ۳ جایگاه دارد. برای هر اسلاید یک بنر با جایگاه «بنر اصلی صفحه خانه» ثبت کنید.</p>
 </div>
 
 <x-admin.panel flush>
@@ -61,8 +62,8 @@
   <x-admin.legend title="محتوای بنر"/>
   <x-admin.input label="عنوان داخلی" name="title" required/>
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
-  <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp"/>
-  <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%"/>
+  <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 6" data-preview-fit="cover"/>
+  <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%" hint="پیش‌نمایش تصویر با نسبت واقعی Hero نمایش داده می‌شود؛ برای تغییر نقطه کانونی از درصد افقی و عمودی استفاده کنید."/>
   <x-admin.select label="جایگاه نمایش" name="placement" :options="$placementLabels" required/>
   <x-admin.input label="نشانی مقصد" name="target_url" placeholder="/courses یا https://..."/>
   <x-admin.switch label="باز شدن در زبانه جدید" name="open_in_new_tab"/>

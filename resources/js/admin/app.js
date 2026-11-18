@@ -10,6 +10,7 @@ import './filter.js';
 import './global-search.js';
 import './tabs.js';
 import './upload.js';
+import './image-preview.js';
 import './sortable.js';
 import './clipboard.js';
 import './attendance.js';

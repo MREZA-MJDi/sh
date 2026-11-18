@@ -39,6 +39,7 @@
     @endphp
     @if($imageUrl)
         <meta property="og:image" content="{{ $imageUrl }}">
+        <meta property="og:image:alt" content="{{ $article->image_alt ?: $article->title }}">
         <meta name="twitter:image" content="{{ $imageUrl }}">
         <meta name="twitter:card" content="summary_large_image">
     @endif
