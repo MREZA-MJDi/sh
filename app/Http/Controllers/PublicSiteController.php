@@ -56,7 +56,7 @@ final class PublicSiteController extends Controller
             'enrollments' => CourseEnrollment::query()->currentlyActive()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
-        return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
+        return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'homeQuizTotal', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
     }
 
     public function courses(Request $request): View
