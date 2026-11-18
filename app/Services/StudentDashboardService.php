@@ -296,7 +296,7 @@ final class StudentDashboardService
                         ->whereIn('visibility', ['public', 'authenticated']);
                 });
             })
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
             ->latest()
             ->paginate(12)
