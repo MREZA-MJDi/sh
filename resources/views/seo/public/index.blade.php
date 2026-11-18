@@ -57,8 +57,6 @@
             </div>
         @endif
 
-        @php($rest = $articles->slice(1))
-
         @if($featuredSeoArticle && empty($search) && $articles->currentPage() === 1)
             {{-- Featured Article --}}
             <a class="card feat" href="{{ route('seo.articles.show', $featuredSeoArticle->slug) }}">
@@ -84,8 +82,7 @@
 
         {{-- Article Cards Grid --}}
         <div class="g g3">
-            @php $articlesToLoop = ($featuredSeoArticle && empty($search) && $articles->currentPage() === 1) ? $rest : $articles; @endphp
-            @forelse($articlesToLoop as $index => $article)
+            @forelse((($featuredSeoArticle && empty($search) && $articles->currentPage() === 1) ? $articles->slice(1) : $articles) as $index => $article)
                 @php
                     $gradients = [
                         'linear-gradient(135deg,#0d9488,#0f766e)',
