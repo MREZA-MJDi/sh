@@ -27,14 +27,22 @@ final class AdminDashboardPerformanceTest extends TestCase
         $admin->roles()->attach(Role::query()->where('name', 'admin')->firstOrFail());
 
         $queries = [];
-        DB::listen(function (QueryExecuted $query) use (&$queries): void {
+        $databaseTimeMs = 0.0;
+        DB::listen(function (QueryExecuted $query) use (&$queries, &$databaseTimeMs): void {
             $queries[] = strtolower($query->sql);
+            $databaseTimeMs += $query->time;
         });
 
         $this->withoutVite()
             ->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk();
+
+        fwrite(STDERR, sprintf(
+            "Admin dashboard SQL profile: %d queries, %.2f ms cumulative database time.\\n",
+            count($queries),
+            $databaseTimeMs
+        ));
 
         $this->assertLessThanOrEqual(
             35,
