@@ -98,7 +98,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
                 'file_mime_type' => 'video/mp4',
                 'file_size_bytes' => (int) filesize($outputPath),
                 'file_sha256' => $sha256,
-                'status' => filled($video->external_id) ? 'waiting_contract' : 'active',
+                'status' => 'active',
                 'processing_error' => null,
                 'processed_at' => now(),
             ]);
