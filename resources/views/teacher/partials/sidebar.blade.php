@@ -11,15 +11,11 @@
         ['teacher/meetings', 'جلسات', '🤝'],
     ];
 
-    // These direct links are visible only when the administrator grants the corresponding teacher permissions.
-    if ($t?->hasPermissionTo('homework.manage.assigned') || $t?->hasPermissionTo('homework.view.assigned')) {
-        $nav[] = ['admin/homework', 'مدیریت تکالیف و تصحیح', '📝'];
-    }
     if ($t?->hasPermissionTo('resources.manage.assigned')) {
-        $nav[] = ['admin/resources', 'بارگذاری جزوه و منابع', '📚'];
+        $nav[] = ['teacher/resources', 'بارگذاری جزوه و منابع', '📚'];
     }
     if ($t?->hasPermissionTo('videos.manage.assigned')) {
-        $nav[] = ['admin/spotplayer', 'بارگذاری فیلم‌ها', '🎞️'];
+        $nav[] = ['teacher/videos', 'بارگذاری فیلم‌ها', '🎞️'];
     }
 @endphp
 <div class="teacher-sidebar">
