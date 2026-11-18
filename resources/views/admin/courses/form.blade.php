@@ -81,7 +81,7 @@
         @endif
         <div data-course-upload data-target="teaser" data-course-id="{{ $course->id }}"
           data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
-          data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-status-url="{{ route('admin.courses.teaser.status', $course) }}"
+          data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.courses.teaser.status', $course) }}"
           data-max-mb="{{ config('learning.max_teaser_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
           <label class="adm-field">
             <span class="adm-label">انتخاب فایل تریلر</span>
@@ -106,10 +106,21 @@
         <x-admin.panel title="۵. ویدیوهای آموزشی دوره" desc="فایل‌های بارگذاری‌شده در فضای خصوصی همین سامانه نگهداری و بدون نیاز به لینک SpotPlayer برای دانش‌آموزان دارای دسترسی پخش می‌شوند. شناسه خارجی فقط برای ویدیوی موجود در SpotPlayer است." data-tone="edu">
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
-            data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
+            data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.uploads.status') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
             <div class="adm-form">
               <x-admin.input label="عنوان جلسه / ویدیو" name="video_title" placeholder="مثلاً جلسه اول: ساختار اتم" data-upload-title/>
-              <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="مشترک در سطح کل دوره" data-upload-classroom/>
+              <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="کلاس را انتخاب کنید" data-upload-classroom/>
+              <label class="adm-field">
+                <span class="adm-label">جلسه مشخص</span>
+                <select class="adm-select" name="class_session_id" data-upload-session required>
+                  <option value="">ابتدا جلسه را انتخاب کنید</option>
+                  @foreach($classrooms as $classroom)
+                    @foreach($classroom->sessions as $session)
+                      <option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: 'جلسه' }} · {{ $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>
+                    @endforeach
+                  @endforeach
+                </select>
+              </label>
               <x-admin.input label="شناسه خارجی (در صورت وجود)" name="external_id" placeholder="در صورت داشتن شناسه SpotPlayer" data-upload-external/>
               <label class="adm-field wide">
                 <span class="adm-label">فایل ویدیوی جلسه</span>
@@ -130,8 +141,17 @@
             @forelse($videos as $video)
               <div>
                 <span class="adm-stat-ico" data-tone="edu"><x-admin.icon name="video"/></span>
-                <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }} · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small></div>
-                <x-admin.badge :tone="$video->status === 'active' ? 'ok' : 'warn'">{{ $video->status === 'active' ? 'فعال' : 'در انتظار اتصال' }}</x-admin.badge>
+                <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small>@if($video->processing_error)<small class="adm-muted">{{ $video->processing_error }}</small>@endif</div>
+                @php
+                  $videoState = match ($video->status) {
+                    'active' => ['ok', 'آماده پخش'],
+                    'processing' => ['warn', 'در حال پردازش'],
+                    'failed' => ['bad', 'پردازش ناموفق'],
+                    'waiting_contract' => ['warn', 'در انتظار قرارداد'],
+                    default => ['mute', $video->status],
+                  };
+                @endphp
+                <x-admin.badge :tone="$videoState[0]">{{ $videoState[1] }}</x-admin.badge>
               </div>
             @empty
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>

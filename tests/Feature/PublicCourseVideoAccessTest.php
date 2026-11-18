@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\CourseEnrollment;
 use App\Models\Role;
 use App\Models\SpotPlayerLicense;
@@ -134,6 +136,91 @@ final class PublicCourseVideoAccessTest extends TestCase
 
         $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
             ->assertRedirect(route('student.videos.show', $video));
+    }
+
+    public function test_active_class_member_can_see_its_session_recording_on_the_public_course_page(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+
+        $teacher = User::factory()->create();
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس ریاضی',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه معادلات',
+            'session_type' => 'online',
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->subDay()->addHour(),
+            'meeting_provider' => 'jitsi',
+            'status' => 'completed',
+        ]);
+
+        Storage::fake('local');
+        Storage::disk('local')->put('private/course-videos/math-session.mp4', 'video-content');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $session->id,
+            'title' => 'ویدیوی معادلات',
+            'status' => 'active',
+            'file_path' => 'private/course-videos/math-session.mp4',
+            'file_original_name' => 'math-session.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'video-content'),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('ویدیوی معادلات')
+            ->assertSee('جلسه معادلات');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertRedirect(route('student.videos.show', $video));
+    }
+
+    public function test_course_enrollment_does_not_unlock_recordings_from_an_unassigned_classroom(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+
+        $teacher = User::factory()->create();
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس اختصاصی',
+            'status' => 'active',
+        ]);
+        Storage::fake('local');
+        Storage::disk('local')->put('private/course-videos/class-only.mp4', 'private-video');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'title' => 'ویدیوی مخصوص کلاس دیگر',
+            'status' => 'active',
+            'file_path' => 'private/course-videos/class-only.mp4',
+            'file_original_name' => 'class-only.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'private-video'),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertDontSee('ویدیوی مخصوص کلاس دیگر');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertForbidden();
     }
 
     public function test_student_without_enrollment_does_not_receive_the_player_even_with_a_provider_license(): void

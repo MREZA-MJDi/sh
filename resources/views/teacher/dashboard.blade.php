@@ -15,7 +15,7 @@
 @if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a class="teacher-action-card" href="{{ route('teacher.messages.create') }}"><span class="teacher-action-icon">✉</span><strong>مکاتبه با اولیا</strong><small>فقط خانواده‌های دانش‌آموزان مرتبط</small></a>@endif
 </section>
 <section class="c teacher-calendar-card"><div class="teacher-section-head"><div><h2>برنامه هفت روز آینده</h2><p>جلسه‌های ثبت‌شده در کلاس‌های تحت مدیریت شما</p></div><a class="b s" href="{{ route('teacher.meetings') }}">جلسات با اولیا</a></div>
-<div class="teacher-week-calendar" data-teacher-week-calendar>
+<div class="teacher-week-calendar sh-calendar-grid" data-teacher-week-calendar>
 @foreach(($weekCalendar ?? collect()) as $day)
 <div class="teacher-week-day" data-gregorian-date="{{ $day['date'] }}"><div class="teacher-week-day-head"><span data-weekday>—</span><strong data-day-number>—</strong><small>{{ $day['count'] }} جلسه</small></div><div class="teacher-week-events">
 @forelse($day['sessions'] as $session)<div class="teacher-week-event"><strong>{{ $session->title ?: $session->classroom?->name }}</strong><small>{{ $session->starts_at?->format('H:i') }} · {{ $session->classroom?->course?->title ?? $session->classroom?->name }}@if($session->classroom?->course?->grade) · پایه {{ $session->classroom->course->grade }}@endif @if($session->classroom?->course?->season) · {{ ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'][$session->classroom->course->season] ?? $session->classroom->course->season }}@endif</small></div>

@@ -7,7 +7,7 @@
             <h2>{{ $video->title }}</h2>
             <a class="btn s" href="{{ route('student.videos.index') }}">بازگشت به ویدئوها</a>
         </div>
-        <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}</p>
+        <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif</p>
         @if(filled($video->file_path))
             <video controls controlsList="nodownload" disablepictureinpicture playsinline preload="metadata"
                    style="display:block;width:100%;max-height:72vh;background:#0b1220;border-radius:16px">

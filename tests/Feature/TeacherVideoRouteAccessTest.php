@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Course;
+use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\SpotPlayerVideo;
@@ -31,6 +33,21 @@ final class TeacherVideoRouteAccessTest extends TestCase
         ])->pluck('id'));
 
         $ownCourse = $this->courseFor($teacher, 'teacher-video-own-course');
+        $classroom = Classroom::query()->create([
+            'course_id' => $ownCourse->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس مدرس',
+            'status' => 'active',
+        ]);
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه اول',
+            'session_type' => 'online',
+            'starts_at' => now()->addHour(),
+            'ends_at' => now()->addHours(2),
+            'meeting_provider' => 'jitsi',
+            'status' => 'scheduled',
+        ]);
         $otherTeacher = User::factory()->create();
         $otherCourse = $this->courseFor($otherTeacher, 'teacher-video-other-course');
 
@@ -44,6 +61,8 @@ final class TeacherVideoRouteAccessTest extends TestCase
             ->post(route('teacher.spotplayer.videos.store'), [
                 'title' => 'ویدئوی دوره من',
                 'course_id' => $ownCourse->id,
+                'classroom_id' => $classroom->id,
+                'class_session_id' => $session->id,
                 'external_id' => 'spotplayer-video-123',
                 'status' => 'waiting_contract',
             ])

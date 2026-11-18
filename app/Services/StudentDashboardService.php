@@ -135,11 +135,11 @@ final class StudentDashboardService
             });
 
         $resources = (clone $resourceQuery)
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
             ->latest()
             ->limit(5)
-            ->get(['id', 'classroom_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'downloadable', 'release_at', 'created_at']);
+            ->get(['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'downloadable', 'release_at', 'created_at']);
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 6);
 
@@ -296,7 +296,7 @@ final class StudentDashboardService
                         ->whereIn('visibility', ['public', 'authenticated']);
                 });
             })
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
             ->latest()
             ->paginate(12)

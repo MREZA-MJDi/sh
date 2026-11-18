@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Learning\ProcessCourseRecordingVideo;
 use App\Http\Requests\Admin\RequestSpotPlayerLicenseRequest;
 use App\Http\Requests\Admin\RequestSpotPlayerRevocationRequest;
 use App\Http\Requests\Admin\StoreSpotPlayerVideoRequest;
@@ -122,9 +123,9 @@ class SpotPlayerController extends Controller
         $video = $videos->stage($request->validated(), $request->user());
 
         $message = $video->file_path && blank($video->external_id)
-            ? 'ویدیو در فضای خصوصی شیخان ذخیره شد و بدون نیاز به SpotPlayer برای دانش‌آموزان دارای دسترسی دوره قابل پخش است. شناسه داخلی: '.$video->id
+            ? 'ویدیو در فضای خصوصی ذخیره شد و در صف پردازش قرار گرفت؛ پس از آماده‌شدن برای دانش‌آموزان دارای دسترسی دوره قابل پخش می‌شود. شناسه داخلی: '.$video->id
             : ($video->file_path
-                ? 'فایل ویدیو در فضای خصوصی ذخیره شد؛ اتصال SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
+                ? 'فایل ویدیو در فضای خصوصی ذخیره و در حال پردازش است؛ اتصال SpotPlayer پس از تحویل API انجام می‌شود. شناسه داخلی: '.$video->id
                 : 'شناسه ویدیوی موجود در SpotPlayer ثبت شد؛ اتصال و نمایش پلیر رسمی پس از تأیید قرارداد سرویس فعال می‌شود. شناسه داخلی: '.$video->id);
 
         return back()->with('success', $message);
@@ -157,6 +158,45 @@ class SpotPlayerController extends Controller
             $video->file_path,
             $video->file_original_name ?: 'spotplayer-video'
         );
+    }
+
+    public function retryProcessing(
+        Request $request,
+        SpotPlayerVideo $video,
+        ClassroomWorkspaceService $workspace
+    ): RedirectResponse {
+        if ($workspace->isTeacher($request->user())) {
+            $courseAllowed = $workspace->coursesQueryFor($request->user())
+                ->whereKey($video->course_id)
+                ->exists();
+
+            if ($video->classroom_id) {
+                $courseAllowed = $courseAllowed && $workspace->queryFor($request->user())
+                    ->whereKey($video->classroom_id)
+                    ->where('course_id', $video->course_id)
+                    ->exists();
+            }
+
+            abort_unless($courseAllowed, 404);
+        } else {
+            abort_unless($request->user()->hasPermissionTo('integrations.manage'), 403);
+        }
+
+        abort_unless(
+            $video->status === 'failed'
+            && filled($video->file_path)
+            && Storage::disk('local')->exists($video->file_path),
+            422
+        );
+
+        $video->update([
+            'status' => 'processing',
+            'processing_error' => null,
+            'processed_at' => null,
+        ]);
+        ProcessCourseRecordingVideo::dispatch($video->id)->afterCommit();
+
+        return back()->with('success', 'پردازش دوباره ویدیو در صف قرار گرفت.');
     }
 
     public function requestLicense(RequestSpotPlayerLicenseRequest $request, SpotPlayerService $spotPlayer): RedirectResponse

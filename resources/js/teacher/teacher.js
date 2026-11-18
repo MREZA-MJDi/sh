@@ -1,3 +1,4 @@
+import '../admin/course-editor.js';
 import '../shared/iranian-locale.js';
 /* فقط رفتار (action)؛ هیچ داده‌ای در JS نیست. */
 (function () {
@@ -28,7 +29,43 @@ import '../shared/iranian-locale.js';
     var list = [], n; while ((n = w.nextNode())) list.push(n);
     list.forEach(function (t) { t.nodeValue = fa(t.nodeValue); });
   }
-  $$('[data-fa]').forEach(faDigits);
+  $('[data-fa]').forEach(faDigits);
+
+  /* One course → classroom → session selector across teacher content forms. */
+  $('[data-learning-scope]').forEach(function (scope) {
+    var course = $('[name="course_id"],[data-upload-course]', scope);
+    var classroom = $('[name="classroom_id"],[data-upload-classroom]', scope);
+    var session = $('[name="class_session_id"],[data-upload-session]', scope);
+    if (!classroom || !session) return;
+
+    var filter = function () {
+      var courseId = course ? String(course.value || '') : '';
+      var classroomId = String(classroom.value || '');
+
+      Array.prototype.forEach.call(classroom.options, function (option) {
+        var optionCourse = option.getAttribute('data-course-id');
+        var visible = !option.value || !courseId || optionCourse === courseId;
+        option.hidden = !visible;
+        option.disabled = !visible;
+      });
+      if (classroom.selectedOptions[0]?.disabled) {
+        classroom.value = '';
+        classroomId = '';
+      }
+
+      Array.prototype.forEach.call(session.options, function (option) {
+        var optionClassroom = option.getAttribute('data-classroom-id');
+        var visible = !option.value || (classroomId && optionClassroom === classroomId);
+        option.hidden = !visible;
+        option.disabled = !visible;
+      });
+      if (session.selectedOptions[0]?.disabled) session.value = '';
+    };
+
+    course?.addEventListener('change', filter);
+    classroom.addEventListener('change', filter);
+    filter();
+  });
 
   /* تم تیره/روشن و پالت رنگ */
   var tg = $('#themeToggle');

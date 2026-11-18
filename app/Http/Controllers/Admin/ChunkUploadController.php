@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
+use App\Models\ClassSession;
 use App\Models\SpotPlayerVideo;
 use App\Models\VideoUploadSession;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\SpotPlayer\SpotPlayerVideoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -26,14 +28,26 @@ final class ChunkUploadController extends Controller
         $data = $request->validate([
             'target' => ['required', 'in:teaser,spotplayer_video'],
             'target_id' => ['required', 'integer', 'exists:courses,id'],
-            'total' => ['required', 'integer', 'min:1', 'max:2000'],
             'total_bytes' => ['required', 'integer', 'min:1', 'max:2147483647'],
             'title' => ['required_if:target,spotplayer_video', 'nullable', 'string', 'max:180'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
+            'class_session_id' => ['nullable', 'integer', 'exists:class_sessions,id'],
             'external_id' => ['nullable', 'string', 'max:190'],
         ]);
 
         $course = $this->authorizeTarget($request, $data['target'], (int) $data['target_id'], $data, $workspace);
+
+        if ($data['target'] === 'spotplayer_video' && $request->user()->hasRole('teacher') && blank($data['class_session_id'] ?? null)) {
+            throw ValidationException::withMessages([
+                'class_session_id' => 'برای بارگذاری ویدئوی مدرس، انتخاب جلسه الزامی است.',
+            ]);
+        }
+
+        $chunkSizeBytes = $this->chunkSizeBytes();
+        $totalChunks = (int) ceil((int) $data['total_bytes'] / $chunkSizeBytes);
+        if ($totalChunks < 1 || $totalChunks > 2000) {
+            throw ValidationException::withMessages(['file' => 'تعداد بخش‌های فایل از حد مجاز بیشتر است؛ اندازه فایل یا تنظیم قطعه آپلود را بررسی کنید.']);
+        }
 
         if ((int) $data['total_bytes'] > $this->maxBytes($data['target'])) {
             throw ValidationException::withMessages([
@@ -73,12 +87,13 @@ final class ChunkUploadController extends Controller
             $course->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
         }
 
-        $metadata = ['total_chunks' => (int) $data['total'], 'total_bytes' => (int) $data['total_bytes']];
+        $metadata = ['total_chunks' => $totalChunks, 'chunk_size_bytes' => $chunkSizeBytes, 'total_bytes' => (int) $data['total_bytes']];
         if ($data['target'] === 'spotplayer_video') {
             $metadata += [
                 'title' => trim($data['title']),
                 'course_id' => $course->id,
                 'classroom_id' => filled($data['classroom_id'] ?? null) ? (int) $data['classroom_id'] : null,
+                'class_session_id' => filled($data['class_session_id'] ?? null) ? (int) $data['class_session_id'] : null,
                 'external_id' => filled($data['external_id'] ?? null) ? trim($data['external_id']) : null,
             ];
         }
@@ -97,16 +112,20 @@ final class ChunkUploadController extends Controller
         return response()->json([
             'ok' => true,
             'upload_id' => $session->upload_id,
-            'chunk_size_bytes' => (int) config('learning.chunk_mb') * 1024 * 1024,
+            'chunk_size_bytes' => $chunkSizeBytes,
+            'total_chunks' => $totalChunks,
         ]);
     }
 
     public function chunk(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
     {
+        if ($this->postMaxSizeExceeded($request)) {
+            return $this->fail('درخواست از محدودیت post_max_size هاست بیشتر است؛ اندازه قطعه آپلود را کاهش دهید.', 413);
+        }
+
         $data = $request->validate([
             'upload_id' => ['required', 'uuid'],
             'index' => ['required', 'integer', 'min:0', 'max:1999'],
-            'chunk' => ['required', 'file', 'max:'.((((int) config('learning.chunk_mb')) + 1) * 1024)],
         ]);
 
         $session = $this->findUploadSession($data['upload_id'], $request);
@@ -115,11 +134,22 @@ final class ChunkUploadController extends Controller
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
         $totalChunks = (int) ($session->metadata['total_chunks'] ?? 0);
-        abort_unless($totalChunks > 0 && $data['index'] < $totalChunks, 422, 'شماره تکه خارج از محدوده فایل است.');
+        $chunkSizeBytes = (int) ($session->metadata['chunk_size_bytes'] ?? 0);
+        $totalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
+        abort_unless($totalChunks > 0 && $chunkSizeBytes > 0 && $data['index'] < $totalChunks, 422, 'شماره تکه خارج از محدوده فایل است.');
+
+        $file = $request->file('chunk');
+        if (! $file instanceof UploadedFile || ! $file->isValid()) {
+            return $this->fail($this->uploadErrorMessage($file), 413);
+        }
+
+        $expectedBytes = min($chunkSizeBytes, $totalBytes - ((int) $data['index'] * $chunkSizeBytes));
+        if ($expectedBytes < 1 || (int) $file->getSize() !== $expectedBytes) {
+            return $this->fail('اندازه این بخش با اندازه مورد انتظار فایل مطابقت ندارد؛ آپلود را از همین فایل دوباره ادامه دهید.', 422);
+        }
 
         $disk = Storage::disk('local');
         $path = "chunks/{$data['upload_id']}/{$data['index']}.part";
-        $file = $request->file('chunk');
         $maxBytes = $this->maxBytes($session->target);
 
         $session = DB::transaction(function () use ($request, $data, $disk, $path, $file, $maxBytes): VideoUploadSession {
@@ -174,7 +204,13 @@ final class ChunkUploadController extends Controller
                 'ok' => true,
                 'status' => $existing->target === 'teaser'
                     ? 'processing'
-                    : ($existingVideo?->status === 'active' ? 'ready' : 'waiting_contract'),
+                    : match ($existingVideo?->status) {
+                        'active' => 'ready',
+                        'processing' => 'processing',
+                        'failed' => 'failed',
+                        'waiting_contract' => 'waiting_contract',
+                        default => 'failed',
+                    },
                 'video_id' => $existingVideo?->id,
             ]);
         }
@@ -280,25 +316,29 @@ final class ChunkUploadController extends Controller
                 return response()->json(['ok' => true, 'status' => 'processing']);
             }
 
-            $video = $videos->stageStoredFile(
-                $session->metadata,
-                $request->user(),
-                $destination,
-                $data['filename'],
-                $mime,
-                (int) $actualBytes
-            );
+            $video = DB::transaction(function () use ($videos, $session, $request, $destination, $data, $mime, $actualBytes): SpotPlayerVideo {
+                $video = $videos->stageStoredFile(
+                    $session->metadata,
+                    $request->user(),
+                    $destination,
+                    $data['filename'],
+                    $mime,
+                    (int) $actualBytes
+                );
 
-            $session->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-                'metadata' => [...($session->metadata ?? []), 'result_video_id' => $video->id],
-            ]);
+                $session->update([
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                    'metadata' => [...($session->metadata ?? []), 'result_video_id' => $video->id],
+                ]);
+
+                return $video;
+            });
             $disk->deleteDirectory($chunkDirectory);
 
             return response()->json([
                 'ok' => true,
-                'status' => $video->status === 'active' ? 'ready' : 'waiting_contract',
+                'status' => match ($video->status) { 'active' => 'ready', 'processing' => 'processing', 'failed' => 'failed', default => 'waiting_contract' },
                 'video_id' => $video->id,
             ]);
         } catch (Throwable $exception) {
@@ -307,6 +347,67 @@ final class ChunkUploadController extends Controller
             $session->update(['status' => 'failed']);
             throw $exception;
         }
+    }
+
+    public function resume(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
+    {
+        $data = $request->validate(['upload_id' => ['required', 'uuid']]);
+        $session = $this->findUploadSession($data['upload_id'], $request);
+
+        abort_unless($session->status === 'uploading' && $session->expires_at->isFuture(), 410, 'نشست آپلود دیگر قابل ادامه نیست؛ یک آپلود تازه آغاز کنید.');
+        $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
+
+        $total = (int) ($session->metadata['total_chunks'] ?? 0);
+        $disk = Storage::disk('local');
+        $received = [];
+
+        for ($index = 0; $index < $total; $index++) {
+            if ($disk->exists("chunks/{$session->upload_id}/{$index}.part")) {
+                $received[] = $index;
+            }
+        }
+
+        $session->update(['expires_at' => now()->addHours(2)]);
+
+        return response()->json([
+            'ok' => true,
+            'upload_id' => $session->upload_id,
+            'total_chunks' => $total,
+            'chunk_size_bytes' => (int) ($session->metadata['chunk_size_bytes'] ?? 0),
+            'received_chunks' => $received,
+        ]);
+    }
+
+    public function status(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
+    {
+        $data = $request->validate(['upload_id' => ['required', 'uuid']]);
+        $session = $this->findUploadSession($data['upload_id'], $request);
+        $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
+
+        if ($session->target === 'teaser') {
+            $course = Course::query()->findOrFail($session->target_id);
+
+            return response()->json([
+                'status' => $course->teaser_status,
+                'error' => $course->teaser_error,
+            ]);
+        }
+
+        $video = isset($session->metadata['result_video_id'])
+            ? SpotPlayerVideo::query()->find($session->metadata['result_video_id'])
+            : null;
+
+        return response()->json([
+            'status' => match ($video?->status) {
+                'active' => 'ready',
+                'processing' => 'processing',
+                'failed' => 'failed',
+                'waiting_contract' => 'waiting_contract',
+                default => $session->status === 'uploading' ? 'uploading' : 'failed',
+            },
+            'error' => $video?->processing_error,
+            'video_id' => $video?->id,
+        ]);
     }
 
     public function cancel(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
@@ -357,11 +458,27 @@ final class ChunkUploadController extends Controller
             })
             ->findOrFail($courseId);
 
-        if (filled($metadata['classroom_id'] ?? null)) {
+        $classroomId = filled($metadata['classroom_id'] ?? null)
+            ? (int) $metadata['classroom_id']
+            : null;
+
+        if (filled($metadata['class_session_id'] ?? null)) {
+            $classSession = ClassSession::query()
+                ->whereKey((int) $metadata['class_session_id'])
+                ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
+                ->firstOrFail();
+
+            abort_if($classroomId && (int) $classSession->classroom_id !== $classroomId, 422, 'جلسه انتخاب‌شده متعلق به کلاس انتخاب‌شده نیست.');
+
             $workspace->queryFor($request->user())
                 ->where('course_id', $course->id)
                 ->where('status', 'active')
-                ->findOrFail((int) $metadata['classroom_id']);
+                ->findOrFail((int) $classSession->classroom_id);
+        } elseif ($classroomId) {
+            $workspace->queryFor($request->user())
+                ->where('course_id', $course->id)
+                ->where('status', 'active')
+                ->findOrFail($classroomId);
         }
 
         return $course;
@@ -375,6 +492,63 @@ final class ChunkUploadController extends Controller
         abort_unless((int) $session->user_id === (int) $request->user()->id, 404);
 
         return $session;
+    }
+
+    private function chunkSizeBytes(): int
+    {
+        $configured = max(1, (int) config('learning.chunk_mb')) * 1024 * 1024 - 65536;
+        $limits = [$configured];
+        $uploadLimit = $this->iniSizeToBytes((string) ini_get('upload_max_filesize'));
+        $postLimit = $this->iniSizeToBytes((string) ini_get('post_max_size'));
+
+        if ($uploadLimit > 0) {
+            $limits[] = max(262144, $uploadLimit - 65536);
+        }
+        if ($postLimit > 0) {
+            $limits[] = max(262144, $postLimit - 262144);
+        }
+
+        return max(262144, min($limits));
+    }
+
+    private function postMaxSizeExceeded(Request $request): bool
+    {
+        $contentLength = (int) $request->server('CONTENT_LENGTH', 0);
+        $postLimit = $this->iniSizeToBytes((string) ini_get('post_max_size'));
+
+        return $contentLength > 0 && $postLimit > 0 && $contentLength > $postLimit;
+    }
+
+    private function iniSizeToBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '' || $value === '0') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $number = (float) $value;
+
+        return (int) match ($unit) {
+            'g' => $number * 1024 * 1024 * 1024,
+            'm' => $number * 1024 * 1024,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
+    private function uploadErrorMessage(?UploadedFile $file): string
+    {
+        return match ($file?->getError()) {
+            UPLOAD_ERR_INI_SIZE => 'اندازه قطعه از upload_max_filesize هاست بیشتر است؛ قطعه کوچک‌تری انتخاب کنید.',
+            UPLOAD_ERR_FORM_SIZE => 'اندازه قطعه از محدودیت فرم بیشتر است.',
+            UPLOAD_ERR_PARTIAL => 'ارسال قطعه ناقص شد؛ اتصال اینترنت را بررسی و دوباره تلاش کنید.',
+            UPLOAD_ERR_NO_FILE => 'قطعه‌ای به سرور نرسید؛ دوباره تلاش کنید.',
+            UPLOAD_ERR_NO_TMP_DIR => 'پوشه موقت آپلود روی هاست در دسترس نیست.',
+            UPLOAD_ERR_CANT_WRITE => 'هاست نتوانست فایل موقت آپلود را ذخیره کند؛ فضای دیسک را بررسی کنید.',
+            UPLOAD_ERR_EXTENSION => 'یک افزونه PHP جلوی آپلود فایل را گرفته است.',
+            default => 'قطعه فایل به‌درستی دریافت نشد؛ تنظیمات آپلود هاست را بررسی کنید.',
+        };
     }
 
     private function maxBytes(string $target): int
