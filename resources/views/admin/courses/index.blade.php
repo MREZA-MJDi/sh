@@ -104,7 +104,40 @@
     @endforelse
   </div>
   @if($courses->hasPages())
-    <div class="adm-pagination">{{ $courses->links() }}</div>
+    <div class="adm-pager" aria-label="صفحه‌بندی دوره‌ها">
+      <p class="adm-pager-info" aria-live="polite">
+        نمایش {{ number_format($courses->firstItem()) }} تا {{ number_format($courses->lastItem()) }}
+        از {{ number_format($courses->total()) }} دوره
+      </p>
+
+      <nav class="adm-pager-nav" aria-label="صفحه‌بندی دوره‌ها">
+        @if ($courses->onFirstPage())
+          <span class="is-off" aria-disabled="true">قبلی</span>
+        @else
+          <a href="{{ $courses->previousPageUrl() }}" rel="prev" aria-label="صفحه قبلی">قبلی</a>
+        @endif
+
+        @foreach ($courses->onEachSide(1)->elements() as $element)
+          @if (is_string($element))
+            <span class="is-gap" aria-hidden="true">{{ $element }}</span>
+          @else
+            @foreach ($element as $page => $url)
+              @if ($page === $courses->currentPage())
+                <span class="is-on" aria-current="page" aria-label="صفحه فعلی، صفحه {{ $page }}">{{ $page }}</span>
+              @else
+                <a href="{{ $url }}" aria-label="رفتن به صفحه {{ $page }}">{{ $page }}</a>
+              @endif
+            @endforeach
+          @endif
+        @endforeach
+
+        @if ($courses->hasMorePages())
+          <a href="{{ $courses->nextPageUrl() }}" rel="next" aria-label="صفحه بعدی">بعدی</a>
+        @else
+          <span class="is-off" aria-disabled="true">بعدی</span>
+        @endif
+      </nav>
+    </div>
   @endif
 </div>
 @endsection
