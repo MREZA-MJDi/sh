@@ -10,12 +10,12 @@ class SpotPlayerVideo extends Model
     protected $fillable = [
         'course_id', 'classroom_id', 'created_by', 'title', 'external_id',
         'embed_url', 'status', 'file_path', 'file_original_name',
-        'file_mime_type', 'file_size_bytes', 'file_sha256', 'staged_at',
+        'file_mime_type', 'file_size_bytes', 'file_sha256', 'staged_at', 'processing_error', 'processed_at',
     ];
 
     protected function casts(): array
     {
-        return ['file_size_bytes' => 'integer', 'staged_at' => 'datetime'];
+        return ['file_size_bytes' => 'integer', 'staged_at' => 'datetime', 'processed_at' => 'datetime'];
     }
 
     public function course(): BelongsTo
