@@ -292,6 +292,34 @@ final class ChunkUploadController extends Controller
         }
     }
 
+    public function cancel(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
+    {
+        $data = $request->validate(['upload_id' => ['required', 'uuid']]);
+
+        $session = VideoUploadSession::query()
+            ->where('upload_id', $data['upload_id'])
+            ->where('user_id', $request->user()->id)
+            ->where('status', 'uploading')
+            ->firstOrFail();
+
+        $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
+
+        Storage::disk('local')->deleteDirectory('chunks/'.$session->upload_id);
+        $session->update(['status' => 'cancelled']);
+
+        if ($session->target === 'teaser') {
+            $course = Course::query()->find($session->target_id);
+            if ($course) {
+                $course->update([
+                    'teaser_status' => filled($course->teaser_path) ? 'ready' : 'none',
+                    'teaser_error' => null,
+                ]);
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     private function authorizeTarget(
         Request $request,
         string $target,
