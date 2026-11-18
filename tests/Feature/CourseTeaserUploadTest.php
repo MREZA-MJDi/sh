@@ -105,7 +105,7 @@ final class CourseTeaserUploadTest extends TestCase
         ])->assertOk();
 
         $uploadId = $start->json('upload_id');
-        \\App\\Models\\VideoUploadSession::query()->where('upload_id', $uploadId)->delete();
+        \App\Models\VideoUploadSession::query()->where('upload_id', $uploadId)->delete();
 
         $this->postJson(route('admin.uploads.chunk'), [
             'upload_id' => $uploadId,
