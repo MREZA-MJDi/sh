@@ -8,28 +8,73 @@ use App\Models\User;
 use App\Notifications\MessageActivityNotification;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 final class MessageController extends Controller
 {
-    public function create(Request $request, ClassroomWorkspaceService $workspace): View
+    public function create(): View
     {
-        $classrooms = $workspace->queryFor($request->user())
-            ->where('status', 'active')
-            ->with(['course:id,title', 'students' => fn (Builder $students) => $students
-                ->where('users.is_active', true)
-                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
-                ->with(['guardians' => fn (Builder $guardians) => $guardians
+        return view('teacher.message-create');
+    }
+
+    public function recipients(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
+    {
+        $data = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:80'],
+        ]);
+
+        $term = trim($data['q']);
+        $classroomIds = $workspace->queryFor($request->user())
+            ->where('classrooms.status', 'active')
+            ->select('classrooms.id');
+
+        $students = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
+            ->whereHas('enrolledClasses', fn (Builder $classes) => $classes
+                ->whereIn('classrooms.id', clone $classroomIds))
+            ->where(fn (Builder $search) => $search
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%"))
+            ->with([
+                'enrolledClasses' => fn (Builder $classes) => $classes
+                    ->whereIn('classrooms.id', clone $classroomIds)
+                    ->where('classrooms.status', 'active')
+                    ->orderBy('classrooms.name')
+                    ->select('classrooms.id', 'classrooms.name'),
+                'guardians' => fn (Builder $guardians) => $guardians
                     ->where('users.is_active', true)
                     ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'parent'))
-                    ->orderBy('name')])
-                ->orderBy('name')])
+                    ->orderBy('users.name')
+                    ->select('users.id', 'users.name'),
+            ])
             ->orderBy('name')
-            ->get();
+            ->limit(20)
+            ->get(['id', 'name']);
 
-        return view('teacher.message-create', compact('classrooms'));
+        $items = [];
+        foreach ($students as $student) {
+            foreach ($student->enrolledClasses as $classroom) {
+                $items[] = [
+                    'target' => "student:{$classroom->id}:{$student->id}",
+                    'label' => "دانش‌آموز: {$student->name}",
+                    'meta' => $classroom->name,
+                ];
+
+                foreach ($student->guardians as $guardian) {
+                    $items[] = [
+                        'target' => "parent:{$classroom->id}:{$student->id}:{$guardian->id}",
+                        'label' => "ولی {$student->name}: {$guardian->name}",
+                        'meta' => $classroom->name,
+                    ];
+                }
+            }
+        }
+
+        return response()->json(['data' => array_slice($items, 0, 40)]);
     }
 
     public function store(Request $request, ClassroomWorkspaceService $workspace): RedirectResponse
