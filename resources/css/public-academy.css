@@ -120,7 +120,8 @@ svg.i { width: 1.2em; height: 1.2em; stroke: currentColor; fill: none; stroke-wi
 .dots { position: absolute; bottom: 24px; inset-inline: 0; display: flex; justify-content: center; gap: 8px; z-index: 5; }
 .dots i { width: 10px; height: 10px; border-radius: 99px; background: rgba(255, 255, 255, .4); cursor: pointer; transition: .3s cubic-bezier(.4, 0, .2, 1); }
 .dots i.on { width: 32px; background: #fff; }
-.sl-banner-bg { position: absolute; inset: 0; z-index: 0; opacity: .28; object-fit: cover; width: 100%; height: 100%; filter: blur(2px); }
+.sl.has-banner-image::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(8, 17, 40, .72), rgba(8, 17, 40, .34)); }
+.sl-banner-bg { position: absolute; inset: 0; z-index: 0; opacity: .82; object-fit: cover; width: 100%; height: 100%; filter: none; }
 
 @media(max-width: 860px){
   .hero { min-height: auto; }

@@ -129,7 +129,7 @@
             @foreach($bannersCollection as $index => $banner)
 
                 <div
-                        class="sl {{ $index === 0 ? 'on' : '' }}"
+                        class="sl {{ $index === 0 ? 'on' : '' }} {{ filled($banner->image_path ?? null) ? 'has-banner-image' : '' }}"
                         style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}"
                 >
 
@@ -238,7 +238,14 @@
     ========================================================= --}}
 
     @if(($homeQuizTotal ?? 0) > 0)
-    <section class="home-quiz-section" id="homeQuiz">
+    <section
+            class="home-quiz-section"
+            id="homeQuiz"
+            data-question-url="{{ url('/home-quiz/question') }}"
+            data-answer-url="{{ route('public.home.quiz.answer') }}"
+            data-csrf="{{ csrf_token() }}"
+            data-total="{{ $homeQuizTotal ?? 0 }}"
+    >
 
         <div class="c">
 
@@ -255,13 +262,7 @@
 
             </div>
 
-            <div
-                    class="home-quiz-card"
-                    data-question-url="{{ url('/home-quiz/question') }}"
-                    data-answer-url="{{ route('public.home.quiz.answer') }}"
-                    data-csrf="{{ csrf_token() }}"
-                    data-total="{{ $homeQuizTotal ?? 0 }}"
-            >
+            <div class="home-quiz-card">
 
                 {{-- Progress --}}
 
