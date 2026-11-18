@@ -121,14 +121,14 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
         $this->assertDatabaseMissing('classrooms', ['name' => 'کلاس غیرمجاز']);
     }
 
-    public function test_admin_assigns_teacher_navigation_permissions_and_courses_in_the_create_drawer(): void
+    public function test_teacher_crud_keeps_role_permissions_and_does_not_assign_courses(): void
     {
         $admin = User::factory()->create();
         $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
 
         $course = Course::query()->create([
-            'title' => 'دوره قابل تخصیص',
-            'slug' => 'teacher-permission-assignment-course',
+            'title' => 'دوره بدون تخصیص خودکار',
+            'slug' => 'teacher-no-auto-assignment-course',
             'type' => 'free',
             'price' => 0,
             'delivery_type' => 'skyroom',
@@ -139,38 +139,35 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
             ->get(route('admin.teachers.index'))
             ->assertOk()
             ->assertSee('ساخت مدرس')
-            ->assertSee('دسترسی‌ها')
-            ->assertSee('مدیریت کلاس و کلاس آنلاین اسکای‌روم')
-            ->assertSee('ساخت و مدیریت آزمون‌ها');
+            ->assertSee('دسترسی‌های پایه از نقش مدرس دریافت می‌شود')
+            ->assertDontSee('دوره‌های تخصیص‌یافته')
+            ->assertDontSee('teacher_access');
 
         $this->actingAs($admin)
             ->post(route('admin.teachers.store'), [
-                'name' => 'مدرس دسترسی‌دار',
+                'name' => 'مدرس بدون تخصیص',
                 'phone' => '09120000077',
                 'subject' => 'ریاضی',
                 'status' => 'active',
                 'password' => 'StrongTeacherPassword!2026',
                 'password_confirmation' => 'StrongTeacherPassword!2026',
-                'course_ids' => [$course->id],
-                'teacher_access' => ['classes', 'exams', 'materials_homework'],
             ])
             ->assertSessionHasNoErrors();
 
         $teacher = User::query()->where('phone', '09120000077')->firstOrFail();
 
-        $this->assertTrue($teacher->permissions_customized);
+        $this->assertFalse($teacher->permissions_customized);
         $this->assertTrue($teacher->hasPermissionTo('dashboard.view'));
-        $this->assertTrue($teacher->hasPermissionTo('profile.update'));
-        $this->assertTrue($teacher->hasPermissionTo('announcements.view'));
-        $this->assertTrue($teacher->hasPermissionTo('consultations.create'));
-        $this->actingAs($teacher)->get(route('teacher.consultations.index'))->assertOk();
-        $this->actingAs($teacher)->get(route('teacher.dashboard'))->assertOk();
         $this->assertTrue($teacher->hasPermissionTo('classes.manage.assigned'));
-        $this->assertTrue($teacher->hasPermissionTo('exams.manage.assigned'));
-        $this->assertTrue($teacher->hasPermissionTo('homework.manage.assigned'));
-        $this->assertFalse($teacher->hasPermissionTo('attendance.manage.assigned'));
-        $this->assertFalse($teacher->hasPermissionTo('integrations.manage'));
-        $this->assertSame($teacher->id, $course->refresh()->teacher_id);
+        $this->assertTrue($teacher->hasPermissionTo('attendance.manage.assigned'));
+        $this->assertTrue($teacher->hasPermissionTo('homework.grade'));
+        $this->assertTrue($teacher->hasPermissionTo('profile.update'));
+        $this->assertNull($course->refresh()->teacher_id);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.dashboard'))
+            ->assertOk()
+            ->assertSee('فضای کاری مدرس');
     }
 
     public function test_teacher_can_create_internal_exam_only_for_an_assigned_class_or_course(): void
@@ -312,30 +309,31 @@ class TeacherSharedAdminWorkspaceTest extends TestCase
     }
 
 
-    public function test_customized_teacher_can_open_the_dashboard_after_admin_creates_the_account(): void
+    public function test_editing_teacher_profile_does_not_change_role_permissions_or_course_assignments(): void
     {
         $admin = User::factory()->create();
         $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
 
-        $this->actingAs($admin)->post(route('admin.teachers.store'), [
-            'name' => 'مدرس تازه',
-            'phone' => '09120000088',
-            'subject' => 'علوم',
-            'status' => 'active',
-            'password' => 'StrongTeacherPassword!2026',
-            'password_confirmation' => 'StrongTeacherPassword!2026',
-            'teacher_access' => ['attendance'],
-        ])->assertSessionHasNoErrors();
+        $teacher = User::factory()->create(['permissions_customized' => false]);
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+        $course = $this->courseFor($teacher, 'teacher-profile-edit-course');
 
-        $teacher = User::query()->where('phone', '09120000088')->firstOrFail();
+        $this->actingAs($admin)
+            ->patch(route('admin.teachers.update', $teacher), [
+                'name' => 'مدرس ویرایش‌شده',
+                'phone' => '09120000088',
+                'subject' => 'علوم',
+                'status' => 'active',
+                'profile_note' => 'ویرایش مشخصات حساب',
+            ])
+            ->assertSessionHasNoErrors();
 
-        $this->assertTrue($teacher->hasPermissionTo('dashboard.view'));
-        $this->assertTrue($teacher->hasPermissionTo('profile.update'));
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.dashboard'))
-            ->assertOk()
-            ->assertSee('فضای کاری مدرس');
+        $teacher->refresh();
+        $this->assertFalse($teacher->permissions_customized);
+        $this->assertTrue($teacher->hasPermissionTo('classes.manage.assigned'));
+        $this->assertTrue($teacher->hasPermissionTo('attendance.manage.assigned'));
+        $this->assertSame($teacher->id, $course->refresh()->teacher_id);
+        $this->assertSame('مدرس ویرایش‌شده', $teacher->name);
     }
 
     public function test_homework_submission_list_is_paginated_instead_of_truncated_at_thirty(): void
