@@ -12,5 +12,7 @@ class ClassSession extends Model
     protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime'];
 
     public function classroom(): BelongsTo { return $this->belongsTo(Classroom::class); }
+    public function recordings(): HasMany { return $this->hasMany(SpotPlayerVideo::class, 'class_session_id'); }
+    public function resources(): HasMany { return $this->hasMany(LearningResource::class, 'class_session_id'); }
     public function attendances(): HasMany { return $this->hasMany(Attendance::class, 'class_session_id'); }
 }
