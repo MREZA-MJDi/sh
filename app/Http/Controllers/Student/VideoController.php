@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -55,7 +55,7 @@ final class VideoController extends Controller
         return view('student.videos.show', compact('video'));
     }
 
-    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse|Response
+    public function stream(Request $request, int $video, LearningAccessService $access): StreamedResponse|Response
     {
         $recording = $this->findAccessibleVideo($request->user(), $video, $access);
 
@@ -81,13 +81,76 @@ final class VideoController extends Controller
             ? $recording->file_mime_type
             : 'application/octet-stream';
 
-        return response()->file(Storage::disk('local')->path($recording->file_path), [
+        $path = Storage::disk('local')->path($recording->file_path);
+        $size = filesize($path);
+        abort_if($size === false || $size < 1, 404);
+
+        $start = 0;
+        $end = $size - 1;
+        $status = 200;
+        $headers = [
             'Content-Type' => $mimeType,
+            'Accept-Ranges' => 'bytes',
             'Cache-Control' => 'private, no-store, max-age=0',
             'Pragma' => 'no-cache',
             'X-Content-Type-Options' => 'nosniff',
             'Referrer-Policy' => 'same-origin',
-        ]);
+        ];
+
+        $range = $request->header('Range');
+        if (filled($range)) {
+            if (! preg_match('/^bytes=(\\d*)-(\\d*)$/', trim($range), $matches) || ($matches[1] === '' && $matches[2] === '')) {
+                return response('', 416, ['Content-Range' => 'bytes */'.$size, ...$headers]);
+            }
+
+            if ($matches[1] === '') {
+                $suffixLength = (int) $matches[2];
+                if ($suffixLength < 1) {
+                    return response('', 416, ['Content-Range' => 'bytes */'.$size, ...$headers]);
+                }
+                $start = max(0, $size - $suffixLength);
+            } else {
+                $start = (int) $matches[1];
+                $end = $matches[2] === '' ? $size - 1 : (int) $matches[2];
+            }
+
+            if ($start >= $size || $end < $start) {
+                return response('', 416, ['Content-Range' => 'bytes */'.$size, ...$headers]);
+            }
+
+            $end = min($end, $size - 1);
+            $status = 206;
+            $headers['Content-Range'] = "bytes {$start}-{$end}/{$size}";
+        }
+
+        $length = $end - $start + 1;
+        $headers['Content-Length'] = (string) $length;
+
+        return response()->stream(function () use ($path, $start, $length): void {
+            $handle = fopen($path, 'rb');
+            if ($handle === false) {
+                return;
+            }
+
+            try {
+                fseek($handle, $start);
+                $remaining = $length;
+                while ($remaining > 0 && ! feof($handle)) {
+                    $chunk = fread($handle, min(1024 * 64, $remaining));
+                    if ($chunk === false || $chunk === '') {
+                        break;
+                    }
+                    echo $chunk;
+                    $remaining -= strlen($chunk);
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
+                }
+            } finally {
+                fclose($handle);
+            }
+        }, $status, $headers);
     }
 
     private function findAccessibleVideo(User $student, int $videoId, LearningAccessService $access): SpotPlayerVideo
