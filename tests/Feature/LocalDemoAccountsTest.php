@@ -140,7 +140,7 @@ class LocalDemoAccountsTest extends TestCase
             ->assertDontSee('parent@sh.local')
             ->assertDontSee('LocalOnlyDemoPassword!2026');
     }
-    public function test_production_demo_login_cards_require_both_explicit_flags(): void
+    public function test_production_login_never_displays_demo_credentials_even_when_both_flags_are_enabled(): void
     {
         $this->app['env'] = 'production';
 
@@ -152,9 +152,11 @@ class LocalDemoAccountsTest extends TestCase
 
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('admin@sh.local')
-            ->assertSee('Temporary-Demo-2026!')
-            ->assertDontSee('seo@sh.local');
+            ->assertDontSee('admin@sh.local')
+            ->assertDontSee('teacher@sh.local')
+            ->assertDontSee('student@sh.local')
+            ->assertDontSee('parent@sh.local')
+            ->assertDontSee('Temporary-Demo-2026!');
     }
 
     public function test_explicitly_enabled_demo_accounts_can_be_seeded_for_a_production_demo_window(): void
