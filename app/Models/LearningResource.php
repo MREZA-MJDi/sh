@@ -12,7 +12,6 @@ class LearningResource extends Model
 
     protected $fillable = [
         'classroom_id',
-        'class_session_id',
         'course_id',
         'uploaded_by',
         'title',
@@ -42,11 +41,6 @@ class LearningResource extends Model
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);
-    }
-
-    public function classSession(): BelongsTo
-    {
-        return $this->belongsTo(ClassSession::class, 'class_session_id');
     }
 
     public function course(): BelongsTo
