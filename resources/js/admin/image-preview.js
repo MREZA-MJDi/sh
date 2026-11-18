@@ -53,7 +53,7 @@ const showPreview = (input) => {
     meta.hidden = false;
     const objectUrl = URL.createObjectURL(file);
     stage.dataset.objectUrl = objectUrl;
-    stage.style.aspectRatio = input.dataset.previewRatio || 'auto';
+    stage.style.setProperty('--adm-preview-ratio', input.dataset.previewRatio || 'auto');
     if (input.dataset.previewMobileRatio) {
         stage.dataset.mobileRatio = 'true';
         stage.style.setProperty('--adm-mobile-ratio', input.dataset.previewMobileRatio);
