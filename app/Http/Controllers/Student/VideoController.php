@@ -9,6 +9,7 @@ use App\Services\Learning\LearningAccessService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -54,20 +55,34 @@ final class VideoController extends Controller
         return view('student.videos.show', compact('video'));
     }
 
-    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse
+    public function stream(Request $request, int $video, LearningAccessService $access): BinaryFileResponse|Response
     {
         $recording = $this->findAccessibleVideo($request->user(), $video, $access);
 
-        abort_unless(
-            $recording->status === 'active'
-                && filled($recording->file_path)
-                && blank($recording->external_id)
-                && Storage::disk('local')->exists($recording->file_path),
-            409,
-            'این ویدیو هنوز برای پخش مستقیم آماده نیست.'
-        );
+        if (
+            $recording->status !== 'active'
+            || blank($recording->file_path)
+            || filled($recording->external_id)
+            || ! Storage::disk('local')->exists($recording->file_path)
+        ) {
+            return response(
+                'پخش این فایل تا زمان آماده‌شدن منبع ویدیو فعال نیست.',
+                409,
+                [
+                    'Cache-Control' => 'private, no-store, max-age=0',
+                    'Pragma' => 'no-cache',
+                    'X-Content-Type-Options' => 'nosniff',
+                    'Referrer-Policy' => 'same-origin',
+                ]
+            );
+        }
+
+        $mimeType = str_starts_with((string) $recording->file_mime_type, 'video/')
+            ? $recording->file_mime_type
+            : 'application/octet-stream';
 
         return response()->file(Storage::disk('local')->path($recording->file_path), [
+            'Content-Type' => $mimeType,
             'Cache-Control' => 'private, no-store, max-age=0',
             'Pragma' => 'no-cache',
             'X-Content-Type-Options' => 'nosniff',
