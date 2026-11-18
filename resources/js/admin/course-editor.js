@@ -16,7 +16,7 @@ const jsonRequest = async (url, payload) => {
   try { result = await response.json(); } catch (_) {}
   if (!response.ok) {
     const validationMessage = Object.values(result.errors || {}).flat()[0];
-    const error = new Error(validationMessage || result.message || 'ارتباط با سرور ناموفق بود.');
+    const error = new Error(validationMessage || result.message || (response.status === 413 ? 'وب‌سرور یا PHP درخواست را بزرگ‌تر از حد مجاز تشخیص داد؛ client_max_body_size و post_max_size را بررسی کنید.' : 'ارتباط با سرور ناموفق بود.'));
     error.status = response.status;
     throw error;
   }
@@ -184,7 +184,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             try { result = await response.json(); } catch (_) {}
             if (!response.ok) {
               const validationMessage = Object.values(result.errors || {}).flat()[0];
-              const error = new Error(validationMessage || result.message || 'ارسال بخشی از فایل ناموفق بود.');
+              const error = new Error(validationMessage || result.message || (response.status === 413 ? 'وب‌سرور درخواست را بزرگ‌تر از حد مجاز تشخیص داد؛ محدودیت client_max_body_size هاست را بررسی کنید.' : 'ارسال بخشی از فایل ناموفق بود.'));
               error.status = response.status;
               throw error;
             }
