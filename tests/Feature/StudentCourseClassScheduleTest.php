@@ -154,9 +154,15 @@ final class StudentCourseClassScheduleTest extends TestCase
         $this->actingAs($student)
             ->get(route('student.dashboard'))
             ->assertOk()
+            ->assertSee('جلسات و کلاس‌های آنلاین')
+            ->assertSee('/student/live-classes', false)
+            ->assertDontSee('جلسه حضوری اول');
+
+        $this->actingAs($student)
+            ->get(route('student.live-classes'))
+            ->assertOk()
             ->assertSee('جلسه حضوری اول')
-            ->assertSee('حضوری')
-            ->assertDontSee('ورود به کلاس');
+            ->assertSee('جلسه حضوری');
     }
 
 }
