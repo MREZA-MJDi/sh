@@ -50,7 +50,6 @@ final class ParentMeetingWorkflowTest extends TestCase
     {
         $teacher = $this->userWithRole('teacher');
         $student = $this->userWithRole('student');
-        $student->update(['name' => 'دانش‌آموز هدف']);
         $guardian = $this->userWithRole('parent');
         $guardian->children()->attach($student);
         $course = \App\Models\Course::query()->create([
@@ -87,6 +86,7 @@ final class ParentMeetingWorkflowTest extends TestCase
     {
         $teacher = $this->userWithRole('teacher');
         $student = $this->userWithRole('student');
+        $student->update(['name' => 'دانش‌آموز هدف']);
         $guardian = $this->userWithRole('parent');
         $guardian->children()->attach($student);
 
