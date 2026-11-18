@@ -16,17 +16,31 @@ final class CourseController extends Controller
 {
     public function index(Request $request, CourseProgressService $progress, LearningAccessService $access): View
     {
-        $courseIds = $access->activeCourseIds($request->user());
+        $student = $request->user();
+        $activeCourseIds = $access->activeCourseIds($student);
+
+        // Discovery is separate from learning access: every published free
+        // course is visible, while paid courses remain visible only to enrolled students.
         $courses = Course::query()
-            ->whereIn('id', clone $courseIds)
             ->where('status', 'published')
+            ->where(function ($query) use ($activeCourseIds): void {
+                $query->where('type', 'free')
+                    ->orWhereIn('id', clone $activeCourseIds);
+            })
             ->with('teacher:id,name')
+            ->withExists(['enrollments as has_active_enrollment' => fn ($enrollments) => $enrollments
+                ->where('student_id', $student->id)
+                ->currentlyActive()])
+            ->orderByRaw("CASE WHEN type = 'free' THEN 0 ELSE 1 END")
             ->orderBy('title')
             ->paginate(12)
             ->withQueryString();
 
-        $pageCourseIds = $courses->getCollection()->pluck('id')->all();
-        $progressByCourse = $progress->forStudent($request->user(), $pageCourseIds)->keyBy('id');
+        $enrolledCourseIds = $courses->getCollection()
+            ->filter(fn (Course $course): bool => (bool) $course->has_active_enrollment)
+            ->pluck('id')
+            ->all();
+        $progressByCourse = $progress->forStudent($student, $enrolledCourseIds)->keyBy('id');
 
         return view('student.courses', compact('courses', 'progressByCourse'));
     }
