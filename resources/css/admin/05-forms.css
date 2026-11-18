@@ -73,11 +73,12 @@ dialog.adm-modal::backdrop{background:rgba(10,18,36,.55);backdrop-filter:blur(3p
 
 
 /* Shared image upload preview: render the full source in the intended slot ratio. */
-.adm-image-preview{position:relative;display:block;width:100%;max-width:560px;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:var(--surface-3);isolation:isolate}
+.adm-image-preview{position:relative;display:block;width:100%;max-width:560px;aspect-ratio:auto;overflow:hidden;border:1px solid var(--line);border-radius:var(--r);background:var(--surface-3);isolation:isolate}
 .adm-image-preview[hidden]{display:none}
 .adm-image-preview img{display:block;width:100%;height:100%;object-fit:contain;background:var(--surface-3)}
 .adm-image-preview[data-fit="cover"] img{object-fit:cover}
 .adm-image-preview-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px;color:var(--muted);font-size:11px}
 .adm-image-preview-meta[hidden]{display:none}
 .adm-image-preview-meta strong{color:var(--ink-2)}
+@media(max-width:860px){.adm-image-preview[data-mobile-ratio]{aspect-ratio:var(--adm-mobile-ratio)}}
 @media(max-width:600px){.adm-image-preview{max-width:100%}}
