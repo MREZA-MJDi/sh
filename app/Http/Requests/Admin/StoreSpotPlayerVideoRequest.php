@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,6 +23,7 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
+            'class_session_id' => ['nullable', 'integer', 'exists:class_sessions,id'],
             'external_id' => ['nullable', 'required_without:file', 'string', 'max:190'],
             'file' => ['nullable', 'required_without:external_id', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:'.((int) config('learning.max_lesson_mb') * 1024)],
             'status' => ['required', Rule::in(['draft', 'waiting_contract'])],
@@ -48,8 +50,22 @@ class StoreSpotPlayerVideoRequest extends FormRequest
                 $validator->errors()->add('classroom_id', 'کلاس انتخاب‌شده متعلق به این دوره نیست.');
             }
 
+            if ($this->filled('class_session_id')) {
+                $validSession = ClassSession::query()
+                    ->whereKey($this->integer('class_session_id'))
+                    ->where('classroom_id', $this->integer('classroom_id'))
+                    ->exists();
+                if (! $validSession) {
+                    $validator->errors()->add('class_session_id', 'جلسه انتخاب‌شده متعلق به کلاس انتخاب‌شده نیست.');
+                }
+            }
+
             if (! $workspace->isTeacher($this->user())) {
                 return;
+            }
+
+            if (! $this->filled('class_session_id')) {
+                $validator->errors()->add('class_session_id', 'برای ثبت ویدئوی مدرس، انتخاب جلسه الزامی است.');
             }
 
             if (! $workspace->coursesQueryFor($this->user())->whereKey($course->id)->exists()) {
