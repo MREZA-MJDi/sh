@@ -62,4 +62,23 @@ final class DemoLoginCardsTest extends TestCase
             $this->app->detectEnvironment(fn () => 'testing');
         }
     }
+    public function test_demo_seeder_does_not_create_shared_password_accounts_in_production(): void
+    {
+        config([
+            'demo.enabled' => true,
+            'demo.password' => 'Shikhan-Demo-2026!',
+        ]);
+        $this->app->detectEnvironment(fn () => 'production');
+
+        try {
+            app(\\Database\\Seeders\\LocalDemoAccountsSeeder::class)->run();
+
+            $this->assertDatabaseMissing('users', ['email' => 'admin@sh.local']);
+            $this->assertDatabaseMissing('users', ['email' => 'teacher@sh.local']);
+            $this->assertDatabaseMissing('users', ['email' => 'student@sh.local']);
+            $this->assertDatabaseMissing('users', ['email' => 'parent@sh.local']);
+        } finally {
+            $this->app->detectEnvironment(fn () => 'testing');
+        }
+    }
 }
