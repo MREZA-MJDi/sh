@@ -101,10 +101,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     // Backward-compatible URLs for the retired demo screens. Keep bookmarks working
     // while all data and actions live in the canonical workflows.
-    Route::get('/assignments', fn () => redirect()->route('admin.homework.index'))
+    Route::get('/assignments', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.homework') : redirect()->route('admin.homework.index'))
         ->middleware('permission:homework.manage.all,homework.manage.assigned,homework.view.assigned')
         ->name('assignments.legacy');
-    Route::get('/recordings', fn () => redirect()->route('admin.spotplayer.index'))
+    Route::get('/recordings', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.videos') : redirect()->route('admin.spotplayer.index'))
         ->middleware('permission:integrations.manage,videos.manage.assigned')
         ->name('recordings.legacy');
     Route::get('/meetings', fn () => redirect()->route('admin.parent-meetings.index'))
