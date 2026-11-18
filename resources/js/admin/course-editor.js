@@ -14,11 +14,17 @@ const jsonRequest = async (url, payload) => {
   });
   let result = {};
   try { result = await response.json(); } catch (_) {}
-  if (!response.ok) throw new Error(result.message || 'ارتباط با سرور ناموفق بود.');
+  if (!response.ok) {
+    const validationMessage = Object.values(result.errors || {}).flat()[0];
+    const error = new Error(validationMessage || result.message || (response.status === 413 ? 'وب‌سرور یا PHP درخواست را بزرگ‌تر از حد مجاز تشخیص داد؛ client_max_body_size و post_max_size را بررسی کنید.' : 'ارتباط با سرور ناموفق بود.'));
+    error.status = response.status;
+    throw error;
+  }
   return result;
 };
 
 const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+const targetIsSessionUpload = (widget) => widget.dataset.target === 'spotplayer_video';
 
 document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   const fileInput = widget.querySelector('[data-upload-file]');
@@ -38,7 +44,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   previewVideo.playsInline = true;
   previewVideo.style.cssText = 'display:block;width:100%;max-height:320px;border-radius:12px;background:#0f172a;';
   const previewMeta = document.createElement('p');
-  previewMeta.className = 'adm-muted';
+  previewMeta.className = 'adm-muted teacher-help';
   previewMeta.style.marginTop = '8px';
   preview.append(previewVideo, previewMeta);
   fileInput.insertAdjacentElement('afterend', preview);
@@ -72,11 +78,51 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
   };
 
+  const classroomField = widget.querySelector('[data-upload-classroom]');
+  const sessionField = widget.querySelector('[data-upload-session]');
+  const filterSessions = () => {
+    if (!sessionField) return;
+    const classroomId = classroomField?.value || '';
+    Array.from(sessionField.options).forEach((option) => {
+      const optionClassroom = option.dataset.classroomId || '';
+      const visible = !option.value || !classroomId || optionClassroom === classroomId;
+      option.hidden = !visible;
+      option.disabled = !visible;
+    });
+    if (sessionField.selectedOptions[0]?.disabled) sessionField.value = '';
+  };
+  classroomField?.addEventListener('change', filterSessions);
+  sessionField?.addEventListener('change', () => {
+    const selected = sessionField.selectedOptions[0];
+    if (selected?.dataset.classroomId && classroomField && !classroomField.value) {
+      classroomField.value = selected.dataset.classroomId;
+    }
+    filterSessions();
+  });
+  filterSessions();
+
   startButton.addEventListener('click', async () => {
     const file = fileInput.files?.[0];
     if (!file) {
       setStatus('ابتدا فایل ویدیویی را انتخاب کنید.', true);
       fileInput.focus();
+      return;
+    }
+
+    const courseSelect = widget.querySelector('[data-upload-course]');
+    const courseId = Number(courseSelect?.value || widget.dataset.courseId || 0);
+    if (!courseId) {
+      setStatus('ابتدا دوره موردنظر را انتخاب کنید.', true);
+      courseSelect?.focus();
+      return;
+    }
+
+    const classroomSelect = widget.querySelector('[data-upload-classroom]');
+    const sessionSelect = widget.querySelector('[data-upload-session]');
+    const classSessionId = Number(sessionSelect?.value || 0);
+    if (targetIsSessionUpload(widget) && !classSessionId) {
+      setStatus('ابتدا کلاس و سپس جلسه موردنظر را انتخاب کنید.', true);
+      sessionSelect?.focus();
       return;
     }
 
@@ -95,36 +141,62 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       return;
     }
 
+    const resumeKey = ['sh-video-upload', target, courseId, classSessionId || 0, file.name, file.size, file.lastModified].join(':');
     startButton.disabled = true;
     fileInput.disabled = true;
+    if (courseSelect) courseSelect.disabled = true;
+    if (classroomSelect) classroomSelect.disabled = true;
+    if (sessionSelect) sessionSelect.disabled = true;
     let started = null;
     let completedUpload = false;
+    const receivedChunks = new Set();
     progress.hidden = false;
     setProgress(0);
     setStatus('در حال آماده‌سازی آپلود امن…');
 
     try {
-      const chunkSizeFallback = Number(widget.dataset.chunkMb || 5) * 1024 * 1024;
-      const startPayload = {
-        target,
-        target_id: Number(widget.dataset.courseId),
-        total: Math.ceil(file.size / chunkSizeFallback),
-        total_bytes: file.size,
-      };
-      if (target === 'spotplayer_video') {
-        startPayload.title = title;
-        const classroomId = widget.querySelector('[data-upload-classroom]')?.value;
-        const externalId = widget.querySelector('[data-upload-external]')?.value?.trim();
-        if (classroomId) startPayload.classroom_id = Number(classroomId);
-        if (externalId) startPayload.external_id = externalId;
+      const savedUploadId = widget.dataset.resumeUrl ? localStorage.getItem(resumeKey) : null;
+      if (savedUploadId) {
+        try {
+          started = await jsonRequest(widget.dataset.resumeUrl, {upload_id: savedUploadId});
+          (started.received_chunks || []).forEach((index) => receivedChunks.add(Number(index)));
+          setStatus('نشست قبلی پیدا شد؛ ادامه آپلود از بخش‌های باقی‌مانده…');
+        } catch (resumeError) {
+          if (![404, 409, 410].includes(resumeError.status)) throw resumeError;
+          localStorage.removeItem(resumeKey);
+          started = null;
+        }
       }
 
-      started = await jsonRequest(widget.dataset.startUrl, startPayload);
-      const chunkSize = Number(started.chunk_size_bytes || chunkSizeFallback);
-      const total = Math.ceil(file.size / chunkSize);
-      if (total !== startPayload.total) throw new Error('تنظیم اندازه قطعه آپلود با سرور هماهنگ نیست.');
+      if (!started) {
+        const startPayload = {
+          target,
+          target_id: courseId,
+          total_bytes: file.size,
+        };
+        if (target === 'spotplayer_video') {
+          startPayload.title = title;
+          const classroomId = classroomSelect?.value;
+          const externalId = widget.querySelector('[data-upload-external]')?.value?.trim();
+          if (classroomId) startPayload.classroom_id = Number(classroomId);
+          if (classSessionId) startPayload.class_session_id = classSessionId;
+          if (externalId) startPayload.external_id = externalId;
+        }
 
+        started = await jsonRequest(widget.dataset.startUrl, startPayload);
+        if (widget.dataset.resumeUrl) localStorage.setItem(resumeKey, started.upload_id);
+      }
+
+      const chunkSize = Number(started.chunk_size_bytes || 0);
+      const total = Number(started.total_chunks || 0);
+      if (!chunkSize || !total || total !== Math.ceil(file.size / chunkSize)) {
+        throw new Error('اطلاعات نشست آپلود با فایل انتخاب‌شده مطابقت ندارد؛ بارگذاری را دوباره آغاز کنید.');
+      }
+
+      setProgress((receivedChunks.size / total) * 92);
       for (let index = 0; index < total; index++) {
+        if (receivedChunks.has(index)) continue;
+
         const form = new FormData();
         form.append('upload_id', started.upload_id);
         form.append('index', String(index));
@@ -132,7 +204,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
 
         let chunkUploaded = false;
         let chunkError = null;
-        for (let attempt = 1; attempt <= 3 && !chunkUploaded; attempt++) {
+        for (let attempt = 1; attempt <= 4 && !chunkUploaded; attempt++) {
           try {
             const response = await fetch(widget.dataset.chunkUrl, {
               method: 'POST',
@@ -146,16 +218,24 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             });
             let result = {};
             try { result = await response.json(); } catch (_) {}
-            if (!response.ok) throw new Error(result.message || 'ارسال بخشی از فایل ناموفق بود.');
+            if (!response.ok) {
+              const validationMessage = Object.values(result.errors || {}).flat()[0];
+              const error = new Error(validationMessage || result.message || (response.status === 413 ? 'وب‌سرور درخواست را بزرگ‌تر از حد مجاز تشخیص داد؛ محدودیت client_max_body_size هاست را بررسی کنید.' : 'ارسال بخشی از فایل ناموفق بود.'));
+              error.status = response.status;
+              throw error;
+            }
             chunkUploaded = true;
+            receivedChunks.add(index);
           } catch (error) {
             chunkError = error;
-            if (attempt < 3) await sleep(700 * attempt);
+            const retryable = !error.status || error.status >= 500 || error.status === 408 || error.status === 429;
+            if (attempt < 4 && retryable) await sleep(700 * attempt);
+            else break;
           }
         }
         if (!chunkUploaded) throw chunkError || new Error('ارسال فایل ناموفق بود.');
-        setProgress(((index + 1) / total) * 92);
-        setStatus('در حال ارسال فایل… بخش ' + (index + 1) + ' از ' + total);
+        setProgress((receivedChunks.size / total) * 92);
+        setStatus('در حال ارسال فایل… بخش ' + receivedChunks.size + ' از ' + total);
       }
 
       const completed = await jsonRequest(widget.dataset.completeUrl, {
@@ -167,10 +247,11 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       setProgress(100);
 
       if (target === 'teaser') {
+        if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
         setStatus('فایل دریافت شد؛ در حال پردازش تریلر…');
         const statusUrl = widget.dataset.statusUrl;
         if (statusUrl) {
-          for (let attempt = 0; attempt < 30; attempt++) {
+          for (let attempt = 0; attempt < 90; attempt++) {
             await sleep(2000);
             const response = await fetch(statusUrl, {
               credentials: 'same-origin',
@@ -187,25 +268,58 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
               throw new Error(state.error || 'پردازش تریلر ناموفق بود.');
             }
           }
-          setStatus('پردازش تریلر هنوز ادامه دارد؛ چند لحظه دیگر صفحه را تازه کنید.');
-          startButton.disabled = false;
-          fileInput.disabled = false;
+          setStatus('پردازش تریلر هنوز ادامه دارد؛ وضعیت را کمی بعد دوباره بررسی کنید.');
         } else {
           setStatus('تریلر بارگذاری شد و در صف پردازش قرار گرفت.');
         }
       } else {
-        setStatus(completed.status === 'ready'
-          ? 'ویدیو با موفقیت در فضای خصوصی دوره ذخیره شد؛ پخش آن بدون لینک SpotPlayer و برای دانش‌آموزان دارای دسترسی دوره فعال است.'
-          : 'ویدیو ثبت شد؛ اتصال ارائه‌دهنده SpotPlayer در انتظار قرارداد است.');
-        window.setTimeout(() => window.location.reload(), 1600);
+        if (widget.dataset.statusUrl) {
+          setStatus('آپلود کامل شد؛ فایل در فضای خصوصی در حال پردازش و آماده‌سازی پخش است…');
+          for (let attempt = 0; attempt < 90; attempt++) {
+            await sleep(2000);
+            const state = await jsonRequest(widget.dataset.statusUrl, {upload_id: started.upload_id});
+            if (state.status === 'ready') {
+              if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
+              setStatus('ویدیو پردازش شد و آماده پخش است. صفحه در حال به‌روزرسانی است.');
+              window.location.reload();
+              return;
+            }
+            if (state.status === 'waiting_contract') {
+              if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
+              setStatus('فایل با موفقیت پردازش و در فضای خصوصی ذخیره شد؛ اتصال SpotPlayer برای شناسه خارجی در انتظار قرارداد است.');
+              window.setTimeout(() => window.location.reload(), 1600);
+              return;
+            }
+            if (state.status === 'failed') {
+              if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
+              throw new Error(state.error || 'پردازش ویدیو ناموفق بود. فایل را دوباره بارگذاری کنید.');
+            }
+          }
+          if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
+          setStatus('پردازش ویدیو هنوز ادامه دارد؛ وضعیت آن در فهرست ویدیوها به‌روزرسانی خواهد شد.');
+          startButton.disabled = false;
+          fileInput.disabled = false;
+          if (courseSelect) courseSelect.disabled = false;
+    if (classroomSelect) classroomSelect.disabled = false;
+    if (sessionSelect) sessionSelect.disabled = false;
+        } else {
+          if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
+          setStatus(completed.status === 'ready'
+            ? 'ویدیو با موفقیت در فضای خصوصی ذخیره شد و آماده پخش است.'
+            : 'ویدیو ثبت شد؛ وضعیت پردازش یا اتصال آن در فهرست ویدیوها نمایش داده می‌شود.');
+          window.setTimeout(() => window.location.reload(), 1600);
+        }
       }
     } catch (error) {
-      if (started?.upload_id && !completedUpload && widget.dataset.cancelUrl) {
-        try { await jsonRequest(widget.dataset.cancelUrl, {upload_id: started.upload_id}); } catch (_) {}
-      }
-      setStatus(error.message || 'بارگذاری فایل ناموفق بود.', true);
+      if (completedUpload && widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
+      const resumable = started?.upload_id && !completedUpload;
+      const suffix = resumable
+        ? ' نشست آپلود حفظ شد؛ با انتخاب همین فایل و زدن دوباره دکمه، از بخش‌های دریافت‌شده ادامه می‌دهید.'
+        : '';
+      setStatus((error.message || 'بارگذاری فایل ناموفق بود.') + suffix, true);
       startButton.disabled = false;
       fileInput.disabled = false;
+      if (courseSelect) courseSelect.disabled = false;
     }
   });
 });
