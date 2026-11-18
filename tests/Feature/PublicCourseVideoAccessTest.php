@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Course;
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\CourseEnrollment;
 use App\Models\Role;
 use App\Models\SpotPlayerLicense;
@@ -132,6 +133,53 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertOk()
             ->assertSee('تماشای ویدیوهای دوره')
             ->assertSee('ویدیوی بارگذاری مستقیم');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertRedirect(route('student.videos.show', $video));
+    }
+
+    public function test_active_class_member_can_see_its_session_recording_on_the_public_course_page(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'name' => 'کلاس ریاضی',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه معادلات',
+            'session_type' => 'online',
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->subDay()->addHour(),
+            'meeting_provider' => 'jitsi',
+            'status' => 'completed',
+        ]);
+
+        Storage::fake('local');
+        Storage::disk('local')->put('private/course-videos/math-session.mp4', 'video-content');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $session->id,
+            'title' => 'ویدیوی معادلات',
+            'status' => 'active',
+            'file_path' => 'private/course-videos/math-session.mp4',
+            'file_original_name' => 'math-session.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'video-content'),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('ویدیوی معادلات')
+            ->assertSee('جلسه معادلات');
 
         $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
             ->assertRedirect(route('student.videos.show', $video));
