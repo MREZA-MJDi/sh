@@ -43,7 +43,7 @@
           $associations = $role === 'student'
             ? $user->enrolledClasses->pluck('name')->join('، ')
             : ($role === 'teacher'
-              ? $user->assignedCourses->pluck('title')->join('، ')
+              ? number_format((int) $user->assigned_courses_count).' دوره'
               : $user->children->pluck('name')->join('، '));
           $fill = [
             'name' => $user->name,

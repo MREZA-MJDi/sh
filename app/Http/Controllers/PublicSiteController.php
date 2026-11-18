@@ -30,7 +30,7 @@ final class PublicSiteController extends Controller
             ->orderBy('sort_order')->orderBy('id')->limit(8)->get();
 
         $courseQuery = Course::query()->where('status', 'published')
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($query) => $query
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
                 ->where('status', 'published')
                 ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
@@ -43,7 +43,7 @@ final class PublicSiteController extends Controller
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
             ->orderBy('name')->limit(8)->get(['id', 'name', 'subject']);
 
-        $articles = SeoArticle::published()->latest('published_at')->limit(3)->get();
+        $articles = SeoArticle::published()->with('author')->latest('published_at')->limit(3)->get();
         $testimonials = SeoTestimonial::query()->where('status', 'published')->orderBy('sort_order')->orderByDesc('id')->limit(6)->get();
         $categories = Course::query()->where('status', 'published')->whereNotNull('subject')
             ->where('subject', '<>', '')->distinct()->orderBy('subject')->pluck('subject');
@@ -63,9 +63,7 @@ final class PublicSiteController extends Controller
     {
         $settings = SeoSetting::current();
         $query = Course::query()->where('status', 'published')
-            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true), 'sections' => fn ($sections) => $sections
-                ->where('status', 'published')
-                ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')])])
+            ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
 
         if ($search = trim((string) $request->query('q'))) {
@@ -314,7 +312,6 @@ final class PublicSiteController extends Controller
 
         $teachers = $query
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
-            ->with(['assignedCourses' => fn ($courses) => $courses->where('status', 'published')->select('id', 'teacher_id', 'title', 'slug')])
             ->orderBy('name')->paginate(12)->withQueryString();
 
         $subjects = User::query()->where('is_active', true)

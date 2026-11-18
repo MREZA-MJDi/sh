@@ -23,6 +23,29 @@ final class AdminCourseWorkflowTest extends TestCase
         $this->withoutVite();
     }
 
+    public function test_admin_course_editor_uses_public_page_sections_and_private_media_uploads(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.courses.create'))
+            ->assertOk()
+            ->assertSee('سربرگ صفحه عمومی دوره')
+            ->assertSee('ثبت‌نام و قیمت')
+            ->assertSee('امکاناتی که دانش‌آموز در صفحه دوره می‌بیند');
+
+        $course = $this->course();
+        $course->update(['learning_features' => ['recorded_video' => true]]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.courses.edit', $course))
+            ->assertOk()
+            ->assertSee('ویدیوی معرفی / تریلر دوره')
+            ->assertSee('ویدیوهای آموزشی دوره')
+            ->assertSee('مدیریت فصل‌ها و متن درس‌ها')
+            ->assertSee(route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]));
+    }
+
     public function test_admin_can_create_update_and_delete_an_empty_course(): void
     {
         $admin = $this->userWithRole('admin');

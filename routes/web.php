@@ -136,6 +136,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/payments', [PaymentController::class, 'storeManual'])->middleware('permission:users.manage')->name('payments.store');
     Route::patch('/payments/{payment}/verify', [PaymentController::class, 'verifyManual'])->middleware('permission:users.manage')->name('payments.verify');
 
+    Route::get('/courses/create', [CourseController::class, 'create'])->middleware('permission:courses.manage')->name('courses.create');
+    Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->middleware('permission:courses.manage')->name('courses.edit');
     Route::get('/courses', [CourseController::class, 'index'])->middleware('permission:courses.manage,courses.view.assigned')->name('courses.index');
     Route::post('/courses', [CourseController::class, 'store'])->middleware('permission:courses.manage')->name('courses.store');
     Route::get('/courses/{course}/teaser', [LearningAdminController::class, 'teaser'])->middleware('permission:courses.manage')->name('courses.teaser');
@@ -144,6 +146,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
     Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
     Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
+    Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
 
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->middleware('permission:courses.manage')->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->middleware('permission:courses.manage')->name('courses.destroy');

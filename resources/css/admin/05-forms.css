@@ -63,3 +63,10 @@ dialog.adm-modal::backdrop{background:rgba(10,18,36,.55);backdrop-filter:blur(3p
 .adm-modal-foot{display:flex;gap:10px;padding:14px 22px;border-top:1px solid var(--line);background:var(--surface-2)}
 .adm-confirm{display:flex;gap:12px;align-items:flex-start;line-height:1.9}
 .adm-confirm .adm-icon{color:var(--bad);width:26px;height:26px;margin-top:2px}
+
+/* Chunked course media uploads */
+.adm-progress{height:9px;margin-top:14px;overflow:hidden;border-radius:999px;background:var(--surface-3,var(--line))}
+.adm-progress-bar{width:0;height:100%;border-radius:inherit;background:var(--primary);transition:width .18s ease}
+[data-upload-status]{margin:9px 0 0}
+[data-upload-status][data-state="error"]{color:var(--danger,var(--bad))}
+[data-upload-file]{max-width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}

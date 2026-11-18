@@ -18,12 +18,11 @@
     'exams' => 'آزمون و کوییز',
     'projects' => 'پروژه و ارزیابی مرحله‌ای',
   ];
-  $teacherOptions = $teachers->pluck('name', 'id')->all();
 @endphp
 
 <x-admin.page-head tone="edu" icon="book" title="دوره‌ها" desc="مدیریت محصول آموزشی، امکانات یادگیری، مدرس و انتشار">
   @if($canManage)
-    <x-admin.btn icon="plus" data-modal-open="course-modal">دوره جدید</x-admin.btn>
+    <x-admin.btn icon="plus" :href="route('admin.courses.create')">ساخت دوره جدید</x-admin.btn>
   @endif
 </x-admin.page-head>
 
@@ -50,21 +49,6 @@
           $features[$key] = $course->featureEnabled($key);
         }
         $teacherName = $course->teacher?->name ?? 'مدرس تعیین نشده';
-        $fill = [
-          'title' => $course->title,
-          'teacher_id' => (string) ($course->teacher_id ?? ''),
-          'grade' => (string) ($course->grade ?? ''),
-          'subject' => $course->subject,
-          'description' => $course->description,
-          'type' => $course->type,
-          'price' => $course->price,
-          'delivery_type' => $course->delivery_type,
-          'spotplayer_course_id' => $course->spotplayer_course_id,
-          'status' => $course->status,
-        ];
-        foreach ($features as $featureKey => $enabled) {
-          $fill['learning_features['.$featureKey.']'] = (bool) $enabled;
-        }
         $published = $course->status === 'published';
       @endphp
       <article class="adm-card" data-state="{{ $published ? 'on' : 'off' }}" data-grade="{{ $course->grade }}" data-name="{{ $course->title.' '.$teacherName }}">
@@ -110,7 +94,7 @@
               <x-admin.btn size="sm" icon="book" :href="url('admin/courses/'.$course->id.'/content')">محتوا</x-admin.btn>
             @endif
             @if($canManage)
-              <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="course-modal" data-title="ویرایش دوره" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="url('admin/courses/'.$course->id)" data-method="PATCH">ویرایش</x-admin.btn>
+              <x-admin.btn variant="soft" size="sm" icon="edit" :href="route('admin.courses.edit', $course)">ویرایش صفحه دوره</x-admin.btn>
               <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="course-del" :data-name="$course->title" :data-action="url('admin/courses/'.$course->id)" aria-label="حذف"/>
             @endif
           </div>
@@ -126,36 +110,3 @@
 </div>
 @endsection
 
-@push('modals')
-@if($canManage)
-<x-admin.modal :demo="false" id="course-modal" title="دوره جدید" size="lg" :action="url('admin/courses')">
-  <x-admin.legend title="اطلاعات پایه دوره"/>
-  <x-admin.input label="عنوان دوره" name="title" placeholder="مثلاً ریاضی نهم" wide required/>
-  <x-admin.select label="مدرس" name="teacher_id" :options="$teacherOptions" placeholder="انتخاب مدرس"/>
-  <x-admin.select label="پایه تحصیلی" name="grade" :options="$grades" placeholder="همه پایه‌ها"/>
-  <x-admin.input label="موضوع / درس" name="subject" placeholder="مثلاً ریاضی"/>
-  <x-admin.textarea label="توضیحات" name="description" wide/>
-
-  <x-admin.legend title="مدل فروش و اتصال سرویس" desc="محصول آموزشی مستقل از سرویس ارائه ویدیو یا کلاس آنلاین تعریف می‌شود."/>
-  <x-admin.select label="نوع فروش" name="type" :options="$types" required/>
-  <x-admin.input label="قیمت (تومان)" name="price" inputmode="numeric" placeholder="برای دوره رایگان صفر"/>
-  <x-admin.select label="سرویس پیش‌فرض اتصال قدیمی" name="delivery_type" :options="$deliveryTypes" required/>
-  <x-admin.input label="شناسه دوره در SpotPlayer" name="spotplayer_course_id" placeholder="پس از دریافت شناسه از پنل سرویس"/>
-  <p class="adm-muted" style="grid-column:1/-1">امکانات آموزشی از ماتریس پایین تعیین می‌شوند. این فیلد فقط سازگاری با تنظیمات قدیمی دوره را حفظ می‌کند؛ دوره می‌تواند هم‌زمان ویدیو و کلاس زنده داشته باشد.</p>
-  <p class="adm-muted" style="grid-column:1/-1">ثبت شناسه به معنی اتصال موفق نیست؛ وضعیت واقعی اتصال در بخش یکپارچه‌سازی نمایش داده می‌شود.</p>
-
-  <x-admin.legend title="امکانات آموزشی این دوره" desc="امکانات مستقل‌اند؛ یک دوره می‌تواند چند مدل یادگیری را هم‌زمان داشته باشد."/>
-  <x-admin.switch label="آموزش ویدیویی" name="learning_features[recorded_video]" wide/>
-  <x-admin.switch label="کلاس آنلاین و جلسات زنده" name="learning_features[live_class]" wide/>
-  <x-admin.switch label="جزوه و منابع آموزشی" name="learning_features[resources]" wide/>
-  <x-admin.switch label="تکلیف و تمرین" name="learning_features[assignments]" wide/>
-  <x-admin.switch label="آزمون و کوییز" name="learning_features[exams]" wide/>
-  <x-admin.switch label="پروژه و ارزیابی مرحله‌ای" name="learning_features[projects]" wide/>
-
-  <x-admin.legend title="وضعیت انتشار"/>
-  <x-admin.select label="وضعیت دوره" name="status" :options="$statuses" required/>
-</x-admin.modal>
-
-<x-admin.confirm :demo="false" id="course-del" title="حذف دوره" text="حذف فقط برای دوره بدون سابقه آموزشی، ثبت‌نام و محتوای وابسته مجاز است؛ در غیر این صورت دوره باید بایگانی شود."/>
-@endif
-@endpush

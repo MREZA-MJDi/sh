@@ -86,4 +86,43 @@ final class PublicCourseSearchTest extends TestCase
             ->assertOk()
             ->assertDontSee('دوره مدرس غیرفعال');
     }
+    public function test_public_course_subject_filters_and_teacher_navigation_render_successfully(): void
+    {
+        $teacher = User::factory()->create([
+            'name' => 'مدرس نمونه',
+            'subject' => 'زیست',
+            'is_active' => true,
+        ]);
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->firstOrFail());
+
+        foreach (['شیمی', 'زیست'] as $subject) {
+            Course::query()->create([
+                'title' => 'دوره '.$subject,
+                'slug' => 'public-'.$subject.'-'.uniqid(),
+                'teacher_id' => $teacher->id,
+                'subject' => $subject,
+                'type' => 'free',
+                'price' => 0,
+                'delivery_type' => 'onsite',
+                'status' => 'published',
+            ]);
+        }
+
+        $this->get(route('public.courses.index', ['subject' => 'شیمی']))
+            ->assertOk()
+            ->assertSee('دوره شیمی');
+
+        $this->get(route('public.courses.index', ['subject' => 'زیست']))
+            ->assertOk()
+            ->assertSee('دوره زیست');
+
+        $this->get(route('public.teachers.index'))
+            ->assertOk()
+            ->assertSee('مدرس نمونه');
+
+        $this->get(route('public.teachers.show', $teacher))
+            ->assertOk()
+            ->assertSee('دوره زیست');
+    }
+
 }

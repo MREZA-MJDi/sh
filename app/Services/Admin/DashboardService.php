@@ -4,11 +4,9 @@ namespace App\Services\Admin;
 
 use App\Models\Announcement;
 use App\Models\Attendance;
-use App\Models\Classroom;
 use App\Models\Consultation;
 use App\Models\Course;
 use App\Models\HomeworkSubmission;
-use App\Models\Message;
 use App\Models\User;
 
 final class DashboardService
@@ -43,93 +41,75 @@ final class DashboardService
                         ->whereIn('course_id', $courseIds)->currentlyActive());
             }));
 
-        $weeklyAttendanceQuery = Attendance::query()
-            ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds));
-
         $weekStart = today()->copy()->subDays(6);
         $attendanceByDay = $canSeeAttendance
-            ? $weeklyAttendanceQuery
+            ? Attendance::query()
+                ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds))
                 ->selectRaw(
                     'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
                     ['present', 'late']
                 )
                 ->whereDate('session_date', '>=', $weekStart->toDateString())
                 ->whereDate('session_date', '<=', today()->toDateString())
-                ->groupBy('session_date')->get()->keyBy('attendance_day')
+                ->groupBy('session_date')
+                ->get()
+                ->keyBy('attendance_day')
             : collect();
 
-        // The dashboard KPI is a seven-day aggregate; the chart below keeps
-        // the per-day rates from the same grouped query.
         $attendanceTotal = (int) $attendanceByDay->sum('total');
         $attendancePresent = (int) $attendanceByDay->sum('present');
-
-        $pendingHomework = $canSeeHomework
-            ? HomeworkSubmission::query()
-                ->where('status', 'submitted')
-                ->when($teacherView, fn ($query) => $query->whereHas(
-                    'homework',
-                    fn ($homework) => $homework->whereIn('classroom_id', $classroomIds)
-                ))
-                ->count()
-            : 0;
 
         $stats = [
             'students' => $canSeeStudents ? $studentQuery->count() : 0,
             'teachers' => $user->hasPermissionTo('users.manage')
-                ? User::whereHas('roles', fn ($query) => $query->where('name', 'teacher'))->where('is_active', true)->count()
+                ? User::query()->where('is_active', true)->whereHas('roles', fn ($query) => $query->where('name', 'teacher'))->count()
                 : 0,
             'classes' => $canSeeClasses ? (clone $classroomQuery)->count() : 0,
             'courses' => $canSeeCourses ? (clone $courseQuery)->where('status', 'published')->count() : 0,
             'attendance_rate' => $attendanceTotal > 0 ? (int) round(($attendancePresent / $attendanceTotal) * 100) : 0,
-            'pending_homework' => $pendingHomework,
+            'pending_homework' => $canSeeHomework
+                ? HomeworkSubmission::query()
+                    ->where('status', 'submitted')
+                    ->when($teacherView, fn ($query) => $query->whereHas(
+                        'homework',
+                        fn ($homework) => $homework->whereIn('classroom_id', $classroomIds)
+                    ))
+                    ->count()
+                : 0,
         ];
 
-        $todayClasses = $canSeeClasses
-            ? (clone $classroomQuery)->with(['teacher', 'course'])->withCount('students')->latest()->limit(6)->get()
-            : collect();
-
-        $openMessagesQuery = $canSeeMessages
-            ? $this->messages->queryFor($user)->where('status', 'open')
-            : null;
-        $openMessageCount = $openMessagesQuery?->count() ?? 0;
-        $recentMessages = $openMessagesQuery
-            ? (clone $openMessagesQuery)->with('sender')->latest()->limit(5)->get()
-            : collect();
-
-        $pendingConsultationsQuery = $user->hasPermissionTo('consultations.manage')
-            ? Consultation::query()->where('status', 'pending')
-            : null;
-        $pendingConsultationCount = $pendingConsultationsQuery?->count() ?? 0;
-        $pendingConsultations = $pendingConsultationsQuery
-            ? (clone $pendingConsultationsQuery)->with(['requester', 'student'])->latest()->limit(5)->get()
-            : collect();
-
-        $publishedAnnouncementsQuery = $canSeeAnnouncements
-            ? Announcement::query()->where('status', 'published')
-            : null;
-        $publishedAnnouncementCount = $publishedAnnouncementsQuery?->count() ?? 0;
-        $recentAnnouncements = $publishedAnnouncementsQuery
-            ? (clone $publishedAnnouncementsQuery)->latest('published_at')->limit(4)->get()
-            : collect();
-
-
+        // The dashboard is an operational overview, not a reporting workspace:
+        // keep only scalar counts here and let detailed pages own their lists.
+        $openMessageCount = $canSeeMessages
+            ? $this->messages->queryFor($user)->where('status', 'open')->count()
+            : 0;
+        $pendingConsultationCount = $user->hasPermissionTo('consultations.manage')
+            ? Consultation::query()->where('status', 'pending')->count()
+            : 0;
+        $publishedAnnouncementCount = $canSeeAnnouncements
+            ? Announcement::query()->where('status', 'published')->count()
+            : 0;
 
         $weeklyAttendance = $canSeeAttendance
-            ? collect(range(6, 0))->map(function (int $daysAgo): array {
+            ? collect(range(6, 0))->map(function (int $daysAgo) use ($attendanceByDay): array {
                 $date = today()->copy()->subDays($daysAgo);
-                return ['date' => $date->toDateString(), 'label' => $date->translatedFormat('D')];
-            })->map(function (array $day) use ($attendanceByDay): array {
-                $attendance = $attendanceByDay->get($day['date']);
+                $attendance = $attendanceByDay->get($date->toDateString());
                 $total = (int) ($attendance->total ?? 0);
                 $present = (int) ($attendance->present ?? 0);
-                return ['label' => $day['label'], 'rate' => $total > 0 ? (int) round(($present / $total) * 100) : 0];
+
+                return [
+                    'label' => $date->translatedFormat('D'),
+                    'rate' => $total > 0 ? (int) round(($present / $total) * 100) : 0,
+                ];
             })
             : collect();
 
         return compact(
-            'stats', 'todayClasses', 'recentMessages', 'pendingConsultations',
-            'recentAnnouncements', 'weeklyAttendance', 'openMessageCount',
-            'pendingConsultationCount', 'publishedAnnouncementCount'
+            'stats',
+            'weeklyAttendance',
+            'openMessageCount',
+            'pendingConsultationCount',
+            'publishedAnnouncementCount',
         );
     }
 }

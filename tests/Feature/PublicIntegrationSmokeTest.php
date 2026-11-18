@@ -28,6 +28,99 @@ final class PublicIntegrationSmokeTest extends TestCase
         $this->get(route('seo.robots'))->assertOk()->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
     }
 
+    public function test_all_public_pages_render_without_lazy_loading_relationships(): void
+    {
+        $teacherRole = \App\Models\Role::firstOrCreate(['name' => 'teacher'], ['label' => 'مدرس']);
+        $teacher = \App\Models\User::factory()->create([
+            'name' => 'مدرس آزمون رندر',
+            'is_active' => true,
+            'subject' => 'زیست',
+        ]);
+        $teacher->roles()->attach($teacherRole);
+        $secondTeacher = \App\Models\User::factory()->create([
+            'name' => 'مدرس دوم آزمون رندر',
+            'is_active' => true,
+            'subject' => 'شیمی',
+        ]);
+        $secondTeacher->roles()->attach($teacherRole);
+
+        $course = Course::query()->create([
+            'title' => 'دوره آزمون رندر عمومی',
+            'slug' => 'public-render-regression-course',
+            'teacher_id' => $teacher->id,
+            'subject' => 'زیست',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+        $section = $course->sections()->create([
+            'title' => 'فصل آزمون رندر',
+            'status' => 'published',
+        ]);
+        $section->lessons()->create([
+            'title' => 'درس آزمون رندر',
+            'status' => 'published',
+        ]);
+        $secondSection = $course->sections()->create([
+            'title' => 'فصل دوم آزمون رندر',
+            'status' => 'published',
+        ]);
+        $secondSection->lessons()->create([
+            'title' => 'درس دوم آزمون رندر',
+            'status' => 'published',
+        ]);
+        Course::query()->create([
+            'title' => 'دوره دوم آزمون رندر عمومی',
+            'slug' => 'public-render-regression-course-two',
+            'teacher_id' => $secondTeacher->id,
+            'subject' => 'شیمی',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        \App\Models\SeoArticle::query()->create([
+            'author_id' => $teacher->id,
+            'title' => 'مقاله آزمون رندر',
+            'slug' => 'public-render-regression-article',
+            'excerpt' => 'خلاصه مقاله آزمون رندر',
+            'body' => '<h2>بخش مقاله</h2><p>متن مقاله برای تست رندر صفحات عمومی.</p>',
+            'keywords' => ['آموزش'],
+            'status' => 'published',
+            'published_at' => now()->subMinute(),
+        ]);
+        \App\Models\SeoArticle::query()->create([
+            'author_id' => $secondTeacher->id,
+            'title' => 'مقاله دوم آزمون رندر',
+            'slug' => 'public-render-regression-article-two',
+            'excerpt' => 'خلاصه مقاله دوم آزمون رندر',
+            'body' => '<h2>بخش دوم مقاله</h2><p>متن دوم مقاله برای تست رندر.</p>',
+            'keywords' => ['شیمی'],
+            'status' => 'published',
+            'published_at' => now()->subSeconds(30),
+        ]);
+
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading();
+
+        try {
+            $this->get(route('home'))->assertOk()->assertSee('مدرس آزمون رندر')->assertSee('مقاله آزمون رندر');
+            $this->get(route('public.courses.index'))->assertOk()->assertSee('دوره آزمون رندر عمومی');
+            $this->get(route('public.courses.show', $course->slug))->assertOk()->assertSee('درس آزمون رندر');
+            $this->get(route('public.teachers.index'))->assertOk()->assertSee('مدرس آزمون رندر');
+            $this->get(route('public.teachers.show', $teacher))->assertOk()->assertSee('دوره آزمون رندر عمومی');
+            $this->get(route('seo.articles.index'))->assertOk()->assertSee('مقاله آزمون رندر');
+            $this->get(route('seo.articles.show', 'public-render-regression-article'))->assertOk()->assertSee('مقاله آزمون رندر');
+            $this->get(route('public.contact'))->assertOk();
+            $this->get(route('public.cart'))->assertOk();
+            $this->get(route('seo.robots'))->assertOk();
+            $this->get(route('seo.sitemap'))->assertOk();
+        } finally {
+            \Illuminate\Database\Eloquent\Model::preventLazyLoading(false);
+        }
+    }
+
     public function test_public_contact_form_persists_a_new_message_for_admin_triage(): void
     {
         $this->get(route('public.contact'))
