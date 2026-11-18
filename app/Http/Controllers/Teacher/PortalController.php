@@ -125,7 +125,7 @@ final class PortalController extends Controller
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
         $resources = LearningResource::query()
-            ->with(['course:id,title', 'classroom:id,name'])
+            ->with(['course:id,title,grade,season', 'classroom:id,name'])
             ->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function ($classScope) use ($classroomIds, $courseIds): void {
                     $classScope->whereNotNull('classroom_id')
