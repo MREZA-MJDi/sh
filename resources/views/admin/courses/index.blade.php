@@ -46,6 +46,7 @@
           $features[$key] = $course->featureEnabled($key);
         }
         $teacherName = $course->teacher?->name ?? 'مدرس تعیین نشده';
+        $coverImageUrl = $course->coverImageUrl ?: $course->teaserPosterUrl;
         $published = $course->status === 'published';
       @endphp
       <article class="adm-card" data-state="{{ $published ? 'on' : 'off' }}" data-grade="{{ $course->grade }}" data-name="{{ $course->title.' '.$teacherName }}">
