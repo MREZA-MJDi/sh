@@ -41,6 +41,7 @@ class AttendanceController extends Controller
 
         $selectedDate = $this->resolveDate($request->query('date'));
         $date = $this->formatJalaliDate($selectedDate);
+        $dateIso = $selectedDate->format('Y-m-d');
 
         $sessions = $classroom
             ? ClassSession::query()
