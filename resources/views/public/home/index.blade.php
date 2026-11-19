@@ -1069,7 +1069,7 @@
                     @php
                         $subject = $popularCourse->subject ?? '';
 
-                        $popularStyle = $popularCourseStyles[$subject] ?? $defaultCourseStyle;
+                        $popularStyle = $courseStyles[$subject] ?? $defaultCourseStyle;
 
                         $isFree = ($popularCourse->type ?? '') === 'free';
                     @endphp
