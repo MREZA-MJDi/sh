@@ -54,7 +54,7 @@ class HomeworkController extends Controller
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
-        return view('admin.homework.index', compact('homeworks', 'classrooms', 'submissions'));
+        return view('admin.homework.index', compact('homeworks', 'classrooms', 'submissions', 'filters'));
     }
 
     public function store(
