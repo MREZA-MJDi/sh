@@ -20,6 +20,7 @@ final class ParentMeetingController extends Controller
     public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
         $actor = $request->user();
+        $selectedMeetingId = $request->integer('meeting');
         $classrooms = $workspace->queryFor($actor)
             ->where('classrooms.status', 'active')
             ->orderBy('classrooms.name')
@@ -28,6 +29,7 @@ final class ParentMeetingController extends Controller
         $classroomCount = $classrooms->count();
 
         $meetings = ParentMeeting::query()
+            ->when($selectedMeetingId > 0, fn (Builder $query) => $query->whereKey($selectedMeetingId))
             ->when($workspace->isTeacher($actor), fn (Builder $query) => $query->whereIn(
                 'classroom_id',
                 $workspace->queryFor($actor)->select('classrooms.id')
