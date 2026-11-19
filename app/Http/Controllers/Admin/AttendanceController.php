@@ -118,6 +118,7 @@ class AttendanceController extends Controller
             'classrooms',
             'classroom',
             'date',
+            'dateIso',
             'sessions',
             'session',
             'roster',
