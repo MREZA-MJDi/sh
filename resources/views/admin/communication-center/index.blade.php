@@ -55,7 +55,7 @@
         <x-admin.badge tone="{{ in_array($item['status'], ['resolved', 'done', 'completed', 'answered', 'read'], true) ? 'ok' : (in_array($item['status'], ['spam', 'declined', 'cancelled'], true) ? 'mute' : 'warn') }}">{{ $statusLabels[$item['status']] ?? $item['status'] }}</x-admin.badge>
       </a>
     @empty
-      <x-admin.empty text="پیامی با این فیلتر پیدا نشد."/>
+      <p class="adm-empty">پیامی با این فیلتر پیدا نشد.</p>
     @endforelse
   </div>
 </x-admin.panel>
