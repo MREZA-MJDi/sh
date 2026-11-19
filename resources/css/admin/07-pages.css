@@ -90,3 +90,20 @@ tr.is-unread .adm-msg-title{font-weight:800}
 .adm-message-bubble small{display:block;margin-top:2px;color:var(--adm-muted,#74788c);font-size:11px;font-variant-numeric:tabular-nums}
 .adm-message-bubble p{margin:9px 0 0;line-height:2;white-space:pre-wrap;max-width:78ch}
 @media(max-width:760px){.adm-message-bubble{max-width:96%}}
+
+/* Unified communication center */
+.adm-communication-list{display:flex;flex-direction:column}
+.adm-communication-item{display:flex;align-items:center;gap:14px;padding:15px 18px;border-bottom:1px solid var(--adm-line,var(--adm-border));color:inherit;text-decoration:none;min-width:0;transition:background .15s ease}
+.adm-communication-item:hover{background:var(--adm-surface-soft,rgba(79,70,229,.04))}
+.adm-communication-icon{width:42px;height:42px;display:grid;place-items:center;flex:none;border-radius:14px;background:var(--adm-surface-soft,rgba(79,70,229,.08));color:var(--adm-primary,#4f46e5)}
+.adm-communication-main{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.adm-communication-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.adm-communication-topline strong{font-size:14px;font-weight:750}
+.adm-communication-topline small,.adm-communication-meta{color:var(--adm-muted,#74788c);font-size:11px;font-variant-numeric:tabular-nums}
+.adm-communication-summary{font-size:12px;line-height:1.9;color:var(--adm-text-secondary,var(--adm-muted,#74788c));overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.adm-communication-item>.adm-badge{flex:none}
+@media(max-width:680px){.adm-communication-item{align-items:flex-start;padding:13px 12px;gap:10px}.adm-communication-icon{width:36px;height:36px}.adm-communication-item>.adm-badge{display:none}}
+
+.adm-communication-back-wrap{display:flex;justify-content:flex-start;margin:0 0 12px}
+.adm-communication-back{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--adm-line,var(--adm-border));border-radius:10px;color:var(--adm-muted,#74788c);text-decoration:none;font-size:12px}
+.adm-communication-back:hover{color:var(--adm-primary,#4f46e5);background:var(--adm-surface-soft,rgba(79,70,229,.05))}

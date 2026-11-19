@@ -14,8 +14,10 @@ final class ContactMessageController extends Controller
     public function index(Request $request): View
     {
         $status = $request->query('status');
+        $selectedMessageId = $request->integer('message');
         $messages = ContactMessage::query()
             ->with('handler:id,name')
+            ->when($selectedMessageId > 0, fn ($query) => $query->whereKey($selectedMessageId))
             ->when(in_array($status, ['new', 'in_progress', 'resolved', 'spam'], true), fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(30)

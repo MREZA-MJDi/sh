@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ClassroomController;
 use App\Http\Controllers\Admin\ClassSessionController;
 use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\CommunicationCenterController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\EnrollmentAdminController;
@@ -114,6 +115,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/parent-messages', fn () => auth()->user()->hasRole('teacher') ? redirect()->route('teacher.messages.index') : redirect()->route('admin.messages.index'))
         ->middleware('permission:messages.view.all,messages.view.assigned')
         ->name('parent-messages.legacy');
+
+    Route::get('/communication-center', [CommunicationCenterController::class, 'index'])
+        ->middleware('permission:messages.view.all,messages.view.assigned,consultations.manage,classes.manage,classes.manage.assigned')
+        ->name('communication-center.index');
 
     Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
     Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');

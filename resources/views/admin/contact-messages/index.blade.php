@@ -2,6 +2,7 @@
 @section('title', 'پیام‌های تماس')
 
 @section('content')
+@include('admin.partials.communication-center-link')
 @php
   $statusLabels = ['new' => 'جدید', 'in_progress' => 'در حال پیگیری', 'resolved' => 'پاسخ‌داده‌شده', 'spam' => 'هرزنامه'];
   $statusTones = ['new' => 'warn', 'in_progress' => 'info', 'resolved' => 'ok', 'spam' => 'mute'];
@@ -31,7 +32,7 @@
     <thead><tr><th>فرستنده</th><th>موضوع</th><th>پیام</th><th>زمان</th><th>وضعیت</th><th>به‌روزرسانی</th></tr></thead>
     <tbody data-filter-list>
       @forelse($messages as $message)
-        <tr data-name="{{ $message->name.' '.$message->contact.' '.$message->topic.' '.$message->body }}">
+        <tr id="contact-message-{{ $message->id }}" data-name="{{ $message->name.' '.$message->contact.' '.$message->topic.' '.$message->body }}">
           <td><b>{{ $message->name }}</b><small>{{ $message->contact }}</small></td>
           <td>{{ $message->topic ?: 'عمومی' }}</td>
           <td><p>{{ \Illuminate\Support\Str::limit($message->body, 180) }}</p></td>

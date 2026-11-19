@@ -22,10 +22,7 @@ return [
             ['label' => 'یکپارچه‌سازی Quiz24', 'url' => 'admin/quiz24', 'icon' => 'exam'],
         ]],
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
-            ['label' => 'پیام‌های اولیا', 'url' => 'admin/messages', 'icon' => 'msg'],
-            ['label' => 'پیام‌های تماس', 'url' => 'admin/contact-messages', 'icon' => 'inbox'],
-            ['label' => 'جلسات اولیا و مدرس', 'url' => 'admin/parent-meetings', 'icon' => 'calendar'],
-            ['label' => 'مشاوره‌ها', 'url' => 'admin/consultations', 'icon' => 'chat'],
+            ['label' => 'مرکز پیام‌ها', 'url' => 'admin/communication-center', 'icon' => 'msg'],
             ['label' => 'اعلان‌ها', 'url' => 'admin/announcements', 'icon' => 'bell'],
         ]],
         ['label' => 'ثبت‌نام و فروش', 'tone' => 'shop', 'items' => [

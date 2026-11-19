@@ -43,6 +43,7 @@
       'admin/seo/banners' => ['seo.manage'],
       'admin/seo/testimonials' => ['seo.manage'],
       'admin/messages' => ['messages.view.all', 'messages.view.assigned'],
+      'admin/communication-center' => ['messages.view.all', 'messages.view.assigned', 'consultations.manage', 'classes.manage', 'classes.manage.assigned'],
       'admin/consultations' => ['consultations.manage'],
       'admin/announcements' => ['announcements.manage', 'announcements.view'],
       'admin/enrollments' => ['courses.manage', 'users.manage'],

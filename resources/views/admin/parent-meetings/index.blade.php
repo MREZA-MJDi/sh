@@ -2,6 +2,7 @@
 @section('title', 'جلسات اولیا و مدرس')
 
 @section('content')
+@include('admin.partials.communication-center-link')
 @php
   $classOptions = $classrooms->pluck('name', 'id')->all();
   $statusLabels = ['requested' => 'درخواست‌شده', 'proposed' => 'پیشنهاد مدرس', 'scheduled' => 'زمان‌بندی‌شده', 'completed' => 'انجام‌شده', 'declined' => 'ردشده', 'cancelled' => 'لغوشده'];
@@ -24,7 +25,7 @@
     <thead><tr><th>موضوع جلسه</th><th>دانش‌آموز و ولی</th><th>کلاس / دوره</th><th>زمان</th><th>وضعیت</th><th>پیگیری</th></tr></thead>
     <tbody>
       @forelse($meetings as $meeting)
-        <tr>
+        <tr id="parent-meeting-{{ $meeting->id }}">
           <td><b>{{ $meeting->title }}</b><small>{{ \Illuminate\Support\Str::limit($meeting->message, 100) }}</small></td>
           <td>{{ $meeting->student?->name ?? '—' }}<small>ولی: {{ $meeting->guardian?->name ?? '—' }}</small></td>
           <td>{{ $meeting->classroom?->name ?? 'بدون کلاس' }}<small>{{ $meeting->course?->title ?? '—' }}</small></td>

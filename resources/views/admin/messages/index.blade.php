@@ -2,6 +2,7 @@
 @section('title', 'پیام‌ها')
 
 @section('content')
+@include('admin.partials.communication-center-link')
 <x-admin.page-head tone="comm" icon="msg" title="کارتابل پیام‌ها" desc="گفت‌وگوهای مرتبط با دانش‌آموزان و پاسخ‌های ثبت‌شده"/>
 
 <div class="adm-split">

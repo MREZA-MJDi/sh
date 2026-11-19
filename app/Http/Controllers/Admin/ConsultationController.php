@@ -6,13 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateConsultationRequest;
 use App\Models\Consultation;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ConsultationController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $consultations = Consultation::with(['requester', 'student', 'teacher'])->latest()->paginate(20);
+        $selectedId = $request->integer('consultation');
+        $consultations = Consultation::with(['requester', 'student', 'teacher'])
+            ->when($selectedId > 0, fn ($query) => $query->whereKey($selectedId))
+            ->latest()->paginate(20)->withQueryString();
 
         return view('admin.consultations.index', compact('consultations'));
     }
