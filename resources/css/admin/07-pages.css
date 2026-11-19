@@ -82,3 +82,11 @@ tr.is-unread .adm-msg-title{font-weight:800}
 .adm-side-list{display:grid}
 .adm-side-list>div{display:flex;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid var(--line)}
 .adm-side-list>div:first-child{border-top:0}
+
+/* Inbox conversation rhythm: clear ownership, readable line length and message separation. */
+.adm-message-bubble{max-width:min(88%,720px);margin:12px 0;padding:14px 16px;border:1px solid var(--adm-line,var(--adm-border));border-radius:16px;background:var(--adm-surface-soft,var(--adm-surface));overflow-wrap:anywhere}
+.adm-message-bubble.is-reply{margin-inline-start:auto;background:var(--adm-primary-soft,rgba(79,70,229,.07));border-color:color-mix(in srgb,var(--adm-primary,#4f46e5) 18%,var(--adm-line,#e5e7eb))}
+.adm-message-bubble b{display:inline-block;font-size:13px;font-weight:750}
+.adm-message-bubble small{display:block;margin-top:2px;color:var(--adm-muted,#74788c);font-size:11px;font-variant-numeric:tabular-nums}
+.adm-message-bubble p{margin:9px 0 0;line-height:2;white-space:pre-wrap;max-width:78ch}
+@media(max-width:760px){.adm-message-bubble{max-width:96%}}
