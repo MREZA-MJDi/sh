@@ -49,7 +49,7 @@
         $published = $course->status === 'published';
       @endphp
       <article class="adm-card" data-state="{{ $published ? 'on' : 'off' }}" data-grade="{{ $course->grade }}" data-name="{{ $course->title.' '.$teacherName }}">
-        <div class="adm-card-cover">
+        <div class="adm-card-cover" @if($course->teaserPosterUrl) style="background-image:linear-gradient(180deg,rgba(12,18,38,.04),rgba(12,18,38,.3)),url('{{ $course->teaserPosterUrl }}');background-size:cover;background-position:center" @endif>
           @if ($published)
             <x-admin.badge tone="ok">منتشرشده</x-admin.badge>
           @elseif ($course->status === 'archived')
@@ -57,7 +57,7 @@
           @else
             <x-admin.badge tone="warn">پیش‌نویس</x-admin.badge>
           @endif
-          <x-admin.icon name="book"/>
+          @unless($course->teaserPosterUrl)<x-admin.icon name="book"/>@endunless
         </div>
         <div class="adm-card-body">
           <h3>{{ $course->title }}</h3>
