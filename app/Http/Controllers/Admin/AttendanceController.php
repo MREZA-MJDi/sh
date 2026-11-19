@@ -135,7 +135,7 @@ class AttendanceController extends Controller
             ->where('classroom_id', $classroom->id)
             ->findOrFail($data['class_session_id']);
 
-        $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);
+        $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);\n        app(AttendanceGuardianNotifier::class)->notifyThresholds($classroom, $data['attendance']);
 
         return redirect()->route('admin.attendance.index', [
             'class_id' => $classroom->id,
