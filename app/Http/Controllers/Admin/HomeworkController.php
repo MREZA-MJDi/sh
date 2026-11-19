@@ -41,7 +41,7 @@ class HomeworkController extends Controller
                 fn ($query) => $query->whereIn('classroom_id', $classroomIds)
             )
             ->latest()
-            ->paginate(12);
+            ->paginate(12)->withQueryString();
 
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
