@@ -2,6 +2,7 @@
 @section('title', 'پیام‌های تماس')
 
 @section('content')
+@include('admin.partials.communication-center-link')
 @php
   $statusLabels = ['new' => 'جدید', 'in_progress' => 'در حال پیگیری', 'resolved' => 'پاسخ‌داده‌شده', 'spam' => 'هرزنامه'];
   $statusTones = ['new' => 'warn', 'in_progress' => 'info', 'resolved' => 'ok', 'spam' => 'mute'];
