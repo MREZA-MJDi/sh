@@ -13,17 +13,24 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\HomeworkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
 
 class HomeworkController extends Controller
 {
-    public function index(ClassroomWorkspaceService $workspace): View
+    public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
-        $user = auth()->user();
+        $filters = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
+        $user = $request->user();
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
 
         $homeworks = Homework::query()
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '<=', $date))
             ->with(['classroom', 'creator'])
             ->withCount([
                 'submissions',
@@ -42,6 +49,8 @@ class HomeworkController extends Controller
             ->get(['id', 'name']);
 
         $submissions = HomeworkSubmission::query()
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '<=', $date))
             ->with(['homework.classroom', 'student', 'files'])
             ->when(
                 $workspace->isTeacher($user),
