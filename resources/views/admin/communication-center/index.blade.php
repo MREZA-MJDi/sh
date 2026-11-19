@@ -62,6 +62,6 @@
       <p class="adm-empty">پیامی با این فیلتر پیدا نشد.</p>
     @endforelse
   </div>
-  <x-slot:footer>{{ $items->links() }}</x-slot:footer>
+  <x-slot:footer><x-admin.pager :current="$items->currentPage()" :last="$items->lastPage()" :total="$items->total()" :per="$items->perPage()"/></x-slot:footer>
 </x-admin.panel>
 @endsection
