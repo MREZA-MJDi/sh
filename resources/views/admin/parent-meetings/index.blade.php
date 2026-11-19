@@ -2,6 +2,7 @@
 @section('title', 'جلسات اولیا و مدرس')
 
 @section('content')
+@include('admin.partials.communication-center-link')
 @php
   $classOptions = $classrooms->pluck('name', 'id')->all();
   $statusLabels = ['requested' => 'درخواست‌شده', 'proposed' => 'پیشنهاد مدرس', 'scheduled' => 'زمان‌بندی‌شده', 'completed' => 'انجام‌شده', 'declined' => 'ردشده', 'cancelled' => 'لغوشده'];
