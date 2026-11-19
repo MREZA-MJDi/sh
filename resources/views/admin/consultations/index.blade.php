@@ -26,7 +26,7 @@
     <thead><tr><th>درخواست‌کننده</th><th>دانش‌آموز / مدرس</th><th>موضوع و نوع</th><th>زمان پیشنهادی</th><th>وضعیت</th><th>ثبت نوبت / یادداشت</th></tr></thead>
     <tbody data-filter-list>
       @forelse($consultations as $consultation)
-        <tr data-name="{{ ($consultation->requester?->name ?? '').' '.($consultation->student?->name ?? '').' '.$consultation->topic }}" data-state="{{ $consultation->status }}">
+        <tr id="consultation-{{ $consultation->id }}" data-name="{{ ($consultation->requester?->name ?? '').' '.($consultation->student?->name ?? '').' '.$consultation->topic }}" data-state="{{ $consultation->status }}">
           <td><b>{{ $consultation->requester?->name ?? 'حساب حذف‌شده' }}</b><small>{{ $consultation->contact_phone ?: $consultation->requester?->phone ?: 'بدون شماره تماس' }}</small></td>
           <td>{{ $consultation->student?->name ?? '—' }}<small>{{ $consultation->teacher?->name ?? 'مدرس تعیین نشده' }}</small></td>
           <td>{{ $consultation->topic }}<small>{{ $consultation->type }}</small></td>
