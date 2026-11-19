@@ -14,6 +14,8 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 final class CourseController extends Controller
 {
