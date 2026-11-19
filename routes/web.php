@@ -70,6 +70,9 @@ Route::get('/resources/{resource}/download', [PublicLearningResourceController::
 Route::get('/articles', [SeoPublicController::class, 'index'])->name('seo.articles.index');
 Route::get('/articles/{slug}', [SeoPublicController::class, 'show'])->name('seo.articles.show');
 Route::get('/sitemap.xml', [SeoPublicController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/sitemap/{type}.xml', [SeoPublicController::class, 'sitemapSection'])
+    ->whereIn('type', ['static', 'courses', 'teachers', 'articles'])
+    ->name('seo.sitemap.section');
 Route::get('/robots.txt', [SeoPublicController::class, 'robots'])->name('seo.robots');
 
 Route::middleware('guest')->group(function (): void {
