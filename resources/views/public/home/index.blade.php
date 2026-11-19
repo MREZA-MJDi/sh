@@ -920,7 +920,9 @@
                         $isFree = ($homeCourse->type ?? '') === 'free';
                     @endphp
 
-                    @php($courseImageUrl = $homeCourse->coverImageUrl ?: $homeCourse->teaserPosterUrl)
+                    @php
+                        $courseImageUrl = $homeCourse->coverImageUrl ?: $homeCourse->teaserPosterUrl;
+                    @endphp
                     <article class="card cc">
 
                         <a
@@ -1063,7 +1065,8 @@
 
             <div class="g3">
 
-                @forelse($popularCoursesCollection as $index => $popularCourse)
+                @if($popularCoursesCollection->isNotEmpty())
+                    @foreach($popularCoursesCollection as $index => $popularCourse)
 
                     @php
                         $subject = $popularCourse->subject ?? '';
@@ -1128,7 +1131,8 @@
 
                     </a>
 
-                @empty
+                    @endforeach
+                @else
 
                     <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
                         <p style="margin:0;color:var(--mute)">
@@ -1136,7 +1140,7 @@
                         </p>
                     </div>
 
-                @endforelse
+                @endif
 
             </div>
         </div>
@@ -1529,7 +1533,9 @@
 
                     @foreach($articlesCollection as $article)
 
-                        @php($articleImagePath = $article->featured_image_path ?: $article->og_image_path)
+                        @php
+                            $articleImagePath = $article->featured_image_path ?: $article->og_image_path;
+                        @endphp
 
                         <article class="card cc">
 
