@@ -95,7 +95,7 @@ final class CommunicationCenterController extends Controller
                         'summary' => 'نوع درخواست: '.$consultation->type.' · '.($consultation->notes ?: 'بدون یادداشت'),
                         'status' => $consultation->status,
                         'created_at' => $consultation->created_at,
-                        'url' => route('admin.consultations.index').'#consultation-'.$consultation->id,
+                        'url' => route('admin.consultations.index', ['consultation' => $consultation->id]).'#consultation-'.$consultation->id,
                     ])
             );
         }
@@ -125,7 +125,7 @@ final class CommunicationCenterController extends Controller
                         'summary' => Str::limit(strip_tags($meeting->message ?: 'بدون توضیح'), 180),
                         'status' => $meeting->status,
                         'created_at' => $meeting->created_at,
-                        'url' => route('admin.parent-meetings.index').'#parent-meeting-'.$meeting->id,
+                        'url' => route('admin.parent-meetings.index', ['meeting' => $meeting->id]).'#parent-meeting-'.$meeting->id,
                     ])
             );
         }
