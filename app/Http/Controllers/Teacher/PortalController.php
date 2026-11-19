@@ -56,6 +56,10 @@ final class PortalController extends Controller
 
     public function homework(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $filters = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $classrooms = $workspace->queryFor($request->user())
             ->where('classrooms.status', 'active')
@@ -63,6 +67,8 @@ final class PortalController extends Controller
             ->orderBy('classrooms.name')
             ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '<=', $date))
             ->whereIn('classroom_id', clone $classroomIds)
             ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students')])
             ->withCount('submissions')
@@ -71,6 +77,8 @@ final class PortalController extends Controller
             ->withQueryString();
 
         $submissions = HomeworkSubmission::query()
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '<=', $date))
             ->where('status', 'submitted')
             ->whereHas('homework', fn ($query) => $query->whereIn('classroom_id', clone $classroomIds))
             ->with(['homework:id,title,classroom_id', 'student:id,name', 'files'])
@@ -78,7 +86,7 @@ final class PortalController extends Controller
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
-        return view('teacher.homework', compact('homework', 'submissions', 'classrooms'));
+        return view('teacher.homework', compact('homework', 'submissions', 'classrooms', 'filters'));
     }
 
     public function videos(Request $request, ClassroomWorkspaceService $workspace): View
