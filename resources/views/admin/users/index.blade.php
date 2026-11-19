@@ -60,7 +60,18 @@
           $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
         @endphp
         <tr>
-          <td><b>{{ $user->name }}</b><small>#{{ $user->id }} · {{ $user->created_at?->format('Y/m/d') }}</small></td>
+          <td>
+            <div class="adm-person">
+              <span class="adm-avatar">
+                @if($role === 'teacher' && $user->avatarUrl())
+                  <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }}" loading="lazy">
+                @else
+                  {{ mb_substr($user->name, 0, 1) }}
+                @endif
+              </span>
+              <div><b>{{ $user->name }}</b><small>#{{ $user->id }} · {{ $user->created_at?->format('Y/m/d') }}</small></div>
+            </div>
+          </td>
           <td>{{ $user->email ?: '—' }}<small>{{ $user->phone ?: '—' }}</small></td>
           <td>{{ \Illuminate\Support\Str::limit($associations ?: 'بدون تخصیص', 90) }}</td>
           <td><x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
