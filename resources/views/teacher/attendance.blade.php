@@ -43,7 +43,7 @@
 <section class="c">
  <h3>سوابق حضور و غیاب کلاس‌های من</h3>
  @forelse ($history as $record)
-  <div class="row"><div>{{ $record->student?->name }}<small>{{ $record->classroom?->name }} · {{ $record->session_date?->format('Y/m/d') }}</small></div>
+  <div class="row"><div>{{ $record->student?->name }}<small>{{ $record->classroom?->name }} · {{ $record->session_date ? \\App\\Support\\PersianDate::format($record->session_date, 'Y/m/d') : '—' }}</small></div>
    @php $status = ['present'=>['حاضر','gn'],'absent'=>['غایب','rd'],'late'=>['تأخیر','am'],'excused'=>['موجه','bl']][$record->status] ?? ['ثبت‌شده','bl']; @endphp
    <i class="bd {{ $status[1] }}">{{ $status[0] }}</i>
   </div>
