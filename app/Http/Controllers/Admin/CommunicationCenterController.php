@@ -182,7 +182,7 @@ final class CommunicationCenterController extends Controller
             }
         }
 
-        $total = array_sum($counts);
+        $total = $selectedType !== null ? $counts[$selectedType] : array_sum($counts);
         $items = $items->sort(function (array $left, array $right): int {
             $dateOrder = ($right['created_at']?->getTimestamp() ?? 0)
                 <=> ($left['created_at']?->getTimestamp() ?? 0);
