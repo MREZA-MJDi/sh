@@ -3,6 +3,13 @@
 @section('content')
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">محتوای آموزشی</span><h1>تکالیف کلاس‌ها</h1><p>تمرین متنی یا فایل PDF تعریف کنید و پاسخ‌های ارسال‌شده را بررسی کنید.</p></div></div>
+<section class="c teacher-date-filter">
+<form method="GET" action="{{ route('teacher.homework') }}" class="teacher-form" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+<div><label for="homework-from">از تاریخ</label><input id="homework-from" type="date" name="from" value="{{ $filters['from'] ?? '' }}"></div>
+<div><label for="homework-to">تا تاریخ</label><input id="homework-to" type="date" name="to" value="{{ $filters['to'] ?? '' }}"></div>
+<button class="b" type="submit">اعمال فیلتر</button><a class="b s" href="{{ route('teacher.homework') }}">پاک‌کردن</a>
+</form>
+</section>
 <div class="g g2"><section class="c"><h2>تعریف تکلیف جدید</h2>
 @if(auth()->user()->hasPermissionTo('homework.manage.assigned'))
 <form class="teacher-form" method="POST" action="{{ route('teacher.homework.store') }}" enctype="multipart/form-data">@csrf
