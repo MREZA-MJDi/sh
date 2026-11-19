@@ -187,10 +187,12 @@ final class PortalController extends Controller
         $classroom = $classroom
             ? $workspace->queryFor($request->user())->with('students:id,name')->findOrFail($classroom->id)
             : null;
+        $date = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']])['date'] ?? null;
 
         $sessions = $classroom
             ? ClassSession::query()->where('classroom_id', $classroom->id)
                 ->where('status', '!=', 'cancelled')
+                ->when($date, fn ($query, $selectedDate) => $query->whereDate('starts_at', $selectedDate))
                 ->where('starts_at', '<=', now())
                 ->latest('starts_at')->limit(12)->get()
             : collect();
@@ -214,7 +216,9 @@ final class PortalController extends Controller
             ->with(['student:id,name', 'classroom:id,name', 'session:id,starts_at'])
             ->latest('session_date')->latest('id')->limit(30)->get();
 
-        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history'));
+        $dateIso = $date ?: $session?->starts_at?->toDateString() ?: now()->toDateString();
+
+        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history', 'dateIso'));
     }
 
     public function storeAttendance(
