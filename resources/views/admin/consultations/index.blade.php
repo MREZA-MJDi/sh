@@ -2,6 +2,7 @@
 @section('title', 'مشاوره‌ها')
 
 @section('content')
+@include('admin.partials.communication-center-link')
 @php
   $statusLabels = ['pending' => 'در انتظار بررسی', 'scheduled' => 'زمان‌بندی‌شده', 'done' => 'انجام‌شده', 'cancelled' => 'لغوشده', 'approved' => 'تأییدشده', 'completed' => 'تکمیل‌شده'];
   $statusTones = ['pending' => 'warn', 'scheduled' => 'info', 'done' => 'ok', 'cancelled' => 'mute', 'approved' => 'ok', 'completed' => 'ok'];
