@@ -1063,8 +1063,7 @@
 
             <div class="g3">
 
-                @if($popularCoursesCollection->isNotEmpty())
-                    @foreach($popularCoursesCollection as $index => $popularCourse)
+                @forelse($popularCoursesCollection as $index => $popularCourse)
 
                     @php
                         $subject = $popularCourse->subject ?? '';
@@ -1129,8 +1128,7 @@
 
                     </a>
 
-                @endforeach
-                @else
+                @empty
 
                     <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
                         <p style="margin:0;color:var(--mute)">
@@ -1138,7 +1136,7 @@
                         </p>
                     </div>
 
-                @endif
+                @endforelse
 
             </div>
         </div>
