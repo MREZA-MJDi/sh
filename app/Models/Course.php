@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class Course extends Model
 {
     protected $fillable = [
-        'title', 'slug', 'description', 'subject', 'grade', 'academic_grade_id', 'season', 'teacher_id',
+        'title', 'slug', 'description', 'cover_image_path', 'subject', 'grade', 'academic_grade_id', 'season', 'teacher_id',
         'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
         'integration_status', 'integration_note', 'learning_features',
         'teaser_original_path', 'teaser_path', 'teaser_poster_path', 'teaser_status', 'teaser_error',
@@ -22,6 +22,11 @@ class Course extends Model
             'price' => 'integer',
             'learning_features' => 'array',
         ];
+    }
+
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        return $this->cover_image_path ? Storage::disk('public')->url($this->cover_image_path) : null;
     }
 
     public function getTeaserUrlAttribute(): ?string

@@ -27,7 +27,7 @@
 
 <div class="adm-split" style="align-items:start">
   <main class="adm-stack">
-    <form method="POST" action="{{ $formAction }}" class="adm-stack">
+    <form method="POST" action="{{ $formAction }}" class="adm-stack" enctype="multipart/form-data">
       @csrf
       @if($isEditing) @method('PATCH') @endif
       <input type="hidden" name="delivery_type" value="onsite">
@@ -41,6 +41,17 @@
           <x-admin.select label="فصل دوره" name="season" :options="$seasons" :selected="old('season', $course->season)" placeholder="انتخاب فصل" required/>
           <x-admin.select label="مدرس دوره" name="teacher_id" :options="$teachers->pluck('name', 'id')->all()" :selected="old('teacher_id', $course->teacher_id)" placeholder="انتخاب مدرس"/>
           <x-admin.textarea label="توضیح کوتاه زیر عنوان" name="description" :value="old('description', $course->description)" wide rows="4" placeholder="این متن در سربرگ و معرفی دوره نمایش داده می‌شود."/>
+          <div class="adm-field" style="grid-column:1/-1">
+            <label class="adm-label" for="course-cover-image">تصویر اصلی دوره</label>
+            <input id="course-cover-image" class="adm-input" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp">
+            <small class="adm-hint">JPG، PNG یا WebP؛ حداکثر ۵ مگابایت. این تصویر روی کارت دوره و سربرگ صفحه عمومی نمایش داده می‌شود.</small>
+            @if($isEditing && $course->coverImageUrl)
+              <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+                <img src="{{ $course->coverImageUrl }}" alt="تصویر فعلی {{ $course->title }}" style="width:150px;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)">
+                <label class="adm-check"><input type="checkbox" name="remove_cover_image" value="1"> حذف تصویر فعلی</label>
+              </div>
+            @endif
+          </div>
         </div>
       </x-admin.panel>
 

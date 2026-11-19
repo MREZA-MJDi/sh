@@ -78,25 +78,29 @@
         <div>
             {{-- تیزر عمومی دوره؛ فقط خروجی پردازش‌شده منتشر می‌شود --}}
             @if ($course->teaser_status === 'ready' && $course->teaser_url)
-                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls playsinline preload="none" @if($course->teaser_poster_url) poster="{{ $course->teaser_poster_url }}" @endif aria-label="تیزر دوره {{ $course->title }}">
+                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
                     <source src="{{ $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>
             @else
-                <div class="vd" role="status">
-                    <span class="play"><svg class="i"><use href="#video"/></svg></span>
-                    <span>
-                        @if($course->teaser_status === 'uploading')
-                            تیزر در حال بارگذاری است
-                        @elseif($course->teaser_status === 'processing')
-                            تیزر در حال آماده‌سازی است
-                        @elseif($course->teaser_status === 'failed')
-                            تیزر فعلاً در دسترس نیست
-                        @else
-                            برای این دوره تیزر منتشر نشده است
-                        @endif
-                    </span>
-                </div>
+                @if($course->coverImageUrl)
+                    <img class="vd" src="{{ $course->coverImageUrl }}" alt="تصویر دوره {{ $course->title }}" loading="lazy" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover">
+                @else
+                    <div class="vd" role="status">
+                        <span class="play"><svg class="i"><use href="#video"/></svg></span>
+                        <span>
+                            @if($course->teaser_status === 'uploading')
+                                تیزر در حال بارگذاری است
+                            @elseif($course->teaser_status === 'processing')
+                                تیزر در حال آماده‌سازی است
+                            @elseif($course->teaser_status === 'failed')
+                                تیزر فعلاً در دسترس نیست
+                            @else
+                                برای این دوره تیزر منتشر نشده است
+                            @endif
+                        </span>
+                    </div>
+                @endif
             @endif
 
             {{-- معرفی دوره بر اساس محتوای ثبت‌شده در پنل مدیریت --}}

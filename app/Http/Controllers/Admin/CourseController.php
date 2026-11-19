@@ -14,6 +14,8 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 final class CourseController extends Controller
 {
@@ -102,7 +104,23 @@ final class CourseController extends Controller
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
     {
-        $course = $courses->create($request->validated());
+        $data = $request->validated();
+        $coverPath = $request->hasFile('cover_image')
+            ? $request->file('cover_image')->store('course-covers', 'public')
+            : null;
+        if ($coverPath) {
+            $data['cover_image_path'] = $coverPath;
+        }
+        unset($data['cover_image'], $data['remove_cover_image']);
+
+        try {
+            $course = $courses->create($data);
+        } catch (Throwable $exception) {
+            if ($coverPath) {
+                Storage::disk('public')->delete($coverPath);
+            }
+            throw $exception;
+        }
 
         $message = in_array($course->integration_status, ['waiting_course_mapping', 'awaiting_api_verification'], true)
             ? 'دوره در شیخان ایجاد شد؛ اتصال SpotPlayer در کارتابل یکپارچه‌سازی در انتظار قرارداد وب‌سرویس است.'
@@ -118,7 +136,30 @@ final class CourseController extends Controller
     ): RedirectResponse {
         abort_unless($request->user()->hasRole('admin'), 403);
 
-        $course = $courses->update($course, $request->validated());
+        $data = $request->validated();
+        $oldCoverPath = $course->cover_image_path;
+        $newCoverPath = null;
+
+        if ($request->hasFile('cover_image')) {
+            $newCoverPath = $request->file('cover_image')->store('course-covers', 'public');
+            $data['cover_image_path'] = $newCoverPath;
+        } elseif ($request->boolean('remove_cover_image')) {
+            $data['cover_image_path'] = null;
+        }
+        unset($data['cover_image'], $data['remove_cover_image']);
+
+        try {
+            $course = $courses->update($course, $data);
+        } catch (Throwable $exception) {
+            if ($newCoverPath) {
+                Storage::disk('public')->delete($newCoverPath);
+            }
+            throw $exception;
+        }
+
+        if ($oldCoverPath && $oldCoverPath !== $course->cover_image_path) {
+            Storage::disk('public')->delete($oldCoverPath);
+        }
 
         $message = in_array($course->integration_status, ['waiting_course_mapping', 'awaiting_api_verification'], true)
             ? 'اطلاعات دوره ذخیره شد؛ وضعیت SpotPlayer تا زمان تأیید API در انتظار باقی می‌ماند.'

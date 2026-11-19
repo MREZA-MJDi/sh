@@ -37,6 +37,8 @@ class StoreCourseRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string', 'max:10000'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'remove_cover_image' => ['nullable', 'boolean'],
             'subject' => ['nullable', 'string', 'max:100'],
             'grade' => ['nullable', 'string', 'max:50'],
             'academic_grade_id' => ['nullable', 'integer', 'exists:academic_grades,id'],

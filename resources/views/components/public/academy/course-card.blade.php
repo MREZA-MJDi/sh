@@ -1,10 +1,11 @@
 @props(['course'])
 
+@php($coverImageUrl = $course->coverImageUrl ?: $course->teaserPosterUrl)
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 
 <a class="ac-card ac-course" href="{{ route('public.courses.show', $course->slug) }}" aria-label="مشاهده دوره {{ $course->title }}">
-    <div class="ac-course-cover" @if($course->teaserPosterUrl) style="background-image:linear-gradient(180deg,rgba(12,18,38,.04),rgba(12,18,38,.28)),url('{{ $course->teaserPosterUrl }}');background-size:cover;background-position:center" @endif>
-        @unless($course->teaserPosterUrl)
+    <div class="ac-course-cover" @if($coverImageUrl) style="background-image:linear-gradient(180deg,rgba(12,18,38,.04),rgba(12,18,38,.28)),url('{{ $coverImageUrl }}');background-size:cover;background-position:center" @endif>
+        @unless($coverImageUrl)
             <span aria-hidden="true">{{ mb_substr($course->subject ?: $course->title, 0, 1) }}</span>
         @endunless
     </div>
