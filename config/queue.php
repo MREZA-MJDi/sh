@@ -43,6 +43,14 @@ return [
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 3700),
             'after_commit' => false,
         ],
+        'video' => [
+            'driver' => 'database',
+            'connection' => null,
+            'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
+            'queue' => env('VIDEO_QUEUE', 'video'),
+            'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3700),
+            'after_commit' => false,
+        ],
 
         'beanstalkd' => [
             'driver' => 'beanstalkd',

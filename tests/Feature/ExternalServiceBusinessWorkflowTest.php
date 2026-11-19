@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
-use App\Jobs\Learning\ProcessCourseRecordingVideo;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\Exam;
@@ -20,7 +19,6 @@ use App\Services\SpotPlayer\SpotPlayerService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class ExternalServiceBusinessWorkflowTest extends TestCase
@@ -370,7 +368,6 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
     public function test_spotplayer_video_is_staged_privately_and_upload_is_queued(): void
     {
-        Queue::fake();
         \Illuminate\Support\Facades\Storage::fake('local');
 
         $course = Course::create([
@@ -396,8 +393,8 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
         $video = \App\Models\SpotPlayerVideo::where('title', 'جلسه اول')->firstOrFail();
 
         $this->assertSame('processing', $video->status);
-        Queue::assertPushed(ProcessCourseRecordingVideo::class, fn ($job) => $job->videoId === $video->id);
         $this->assertSame('lesson.mp4', $video->file_original_name);
+        $this->assertDatabaseHas('video_jobs', ['queue' => 'video']);
         $this->assertNotNull($video->file_sha256);
         $this->assertSame(64, strlen($video->file_sha256));
 

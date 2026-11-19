@@ -56,6 +56,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     previewVideo.removeAttribute('src');
     previewVideo.load();
     const selected = fileInput.files?.[0];
+    startButton.disabled = false;
     if (!selected) {
       preview.hidden = true;
       return;
@@ -247,7 +248,6 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       setProgress(100);
 
       if (target === 'teaser') {
-        if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
         setStatus('فایل دریافت شد؛ در حال پردازش تریلر…');
         const statusUrl = widget.dataset.statusUrl;
         if (statusUrl) {
@@ -260,16 +260,19 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             if (!response.ok) break;
             const state = await response.json();
             if (state.status === 'ready') {
+              if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
               setStatus('تریلر آماده نمایش است. صفحه در حال به‌روزرسانی است.');
               window.location.reload();
               return;
             }
             if (state.status === 'failed') {
+              if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
               throw new Error(state.error || 'پردازش تریلر ناموفق بود.');
             }
           }
           setStatus('پردازش تریلر هنوز ادامه دارد؛ وضعیت را کمی بعد دوباره بررسی کنید.');
         } else {
+          if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
           setStatus('تریلر بارگذاری شد و در صف پردازش قرار گرفت.');
         }
       } else {
@@ -295,8 +298,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
               throw new Error(state.error || 'پردازش ویدیو ناموفق بود. فایل را دوباره بارگذاری کنید.');
             }
           }
-          if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
-          setStatus('پردازش ویدیو هنوز ادامه دارد؛ وضعیت آن در فهرست ویدیوها به‌روزرسانی خواهد شد.');
+          setStatus('پردازش ویدیو هنوز ادامه دارد؛ با انتخاب همین فایل و تلاش دوباره، وضعیت پردازش را ادامه می‌دهید.');
           startButton.disabled = false;
           fileInput.disabled = false;
           if (courseSelect) courseSelect.disabled = false;
@@ -311,7 +313,6 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         }
       }
     } catch (error) {
-      if (completedUpload && widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
       const resumable = started?.upload_id && !completedUpload;
       const suffix = resumable
         ? ' نشست آپلود حفظ شد؛ با انتخاب همین فایل و زدن دوباره دکمه، از بخش‌های دریافت‌شده ادامه می‌دهید.'

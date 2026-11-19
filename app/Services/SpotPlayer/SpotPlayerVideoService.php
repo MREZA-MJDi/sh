@@ -48,6 +48,7 @@ final class SpotPlayerVideoService
         if ($classSessionId) {
             $classSession = ClassSession::query()
                 ->whereKey($classSessionId)
+                ->where('status', '!=', 'cancelled')
                 ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
                 ->firstOrFail();
 
@@ -69,7 +70,7 @@ final class SpotPlayerVideoService
             throw new RuntimeException('محاسبه checksum فایل ویدیو انجام نشد.');
         }
 
-        return DB::transaction(function () use ($data, $actor, $course, $classroomId, $classSessionId, $storagePath, $originalName, $mimeType, $size, $sha256): SpotPlayerVideo {
+        $video = DB::transaction(function () use ($data, $actor, $course, $classroomId, $classSessionId, $storagePath, $originalName, $mimeType, $size, $sha256): SpotPlayerVideo {
             $video = SpotPlayerVideo::query()->create([
                 'title' => trim($data['title']),
                 'course_id' => $course->id,
@@ -86,8 +87,6 @@ final class SpotPlayerVideoService
                 'file_sha256' => $sha256,
                 'staged_at' => now(),
             ]);
-
-            ProcessCourseRecordingVideo::dispatch($video->id)->afterCommit();
 
             if (filled($video->external_id)) {
                 $this->operations->waitForContract(
@@ -113,6 +112,10 @@ final class SpotPlayerVideoService
 
             return $video->refresh();
         });
+
+        $this->dispatchProcessing($video);
+
+        return $video;
     }
 
     public function stage(array $data, User $actor): SpotPlayerVideo
@@ -177,7 +180,7 @@ final class SpotPlayerVideoService
                 throw new RuntimeException('محاسبه checksum فایل ویدیو انجام نشد.');
             }
 
-            return DB::transaction(function () use ($data, $actor, $uploadedFile, $storagePath, $sha256): SpotPlayerVideo {
+            $video = DB::transaction(function () use ($data, $actor, $uploadedFile, $storagePath, $sha256): SpotPlayerVideo {
                 $video = SpotPlayerVideo::create([
                     'title' => $data['title'],
                     'course_id' => $data['course_id'],
@@ -194,8 +197,6 @@ final class SpotPlayerVideoService
                     'file_sha256' => $sha256,
                     'staged_at' => now(),
                 ]);
-
-                ProcessCourseRecordingVideo::dispatch($video->id)->afterCommit();
 
                 if (filled($video->external_id)) {
                     $this->operations->waitForContract(
@@ -220,9 +221,25 @@ final class SpotPlayerVideoService
 
                 return $video->refresh();
             });
+
+            $this->dispatchProcessing($video);
+
+            return $video;
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($storagePath);
             throw $exception;
+        }
+    }
+
+    private function dispatchProcessing(SpotPlayerVideo $video): void
+    {
+        try {
+            ProcessCourseRecordingVideo::dispatch($video->id);
+        } catch (Throwable $exception) {
+            $video->update([
+                'status' => 'failed',
+                'processing_error' => mb_substr($exception->getMessage(), 0, 1000),
+            ]);
         }
     }
 }
