@@ -117,7 +117,7 @@ class CourseService
                 $session->update(['status' => 'cancelled']);
             });
 
-        foreach ([$course->teaser_path, $course->teaser_poster_path] as $path) {
+        foreach ([$course->cover_image_path, $course->teaser_path, $course->teaser_poster_path] as $path) {
             if ($path) {
                 Storage::disk('public')->delete($path);
             }
