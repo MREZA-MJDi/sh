@@ -220,7 +220,7 @@ final class PortalController extends Controller
             ->where('classroom_id', $classroom->id)
             ->findOrFail($data['class_session_id']);
 
-        $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);
+        $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);\n        app(AttendanceGuardianNotifier::class)->notifyThresholds($classroom, $data['attendance']);
 
         return back()->with('success', 'حضور و غیاب جلسه ذخیره شد.');
     }
