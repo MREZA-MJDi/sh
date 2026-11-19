@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Services\\Learning;
+namespace App\Services\Learning;
 
-use App\\Models\\Attendance;
-use App\\Models\\Classroom;
-use App\\Models\\User;
-use App\\Notifications\\AttendanceAbsenceNotification;
+use App\Models\Attendance;
+use App\Models\Classroom;
+use App\Models\User;
+use App\Notifications\AttendanceAbsenceNotification;
 
 final class AttendanceGuardianNotifier
 {
