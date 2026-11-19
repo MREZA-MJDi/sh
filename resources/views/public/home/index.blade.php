@@ -920,20 +920,30 @@
                         $isFree = ($homeCourse->type ?? '') === 'free';
                     @endphp
 
+                    @php($courseImageUrl = $homeCourse->coverImageUrl ?: $homeCourse->teaserPosterUrl)
                     <article class="card cc">
 
                         <a
                                 class="th"
                                 href="{{ route('public.courses.show', $homeCourse->slug) }}"
-                                style="background:{{ $courseStyle[0] }}"
+                                style="position:relative;overflow:hidden;background:{{ $courseStyle[0] }}"
                                 aria-label="مشاهده {{ $homeCourse->title }}"
                         >
+                            @if($courseImageUrl)
+                                <img
+                                    src="{{ $courseImageUrl }}"
+                                    alt="تصویر دوره {{ $homeCourse->title }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
+                                >
+                            @else
+                                <svg class="i" aria-hidden="true">
+                                    <use href="#{{ $courseStyle[1] }}"/>
+                                </svg>
+                            @endif
 
-                            <svg class="i">
-                                <use href="#{{ $courseStyle[1] }}"/>
-                            </svg>
-
-                            <span class="bd {{ $isFree ? 'bd-free' : '' }}">
+                            <span class="bd {{ $isFree ? 'bd-free' : '' }}" style="position:relative;z-index:1">
                             {{ $isFree ? 'رایگان' : (($homeCourse->grade ?? null) ? 'پایه '.$homeCourse->grade : ($subject ?: 'ویژه')) }}
                         </span>
 
@@ -1068,10 +1078,20 @@
 
                         <span class="n">{{ $index + 1 }}</span>
 
-                        <div class="th" style="background:{{ $popularStyle[0] }}">
-                            <svg class="i">
-                                <use href="#{{ $popularStyle[1] }}"/>
-                            </svg>
+                        <div class="th" style="position:relative;overflow:hidden;background:{{ $popularStyle[0] }}">
+                            @if($course->coverImageUrl ?: $course->teaserPosterUrl)
+                                <img
+                                    src="{{ $course->coverImageUrl ?: $course->teaserPosterUrl }}"
+                                    alt="تصویر دوره {{ $course->title }}"
+                                    loading="lazy"
+                                    decoding="async"
+                                    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
+                                >
+                            @else
+                                <svg class="i" aria-hidden="true">
+                                    <use href="#{{ $popularStyle[1] }}"/>
+                                </svg>
+                            @endif
                         </div>
 
                         <div style="flex:1">
@@ -1345,9 +1365,19 @@
 
                             <div
                                     class="av"
-                                    style="background:linear-gradient(135deg,var(--pri),var(--acc))"
+                                    style="background:linear-gradient(135deg,var(--pri),var(--acc));overflow:hidden"
                             >
-                                {{ mb_substr($teacher->name ?? '', 0, 1) }}
+                                @if($teacher->avatarUrl())
+                                    <img
+                                        src="{{ $teacher->avatarUrl() }}"
+                                        alt="تصویر {{ $teacher->name }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                        style="width:100%;height:100%;object-fit:cover;border-radius:inherit"
+                                    >
+                                @else
+                                    <span aria-hidden="true">{{ mb_substr($teacher->name ?? '', 0, 1) }}</span>
+                                @endif
                             </div>
 
                             <h3>{{ $teacher->name }}</h3>
@@ -1501,9 +1531,11 @@
 
                     @foreach($articlesCollection as $article)
 
+                        @php($articleImagePath = $article->featured_image_path ?: $article->og_image_path)
+
                         <article class="card cc">
 
-                            @if(filled($article->featured_image_path ?? null))
+                            @if(filled($articleImagePath))
 
                                 <a
                                         class="th"
@@ -1511,10 +1543,11 @@
                                 >
 
                                     <img
-                                            src="{{ Storage::disk('public')->url($article->featured_image_path) }}"
+                                            src="{{ Storage::disk('public')->url($articleImagePath) }}"
                                             alt="{{ $article->image_alt ?: $article->title }}"
                                             style="width:100%;height:100%;object-fit:cover;object-position:{{ $article->image_position ?? '50% 50%' }}"
                                             loading="lazy"
+                                            decoding="async"
                                     >
 
                                 </a>
@@ -1587,6 +1620,33 @@
 
     @endif
 
+
+    {{-- =========================================================
+         FAMILY / STUDENT GUIDANCE
+    ========================================================= --}}
+
+    <section aria-labelledby="home-guidance-title" style="padding:28px 0 12px">
+        <div class="c">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:22px;align-items:center;padding:clamp(24px,4vw,42px);border-radius:24px;background:linear-gradient(125deg,#102b55,#155e75 62%,#0f766e);color:#fff;box-shadow:0 18px 45px rgba(15,45,80,.16)">
+                <div>
+                    <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.1);font-size:12px;font-weight:800">راهنمای شروع</span>
+                    <h2 id="home-guidance-title" style="font-size:clamp(22px,3vw,30px);line-height:1.7;margin:12px 0 8px;color:#fff">برای انتخاب دوره مناسب مطمئن نیستید؟</h2>
+                    <p style="margin:0;max-width:620px;color:rgba(255,255,255,.86);line-height:2">
+                        اگر به‌عنوان والد یا دانش‌آموز درباره انتخاب درس، سطح کلاس، ثبت‌نام یا شیوه آموزش سؤال دارید، پیام بگذارید تا راهنمایی‌تان کنیم.
+                    </p>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start">
+                    <a class="btn w" href="{{ route('public.contact') }}" style="min-height:46px;display:inline-flex;align-items:center;justify-content:center">
+                        دریافت راهنمایی و مشاوره
+                        <svg class="i" aria-hidden="true"><use href="#arrl"/></svg>
+                    </a>
+                    <a href="{{ route('public.courses.index') }}" style="min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border:1px solid rgba(255,255,255,.55);border-radius:12px;color:#fff;font-weight:800;text-decoration:none">
+                        دیدن دوره‌ها
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     {{-- =========================================================
          CALL TO ACTION
