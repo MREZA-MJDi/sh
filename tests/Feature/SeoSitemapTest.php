@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\Course;
-use App\\Models\\Role;
-use App\\Models\\SeoArticle;
-use App\\Models\\SeoSetting;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\Course;
+use App\Models\Role;
+use App\Models\SeoArticle;
+use App\Models\SeoSetting;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 final class SeoSitemapTest extends TestCase
 {
@@ -94,7 +94,7 @@ final class SeoSitemapTest extends TestCase
 
     public function test_sitemap_sections_are_limited_to_the_standard_url_cap(): void
     {
-        $reflection = new \\ReflectionClass(\\App\\Http\\Controllers\\SeoPublicController::class);
+        $reflection = new \ReflectionClass(\App\Http\Controllers\SeoPublicController::class);
         $this->assertSame(50000, $reflection->getConstant('SITEMAP_URL_LIMIT'));
     }
 }
