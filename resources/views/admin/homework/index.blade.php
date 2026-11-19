@@ -44,7 +44,7 @@
         <tr>
           <td><b>{{ $homework->title }}</b><small>{{ $homework->creator?->name ?? '—' }}</small></td>
           <td>{{ $homework->classroom?->name ?? '—' }}</td>
-          <td>{{ $homework->due_at ? \\App\\Support\\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
+          <td>{{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
           <td class="adm-num">{{ $homework->submissions_count }} پاسخ · {{ $homework->pending_submissions_count }} در انتظار</td>
           <td><x-admin.badge :tone="$homework->status === 'published' ? 'ok' : 'warn'">{{ $statusLabels[$homework->status] ?? $homework->status }}</x-admin.badge></td>
           <td><div class="adm-actions">
@@ -69,7 +69,7 @@
         <tr>
           <td><b>{{ $submission->student?->name ?? '—' }}</b></td>
           <td>{{ $submission->homework?->title ?? '—' }}<small>{{ $submission->homework?->classroom?->name ?? '—' }}</small></td>
-          <td>{{ $submission->submitted_at ? \\App\\Support\\PersianDate::format($submission->submitted_at, 'Y/m/d H:i') : '—' }}</td>
+          <td>{{ $submission->submitted_at ? \App\Support\PersianDate::format($submission->submitted_at, 'Y/m/d H:i') : '—' }}</td>
           <td>@forelse($submission->files as $file)
                 <a href="{{ route('admin.homework-submission-files.download', $file) }}">{{ $file->original_name }}</a>
               @empty<span class="adm-muted">بدون فایل</span>@endforelse</td>
