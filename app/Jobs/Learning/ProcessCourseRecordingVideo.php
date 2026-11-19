@@ -26,7 +26,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
 
     public function __construct(public readonly int $videoId)
     {
-        $this->onQueue('video');
+        $this->onConnection('video')->onQueue('video');
     }
 
     public function handle(): void
@@ -98,7 +98,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
                 'file_mime_type' => 'video/mp4',
                 'file_size_bytes' => (int) filesize($outputPath),
                 'file_sha256' => $sha256,
-                'status' => 'active',
+                'status' => filled($video->external_id) ? 'waiting_contract' : 'active',
                 'processing_error' => null,
                 'processed_at' => now(),
             ]);

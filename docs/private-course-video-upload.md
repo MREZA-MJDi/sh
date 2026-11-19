@@ -5,10 +5,10 @@ The course recording upload path stores assembled source files on Laravel's priv
 ## Production requirements
 
 1. Install FFmpeg on the application host and confirm `ffmpeg -version` works for the same OS user that runs queue workers.
-2. Set `DB_QUEUE_RETRY_AFTER=3700` in production (and rebuild the config cache), then run a persistent Laravel queue worker that consumes the `video` queue. The retry window must be longer than the 3600-second job timeout. Example Supervisor command:
+2. Set `VIDEO_QUEUE_RETRY_AFTER=3700` in production (and rebuild the config cache), then run a persistent worker on the dedicated `video` connection. Its retry window must be longer than the 3600-second job timeout. Example Supervisor command:
 
    ```bash
-   php artisan queue:work --queue=video,default --sleep=3 --tries=1 --timeout=3600
+   php artisan queue:work video --queue=video --sleep=3 --tries=1 --timeout=3600
    ```
 
    Keep the worker timeout below the process manager's stop timeout. Restart workers after deployment with `php artisan queue:restart`.

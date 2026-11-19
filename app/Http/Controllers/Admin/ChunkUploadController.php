@@ -215,6 +215,14 @@ final class ChunkUploadController extends Controller
             ]);
         }
 
+        if ($existing->status === 'processing') {
+            return response()->json([
+                'ok' => true,
+                'status' => 'processing',
+                'video_id' => $existing->metadata['result_video_id'] ?? null,
+            ]);
+        }
+
         abort_unless($existing->status === 'uploading' && $existing->expires_at->isFuture(), 409);
         $this->authorizeTarget($request, $existing->target, (int) $existing->target_id, $existing->metadata ?? [], $workspace);
 
@@ -354,10 +362,24 @@ final class ChunkUploadController extends Controller
         $data = $request->validate(['upload_id' => ['required', 'uuid']]);
         $session = $this->findUploadSession($data['upload_id'], $request);
 
-        abort_unless($session->status === 'uploading' && $session->expires_at->isFuture(), 410, 'نشست آپلود دیگر قابل ادامه نیست؛ یک آپلود تازه آغاز کنید.');
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
         $total = (int) ($session->metadata['total_chunks'] ?? 0);
+        if (in_array($session->status, ['processing', 'completed'], true)) {
+            return response()->json([
+                'ok' => true,
+                'status' => $session->status,
+                'upload_id' => $session->upload_id,
+                'total_chunks' => $total,
+                'chunk_size_bytes' => (int) ($session->metadata['chunk_size_bytes'] ?? 0),
+                // Treat finalizing/completed sessions as fully received so the client
+                // can safely repeat the idempotent complete request after a lost response.
+                'received_chunks' => $total > 0 ? range(0, $total - 1) : [],
+            ]);
+        }
+
+        abort_unless($session->status === 'uploading' && $session->expires_at->isFuture(), 410, 'نشست آپلود دیگر قابل ادامه نیست؛ یک آپلود تازه آغاز کنید.');
+
         $disk = Storage::disk('local');
         $received = [];
 
@@ -403,7 +425,11 @@ final class ChunkUploadController extends Controller
                 'processing' => 'processing',
                 'failed' => 'failed',
                 'waiting_contract' => 'waiting_contract',
-                default => $session->status === 'uploading' ? 'uploading' : 'failed',
+                default => match ($session->status) {
+                    'uploading' => 'uploading',
+                    'processing' => 'processing',
+                    default => 'failed',
+                },
             },
             'error' => $video?->processing_error,
             'video_id' => $video?->id,
@@ -465,6 +491,7 @@ final class ChunkUploadController extends Controller
         if (filled($metadata['class_session_id'] ?? null)) {
             $classSession = ClassSession::query()
                 ->whereKey((int) $metadata['class_session_id'])
+                ->where('status', '!=', 'cancelled')
                 ->whereHas('classroom', fn ($classrooms) => $classrooms->where('course_id', $course->id))
                 ->firstOrFail();
 
