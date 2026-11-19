@@ -80,7 +80,7 @@
             </td>
             <td>{{ $scopeName }}</td>
             <td class="adm-num is-nowrap">
-              {{ $exam->starts_at ? \\App\\Support\\PersianDate::format($exam->starts_at, 'Y/m/d H:i') : 'بدون زمان' }}
+              {{ $exam->starts_at ? \App\Support\PersianDate::format($exam->starts_at, 'Y/m/d H:i') : 'بدون زمان' }}
             </td>
             <td class="adm-num">{{ $exam->duration_minutes }} دقیقه</td>
             <td class="adm-num">{{ $exam->questions_count }} سؤال</td>
