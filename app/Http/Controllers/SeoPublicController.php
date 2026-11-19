@@ -1,16 +1,15 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Course;
-use App\\Models\\SeoArticle;
-use App\\Models\\SeoBanner;
-use App\\Models\\SeoSetting;
-use App\\Models\\User;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Http\\Request;
-use Illuminate\\Http\\Response;
-use Illuminate\\View\\View;
+use App\Models\Course;
+use App\Models\SeoArticle;
+use App\Models\SeoBanner;
+use App\Models\SeoSetting;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class SeoPublicController extends Controller
 {
@@ -104,7 +103,7 @@ class SeoPublicController extends Controller
             }
         }
 
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\\n";
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
         foreach ($sitemaps as $loc) {
             $xml .= '<sitemap><loc>'.$this->xmlEscape($loc).'</loc><lastmod>'.$this->xmlEscape(now()->toAtomString()).'</lastmod></sitemap>';
@@ -179,7 +178,7 @@ class SeoPublicController extends Controller
      */
     private function urlsetResponse(array $urls): Response
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\\n";
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
         foreach ($urls as $url) {
@@ -232,7 +231,7 @@ class SeoPublicController extends Controller
             $lines[] = 'Sitemap: '.rtrim($settings->canonical_base_url ?: url('/'), '/').'/sitemap.xml';
         }
 
-        return response(implode("\\n", $lines)."\\n", 200)
+        return response(implode("\n", $lines)."\n", 200)
             ->header('Content-Type', 'text/plain; charset=UTF-8');
     }
 }
