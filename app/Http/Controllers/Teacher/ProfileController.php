@@ -21,16 +21,17 @@ final class ProfileController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
+        $previousAvatarPath = $user->avatar_path;
+
         if ($request->boolean('remove_avatar')) {
-            if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
-                $user->avatar_path = null;
-            }
+            $user->avatar_path = null;
         } elseif ($request->hasFile('avatar')) {
-            if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
-            }
             $path = $request->file('avatar')->store('avatars', 'public');
+
+            if (! $path) {
+                return back()->withErrors(['avatar' => 'ذخیره تصویر انجام نشد؛ لطفاً دوباره تلاش کنید.'])->withInput();
+            }
+
             $user->avatar_path = $path;
         }
 
@@ -45,6 +46,11 @@ final class ProfileController extends Controller
             $user->profile_note = $validated['profile_note'];
         }
         $user->save();
+
+        // Keep the previous image until the new profile state is safely persisted.
+        if ($previousAvatarPath && $previousAvatarPath !== $user->avatar_path) {
+            Storage::disk('public')->delete($previousAvatarPath);
+        }
 
         return redirect()
             ->route('teacher.profile.edit')
