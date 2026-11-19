@@ -26,7 +26,7 @@ class ExamController extends Controller
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '>=', $date))
             ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '<=', $date))
             ->with(['classroom', 'course'])
-            ->withCount(['results', 'questions', 'attempts'])->latest()->paginate(15);
+            ->withCount(['results', 'questions', 'attempts'])->latest()->paginate(15)->withQueryString();
         $classroomOptions = $classrooms->queryFor($user)->orderBy('name')->get(['id', 'name']);
         $courseOptions = $classrooms->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
 
