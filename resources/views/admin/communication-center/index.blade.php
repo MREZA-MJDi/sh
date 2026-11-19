@@ -50,6 +50,10 @@
         <span class="adm-communication-main">
           <span class="adm-communication-topline"><strong>{{ $item['title'] }}</strong><small>{{ $item['created_at']?->format('Y/m/d H:i') }}</small></span>
           <span class="adm-communication-meta">{{ $item['label'] }} · {{ $item['sender'] }} @if($item['context']) · {{ $item['context'] }} @endif</span>
+          <span class="adm-communication-direction" data-direction="{{ $item['direction'] }}">
+            <x-admin.icon :name="$item['direction'] === 'outgoing' ? 'msg' : 'inbox'"/>
+            {{ $item['direction_label'] }}
+          </span>
           <span class="adm-communication-summary">{{ $item['summary'] }}</span>
         </span>
         <x-admin.badge tone="{{ in_array($item['status'], ['resolved', 'done', 'completed', 'answered', 'read'], true) ? 'ok' : (in_array($item['status'], ['spam', 'declined', 'cancelled'], true) ? 'mute' : 'warn') }}">{{ $statusLabels[$item['status']] ?? $item['status'] }}</x-admin.badge>
@@ -58,5 +62,6 @@
       <p class="adm-empty">پیامی با این فیلتر پیدا نشد.</p>
     @endforelse
   </div>
+  <x-slot:footer>{{ $items->links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
