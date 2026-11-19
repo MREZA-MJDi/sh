@@ -1064,25 +1064,25 @@
             <div class="g3">
 
                 @if($popularCoursesCollection->isNotEmpty())
-                    @foreach($popularCoursesCollection as $index => $course)
+                    @foreach($popularCoursesCollection as $index => $popularCourse)
 
                     @php
-                        $subject = $course->subject ?? '';
+                        $subject = $popularCourse->subject ?? '';
 
-                        $popularStyle = $courseStyles[$subject] ?? $defaultCourseStyle;
+                        $popularStyle = $popularCourseStyles[$subject] ?? $defaultCourseStyle;
 
-                        $isFree = ($course->type ?? '') === 'free';
+                        $isFree = ($popularCourse->type ?? '') === 'free';
                     @endphp
 
-                    <a class="card pop" href="{{ route('public.courses.show', $course->slug) }}">
+                    <a class="card pop" href="{{ route('public.courses.show', $popularCourse->slug) }}">
 
                         <span class="n">{{ $index + 1 }}</span>
 
                         <div class="th" style="position:relative;overflow:hidden;background:{{ $popularStyle[0] }}">
-                            @if($course->coverImageUrl ?: $course->teaserPosterUrl)
+                            @if($popularCourse->coverImageUrl ?: $popularCourse->teaserPosterUrl)
                                 <img
-                                    src="{{ $course->coverImageUrl ?: $course->teaserPosterUrl }}"
-                                    alt="تصویر دوره {{ $course->title }}"
+                                    src="{{ $popularCourse->coverImageUrl ?: $popularCourse->teaserPosterUrl }}"
+                                    alt="تصویر دوره {{ $popularCourse->title }}"
                                     loading="lazy"
                                     decoding="async"
                                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
@@ -1096,7 +1096,7 @@
 
                         <div style="flex:1">
 
-                            <h3>{{ $course->title }}</h3>
+                            <h3>{{ $popularCourse->title }}</h3>
 
                             <div class="mt" style="margin-bottom:4px">
 
@@ -1106,7 +1106,7 @@
 
                                 <span>
                                 <svg class="i"><use href="#user"/></svg>
-                                {{ number_format((int) ($course->enrollments_count ?? 0)) }}
+                                {{ number_format((int) ($popularCourse->enrollments_count ?? 0)) }}
                                 دانشجو
                             </span>
 
@@ -1115,12 +1115,12 @@
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
 
                             <span style="font-size:13px;color:var(--mute)">
-                                {{ $course->teacher?->name ?? 'آموزشگاه شیخان' }}
+                                {{ $popularCourse->teacher?->name ?? 'آموزشگاه شیخان' }}
                             </span>
 
                                 <span style="font-weight:700;color:var(--pri);font-size:14px">
 
-                                {{ $isFree ? 'رایگان' : number_format((int) $course->price).' ت' }}
+                                {{ $isFree ? 'رایگان' : number_format((int) $popularCourse->price).' ت' }}
 
                             </span>
 
