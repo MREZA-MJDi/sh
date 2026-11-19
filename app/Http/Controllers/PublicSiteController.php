@@ -43,7 +43,7 @@ final class PublicSiteController extends Controller
         $teachers = User::query()->where('is_active', true)
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
             ->withCount(['assignedCourses as published_courses_count' => fn ($courses) => $courses->where('status', 'published')])
-            ->orderBy('name')->limit(8)->get(['id', 'name', 'subject']);
+            ->orderBy('name')->limit(8)->get(['id', 'name', 'subject', 'avatar_path']);
 
         $articles = SeoArticle::published()->with('author')->latest('published_at')->limit(3)->get();
         $testimonials = SeoTestimonial::query()->where('status', 'published')->orderBy('sort_order')->orderByDesc('id')->limit(6)->get();
