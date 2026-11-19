@@ -284,7 +284,7 @@ class SeoContentManagementTest extends TestCase
             ->assertSee('تصویر راهنمای یادگیری')
             ->assertSee('<strong>مهم</strong>', false);
 
-        $this->get(route('seo.sitemap'))
+        $this->get(route('seo.sitemap.section', ['type' => 'articles']))
             ->assertOk()
             ->assertSee($article->canonical_url, false)
             ->assertDontSee(route('seo.articles.show', 'draft-article'), false);
@@ -333,7 +333,7 @@ class SeoContentManagementTest extends TestCase
 
         $this->get(route('seo.articles.index'))->assertSee('مقاله زمان‌بندی‌شده');
         $this->get(route('seo.articles.show', 'scheduled-public-article'))->assertOk();
-        $this->get(route('seo.sitemap'))->assertSee('scheduled-public-article');
+        $this->get(route('seo.sitemap.section', ['type' => 'articles']))->assertSee('scheduled-public-article');
     }
 
     public function test_public_article_index_only_displays_current_active_banners_in_sort_order(): void
@@ -533,7 +533,7 @@ class SeoContentManagementTest extends TestCase
         $teacher = User::factory()->create(['is_active' => true]);
         $teacher->roles()->attach($teacherRole);
 
-        $this->get(route('seo.sitemap'))->assertOk()
+        $this->get(route('seo.sitemap.section', ['type' => 'teachers']))->assertOk()
             ->assertSee('https://sheykhan.example/teachers/'.$teacher->id);
     }
 
