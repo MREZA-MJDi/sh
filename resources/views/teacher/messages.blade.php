@@ -1,37 +1,44 @@
 @extends('teacher.layouts.app')
-@section('title', 'پیام‌های اولیا')
+@section('title', 'مرکز پیام‌ها')
 @section('content')
-<h2>پیام‌های اولیا</h2>
-<div class="chat">
-    <section class="c"><div class="chead"><h3>گفت‌وگوها</h3><a class="b s" href="{{ route('teacher.messages.create') }}">پیام جدید</a></div>
+<div class="teacher-page-head">
+    <div><span class="teacher-eyebrow">ارتباطات</span><h1>مرکز پیام‌ها</h1><p>همه گفت‌وگوهای مرتبط با کلاس‌ها و خانواده‌ها در یک فضای مرتب.</p></div>
+    <a class="b" href="{{ route('teacher.messages.create') }}">پیام جدید</a>
+</div>
+<div class="teacher-inbox">
+    <aside class="teacher-inbox-list c">
+        <div class="teacher-inbox-heading"><h2>گفت‌وگوها</h2><span>{{ $conversations->total() }} مورد</span></div>
         @forelse ($conversations as $conversation)
-            <a class="row" href="{{ route('teacher.messages.index', ['message' => $conversation->id]) }}">
-                <div>{{ $conversation->subject }}<small>{{ $conversation->student?->name ?? $conversation->sender?->name }} · {{ $conversation->created_at?->format('Y/m/d H:i') }}</small></div>
+            <a class="teacher-inbox-item {{ $selectedMessage?->id === $conversation->id ? 'is-active' : '' }}" href="{{ route('teacher.messages.index', ['message' => $conversation->id]) }}">
+                <span class="teacher-inbox-avatar">{{ mb_substr($conversation->student?->name ?? $conversation->sender?->name ?? 'م', 0, 1) }}</span>
+                <span class="teacher-inbox-copy"><strong>{{ $conversation->subject ?: 'بدون موضوع' }}</strong><small>{{ $conversation->student?->name ?? $conversation->sender?->name }} · {{ $conversation->created_at?->format('Y/m/d H:i') }}</small></span>
                 <i class="bd {{ $conversation->status === 'open' ? 'am' : 'gn' }}">{{ $conversation->status === 'open' ? 'باز' : ($conversation->status === 'answered' ? 'پاسخ‌داده‌شده' : 'بسته') }}</i>
             </a>
         @empty
-            <p>گفت‌وگویی نیست.</p>
+            <p class="teacher-inbox-empty">هنوز گفت‌وگویی ثبت نشده است.</p>
         @endforelse
         {{ $conversations->links() }}
-    </section>
-
-    <section class="c"><h3>{{ $selectedMessage?->subject ?? 'گفت‌وگو' }}</h3>
+    </aside>
+    <section class="teacher-inbox-thread c">
         @if ($selectedMessage)
-            <div class="msgs">
-                <div class="m">{{ $selectedMessage->sender?->name }}: {{ $selectedMessage->body }}</div>
+            <header class="teacher-thread-head"><div><h2>{{ $selectedMessage->subject ?: 'گفت‌وگو' }}</h2><p>{{ $selectedMessage->student?->name ?? $selectedMessage->sender?->name }} · {{ $selectedMessage->created_at?->format('Y/m/d H:i') }}</p></div><span class="bd {{ $selectedMessage->status === 'open' ? 'am' : 'gn' }}">{{ $selectedMessage->status === 'open' ? 'نیازمند پاسخ' : 'در جریان' }}</span></header>
+            <div class="teacher-thread-messages">
+                <article class="teacher-message-bubble {{ $selectedMessage->sender_id === auth()->id() ? 'is-own' : '' }}">
+                    <div class="teacher-message-meta"><strong>{{ $selectedMessage->sender?->name ?? 'فرستنده' }}</strong><time>{{ $selectedMessage->created_at?->format('Y/m/d H:i') }}</time></div>
+                    <p>{{ $selectedMessage->body }}</p>
+                </article>
                 @foreach ($selectedMessage->replies as $reply)
-                    <div class="m {{ $reply->sender_id === auth()->id() ? 'me2' : '' }}">{{ $reply->sender?->name }}: {{ $reply->body }}</div>
+                    <article class="teacher-message-bubble {{ $reply->sender_id === auth()->id() ? 'is-own' : '' }}">
+                        <div class="teacher-message-meta"><strong>{{ $reply->sender?->name ?? 'پاسخ‌دهنده' }}</strong><time>{{ $reply->created_at?->format('Y/m/d H:i') }}</time></div>
+                        <p>{{ $reply->body }}</p>
+                    </article>
                 @endforeach
             </div>
             @if (!in_array($selectedMessage->status, ['closed', 'deleted'], true) && auth()->user()->hasPermissionTo('messages.reply'))
-                <form class="send" method="POST" action="{{ route('teacher.messages.reply', $selectedMessage) }}">
-                    @csrf
-                    <textarea name="body" required maxlength="30000" placeholder="پاسخ خود را بنویسید…"></textarea>
-                    <button class="b" type="submit">ارسال پاسخ</button>
-                </form>
+                <form class="teacher-thread-reply" method="POST" action="{{ route('teacher.messages.reply', $selectedMessage) }}">@csrf<textarea name="body" required maxlength="30000" placeholder="پاسخ خود را بنویسید…"></textarea><button class="b" type="submit">ارسال پاسخ</button></form>
             @endif
         @else
-            <p>برای مشاهده جزئیات، یک گفت‌وگو را انتخاب کنید.</p>
+            <div class="teacher-inbox-placeholder"><strong>یک گفت‌وگو را انتخاب کنید</strong><p>پیام‌ها و پاسخ‌ها در این بخش نمایش داده می‌شوند.</p></div>
         @endif
     </section>
 </div>
