@@ -9,6 +9,7 @@ use App\Models\ClassSession;
 use App\Models\User;
 use App\Notifications\AttendanceAbsenceNotification;
 use App\Services\Admin\AttendanceService;
+use App\Services\Learning\AttendanceGuardianNotifier;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Support\JalaliDate;
 use Carbon\CarbonImmutable;
@@ -41,6 +42,7 @@ class AttendanceController extends Controller
 
         $selectedDate = $this->resolveDate($request->query('date'));
         $date = $this->formatJalaliDate($selectedDate);
+        $dateIso = $selectedDate->format('Y-m-d');
 
         $sessions = $classroom
             ? ClassSession::query()
@@ -117,6 +119,7 @@ class AttendanceController extends Controller
             'classrooms',
             'classroom',
             'date',
+            'dateIso',
             'sessions',
             'session',
             'roster',
@@ -136,6 +139,7 @@ class AttendanceController extends Controller
             ->findOrFail($data['class_session_id']);
 
         $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);
+        app(AttendanceGuardianNotifier::class)->notifyThresholds($classroom, $data['attendance']);
 
         return redirect()->route('admin.attendance.index', [
             'class_id' => $classroom->id,

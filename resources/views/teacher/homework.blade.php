@@ -3,6 +3,13 @@
 @section('content')
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">محتوای آموزشی</span><h1>تکالیف کلاس‌ها</h1><p>تمرین متنی یا فایل PDF تعریف کنید و پاسخ‌های ارسال‌شده را بررسی کنید.</p></div></div>
+<section class="c teacher-date-filter">
+<form method="GET" action="{{ route('teacher.homework') }}" class="teacher-form" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+<div><label for="homework-from">از تاریخ</label><input id="homework-from" type="date" name="from" value="{{ $filters['from'] ?? '' }}"></div>
+<div><label for="homework-to">تا تاریخ</label><input id="homework-to" type="date" name="to" value="{{ $filters['to'] ?? '' }}"></div>
+<button class="b" type="submit">اعمال فیلتر</button><a class="b s" href="{{ route('teacher.homework') }}">پاک‌کردن</a>
+</form>
+</section>
 <div class="g g2"><section class="c"><h2>تعریف تکلیف جدید</h2>
 @if(auth()->user()->hasPermissionTo('homework.manage.assigned'))
 <form class="teacher-form" method="POST" action="{{ route('teacher.homework.store') }}" enctype="multipart/form-data">@csrf
@@ -19,7 +26,7 @@
 @endif
 </section>
 <section class="c"><h2>تکلیف‌های ثبت‌شده</h2>
-@forelse($homework as $item)<div class="teacher-list-card"><div><strong>{{ $item->title }}</strong><small>{{ $item->classroom?->name }} · مهلت: <time data-jalali-display="{{ $item->due_at?->format('Y-m-d H:i') }}">{{ $item->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت' }}</time></small></div><div class="teacher-progress"><span style="width:{{ min(100,$item->submissions_count*100/max($item->classroom?->students_count ?? 1,1)) }}%"></span></div><div class="teacher-list-meta"><span>{{ $item->submissions_count }} پاسخ ثبت‌شده</span><span>{{ $item->attachment_path ? 'دارای فایل پیوست' : 'متن / شرح' }}</span>@if($item->attachment_path)<a href="{{ route('teacher.homework.attachment', $item) }}">دریافت پیوست</a>@endif</div></div>
+@forelse($homework as $item)<div class="teacher-list-card"><div><strong>{{ $item->title }}</strong><small>{{ $item->classroom?->name }} · مهلت: <time>{{ $item->due_at ? \App\Support\PersianDate::format($item->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</time></small></div><div class="teacher-progress"><span style="width:{{ min(100,$item->submissions_count*100/max($item->classroom?->students_count ?? 1,1)) }}%"></span></div><div class="teacher-list-meta"><span>{{ $item->submissions_count }} پاسخ ثبت‌شده</span><span>{{ $item->attachment_path ? 'دارای فایل پیوست' : 'متن / شرح' }}</span>@if($item->attachment_path)<a href="{{ route('teacher.homework.attachment', $item) }}">دریافت پیوست</a>@endif</div></div>
 @empty<p>هنوز تکلیفی برای کلاس‌های شما ثبت نشده است.</p>@endforelse{{ $homework->links() }}</section></div>
 <section class="c teacher-review-panel"><div class="teacher-section-head"><div><h2>بررسی و نمره‌دهی پاسخ‌ها</h2><p>فقط پاسخ‌های کلاس‌های تخصیص‌یافته به شما نمایش داده می‌شوند.</p></div></div>
 @forelse($submissions as $submission)

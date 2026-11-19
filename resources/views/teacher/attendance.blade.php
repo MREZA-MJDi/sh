@@ -7,8 +7,8 @@
   <label>کلاس</label><select name="classroom_id" onchange="this.form.submit()">
    @foreach ($classrooms as $item)<option value="{{ $item->id }}" @selected($classroom?->id === $item->id)>{{ $item->name }}</option>@endforeach
   </select>
-  <label>جلسه برگزارشده</label><select name="class_session_id">
-   @foreach ($sessions as $item)<option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} · {{ $item->starts_at?->format('Y/m/d H:i') }}</option>@endforeach
+  <label>تاریخ جلسه</label><input type="date" name="date" value="{{ $dateIso }}" onchange="this.form.submit()"><label>جلسه برگزارشده</label><select name="class_session_id">
+   @foreach ($sessions as $item)<option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} · {{ $item->starts_at ? \App\Support\PersianDate::format($item->starts_at, 'Y/m/d H:i') : '—' }}</option>@endforeach
   </select>
   <button class="b s" type="submit">نمایش جلسه</button>
  </form>
@@ -19,7 +19,7 @@
   <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
   <input type="hidden" name="class_session_id" value="{{ $session->id }}">
   <section class="c">
-   <h3>{{ $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</h3>
+   <h3>{{ $classroom->name }} · {{ $session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</h3>
    @forelse ($students as $student)
     <div class="row"><div>{{ $student['name'] }}</div>
      <select name="attendance[{{ $student['id'] }}][status]" required @disabled(!auth()->user()->hasPermissionTo('attendance.manage.assigned'))>
@@ -43,7 +43,7 @@
 <section class="c">
  <h3>سوابق حضور و غیاب کلاس‌های من</h3>
  @forelse ($history as $record)
-  <div class="row"><div>{{ $record->student?->name }}<small>{{ $record->classroom?->name }} · {{ $record->session_date?->format('Y/m/d') }}</small></div>
+  <div class="row"><div>{{ $record->student?->name }}<small>{{ $record->classroom?->name }} · {{ $record->session_date ? \App\Support\PersianDate::format($record->session_date, 'Y/m/d') : '—' }}</small></div>
    @php $status = ['present'=>['حاضر','gn'],'absent'=>['غایب','rd'],'late'=>['تأخیر','am'],'excused'=>['موجه','bl']][$record->status] ?? ['ثبت‌شده','bl']; @endphp
    <i class="bd {{ $status[1] }}">{{ $status[0] }}</i>
   </div>

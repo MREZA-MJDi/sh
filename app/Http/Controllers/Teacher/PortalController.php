@@ -18,6 +18,7 @@ use App\Notifications\MessageActivityNotification;
 use App\Notifications\ParentMeetingNotification;
 use App\Models\ParentMeeting;
 use App\Services\Admin\AttendanceService;
+use App\Services\Learning\AttendanceGuardianNotifier;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\MessageWorkspaceService;
 use App\Services\Skyroom\SkyroomService;
@@ -56,6 +57,10 @@ final class PortalController extends Controller
 
     public function homework(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $filters = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $classrooms = $workspace->queryFor($request->user())
             ->where('classrooms.status', 'active')
@@ -63,6 +68,8 @@ final class PortalController extends Controller
             ->orderBy('classrooms.name')
             ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '<=', $date))
             ->whereIn('classroom_id', clone $classroomIds)
             ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students')])
             ->withCount('submissions')
@@ -71,6 +78,8 @@ final class PortalController extends Controller
             ->withQueryString();
 
         $submissions = HomeworkSubmission::query()
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '<=', $date))
             ->where('status', 'submitted')
             ->whereHas('homework', fn ($query) => $query->whereIn('classroom_id', clone $classroomIds))
             ->with(['homework:id,title,classroom_id', 'student:id,name', 'files'])
@@ -78,7 +87,7 @@ final class PortalController extends Controller
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
-        return view('teacher.homework', compact('homework', 'submissions', 'classrooms'));
+        return view('teacher.homework', compact('homework', 'submissions', 'classrooms', 'filters'));
     }
 
     public function videos(Request $request, ClassroomWorkspaceService $workspace): View
@@ -179,10 +188,12 @@ final class PortalController extends Controller
         $classroom = $classroom
             ? $workspace->queryFor($request->user())->with('students:id,name')->findOrFail($classroom->id)
             : null;
+        $date = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']])['date'] ?? null;
 
         $sessions = $classroom
             ? ClassSession::query()->where('classroom_id', $classroom->id)
                 ->where('status', '!=', 'cancelled')
+                ->when($date, fn ($query, $selectedDate) => $query->whereDate('starts_at', $selectedDate))
                 ->where('starts_at', '<=', now())
                 ->latest('starts_at')->limit(12)->get()
             : collect();
@@ -206,7 +217,9 @@ final class PortalController extends Controller
             ->with(['student:id,name', 'classroom:id,name', 'session:id,starts_at'])
             ->latest('session_date')->latest('id')->limit(30)->get();
 
-        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history'));
+        $dateIso = $date ?: $session?->starts_at?->toDateString() ?: now()->toDateString();
+
+        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history', 'dateIso'));
     }
 
     public function storeAttendance(
@@ -221,6 +234,7 @@ final class PortalController extends Controller
             ->findOrFail($data['class_session_id']);
 
         $attendance->record($classroom, $session, $data['attendance'], (int) $request->user()->id);
+        app(AttendanceGuardianNotifier::class)->notifyThresholds($classroom, $data['attendance']);
 
         return back()->with('success', 'حضور و غیاب جلسه ذخیره شد.');
     }

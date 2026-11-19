@@ -14,6 +14,7 @@ final class AttendanceAbsenceNotification extends Notification
         private readonly User $student,
         private readonly string $classroomName,
         private readonly int $absenceCount,
+        private readonly ?int $classroomId = null,
     ) {}
 
     public function via(object $notifiable): array
@@ -29,6 +30,8 @@ final class AttendanceAbsenceNotification extends Notification
             'student_id' => $this->student->id,
             'classroom' => $this->classroomName,
             'absence_count' => $this->absenceCount,
+            'classroom_id' => $this->classroomId,
+            'dedupe_key' => $this->classroomId ? 'attendance-absence:'.$this->classroomId.':'.$this->student->id : null,
             'url' => route('guardian.dashboard', ['child' => $this->student->id]),
         ];
     }

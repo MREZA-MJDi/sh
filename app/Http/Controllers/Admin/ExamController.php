@@ -10,15 +10,23 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\ExamManagementService;
 use App\Services\Admin\ExamWorkspaceService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ExamController extends Controller
 {
-    public function index(ClassroomWorkspaceService $classrooms, ExamWorkspaceService $exams): View
+    public function index(Request $request, ClassroomWorkspaceService $classrooms, ExamWorkspaceService $exams): View
     {
-        $user = auth()->user();
-        $records = $exams->queryFor($user)->with(['classroom', 'course'])
-            ->withCount(['results', 'questions', 'attempts'])->latest()->paginate(15);
+        $filters = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
+        $user = $request->user();
+        $records = $exams->queryFor($user)
+            ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '<=', $date))
+            ->with(['classroom', 'course'])
+            ->withCount(['results', 'questions', 'attempts'])->latest()->paginate(15)->withQueryString();
         $classroomOptions = $classrooms->queryFor($user)->orderBy('name')->get(['id', 'name']);
         $courseOptions = $classrooms->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
 
@@ -38,6 +46,7 @@ class ExamController extends Controller
             'courses' => $courseOptions,
             'teacherView' => $teacherView,
             'stats' => $stats,
+            'filters' => $filters,
         ]);
     }
 

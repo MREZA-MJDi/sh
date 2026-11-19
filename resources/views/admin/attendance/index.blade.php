@@ -7,6 +7,7 @@
 @endphp
 
 <x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="ثبت حضور هر جلسه و بررسی غیبت دانش‌آموزان در همه دوره‌ها"/>
+<p class="adm-muted">تاریخ انتخاب‌شده: {{ $date }} (شمسی)</p>
 
 <form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}"></form>
 <x-admin.panel flush data-tone="track">
@@ -21,7 +22,7 @@
           <option value="{{ $v }}" @selected((int) $classroom?->id === (int) $v)>{{ $t }}</option>
         @endforeach
       </select>
-      <input class="adm-input" form="attendance-filter" name="date" value="{{ $date }}" style="width:140px" aria-label="تاریخ" autocomplete="off">
+      <label class="adm-label">تاریخ جلسه <input class="adm-input" type="date" form="attendance-filter" name="date" value="{{ $dateIso }}" aria-label="تاریخ جلسه"></label>
       <select class="adm-select" name="session" form="attendance-filter" aria-label="جلسه">
         @forelse ($sessions as $item)
           <option value="{{ $item->id }}" @selected($session?->id === $item->id)>
