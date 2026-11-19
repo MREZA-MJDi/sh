@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\ContactMessage;
-use App\\Models\\Consultation;
-use App\\Models\\Message;
-use App\\Models\\ParentMeeting;
-use App\\Services\\Admin\\ClassroomWorkspaceService;
-use App\\Services\\Admin\\MessageWorkspaceService;
-use Illuminate\\Http\\Request;
-use Illuminate\\Pagination\\LengthAwarePaginator;
-use Illuminate\\View\\View;
-use Illuminate\\Support\\Str;
+use App\Http\Controllers\Controller;
+use App\Models\ContactMessage;
+use App\Models\Consultation;
+use App\Models\Message;
+use App\Models\ParentMeeting;
+use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Admin\MessageWorkspaceService;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 final class CommunicationCenterController extends Controller
 {
