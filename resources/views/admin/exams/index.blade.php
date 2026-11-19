@@ -29,6 +29,14 @@
   <x-admin.stat tone="track" icon="edit" label="پیش‌نویس‌ها" :value="number_format($stats['drafts'])" hint="نیازمند تکمیل و انتشار"/>
 </div>
 
+<x-admin.panel title="تقویم آزمون‌ها" desc="بازه شروع آزمون‌ها را از تقویم انتخاب کنید." data-tone="track">
+  <form method="GET" action="{{ url()->current() }}" class="adm-toolbar">
+    <label class="adm-label">از تاریخ <input class="adm-input" type="date" name="from" value="{{ $filters['from'] ?? '' }}"></label>
+    <label class="adm-label">تا تاریخ <input class="adm-input" type="date" name="to" value="{{ $filters['to'] ?? '' }}"></label>
+    <div class="adm-toolbar-end"><x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn><x-admin.btn :href="url()->current()" variant="line" size="sm">پاک‌کردن</x-admin.btn></div>
+  </form>
+</x-admin.panel>
+
 <x-admin.panel flush data-filter data-tone="track">
   <x-admin.toolbar placeholder="جستجوی عنوان آزمون…">
     <x-admin.filter-select key="provider" placeholder="همه سرویس‌ها" :options="['internal' => 'داخلی شیخان', 'quiz24' => 'Quiz24']"/>
