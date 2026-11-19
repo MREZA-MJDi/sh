@@ -1,5 +1,6 @@
 @props(['course'])
 
+@php($coverImageUrl = $course->coverImageUrl ?: $course->teaserPosterUrl)
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 
 <a class="ac-card ac-course" href="{{ route('public.courses.show', $course->slug) }}" aria-label="مشاهده دوره {{ $course->title }}">
