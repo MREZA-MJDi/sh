@@ -25,7 +25,7 @@
       <x-admin.btn variant="line" icon="file" :href="route('admin.homework.index')">تکالیف</x-admin.btn>
     @endcan
     @can('messages.view.all')
-      <x-admin.btn variant="line" icon="msg" :href="route('admin.messages.index')">پیام‌ها</x-admin.btn>
+      <x-admin.btn variant="line" icon="msg" :href="route('admin.communication-center.index')">پیام‌ها</x-admin.btn>
     @endcan
     @can('integrations.manage')
       <x-admin.btn variant="line" icon="video" :href="route('admin.spotplayer.index')">ویدیوها و اتصال سرویس</x-admin.btn>
@@ -49,7 +49,7 @@
         <a href="{{ route('admin.homework.index') }}" data-tone="track"><span class="adm-stat-ico"><x-admin.icon name="file"/></span>پاسخ‌های تکلیف در انتظار بررسی<strong class="adm-num">{{ number_format($stats['pending_homework'] ?? 0) }}</strong></a>
       @endcan
       @canany(['messages.view.all', 'messages.view.assigned'])
-        <a href="{{ route('admin.messages.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="msg"/></span>گفت‌وگوهای باز<strong class="adm-num">{{ number_format($openMessageCount ?? 0) }}</strong></a>
+        <a href="{{ route('admin.communication-center.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="msg"/></span>گفت‌وگوهای باز<strong class="adm-num">{{ number_format($openMessageCount ?? 0) }}</strong></a>
       @endcanany
       @can('consultations.manage')
         <a href="{{ route('admin.consultations.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="chat"/></span>درخواست‌های مشاوره جدید<strong class="adm-num">{{ number_format($pendingConsultationCount ?? 0) }}</strong></a>
