@@ -9,6 +9,7 @@ use App\Models\ClassSession;
 use App\Models\User;
 use App\Notifications\AttendanceAbsenceNotification;
 use App\Services\Admin\AttendanceService;
+use App\Services\Learning\AttendanceGuardianNotifier;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Support\JalaliDate;
 use Carbon\CarbonImmutable;
