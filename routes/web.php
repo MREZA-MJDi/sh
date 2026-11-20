@@ -246,6 +246,10 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
 
     Route::get('/messages', [MessageController::class, 'index'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.index');
     Route::post('/messages/{message}/reply', [MessageController::class, 'reply'])->middleware('permission:messages.reply')->name('messages.reply');
+    Route::post('/messages/{message}/close', [MessageController::class, 'close'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.close');
+    Route::post('/messages/{message}/reopen', [MessageController::class, 'reopen'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.reopen');
+    Route::post('/messages/{message}/notes', [MessageController::class, 'addNote'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.notes.store');
+    Route::post('/messages/{message}/participant', [MessageController::class, 'updateParticipant'])->middleware('permission:messages.view.all')->name('messages.participant.update');
     Route::patch('/messages/{message}/read', [MessageController::class, 'markRead'])->middleware('permission:messages.view.all,messages.view.assigned')->name('messages.read');
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->middleware('permission:messages.view.all')->name('messages.destroy');
 
