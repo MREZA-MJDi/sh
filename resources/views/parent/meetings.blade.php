@@ -5,7 +5,7 @@
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>درخواست جلسه جدید</h3><p class="parent-form-intro">موضوع و زمان پیشنهادی را ثبت کنید؛ زمان نهایی پس از هماهنگی آموزشگاه اعلام می‌شود.</p>
-        <form method="POST" action="{{ route('guardian.meetings.store') }}">
+        <form method="POST" action="{{ route('guardian.meetings.store') }}" class="parent-simple-form">
             @csrf
             <label>فرزند</label>
             <select name="student_id" required>
