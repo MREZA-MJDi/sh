@@ -187,7 +187,7 @@
         <div class="adm-grid adm-cols-2">
           @forelse($classrooms as $classroom)
             @php
-              $next = $classroom->sessions->where('status', 'scheduled')->filter(fn ($item) => $item->starts_at?->isFuture())->sortBy('starts_at')->first();
+              $next = $classroom->sessions->first();
               $scheduleDays = data_get($classroom->schedule, 'days', []);
               $scheduleLabel = collect($scheduleDays)->map(fn ($day) => \App\Support\PersianDate::weekdayName($day))->join('، ');
             @endphp
