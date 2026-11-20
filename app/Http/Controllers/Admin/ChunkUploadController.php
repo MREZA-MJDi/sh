@@ -315,8 +315,11 @@ final class ChunkUploadController extends Controller
 
             if ($session->target === 'teaser') {
                 $course = Course::query()->findOrFail($session->target_id);
-                DB::transaction(function () use ($course, $session, $destination): void {
+                $oldOriginalPath = null;
+
+                DB::transaction(function () use ($course, $session, $destination, &$oldOriginalPath): void {
                     $lockedCourse = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+                    $oldOriginalPath = $lockedCourse->teaser_original_path;
 
                     $lockedCourse->update([
                         'teaser_original_path' => $destination,
@@ -326,6 +329,10 @@ final class ChunkUploadController extends Controller
                     $session->update(['status' => 'completed', 'completed_at' => now()]);
                     ProcessTeaserVideo::dispatch($lockedCourse->id, $destination)->afterCommit();
                 });
+
+                if ($oldOriginalPath && $oldOriginalPath !== $destination) {
+                    $disk->delete($oldOriginalPath);
+                }
 
                 $disk->deleteDirectory($chunkDirectory);
 
