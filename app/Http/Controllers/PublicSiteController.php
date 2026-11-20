@@ -205,6 +205,7 @@ final class PublicSiteController extends Controller
         $allowedEmbedHosts = array_map('strtolower', config('services.spotplayer.embed_hosts', []));
         $playableVideos = $hasCourseAccess && ($features['recorded_video'] ?? false)
             ? SpotPlayerVideo::query()
+                ->where('approval_status', 'approved')
                 ->where('course_id', $course->id)
                 ->where(function ($scope) use ($activeClassroomIds): void {
                     $scope->whereNull('classroom_id')
@@ -283,6 +284,7 @@ final class PublicSiteController extends Controller
         abort_unless($course->featureEnabled('recorded_video'), 404);
 
         $courseVideo = SpotPlayerVideo::query()
+            ->where('approval_status', 'approved')
             ->where('id', $video)
             ->where('course_id', $course->id)
             ->where('status', 'active')
