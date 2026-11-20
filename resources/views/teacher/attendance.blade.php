@@ -3,22 +3,27 @@
 @section('content')
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">مدیریت کلاس</span><h1>حضور و غیاب</h1><p>ثبت وضعیت حضور دانش‌آموزان و مرور سوابق کلاس‌های تخصیص‌یافته.</p></div></div>
 <section class="c teacher-attendance-filter">
+ @if($classrooms->isNotEmpty())
  <form method="GET" action="{{ route('teacher.attendance') }}" class="teacher-list-filters">
-  <label>کلاس</label><select name="classroom_id" onchange="this.form.submit()">
+  <label><span>کلاس</span><select name="classroom_id" onchange="this.form.submit()">
    @foreach ($classrooms as $item)<option value="{{ $item->id }}" @selected($classroom?->id === $item->id)>{{ $item->name }}</option>@endforeach
-  </select>
-  <label>تاریخ جلسه</label><input type="date" name="date" value="{{ $dateIso }}" onchange="this.form.submit()"><label>جلسه برگزارشده</label><select name="class_session_id">
+  </select></label>
+  <label><span>تاریخ جلسه</span><input type="date" name="date" value="{{ $dateIso }}" onchange="this.form.submit()"></label>
+  <label><span>جلسه برگزارشده</span><select name="class_session_id">
    @foreach ($sessions as $item)<option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} · {{ $item->starts_at ? \App\Support\PersianDate::format($item->starts_at, 'Y/m/d H:i') : '—' }}</option>@endforeach
-  </select>
+  </select></label>
   <button class="b s" type="submit">نمایش جلسه</button>
  </form>
+ @else
+ <div class="teacher-empty-state"><strong>هنوز کلاسی به شما تخصیص داده نشده است</strong><span>پس از تخصیص کلاس، ثبت حضور و غیاب از همین بخش در دسترس خواهد بود.</span></div>
+ @endif
 </section>
 @if ($classroom && $session)
  <form method="POST" action="{{ route('teacher.attendance.store') }}">
   @csrf
   <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
   <input type="hidden" name="class_session_id" value="{{ $session->id }}">
-  <section class="c">
+  <section class="c teacher-attendance-roster">
    <div class="teacher-section-head"><div><h3>{{ $classroom->name }}</h3><p>{{ $session->title ?: 'جلسه آموزشی' }} · {{ $session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</p></div><span class="teacher-result-count">{{ $students->count() }} دانش‌آموز</span></div>
    @forelse ($students as $student)
     <div class="row"><div>{{ $student['name'] }}</div>
