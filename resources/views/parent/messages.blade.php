@@ -25,7 +25,7 @@
         @empty
             <p class="teacher-inbox-empty">برای این فرزند گفت‌وگویی ثبت نشده است.</p>
         @endforelse
-        {{ $messages->links() }}
+        <div class="parent-pagination">{{ $messages->links() }}</div>
     </aside>
     <section class="teacher-inbox-thread c">
         @if ($selectedMessage)
