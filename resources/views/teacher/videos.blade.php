@@ -130,7 +130,12 @@
     </section>
 
     <section class="c">
-        <h2>ویدئوهای ثبت‌شده</h2>
+        <div class="teacher-section-head"><div><h2>ویدئوهای ثبت‌شده</h2><p>{{ $videos->total() }} ویدئو · قابل جست‌وجو و مرتب‌سازی</p></div></div>
+        <form method="GET" action="{{ route('teacher.videos') }}" class="teacher-list-filters">
+            <label class="teacher-search-field"><span class="sr-only">جست‌وجوی ویدئو</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="جست‌وجوی عنوان ویدئو"></label>
+            <label><span class="sr-only">مرتب‌سازی</span><select name="sort"><option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>جدیدترین</option><option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>قدیمی‌ترین</option><option value="title" @selected(($filters['sort'] ?? '') === 'title')>عنوان</option></select></label>
+            <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.videos') }}">پاک‌کردن</a>
+        </form>
         @forelse($videos as $video)
             @php
                 $statusLabel = match ($video->approval_status) {
