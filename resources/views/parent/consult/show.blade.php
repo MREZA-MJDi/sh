@@ -12,11 +12,12 @@
     @foreach ($consultation->replies as $reply)
         <div class="row"><div>{{ $reply->sender?->name }}<small>{{ $reply->body }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</small></div></div>
     @endforeach
+    @if (($consultation->replies_count ?? 0) > $consultation->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
     @if (!in_array($consultation->status, ['done', 'cancelled'], true))
         <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}">
             @csrf
             <label>پیام جدید</label>
-            <textarea name="body" required minlength="2" maxlength="5000"></textarea>
+            <textarea name="body" required minlength="2" maxlength="5000">{{ old('body') }}</textarea>
             <button class="b" type="submit">ارسال پیام</button>
         </form>
     @endif
