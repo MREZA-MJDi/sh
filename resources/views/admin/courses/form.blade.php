@@ -176,7 +176,7 @@
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
             @endforelse
           </div>
-          <p class="adm-muted">فایل بارگذاری‌شده مستقیماً از پلیر داخلی پخش می‌شود و نیازی به شناسه یا لینک SpotPlayer ندارد. اگر فقط شناسه سرویس قبلی را وارد کنی، پخش آن پس از آماده‌شدن اتصال فعال می‌شود.</p>
+          <p class="adm-muted">فایل بارگذاری‌شده مستقیماً از پخش‌کننده داخل سایت پخش می‌شود و نیازی به شناسه یا لینک سرویس قبلی ندارد. اگر فقط شناسه سرویس قبلی را وارد کنی، پخش آن پس از آماده‌شدن اتصال فعال می‌شود.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @endif
@@ -303,7 +303,7 @@
       <x-admin.select label="وضعیت" name="status" :options="['scheduled' => 'برنامه‌ریزی‌شده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده']" :selected="'scheduled'" required/>
       <x-admin.input label="زمان شروع" name="starts_at" type="datetime-local" :value="now()->setTime(9, 0)->format('Y-m-d\\TH:i')" required/>
       <x-admin.input label="زمان پایان" name="ends_at" type="datetime-local"/>
-      <x-admin.select label="اتاق آنلاین" name="meeting_provider" :options="['skyroom' => 'اتاق کلاس', 'jitsi' => 'Jitsi Meet', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی']" :selected="'skyroom'"/>
+      <x-admin.select label="اتاق آنلاین" name="meeting_provider" :options="['skyroom' => 'اتاق کلاس', 'jitsi' => 'سرویس ویدیویی دیگر', 'bbb' => 'سرویس ویدیویی دیگر (گزینه دوم)', 'link' => 'لینک دستی']" :selected="'skyroom'"/>
       <x-admin.input label="لینک جلسه (اختیاری)" name="meeting_url" wide placeholder="https://..."/>
       <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
     </x-admin.modal>
