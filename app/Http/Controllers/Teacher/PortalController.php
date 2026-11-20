@@ -230,16 +230,28 @@ final class PortalController extends Controller
             : collect();
 
         $session = $sessions->firstWhere('id', $request->integer('class_session_id')) ?? $sessions->first();
-        $records = $session
-            ? Attendance::query()->where('class_session_id', $session->id)->get()->keyBy('student_id')
+        $studentPaginator = $classroom
+            ? $classroom->students()
+                ->orderBy('users.name')
+                ->orderBy('users.id')
+                ->paginate(100, ['users.id', 'users.name'], 'students')
+                ->withQueryString()
+            : null;
+        $studentIds = $studentPaginator?->getCollection()->modelKeys() ?? [];
+        $records = $session && $studentIds
+            ? Attendance::query()
+                ->where('class_session_id', $session->id)
+                ->whereIn('student_id', $studentIds)
+                ->get()
+                ->keyBy('student_id')
             : collect();
 
-        $students = $classroom?->students->map(fn ($student) => [
+        $students = $studentPaginator?->getCollection()->map(fn ($student) => [
             'id' => $student->id,
             'name' => $student->name,
             'status' => $records->get($student->id)?->status,
             'note' => $records->get($student->id)?->note,
-            'joined_at' => $records->get($student->id)?->joined_at?->format('Y-m-d\TH:i'),
+            'joined_at' => $records->get($student->id)?->joined_at?->format('Y-m-d\\TH:i'),
             'attended_minutes' => $records->get($student->id)?->attended_minutes,
         ]) ?? collect();
 
@@ -250,7 +262,7 @@ final class PortalController extends Controller
 
         $dateIso = $date ?: $session?->starts_at?->toDateString() ?: now()->toDateString();
 
-        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history', 'dateIso'));
+        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'studentPaginator', 'history', 'dateIso'));
     }
 
     public function storeAttendance(
