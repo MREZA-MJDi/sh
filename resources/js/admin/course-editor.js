@@ -333,17 +333,23 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
 });
 
 
-document.addEventListener('change', (event) => {
-  const classroomSelect = event.target.closest('[data-resource-classroom]');
-  if (!classroomSelect) return;
-
-  const modal = classroomSelect.closest('form');
-  const visibilitySelect = modal?.querySelector('[data-resource-visibility]');
+const syncResourceVisibility = (form) => {
+  const classroomSelect = form?.querySelector('[data-resource-classroom]');
+  const visibilitySelect = form?.querySelector('[data-resource-visibility]');
   const publicOption = visibilitySelect?.querySelector('option[value="public"]');
-  if (!visibilitySelect || !publicOption) return;
+  if (!classroomSelect || !visibilitySelect || !publicOption) return;
 
   publicOption.disabled = Boolean(classroomSelect.value);
   if (classroomSelect.value && visibilitySelect.value === 'public') {
     visibilitySelect.value = 'enrolled';
   }
+};
+
+document.addEventListener('change', (event) => {
+  if (!event.target.matches?.('[data-resource-classroom]')) return;
+  syncResourceVisibility(event.target.closest('form'));
+});
+
+document.addEventListener('reset', (event) => {
+  Promise.resolve().then(() => syncResourceVisibility(event.target));
 });
