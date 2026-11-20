@@ -67,27 +67,110 @@ import '../shared/iranian-locale.js';
     filter();
   });
 
-  /* تم تیره/روشن و پالت رنگ */
+  /* Theme and palette controls keep their accessible state in sync. */
   var tg = $('#themeToggle');
+  var syncThemeButton = function () {
+    if (!tg) return;
+    var dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    tg.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    tg.setAttribute('aria-label', dark ? 'فعال‌سازی تم روشن' : 'فعال‌سازی تم تیره');
+    tg.title = dark ? 'تم روشن' : 'تم تیره';
+  };
+  syncThemeButton();
   if (tg) tg.addEventListener('click', function () {
     var cur = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     var next = cur === 'dark' ? 'light' : 'dark';
     root.dataset.theme = next;
     try { localStorage.setItem('th-theme', next); } catch (e) {}
+    syncThemeButton();
   });
-  $$('[data-pal]').forEach(function (b) {
+  var paletteButtons = $('[data-pal]');
+  var syncPaletteButtons = function () {
+    var active = root.dataset.pal || '';
+    paletteButtons.forEach(function (button) {
+      var selected = (button.getAttribute('data-pal') || '') === active;
+      button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+  };
+  syncPaletteButtons();
+  paletteButtons.forEach(function (b) {
     b.addEventListener('click', function () {
-      var p = b.getAttribute('data-pal');
+      var p = b.getAttribute('data-pal') || '';
       if (p) root.dataset.pal = p; else delete root.dataset.pal;
       try { localStorage.setItem('th-pal', p); } catch (e) {}
+      syncPaletteButtons();
     });
   });
 
-  /* جست‌وجوی زنده بین ردیف‌های صفحه */
+  /* Mobile navigation drawer: focus, backdrop, Escape and route changes. */
+  var navToggle = $('#teacherNavToggle');
+  var navSidebar = $('#teacherSidebar');
+  var navBackdrop = $('#teacherNavBackdrop');
+  var closeTeacherNav = function (restoreFocus) {
+    if (!navSidebar || !navToggle || !navBackdrop) return;
+    document.body.classList.remove('teacher-nav-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', 'باز کردن منوی اصلی');
+    navBackdrop.hidden = true;
+    if (restoreFocus) navToggle.focus();
+  };
+  var openTeacherNav = function () {
+    if (!navSidebar || !navToggle || !navBackdrop) return;
+    document.body.classList.add('teacher-nav-open');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.setAttribute('aria-label', 'بستن منوی اصلی');
+    navBackdrop.hidden = false;
+    navSidebar.focus();
+  };
+  if (navToggle) navToggle.addEventListener('click', function () {
+    if (navToggle.getAttribute('aria-expanded') === 'true') closeTeacherNav(true);
+    else openTeacherNav();
+  });
+  if (navBackdrop) navBackdrop.addEventListener('click', function () { closeTeacherNav(true); });
+  if (navSidebar) navSidebar.addEventListener('click', function (event) {
+    if (event.target.closest('a')) closeTeacherNav(false);
+  });
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 760) closeTeacherNav(false);
+  });
+
+  /* Only one topbar popover may stay open at a time. */
+  var topbarMenus = $('.teacher-menu');
+  topbarMenus.forEach(function (menu) {
+    menu.addEventListener('toggle', function () {
+      if (!menu.open) return;
+      topbarMenus.forEach(function (other) { if (other !== menu) other.open = false; });
+    });
+  });
+  document.addEventListener('click', function (event) {
+    topbarMenus.forEach(function (menu) {
+      if (!menu.contains(event.target)) menu.open = false;
+    });
+  });
+
+  /* Live filtering is explicitly scoped to the current server-rendered page. */
   var sr = $('#globalSearch');
-  if (sr) sr.addEventListener('input', function () {
-    var q = sr.value.trim().toLowerCase();
-    $$('.row, .teacher-list-card, .teacher-review-row, .teacher-live-session-card').forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1; });
+  var searchClear = $('#teacherSearchClear');
+  var searchStatus = $('#teacherSearchResults');
+  var searchableSelector = '.row, .teacher-list-card, .teacher-review-row, .teacher-live-session-card, .teacher-inbox-item, .teacher-week-event';
+  var searchableItems = $(searchableSelector);
+  var updatePageSearch = function () {
+    if (!sr) return;
+    var q = sr.value.trim().toLocaleLowerCase();
+    var visible = 0;
+    searchableItems.forEach(function (el) {
+      var match = !q || el.textContent.toLocaleLowerCase().indexOf(q) !== -1;
+      el.hidden = !match;
+      if (match) visible++;
+    });
+    if (searchClear) searchClear.hidden = !q;
+    if (searchStatus) searchStatus.textContent = q ? (visible ? visible + ' نتیجه در این صفحه پیدا شد.' : 'نتیجه‌ای در این صفحه پیدا نشد.') : '';
+  };
+  if (sr) sr.addEventListener('input', updatePageSearch);
+  if (searchClear && sr) searchClear.addEventListener('click', function () {
+    sr.value = '';
+    updatePageSearch();
+    sr.focus();
   });
 
   /* ---------- Modal افزودن/ویرایش ---------- */
@@ -128,7 +211,7 @@ import '../shared/iranian-locale.js';
       d._t = setTimeout(function () { disarm(d); }, 4000);
     }
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModals(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModals(); topbarMenus.forEach(function (menu) { menu.open = false; }); closeTeacherNav(true); } });
 
   /* ---------- حضور و غیاب: چرخش وضعیت حاضر ← غایب ← تأخیر ---------- */
   var rc = $('[data-rollcall]');
