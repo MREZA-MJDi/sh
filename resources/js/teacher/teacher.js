@@ -160,8 +160,9 @@ import '../shared/iranian-locale.js';
   var sr = $('#globalSearch');
   var searchClear = $('#teacherSearchClear');
   var searchStatus = $('#teacherSearchResults');
+  var searchLinks = $('#teacherSearchLinks');
   var searchableSelector = '.row, .teacher-list-card, .teacher-review-row, .teacher-live-session-card, .teacher-inbox-item, .teacher-week-event';
-  var searchableItems = $(searchableSelector);
+  var searchableItems = $(searchableSelector).filter(function (el) { return !el.parentElement.closest(searchableSelector); });
   var updatePageSearch = function () {
     if (!sr) return;
     var q = sr.value.trim().toLocaleLowerCase();
@@ -172,7 +173,11 @@ import '../shared/iranian-locale.js';
       if (match) visible++;
     });
     if (searchClear) searchClear.hidden = !q;
-    if (searchStatus) searchStatus.textContent = q ? (visible ? visible + ' نتیجه در این صفحه پیدا شد.' : 'نتیجه‌ای در این صفحه پیدا نشد.') : '';
+    if (searchStatus) searchStatus.textContent = q ? (visible ? visible + ' نتیجه در محتوای صفحه پیدا شد.' : 'نتیجه‌ای در محتوای صفحه پیدا نشد؛ بخش‌های پنل نیز بررسی شدند.') : '';
+    if (searchLinks) {
+      searchLinks.hidden = !q;
+      $('[data-search-route]', searchLinks).forEach(function (link) { link.hidden = !!q && link.textContent.toLocaleLowerCase().indexOf(q) === -1; });
+    }
   };
   if (sr) sr.addEventListener('input', updatePageSearch);
   if (searchClear && sr) searchClear.addEventListener('click', function () {
