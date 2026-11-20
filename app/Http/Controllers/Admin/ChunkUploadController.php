@@ -95,7 +95,7 @@ final class ChunkUploadController extends Controller
                 'status' => 'uploading',
                 'bytes_uploaded' => 0,
                 'metadata' => $metadata,
-                'expires_at' => now()->addHours(2),
+                'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
             ]);
         });
 
@@ -168,7 +168,10 @@ final class ChunkUploadController extends Controller
                 abort(500, 'ذخیره تکه آپلود ناموفق بود.');
             }
 
-            $locked->update(['bytes_uploaded' => $newBytes]);
+            $locked->update([
+                'bytes_uploaded' => $newBytes,
+                'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
+            ]);
 
             return $locked->refresh();
         });
@@ -413,7 +416,7 @@ final class ChunkUploadController extends Controller
 
         $session->update([
             'bytes_uploaded' => $verifiedBytes,
-            'expires_at' => now()->addHours(2),
+            'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
         ]);
 
         return response()->json([
