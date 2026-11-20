@@ -82,6 +82,24 @@ final class TeacherVideoRouteAccessTest extends TestCase
         ]);
         Notification::assertSentTo($admin, CourseVideoSubmittedForReview::class);
 
+        // A teacher may submit a recording for the whole course without choosing a classroom or session.
+        $this->actingAs($teacher)
+            ->post(route('teacher.spotplayer.videos.store'), [
+                'title' => 'ویدیوی مشترک کل دوره',
+                'course_id' => $ownCourse->id,
+                'external_id' => 'spotplayer-course-wide-456',
+                'status' => 'waiting_contract',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('spot_player_videos', [
+            'course_id' => $ownCourse->id,
+            'title' => 'ویدیوی مشترک کل دوره',
+            'classroom_id' => null,
+            'class_session_id' => null,
+            'approval_status' => 'pending',
+        ]);
+
         $this->actingAs($teacher)
             ->from(route('teacher.videos'))
             ->post(route('teacher.spotplayer.videos.store'), [
