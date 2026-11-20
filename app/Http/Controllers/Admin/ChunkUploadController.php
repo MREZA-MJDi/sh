@@ -482,9 +482,8 @@ final class ChunkUploadController extends Controller
 
         $course = $workspace->coursesQueryFor($request->user())
             ->where(function ($query): void {
-                $query->where(function ($legacy): void {
-                    $legacy->whereNull('learning_features')->where('delivery_type', 'spotplayer');
-                })->orWhere('learning_features->recorded_video', true);
+                $query->whereNull('learning_features->recorded_video')
+                    ->orWhere('learning_features->recorded_video', true);
             })
             ->findOrFail($courseId);
 
