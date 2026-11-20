@@ -19,7 +19,7 @@
             <div class="teacher-list-meta"><span>{{ $classroom->students_count }} دانش‌آموز</span><span>{{ $classroom->sessions_count }} جلسه</span></div>
         </div>
     @empty
-        <p>هنوز گروه آموزشی به شما تخصیص داده نشده است.</p>
+        <div class="teacher-empty-state"><strong>هنوز گروه آموزشی به شما تخصیص داده نشده است</strong><span>بعد از تخصیص کلاس، فهرست گروه‌ها و جلسه‌های شما در این بخش نمایش داده می‌شود.</span></div>
     @endforelse
 </section>
 <div class="g g2">
