@@ -7,7 +7,9 @@
  $avatar=fn($u)=>$u?->avatarUrl();
 @endphp
 <x-admin.page-head tone="comm" icon="msg" title="کارتابل پیام‌ها" desc="مدیریت گفت‌وگوها، پاسخ‌ها و ارتباط مستقیم کاربران">
- <x-admin.btn type="button" icon="bell" data-inbox-broadcast>اعلان عمومی</x-admin.btn>
+ @if(auth()->user()->hasPermissionTo('announcements.manage'))
+  <x-admin.btn type="button" icon="bell" data-inbox-broadcast>اعلان عمومی</x-admin.btn>
+ @endif
 </x-admin.page-head>
 <div class="ib-root" id="admin-inbox" data-tone="comm">
  <section class="ib-card gold ib-lc">
@@ -64,10 +66,12 @@
  <label>نام و نام خانوادگی<input name="name" value="{{ $partner->name }}" maxlength="160" required></label><label>شماره تماس<input name="phone" value="{{ $partner->phone }}" dir="ltr" maxlength="30"></label><label>ایمیل<input name="email" type="email" value="{{ $partner->email }}" dir="ltr" maxlength="190"></label><label>رمز عبور جدید (خالی = بدون تغییر)</label><div class="ib-password-row"><input id="ib-new-password" name="password" type="password" minlength="12" autocomplete="new-password"><button type="button" class="ib-btn" id="ib-toggle-password">نمایش</button><button type="button" class="ib-btn" id="ib-generate-password">رمز تصادفی</button></div>
  <div class="ib-dialog-actions"><button type="button" class="ib-btn" data-inbox-close>انصراف</button><button class="ib-btn p" type="submit">ذخیره تغییرات</button></div></form></dialog>
 @endif
+@if(auth()->user()->hasPermissionTo('announcements.manage'))
 <dialog class="ib-dlg" id="ib-broadcast-dialog"><form method="POST" action="{{ route('admin.announcements.store') }}">@csrf<h3>ارسال اعلان عمومی</h3>
  <label>گیرندگان<select name="audience" required><option value="all">همه کاربران</option><option value="parents">همه اولیا</option><option value="students">همه دانش‌آموزان</option><option value="teachers">همه مدرسان</option></select></label>
  <label>عنوان<input name="title" maxlength="180" required></label><label>متن پیام<textarea name="body" rows="4" maxlength="40000" required></textarea></label><input type="hidden" name="status" value="published">
  <div class="ib-dialog-actions"><button type="button" class="ib-btn" data-inbox-close>انصراف</button><button class="ib-btn p" type="submit">انتشار اعلان</button></div></form></dialog>
+@endif
 @endsection
 
 
