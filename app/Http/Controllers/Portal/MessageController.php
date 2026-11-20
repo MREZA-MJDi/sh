@@ -18,23 +18,36 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
+use Illuminate\Validation\Rule;
 
 final class MessageController extends Controller
 {
     public function index(Request $request): View
     {
         [$student, $children, $selectedChild] = $this->context($request);
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['open', 'answered', 'closed', 'deleted'])],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'subject'])],
+        ]);
 
         $messages = Message::query()
             ->whereNull('parent_id')
             ->where('student_id', $student?->id ?? 0)
+            ->when(filled($filters['q'] ?? null), fn (Builder $query) => $query->where(function (Builder $search) use ($filters): void {
+                $search->where('subject', 'like', '%'.$filters['q'].'%')
+                    ->orWhere('body', 'like', '%'.$filters['q'].'%');
+            }))
+            ->when(filled($filters['status'] ?? null), fn (Builder $query) => $query->where('status', $filters['status']))
             ->where(function (Builder $participants) use ($request): void {
                 $participants->where('sender_id', $request->user()->id)
                     ->orWhere('recipient_id', $request->user()->id);
             })
             ->with(['sender:id,name', 'recipient:id,name'])
             ->withCount('replies')
-            ->latest()
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn (Builder $query) => $query->oldest()->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'subject', fn (Builder $query) => $query->orderBy('subject')->orderByDesc('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn (Builder $query) => $query->latest()->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -59,6 +72,7 @@ final class MessageController extends Controller
             'kids' => $children,
             'kid' => $selectedChild,
             'student' => $student,
+            'filters' => $filters,
         ]);
     }
 
