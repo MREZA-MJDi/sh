@@ -1,7 +1,7 @@
 @extends('parent.layouts.app')
 @section('title', 'گفت‌وگو')
 @section('content')
-<h2>{{ $message->subject }}</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">گفت‌وگوی خانواده</span><h1>{{ $message->subject ?: 'گفت‌وگو' }}</h1><p>پیام‌ها و پاسخ‌های مربوط به فرزند انتخاب‌شده</p></div></div>
 @include('parent.partials.kid-picker')
 <section class="c">
  <div class="msgs">
