@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
