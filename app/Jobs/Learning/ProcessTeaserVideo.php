@@ -20,7 +20,7 @@ class ProcessTeaserVideo implements ShouldQueue
 
     public function __construct(public int $courseId)
     {
-        $this->onQueue('video');
+        $this->onConnection('video')->onQueue('video');
     }
 
     public function handle(): void
