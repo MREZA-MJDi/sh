@@ -85,7 +85,7 @@ final class TeacherDashboardService
             ->where('status', 'scheduled')
             ->whereBetween('starts_at', [$calendarStart, $calendarEnd])
             ->with(['classroom:id,name', 'classroom.course:id,title,grade,season'])
-            ->orderBy('starts_at')->get();
+            ->orderBy('starts_at')->limit(100)->get();
 
         $weekCalendar = collect(range(0, 6))->map(function (int $offset) use ($calendarSessions): array {
             $date = today()->copy()->addDays($offset);
