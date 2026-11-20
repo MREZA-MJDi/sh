@@ -208,8 +208,7 @@ final class ChunkUploadController extends Controller
 
     public function complete(
         Request $request,
-        ClassroomWorkspaceService $workspace,
-        SpotPlayerVideoService $videos
+        ClassroomWorkspaceService $workspace
     ): JsonResponse {
         $data = $request->validate([
             'upload_id' => ['required', 'uuid'],
@@ -253,157 +252,54 @@ final class ChunkUploadController extends Controller
         $expectedChunks = (int) ($existing->metadata['total_chunks'] ?? 0);
         abort_unless($expectedChunks === (int) $data['total'], 422, 'تعداد تکه‌ها با اطلاعات شروع آپلود سازگار نیست.');
 
-        $session = DB::transaction(function () use ($request, $data): VideoUploadSession {
+        $received = $existing->metadata['received_chunks'] ?? [];
+        $expectedBytes = (int) ($existing->metadata['total_bytes'] ?? 0);
+        abort_unless(
+            is_array($received)
+                && count($received) === $expectedChunks
+                && array_sum(array_map('intval', $received)) === $expectedBytes
+                && (int) $existing->bytes_uploaded === $expectedBytes,
+            422,
+            'همه بخش‌های فایل هنوز دریافت نشده‌اند؛ ابتدا آپلود را کامل کنید.'
+        );
+
+        [$session, $shouldDispatch] = DB::transaction(function () use ($request, $data): array {
             $locked = VideoUploadSession::query()
                 ->where('upload_id', $data['upload_id'])
                 ->where('user_id', $request->user()->id)
-                ->where('status', 'uploading')
-                ->where('expires_at', '>', now())
                 ->lockForUpdate()
                 ->first();
 
-            abort_unless($locked, 409, 'نشست آپلود دیگر فعال نیست؛ بارگذاری را دوباره آغاز کنید.');
+            abort_unless($locked, 410, 'نشست آپلود پیدا نشد.');
 
-            $locked->update(['status' => 'processing']);
+            if ($locked->status !== 'uploading' || ! $locked->expires_at->isFuture()) {
+                return [$locked, false];
+            }
 
-            return $locked->refresh();
+            $locked->update([
+                'status' => 'processing',
+                'metadata' => [...($locked->metadata ?? []), 'original_filename' => basename($data['filename'])],
+            ]);
+
+            return [$locked->refresh(), true];
         });
 
-        $disk = Storage::disk('local');
-        $chunkDirectory = "chunks/{$session->upload_id}";
+        if ($shouldDispatch) {
+            try {
+                FinalizeChunkUpload::dispatch($session->id);
+            } catch (Throwable $exception) {
+                $session->newQuery()->whereKey($session->id)->where('status', 'processing')
+                    ->update(['status' => 'uploading']);
 
-        $expectedTotalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
-        $verifiedChunkBytes = 0;
-
-        for ($index = 0; $index < $data['total']; $index++) {
-            $chunkPath = "{$chunkDirectory}/{$index}.part";
-            $expectedChunkBytes = min(
-                (int) $session->metadata['chunk_size_bytes'],
-                $expectedTotalBytes - ($index * (int) $session->metadata['chunk_size_bytes'])
-            );
-
-            if (! $disk->exists($chunkPath) || $expectedChunkBytes < 1 || $disk->size($chunkPath) !== $expectedChunkBytes) {
-                $session->update(['status' => 'uploading']);
-                return $this->fail("تکه {$index} ناقص یا خراب است؛ نشست و تکه‌های سالم حفظ شدند.");
+                throw $exception;
             }
-
-            $verifiedChunkBytes += $expectedChunkBytes;
         }
 
-        if ($verifiedChunkBytes !== $expectedTotalBytes || (int) $session->bytes_uploaded !== $expectedTotalBytes) {
-            $session->update(['status' => 'uploading']);
-            return $this->fail('مجموع اندازه تکه‌ها معتبر نیست؛ تکه‌های موجود حفظ شدند.', 422);
-        }
-
-        $extension = strtolower(pathinfo($data['filename'], PATHINFO_EXTENSION));
-        if (! in_array($extension, self::EXTENSIONS, true)) {
-            $session->update(['status' => 'uploading']);
-            return $this->fail('فرمت فایل مجاز نیست (mp4, mov, mkv, webm, m4v).', 422);
-        }
-
-        $destination = $session->target === 'teaser'
-            ? 'uploads/'.Str::uuid().".{$extension}"
-            : 'private/course-videos/'.Str::uuid().".{$extension}";
-
-        try {
-            $disk->makeDirectory(dirname($destination));
-            $output = fopen($disk->path($destination), 'wb');
-            if (! is_resource($output)) {
-                throw new \RuntimeException('ساخت فایل نهایی آپلود ناموفق بود.');
-            }
-
-            for ($index = 0; $index < $data['total']; $index++) {
-                $input = fopen($disk->path("{$chunkDirectory}/{$index}.part"), 'rb');
-                if (! is_resource($input)) {
-                    fclose($output);
-                    throw new \RuntimeException("خواندن تکه {$index} ناموفق بود.");
-                }
-                stream_copy_to_stream($input, $output);
-                fclose($input);
-            }
-            fclose($output);
-
-            $actualBytes = filesize($disk->path($destination));
-            if ($actualBytes === false || $actualBytes > $this->maxBytes($session->target)
-                || $actualBytes !== (int) $session->bytes_uploaded
-                || $actualBytes !== (int) ($session->metadata['total_bytes'] ?? 0)) {
-                throw ValidationException::withMessages([
-                    'file' => 'اندازه فایل نهایی با تکه‌های دریافت‌شده سازگار نیست یا از سقف مجاز بیشتر است.',
-                ]);
-            }
-
-            $mime = function_exists('mime_content_type')
-                ? (string) mime_content_type($disk->path($destination))
-                : 'application/octet-stream';
-
-            if (! str_starts_with($mime, 'video/') && $mime !== 'application/octet-stream') {
-                throw ValidationException::withMessages(['file' => 'فایل ویدیو معتبر نیست.']);
-            }
-
-            if ($session->target === 'teaser') {
-                $course = Course::query()->findOrFail($session->target_id);
-                $oldOriginalPath = null;
-
-                DB::transaction(function () use ($course, $session, $destination, &$oldOriginalPath): void {
-                    $lockedCourse = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
-                    $oldOriginalPath = $lockedCourse->teaser_original_path;
-
-                    $lockedCourse->update([
-                        'teaser_original_path' => $destination,
-                        'teaser_status' => 'processing',
-                        'teaser_error' => null,
-                    ]);
-                    $session->update(['status' => 'completed', 'completed_at' => now()]);
-                    ProcessTeaserVideo::dispatch($lockedCourse->id, $destination)->afterCommit();
-                });
-
-                if ($oldOriginalPath && $oldOriginalPath !== $destination) {
-                    $disk->delete($oldOriginalPath);
-                }
-
-                $disk->deleteDirectory($chunkDirectory);
-
-                return response()->json(['ok' => true, 'status' => 'processing']);
-            }
-
-            $video = DB::transaction(function () use ($videos, $session, $request, $destination, $data, $mime, $actualBytes): SpotPlayerVideo {
-                $video = $videos->stageStoredFile(
-                    $session->metadata,
-                    $request->user(),
-                    $destination,
-                    $data['filename'],
-                    $mime,
-                    (int) $actualBytes
-                );
-
-                $session->update([
-                    'status' => 'completed',
-                    'completed_at' => now(),
-                    'metadata' => [...($session->metadata ?? []), 'result_video_id' => $video->id],
-                ]);
-
-                return $video;
-            });
-            $disk->deleteDirectory($chunkDirectory);
-
-            return response()->json([
-                'ok' => true,
-                'status' => match ($video->status) { 'active' => 'ready', 'processing' => 'processing', 'failed' => 'failed', default => 'waiting_contract' },
-                'video_id' => $video->id,
-            ]);
-        } catch (Throwable $exception) {
-            // A committed completion is authoritative even if cleanup/response handling fails.
-            $latestSession = $session->fresh();
-
-            if ($latestSession && $latestSession->status !== 'completed') {
-                $disk->delete($destination);
-
-                // Keep all uploaded chunks so transient storage/DB errors are recoverable.
-                $latestSession->update(['status' => 'uploading']);
-            }
-
-            throw $exception;
-        }
+        return response()->json([
+            'ok' => true,
+            'status' => $session->status === 'completed' ? 'processing' : 'processing',
+            'video_id' => $session->metadata['result_video_id'] ?? null,
+        ]);
     }
 
     public function resume(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
