@@ -353,6 +353,14 @@ final class ChunkUploadController extends Controller
             $disk->delete($destination);
             $disk->deleteDirectory($chunkDirectory);
             $session->update(['status' => 'failed']);
+
+            if ($session->target === 'teaser') {
+                Course::query()->whereKey($session->target_id)->update([
+                    'teaser_status' => 'failed',
+                    'teaser_error' => mb_substr($exception->getMessage(), 0, 500),
+                ]);
+            }
+
             throw $exception;
         }
     }
