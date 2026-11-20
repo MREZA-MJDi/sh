@@ -7,11 +7,21 @@ use PHPUnit\Framework\TestCase;
 
 class CourseRecordedVideoFeatureTest extends TestCase
 {
-    public function test_legacy_internal_course_keeps_recorded_video_independent_from_spotplayer(): void
+    public function test_legacy_internal_course_keeps_its_existing_recorded_video_default(): void
     {
         $course = new Course([
             'delivery_type' => 'internal',
             'learning_features' => null,
+        ]);
+
+        $this->assertFalse($course->featureEnabled('recorded_video'));
+    }
+
+    public function test_internal_course_can_explicitly_enable_manual_recorded_video(): void
+    {
+        $course = new Course([
+            'delivery_type' => 'internal',
+            'learning_features' => ['recorded_video' => true],
         ]);
 
         $this->assertTrue($course->featureEnabled('recorded_video'));
