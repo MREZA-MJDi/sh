@@ -1,10 +1,8 @@
 <?php
 
-namespace App\\Support;
+namespace App\Support;
 
-use Carbon\\CarbonImmutable;
-use Carbon\\CarbonInterface;
-use Illuminate\\Support\\Collection;
+use Carbon\CarbonImmutable;
 
 final class JalaliCalendar
 {
