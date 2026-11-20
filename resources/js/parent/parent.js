@@ -207,7 +207,7 @@ function radar(labels, series) {
     try { localStorage.setItem('pa-theme', next); } catch (e) {}
     syncTheme();
   });
-  var paletteButtons = $('[data-pal]');
+  var paletteButtons = $$('[data-pal]');
   var syncPalette = function () {
     paletteButtons.forEach(function (button) {
       button.setAttribute('aria-pressed', (button.getAttribute('data-pal') || '') === (root.dataset.pal || '') ? 'true' : 'false');
@@ -254,7 +254,7 @@ function radar(labels, series) {
   if (navSidebar) navSidebar.addEventListener('click', function (event) { if (event.target.closest('a')) closeNav(false); });
   window.addEventListener('resize', function () { if (window.innerWidth > 800) closeNav(false); });
 
-  var parentMenus = $('.parent-menu');
+  var parentMenus = $$('.parent-menu');
   parentMenus.forEach(function (menu) {
     menu.addEventListener('toggle', function () {
       if (menu.open) parentMenus.forEach(function (other) { if (other !== menu) other.open = false; });
@@ -266,7 +266,7 @@ function radar(labels, series) {
 
   /* Search visible content on the current page only. */
   var sr = $('#globalSearch'), searchClear = $('#parentSearchClear'), searchStatus = $('#parentSearchResults');
-  var searchable = $('.row, .c, .st, .parent-resource-card, .teacher-inbox-item');
+  var searchable = $$('.row, .c, .st, .parent-resource-card, .teacher-inbox-item');
   var updateSearch = function () {
     if (!sr) return;
     var q = sr.value.trim().toLocaleLowerCase(), visible = 0;
