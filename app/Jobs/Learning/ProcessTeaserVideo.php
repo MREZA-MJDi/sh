@@ -4,7 +4,7 @@ namespace App\\Jobs\\Learning;
 
 use App\\Models\\Course;
 use Illuminate\\Foundation\\Queue\\Queueable;
-use Illuminate\\Contracts\\Queue\\ShouldQueue;
+use Illuminate\\Contracts\\Queue\\ShouldBeUnique;\nuse Illuminate\\Contracts\\Queue\\ShouldQueue;
 use Illuminate\\Queue\\Middleware\\WithoutOverlapping;
 use Illuminate\\Support\\Facades\\DB;
 use Illuminate\\Support\\Facades\\Storage;
@@ -19,13 +19,13 @@ use Throwable;
  * The source is retained until the new output is validated and atomically
  * published in the course row. Old public assets are removed only afterwards.
  */
-final class ProcessTeaserVideo implements ShouldQueue
+final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
 {
     use Queueable;
 
     public int $tries = 3;
 
-    public int $timeout = 3600;
+    public int $timeout = 3600;\n\n    public int $uniqueFor = 86400;
 
     public function __construct(
         public int $courseId,
@@ -37,6 +37,11 @@ final class ProcessTeaserVideo implements ShouldQueue
     public function backoff(): array
     {
         return [30, 120, 300];
+    }
+
+    public function uniqueId(): string
+    {
+        return 'course-teaser:'.$this->courseId.':'.($this->sourcePath ?? 'current');
     }
 
     public function middleware(): array
