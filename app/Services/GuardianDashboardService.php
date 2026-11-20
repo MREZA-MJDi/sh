@@ -167,6 +167,10 @@ final class GuardianDashboardService
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
+        $lastLateAttendance = (clone $attendanceQuery)
+            ->where('status', 'late')
+            ->latest('session_date')
+            ->first(['session_date']);
 
         $resultQuery = ExamResult::query()
             ->where('student_id', $student->id)
@@ -190,6 +194,12 @@ final class GuardianDashboardService
                     });
                 });
             });
+
+        $averageExamScore = (clone $resultQuery)
+            ->whereNotNull('score')
+            ->where('max_score', '>', 0)
+            ->selectRaw('AVG((score / max_score) * 20) as aggregate')
+            ->value('aggregate');
 
         $results = (clone $resultQuery)
             ->with(['exam:id,title,classroom_id,course_id', 'exam.course:id,title', 'exam.classroom:id,name'])
@@ -305,11 +315,13 @@ final class GuardianDashboardService
             'attendance' => $attendance,
             'attendance_calendar' => $attendanceCalendar,
             'attendance_breakdown' => $attendanceBreakdown,
+            'last_late_attendance' => $lastLateAttendance,
             'attendance_count' => $attendanceTotal,
             'attendance_rate' => $attendanceTotal > 0
                 ? (int) round($attendancePresent / $attendanceTotal * 100)
                 : null,
             'results' => $results,
+            'average_exam_score' => $averageExamScore,
             'exam_results' => $examResults,
             'result_trend' => $resultTrend,
             'resources' => $resources,
@@ -354,9 +366,11 @@ final class GuardianDashboardService
             'attendance' => collect(),
             'attendance_calendar' => collect(),
             'attendance_breakdown' => collect(),
+            'last_late_attendance' => null,
             'attendance_count' => 0,
             'attendance_rate' => null,
             'results' => collect(),
+            'average_exam_score' => null,
             'exam_results' => $this->emptyPaginator('results'),
             'result_trend' => collect(),
             'resources' => $this->emptyPaginator('resources'),
