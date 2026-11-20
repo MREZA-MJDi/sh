@@ -45,7 +45,7 @@
             @if (($selectedMessage->replies_count ?? 0) > $selectedMessage->replies->count())
                 <p class="parent-thread-note">برای سبک ماندن گفتگو، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>
             @endif
-            @if (!in_array($selectedMessage->status, ['closed','deleted'], true))
+            @if (auth()->user()->hasPermissionTo('messages.send.own') && !in_array($selectedMessage->status, ['closed','deleted'], true))
                 <form class="teacher-thread-reply" method="POST" action="{{ route('guardian.messages.reply', $selectedMessage) }}">@csrf<textarea name="body" required maxlength="30000" placeholder="پیام خود را بنویسید…"></textarea><button class="b" type="submit">ارسال پیام</button></form>
             @endif
         @else
