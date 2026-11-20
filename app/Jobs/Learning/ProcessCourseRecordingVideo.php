@@ -3,6 +3,7 @@
 namespace App\Jobs\Learning;
 
 use App\Models\SpotPlayerVideo;
+use RuntimeException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -21,8 +22,13 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 1;
+    public int $tries = 3;
     public int $timeout = 3600;
+
+    public function backoff(): array
+    {
+        return [30, 120, 300];
+    }
 
     public function __construct(public readonly int $videoId)
     {
@@ -40,12 +46,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         $disk = Storage::disk('local');
 
         if (! $disk->exists($video->file_path)) {
-            $video->update([
-                'status' => 'failed',
-                'processing_error' => 'فایل مبدأ در فضای خصوصی پیدا نشد.',
-            ]);
-
-            return;
+            throw new RuntimeException('فایل مبدأ در فضای خصوصی پیدا نشد.');
         }
 
         $sourcePath = $disk->path($video->file_path);
@@ -111,10 +112,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
             $diagnostic = trim((string) $process?->getErrorOutput());
             $error = $diagnostic !== '' ? $diagnostic : $exception->getMessage();
 
-            $video->update([
-                'status' => 'failed',
-                'processing_error' => mb_substr($error, 0, 1000),
-            ]);
+            throw new RuntimeException($error, 0, $exception);
         }
     }
 
