@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Classroom;
 use App\Models\CourseEnrollment;
+use App\Models\Course;
 use App\Models\LearningResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
