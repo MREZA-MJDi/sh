@@ -125,9 +125,9 @@ final class PortalController extends Controller
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
             })
-            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest())
-            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title'))
-            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest())
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest()->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title')->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest()->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -324,8 +324,8 @@ final class PortalController extends Controller
 
         $sessions = $query
             ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
-            ->when(($filters['sort'] ?? 'soonest') === 'latest', fn ($query) => $query->orderByDesc('starts_at'))
-            ->when(($filters['sort'] ?? 'soonest') === 'soonest', fn ($query) => $query->orderBy('starts_at'))
+            ->when(($filters['sort'] ?? 'soonest') === 'latest', fn ($query) => $query->orderByDesc('starts_at')->orderByDesc('id'))
+            ->when(($filters['sort'] ?? 'soonest') === 'soonest', fn ($query) => $query->orderBy('starts_at')->orderBy('id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -353,6 +353,7 @@ final class PortalController extends Controller
             ->with(['guardian:id,name', 'student:id,name', 'classroom:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
+            ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
@@ -415,6 +416,7 @@ final class PortalController extends Controller
             }))
             ->with(['sender:id,name', 'recipient:id,name', 'student:id,name'])
             ->latest()
+            ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
 
