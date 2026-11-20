@@ -65,7 +65,9 @@ final class ClassroomService
                 ],
             ]);
 
-            $this->syncRoster($classroom, $data['student_ids'] ?? [], $actor);
+            if (array_key_exists('student_ids', $data) || ! empty($data['student_ids_present'])) {
+                $this->syncRoster($classroom, $data['student_ids'] ?? [], $actor);
+            }
 
             if ($previousCourseId && $previousCourseId !== $classroom->course_id) {
                 $previousCourse = Course::query()->find($previousCourseId);

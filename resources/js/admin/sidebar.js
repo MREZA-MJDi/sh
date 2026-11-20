@@ -1,22 +1,49 @@
-// Mobile sidebar + click-outside for the topbar dropdowns (<details class="adm-menu">).
+// Mobile navigation, persistent compact mode, and topbar menu dismissal.
 const shell = () => document.querySelector('[data-shell]');
+const menuButton = () => document.querySelector('[data-menu]');
+const miniButton = () => document.querySelector('[data-admin-sidebar-mini-toggle]');
 
-document.addEventListener('click', (e) => {
-  const miniToggle = e.target.closest('[data-admin-sidebar-mini-toggle]');
+const setMini = (enabled) => {
+  const root = shell();
+  if (!root) return;
+  root.classList.toggle('is-mini', enabled);
+  miniButton()?.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+};
+
+try {
+  setMini(localStorage.getItem('adm-sidebar-mini') === '1');
+} catch (_) {
+  setMini(false);
+}
+
+const closeMobileMenu = () => {
+  shell()?.classList.remove('adm-open');
+  menuButton()?.setAttribute('aria-expanded', 'false');
+};
+
+document.addEventListener('click', (event) => {
+  const miniToggle = event.target.closest('[data-admin-sidebar-mini-toggle]');
   if (miniToggle) {
-    const root = shell();
-    root?.classList.toggle('is-mini');
-    miniToggle.setAttribute('aria-pressed', root?.classList.contains('is-mini') ? 'true' : 'false');
+    const enabled = !shell()?.classList.contains('is-mini');
+    setMini(enabled);
+    try { localStorage.setItem('adm-sidebar-mini', enabled ? '1' : '0'); } catch (_) {}
   }
 
-  if (e.target.closest('[data-menu]')) shell()?.classList.toggle('adm-open');
-  else if (e.target.closest('[data-menu-close]') || e.target.closest('.adm-sidebar a')) shell()?.classList.remove('adm-open');
+  if (event.target.closest('[data-menu]')) {
+    const opening = !shell()?.classList.contains('adm-open');
+    shell()?.classList.toggle('adm-open', opening);
+    menuButton()?.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  } else if (event.target.closest('[data-menu-close]') || event.target.closest('.adm-sidebar a')) {
+    closeMobileMenu();
+  }
 
-  document.querySelectorAll('details.adm-menu[open]').forEach((d) => { if (!d.contains(e.target)) d.open = false; });
+  document.querySelectorAll('details.adm-menu[open]').forEach((details) => {
+    if (!details.contains(event.target)) details.open = false;
+  });
 });
 
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape') return;
-  shell()?.classList.remove('adm-open');
-  document.querySelectorAll('details.adm-menu[open]').forEach((d) => (d.open = false));
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeMobileMenu();
+  document.querySelectorAll('details.adm-menu[open]').forEach((details) => { details.open = false; });
 });

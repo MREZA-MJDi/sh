@@ -5,69 +5,115 @@
 @php
   $stats = $stats ?? [];
   $weeklyAttendance = $weeklyAttendance ?? collect();
+  $attendanceRate = max(0, min(100, (int) ($stats['attendance_rate'] ?? 0)));
+  $pendingHomework = (int) ($stats['pending_homework'] ?? 0);
+  $openMessages = (int) ($openMessageCount ?? 0);
+  $pendingConsultations = (int) ($pendingConsultationCount ?? 0);
 @endphp
 
-<x-admin.page-head title="داشبورد مدیریت" :desc="'سلام، '.(auth()->user()?->name ?? 'مدیر سامانه').' · نمای خلاصه و وضعیت امروز آکادمی'" icon="home"/>
-
-<x-admin.panel title="میانبرهای سریع" desc="برای انجام کارهای روزانه، مستقیم وارد بخش مربوط شوید." data-tone="edu">
-  <div class="adm-actions">
-    @can('courses.manage')
-      <x-admin.btn icon="book" :href="route('admin.courses.index')">مدیریت دوره‌ها</x-admin.btn>
-    @endcan
-    @can('classes.manage')
-      <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">کلاس‌ها و جلسات</x-admin.btn>
-    @endcan
-    @can('users.manage')
-      <x-admin.btn variant="line" icon="users" :href="route('admin.students.index')">دانش‌آموزان</x-admin.btn>
-      <x-admin.btn variant="line" icon="user" :href="route('admin.teachers.index')">مدرسان</x-admin.btn>
-    @endcan
-    @can('homework.manage.all')
-      <x-admin.btn variant="line" icon="file" :href="route('admin.homework.index')">تکالیف</x-admin.btn>
-    @endcan
-    @can('messages.view.all')
-      <x-admin.btn variant="line" icon="msg" :href="route('admin.communication-center.index')">پیام‌ها</x-admin.btn>
-    @endcan
-    @can('integrations.manage')
-      <x-admin.btn variant="line" icon="video" :href="route('admin.spotplayer.index')">ویدیوها و اتصال سرویس</x-admin.btn>
-    @endcan
+<section class="adm-welcome" aria-labelledby="dashboard-title">
+  <div class="adm-welcome-copy">
+    <span class="adm-welcome-kicker">مرکز فرماندهی آکادمی</span>
+    <h1 id="dashboard-title">سلام {{ auth()->user()?->name ?? 'مدیر عزیز' }}، خوش اومدی</h1>
+    <p>وضعیت امروز آکادمی را یک‌جا ببین و کارهای مهم را بدون گشتن بین منوها انجام بده.</p>
+    <div class="adm-welcome-actions">
+      @can('courses.manage')
+        <x-admin.btn icon="plus" :href="route('admin.courses.create')">ساخت دوره</x-admin.btn>
+      @endcan
+      @can('classes.manage')
+        <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">رفتن به کلاس‌ها</x-admin.btn>
+      @endcan
+    </div>
   </div>
-</x-admin.panel>
+  <div class="adm-welcome-aside" aria-label="نرخ حضور هفتگی">
+    <div class="adm-rate-ring" style="--rate:{{ $attendanceRate }}" role="img" aria-label="نرخ حضور هفتگی {{ $attendanceRate }} درصد">
+      <div><strong>{{ number_format($attendanceRate) }}٪</strong><small>حضور هفتگی</small></div>
+    </div>
+    <p class="adm-rate-caption">میانگین حضور دانش‌آموزان در جلسات ثبت‌شده</p>
+  </div>
+</section>
 
 <div class="adm-stats">
   <x-admin.stat tone="users" icon="user" label="دانش‌آموزان فعال" :value="number_format($stats['students'] ?? 0)" hint="در محدوده دسترسی"/>
-  <x-admin.stat tone="edu" icon="book" label="دوره‌های منتشرشده" :value="number_format($stats['courses'] ?? 0)" hint="دوره‌های قابل مشاهده"/>
-  <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های فعال"/>
-  <x-admin.stat tone="shop" icon="activity" label="نرخ حضور هفتگی" :value="number_format($stats['attendance_rate'] ?? 0).'٪'" hint="بر اساس حضور ثبت‌شده"/>
-  <x-admin.stat tone="track" icon="file" label="تکالیف در انتظار بررسی" :value="number_format($stats['pending_homework'] ?? 0)" hint="پاسخ‌های ارسال‌شده"/>
+  <x-admin.stat tone="edu" icon="book" label="دوره‌های منتشرشده" :value="number_format($stats['courses'] ?? 0)" hint="قابل مشاهده برای دانش‌آموزان"/>
+  <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری"/>
+  <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس"/>
   <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال"/>
+  <x-admin.stat tone="shop" icon="chart" label="نرخ حضور هفتگی" :value="number_format($attendanceRate).'٪'" hint="بر اساس حضور ثبت‌شده"/>
 </div>
 
+<section class="adm-stack" aria-label="دسترسی سریع">
+  <div class="adm-pagehead">
+    <div><h2>میانبرهای سریع</h2><p>کارهای پرتکرار را مستقیم باز کن.</p></div>
+  </div>
+  <div class="adm-action-grid">
+    @can('users.manage')
+      <a class="adm-action-tile" href="{{ route('admin.students.index') }}"><span><x-admin.icon name="users"/></span><div><b>دانش‌آموزان</b><small>پرونده و وضعیت کاربران</small></div><x-admin.icon name="chev"/></a>
+      <a class="adm-action-tile" href="{{ route('admin.teachers.index') }}"><span><x-admin.icon name="user"/></span><div><b>مدرسان</b><small>مدیریت اعضای آموزشی</small></div><x-admin.icon name="chev"/></a>
+    @endcan
+    @can('courses.manage')
+      <a class="adm-action-tile" href="{{ route('admin.courses.index') }}"><span><x-admin.icon name="book"/></span><div><b>دوره‌ها</b><small>محتوا و انتشار دوره‌ها</small></div><x-admin.icon name="chev"/></a>
+    @endcan
+    @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+      <a class="adm-action-tile" href="{{ route('admin.attendance.index') }}"><span><x-admin.icon name="check"/></span><div><b>حضور و غیاب</b><small>ثبت وضعیت جلسات</small></div><x-admin.icon name="chev"/></a>
+    @endcan
+    @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'])
+      <a class="adm-action-tile" href="{{ route('admin.homework.index') }}"><span><x-admin.icon name="file"/></span><div><b>تکالیف</b><small>ساخت و بررسی تمرین‌ها</small></div><x-admin.icon name="chev"/></a>
+    @endcan
+    @canany(['messages.view.all', 'messages.view.assigned'])
+      <a class="adm-action-tile" href="{{ route('admin.communication-center.index') }}"><span><x-admin.icon name="msg"/></span><div><b>مرکز ارتباطات</b><small>پیام‌ها و درخواست‌ها</small></div><x-admin.icon name="chev"/></a>
+    @endcanany
+    @can('integrations.manage')
+      <a class="adm-action-tile" href="{{ route('admin.spotplayer.index') }}"><span><x-admin.icon name="video"/></span><div><b>اتصال ویدیو</b><small>مدیریت سرویس آموزشی</small></div><x-admin.icon name="chev"/></a>
+    @endcan
+  </div>
+</section>
+
 <div class="adm-split is-even">
-  <x-admin.panel title="نیاز به اقدام" desc="فقط تعداد موارد باز نمایش داده می‌شود؛ جزئیات در صفحه هر بخش قرار دارد.">
-    <div class="adm-todo">
+  <x-admin.panel title="کارهایی که منتظر تو هستند" desc="موارد باز را ببین و با یک کلیک به همان بخش برو.">
+    <div class="adm-work-queue">
+      @php $hasWork = false; @endphp
       @can('homework.grade')
-        <a href="{{ route('admin.homework.index') }}" data-tone="track"><span class="adm-stat-ico"><x-admin.icon name="file"/></span>پاسخ‌های تکلیف در انتظار بررسی<strong class="adm-num">{{ number_format($stats['pending_homework'] ?? 0) }}</strong></a>
+        @php $hasWork = $hasWork || $pendingHomework > 0; @endphp
+        @if($pendingHomework > 0)
+          <a class="adm-work-item" data-tone="track" href="{{ route('admin.homework.index') }}"><span><x-admin.icon name="file"/></span><div><b>تصحیح پاسخ تکالیف</b><small>پاسخ دانش‌آموزان منتظر بررسی است</small></div><strong>{{ number_format($pendingHomework) }}</strong></a>
+        @endif
       @endcan
       @canany(['messages.view.all', 'messages.view.assigned'])
-        <a href="{{ route('admin.communication-center.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="msg"/></span>گفت‌وگوهای باز<strong class="adm-num">{{ number_format($openMessageCount ?? 0) }}</strong></a>
+        @php $hasWork = $hasWork || $openMessages > 0; @endphp
+        @if($openMessages > 0)
+          <a class="adm-work-item" data-tone="comm" href="{{ route('admin.communication-center.index') }}"><span><x-admin.icon name="msg"/></span><div><b>گفت‌وگوهای باز</b><small>پیام‌هایی که نیاز به پاسخ دارند</small></div><strong>{{ number_format($openMessages) }}</strong></a>
+        @endif
       @endcanany
-      @can('consultations.manage')
-        <a href="{{ route('admin.consultations.index') }}" data-tone="comm"><span class="adm-stat-ico"><x-admin.icon name="chat"/></span>درخواست‌های مشاوره جدید<strong class="adm-num">{{ number_format($pendingConsultationCount ?? 0) }}</strong></a>
-      @endcan
-      @can('announcements.manage')
-        <a href="{{ route('admin.announcements.index') }}" data-tone="edu"><span class="adm-stat-ico"><x-admin.icon name="bell"/></span>اطلاعیه‌های منتشرشده<strong class="adm-num">{{ number_format($publishedAnnouncementCount ?? 0) }}</strong></a>
-      @endcan
+      @php $hasWork = $hasWork || $pendingConsultations > 0; @endphp
+      @if($pendingConsultations > 0)
+        <a class="adm-work-item" data-tone="comm" href="{{ route('admin.consultations.index') }}"><span><x-admin.icon name="chat"/></span><div><b>درخواست‌های مشاوره جدید</b><small>برای درخواست‌ها زمان‌بندی تعیین کن</small></div><strong>{{ number_format($pendingConsultations) }}</strong></a>
+      @endif
+      @if(($publishedAnnouncementCount ?? 0) > 0)
+        @php $hasWork = true; @endphp
+        <a class="adm-work-item" data-tone="edu" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
+      @endif
+      @if(!$hasWork)
+        <div class="adm-queue-empty"><x-admin.icon name="check"/><b>فعلاً کار فوری در صف نیست</b><span>همه‌چیز آرام است؛ می‌توانی وضعیت دوره‌ها و کلاس‌ها را مرور کنی.</span></div>
+      @endif
     </div>
   </x-admin.panel>
 
-  <x-admin.panel title="روند حضور هفتگی" desc="درصد حضور از داده‌های واقعی ثبت‌شده">
-    <div class="adm-bars" data-tone="home">
-      @forelse($weeklyAttendance as $day)
-        <div><span class="adm-bar" style="height:{{ max(4, (int) $day['rate']) }}%"><b class="adm-num">{{ $day['rate'] }}٪</b></span>{{ $day['label'] }}</div>
-      @empty
-        <p class="adm-muted">هنوز داده حضور برای نمایش وجود ندارد.</p>
-      @endforelse
-    </div>
+  <x-admin.panel title="روند حضور در هفته" desc="درصد حضور ثبت‌شده در هر روز">
+    @if($weeklyAttendance->isNotEmpty())
+      <div class="adm-week-chart" role="img" aria-label="نمودار نرخ حضور هفتگی">
+        @foreach($weeklyAttendance as $day)
+          @php $rate = max(0, min(100, (int) $day['rate'])); @endphp
+          <div class="adm-week-day">
+            <div class="adm-week-track"><span class="adm-week-fill" style="--bar-height:{{ $rate }}%"></span></div>
+            <b>{{ $day['label'] }}</b>
+            <small>{{ $rate }}٪</small>
+          </div>
+        @endforeach
+      </div>
+    @else
+      <div class="adm-queue-empty"><x-admin.icon name="chart"/><b>هنوز داده‌ای برای نمودار نداریم</b><span>بعد از ثبت حضور جلسات، روند هفتگی اینجا نمایش داده می‌شود.</span></div>
+    @endif
   </x-admin.panel>
 </div>
 @endsection

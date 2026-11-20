@@ -41,56 +41,73 @@
 @endif
 
 <x-admin.panel title="کتابخانه ویدیوها" desc="ویدیوها در فضای خصوصی ثبت می‌شوند؛ فایل خام در پنل دانش‌آموز قابل دریافت نیست." flush>
-  <div class="adm-table-wrap">
-    <table class="adm-table">
-      <thead><tr><th>ویدیو</th><th>دوره / کلاس</th><th>وضعیت</th><th>فایل</th><th></th></tr></thead>
-      <tbody>
-        @forelse($videos as $video)
-          <tr>
-            <td><b>{{ $video->title }}</b><small>شناسه داخلی #{{ $video->id }} · {{ $video->external_id ?: 'شناسه خارجی ثبت نشده' }}</small></td>
-            <td>{{ $video->course?->title ?? '—' }}<small>{{ $video->classroom?->name ?? 'مشترک در سطح دوره' }}</small></td>
-            <td>
-              @php
-                $videoStatus = match ($video->status) {
-                  'active' => ['ok', 'آماده پخش'],
-                  'processing' => ['warn', 'در حال پردازش'],
-                  'failed' => ['bad', 'پردازش ناموفق'],
-                  'waiting_contract' => ['warn', 'در انتظار قرارداد'],
-                  default => ['mute', $video->status],
-                };
-              @endphp
-              <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
-              @if($video->approval_status === 'pending')<x-admin.badge tone="warn">در انتظار تأیید مدیر</x-admin.badge>@elseif($video->approval_status === 'rejected')<x-admin.badge tone="bad">رد شده</x-admin.badge>@else<x-admin.badge tone="ok">تأیید انتشار</x-admin.badge>@endif
-              @if($video->review_note)<small>دلیل بررسی: {{ $video->review_note }}</small>@endif
-              @if($video->processing_error)<small>{{ $video->processing_error }}</small>@endif
-            </td>
-            <td>
-              @if($video->file_path)
-                <a href="{{ route('admin.spotplayer.videos.download', $video) }}">{{ $video->status === 'active' ? 'دریافت فایل پردازش‌شده' : 'دریافت فایل مبدأ' }}</a>
-                <small>{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} MB</small>
-              @else
-                <span class="adm-muted">فقط شناسه خارجی</span>
-              @endif
-            </td>
-            <td>
-              <span class="adm-muted">{{ $video->staged_at?->format('Y/m/d H:i') ?? '—' }}</span>
-              @if(!$teacherView && $video->approval_status === 'pending')
-                <form method="POST" action="{{ route('admin.spotplayer.videos.approve', $video) }}" style="margin-top:8px">@csrf<button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">تأیید ویدیو</button></form>
-                <form method="POST" action="{{ route('admin.spotplayer.videos.reject', $video) }}" class="adm-stack" style="margin-top:8px">@csrf<textarea class="adm-input" name="reason" rows="2" minlength="5" maxlength="2000" required placeholder="دلیل رد ویدیو را بنویسید"></textarea><button type="submit" class="adm-btn adm-btn-line adm-btn-sm">رد و بازگشت برای اصلاح</button></form>
-              @endif
-              @if($video->status === 'failed' && $video->file_path)
-                <form method="POST" action="{{ route('admin.spotplayer.videos.retry-processing', $video) }}" style="margin-top:8px">
-                  @csrf
-                  <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">تلاش مجدد پردازش</button>
-                </form>
-              @endif
-            </td>
-          </tr>
-        @empty
-          <tr><td colspan="5">هنوز ویدیویی برای این محدوده ثبت نشده است.</td></tr>
-        @endforelse
-      </tbody>
-    </table>
+  <div class="adm-grid adm-cols-2">
+    @forelse($videos as $video)
+      @php
+        $videoStatus = match ($video->status) {
+          'active' => ['ok', 'آماده پخش'],
+          'processing' => ['warn', 'در حال پردازش'],
+          'failed' => ['bad', 'پردازش ناموفق'],
+          'waiting_contract' => ['warn', 'در انتظار قرارداد'],
+          default => ['mute', $video->status],
+        };
+      @endphp
+      <article class="adm-card">
+        <div class="adm-card-body">
+          <div class="adm-card-title">
+            <div><h3>{{ $video->title }}</h3><p>شناسه داخلی #{{ $video->id }} · {{ $video->external_id ?: 'شناسه خارجی ثبت نشده' }}</p></div>
+            <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
+          </div>
+          <div class="adm-meta">
+            <span><x-admin.icon name="book"/>{{ $video->course?->title ?? 'دوره نامشخص' }}</span>
+            <span><x-admin.icon name="users"/>{{ $video->classroom?->name ?? 'مشترک در سطح دوره' }}</span>
+            <span><x-admin.icon name="clock"/>{{ $video->staged_at?->format('Y/m/d H:i') ?? 'زمان ثبت نامشخص' }}</span>
+          </div>
+          <div class="adm-card-foot">
+            @if($video->approval_status === 'pending')
+              <x-admin.badge tone="warn">در انتظار تأیید مدیر</x-admin.badge>
+            @elseif($video->approval_status === 'rejected')
+              <x-admin.badge tone="bad">نیازمند اصلاح</x-admin.badge>
+            @else
+              <x-admin.badge tone="ok">تأیید انتشار</x-admin.badge>
+            @endif
+            @if($video->file_path)
+              <span class="adm-muted">{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} MB</span>
+            @else
+              <span class="adm-muted">فقط شناسه خارجی</span>
+            @endif
+          </div>
+          @if($video->review_note)<p class="adm-panel-kicker">یادداشت بررسی: {{ $video->review_note }}</p>@endif
+          @if($video->processing_error)<p class="adm-panel-kicker">خطای پردازش: {{ $video->processing_error }}</p>@endif
+          <div class="adm-actions">
+            @if($video->file_path)
+              <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.videos.download', $video)">{{ $video->status === 'active' ? 'دریافت فایل پردازش‌شده' : 'دریافت فایل مبدأ' }}</x-admin.btn>
+            @endif
+            @if($video->status === 'failed' && $video->file_path)
+              <form method="POST" action="{{ route('admin.spotplayer.videos.retry-processing', $video) }}">
+                @csrf
+                <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">تلاش مجدد پردازش</button>
+              </form>
+            @endif
+          </div>
+          @if(!$teacherView && $video->approval_status === 'pending')
+            <div class="adm-integration-review">
+              <form method="POST" action="{{ route('admin.spotplayer.videos.approve', $video) }}">
+                @csrf
+                <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">تأیید ویدیو</button>
+              </form>
+              <form method="POST" action="{{ route('admin.spotplayer.videos.reject', $video) }}" class="adm-stack">
+                @csrf
+                <textarea class="adm-input" name="reason" rows="2" minlength="5" maxlength="2000" required placeholder="برای بازگشت ویدیو، دلیل اصلاح را بنویسید"></textarea>
+                <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">رد و درخواست اصلاح</button>
+              </form>
+            </div>
+          @endif
+        </div>
+      </article>
+    @empty
+      <x-admin.empty text="هنوز ویدیویی برای این محدوده ثبت نشده است."/>
+    @endforelse
   </div>
   <x-slot:footer>{{ $videos->links() }}</x-slot:footer>
 </x-admin.panel>
@@ -110,37 +127,31 @@
   </x-admin.panel>
 
   <x-admin.panel title="لایسنس‌های صادرشده / در انتظار" flush>
-    <div class="adm-table-wrap">
-      <table class="adm-table">
-        <thead><tr><th>دانش‌آموز</th><th>دوره</th><th>وضعیت</th><th>تاریخ صدور</th><th>عملیات</th></tr></thead>
-        <tbody>
-          @forelse($licenses as $license)
-            <tr>
-              <td>{{ $license->student?->name ?? '—' }}</td>
-              <td>{{ $license->course?->title ?? '—' }}</td>
-              <td>
-                @php $status = $licenseStatus[$license->status] ?? ['mute', $license->status]; @endphp
-                <x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge>
-                @if($license->error_message)<small>{{ $license->error_message }}</small>@endif
-              </td>
-              <td>{{ $license->issued_at?->format('Y/m/d H:i') ?? '—' }}</td>
-              <td>
-                @if($license->status === 'active' && $license->external_license_id)
-                  <form method="POST" action="{{ route('admin.spotplayer.licenses.revoke', $license) }}" class="adm-actions">
-                    @csrf
-                    <input type="text" name="reason" class="adm-input" placeholder="دلیل ابطال" required maxlength="300">
-                    <button type="submit" class="adm-btn adm-btn-bad adm-btn-sm">درخواست ابطال</button>
-                  </form>
-                @else
-                  <span class="adm-muted">نیازی به اقدام نیست</span>
-                @endif
-              </td>
-            </tr>
-          @empty
-            <tr><td colspan="5">هنوز لایسنسی ثبت نشده است.</td></tr>
-          @endforelse
-        </tbody>
-      </table>
+    <div class="adm-grid adm-cols-2">
+      @forelse($licenses as $license)
+        @php $status = $licenseStatus[$license->status] ?? ['mute', $license->status]; @endphp
+        <article class="adm-card">
+          <div class="adm-card-body">
+            <div class="adm-card-title">
+              <div><h3>{{ $license->student?->name ?? 'دانش‌آموز نامشخص' }}</h3><p>{{ $license->course?->title ?? 'دوره نامشخص' }}</p></div>
+              <x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge>
+            </div>
+            <div class="adm-meta"><span>تاریخ صدور: {{ $license->issued_at?->format('Y/m/d H:i') ?? 'هنوز صادر نشده' }}</span></div>
+            @if($license->error_message)<p class="adm-panel-kicker">{{ $license->error_message }}</p>@endif
+            @if($license->status === 'active' && $license->external_license_id)
+              <form method="POST" action="{{ route('admin.spotplayer.licenses.revoke', $license) }}" class="adm-integration-revoke">
+                @csrf
+                <input type="text" name="reason" class="adm-input" placeholder="دلیل درخواست ابطال" required maxlength="300">
+                <button type="submit" class="adm-btn adm-btn-bad adm-btn-sm">درخواست ابطال لایسنس</button>
+              </form>
+            @else
+              <span class="adm-muted">در حال حاضر اقدامی لازم نیست.</span>
+            @endif
+          </div>
+        </article>
+      @empty
+        <x-admin.empty text="هنوز لایسنسی ثبت نشده است."/>
+      @endforelse
     </div>
     <x-slot:footer>{{ $licenses->links() }}</x-slot:footer>
   </x-admin.panel>

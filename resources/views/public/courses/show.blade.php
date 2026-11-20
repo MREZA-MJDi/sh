@@ -11,6 +11,7 @@
 @endif
 @php
     $teacher = $course->teacher;
+    $seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
     $learningBenefits = [];
     if ($features['recorded_video'] ?? false) $learningBenefits[] = 'آموزش ویدیویی فصل‌به‌فصل با دسترسی کنترل‌شده';
     if ($features['live_class'] ?? false) $learningBenefits[] = 'جلسات آنلاین زمان‌بندی‌شده و پیگیری حضور در کلاس';
@@ -47,6 +48,9 @@
             @if($course->grade)
                 <span class="bd">پایه {{ $course->grade }}</span>
             @endif
+            @if($course->season)
+                <span class="bd">ترم {{ $seasonLabels[$course->season] ?? $course->season }}</span>
+            @endif
         </div>
         <div class="mt" aria-label="امکانات و شیوه ارائه دوره">
             @if($features['recorded_video'] ?? false)<span>آموزش ویدیویی</span>@endif
@@ -66,9 +70,52 @@
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
-        @if($features['live_class'] ?? false)<a href="#live-sessions">برنامه کلاس‌ها</a>@endif
-        @if($teacher)<a href="#c3">مدرس دوره</a>@endif
-        @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
+        @if($courseResources->isNotEmpty())
+        <section class="card blk course-resources" id="course-resources">
+            <div class="course-resources-head">
+                <div>
+                    <h2>جزوه‌ها و فایل‌های این دوره</h2>
+                    <p>فایل‌هایی که مدرس برای این دوره آماده کرده است.</p>
+                </div>
+                <span class="c-badge">{{ $courseResources->count() }} فایل</span>
+            </div>
+            <div class="course-resources-list">
+                @foreach($courseResources as $resource)
+                    <article class="course-resource-card">
+                        <div class="course-resource-main">
+                            <span class="course-resource-icon"><svg class="i"><use href="#file"/></svg></span>
+                            <div class="course-resource-info">
+                                <strong>{{ $resource->title }}</strong>
+                                @if($resource->description)<p>{{ $resource->description }}</p>@endif
+                                <small>{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
+                            </div>
+                        </div>
+                        <div class="course-resource-actions">
+                            @if($resource->is_free)
+                                <span class="c-badge">رایگان</span>
+                            @else
+                                <strong>{{ number_format((int) $resource->price) }} تومان</strong>
+                            @endif
+                            @if($hasCourseAccess && auth()->user()?->hasRole('student'))
+                                @if($resource->is_free || ($resource->is_purchased ?? false))
+                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                @else
+                                    <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
+                                        @csrf
+                                        <button class="btn s" type="submit">خرید فایل</button>
+                                    </form>
+                                @endif
+                            @else
+                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                            @endif
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
 </div>
 
@@ -241,12 +288,12 @@
                 @endif
             </div>
 
-            @if($features['live_class'] ?? false)
+            @if(($features['live_class'] ?? false) || $upcomingSessions->isNotEmpty())
                 <section class="card blk" id="live-sessions">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px">
                         <div>
-                            <h2 style="margin:0 0 6px">برنامه کلاس‌های آنلاین</h2>
-                            <p class="mu" style="margin:0">زمان‌بندی گروه‌های فعال این دوره؛ ورود به جلسه فقط برای اعضای مجاز همان کلاس فعال است.</p>
+                            <h2 style="margin:0 0 6px">برنامه جلسات آینده</h2>
+                            <p class="mu" style="margin:0">زمان و نوع برگزاری کلاس‌ها را ببین؛ لینک ورود فقط برای اعضای همان کلاس نمایش داده می‌شود.</p>
                         </div>
                         <span class="c-badge">{{ number_format($upcomingSessions->count()) }} جلسه پیش‌رو</span>
                     </div>
@@ -260,19 +307,21 @@
                         <article style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--ln);flex-wrap:wrap">
                             <div style="min-width:220px;flex:1">
                                 <strong style="display:block">{{ $session->title }}</strong>
-                                <span class="mu" style="font-size:13px">{{ $session->can_join ? ($session->classroom?->name ?? 'گروه آموزشی شما') : 'گروه آموزشی' }}</span>
+                                <span class="mu" style="font-size:13px">{{ $session->session_type === 'online' ? 'آنلاین' : 'حضوری' }} · {{ $session->can_join ? ($session->classroom?->name ?? 'کلاس شما') : 'گروه آموزشی' }}</span>
                                 <div style="margin-top:5px;font-size:13px;color:var(--mute)">
                                     {{ $session->starts_at?->translatedFormat('l d F Y، H:i') }}
                                     @if($session->ends_at) — {{ $session->ends_at->translatedFormat('H:i') }} @endif
                                 </div>
                             </div>
-                            @if(auth()->check() && auth()->user()->hasRole('student') && $session->can_join && $joinReady)
+                            @if($session->session_type === 'online' && auth()->check() && auth()->user()->hasRole('student') && $session->can_join && $joinReady)
                                 <form method="POST" action="{{ route('student.class-sessions.join', $session) }}" target="_blank" rel="noopener">
                                     @csrf
                                     <button type="submit" class="btn s">ورود به کلاس</button>
                                 </form>
-                            @elseif(auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
-                                <span class="lesson-lock-label">{{ $session->meeting_provider === 'jitsi' ? 'لینک Jitsi هنوز توسط مدرس ثبت نشده است' : 'اتصال Skyroom در انتظار فعال‌سازی سرویس' }}</span>
+                            @elseif($session->session_type === 'online' && auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
+                                <span class="lesson-lock-label">لینک ورود هنوز آماده نشده است</span>
+                            @elseif($session->session_type === 'onsite' && auth()->check() && auth()->user()->hasRole('student') && $session->can_join)
+                                <span class="lesson-lock-label">جلسه حضوری · ویژه اعضای این کلاس</span>
                             @elseif(auth()->check() && auth()->user()->hasRole('student') && $hasCourseAccess)
                                 <span class="lesson-lock-label">برای ورود، عضویت در گروه این کلاس لازم است</span>
                             @else
@@ -386,6 +435,53 @@
             @endif
         </aside>
     </div>
+
+    @if($courseResources->isNotEmpty())
+        <section class="card blk" id="course-resources">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+                <div>
+                    <h2 style="margin:0">جزوه‌ها و فایل‌های این دوره</h2>
+                    <p style="margin:5px 0 0;color:var(--mute);font-size:13px">فایل‌هایی که مدرس برای این دوره آماده کرده است.</p>
+                </div>
+                <span class="c-badge">{{ $courseResources->count() }} فایل</span>
+            </div>
+            <div style="display:grid;gap:10px">
+                @foreach($courseResources as $resource)
+                    <article style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid var(--ln,#e5e7eb);border-radius:13px">
+                        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+                            <span style="width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:11px;background:var(--soft,#eef2ff);color:var(--pri,#3156c9)">
+                                <svg class="i"><use href="#file"/></svg>
+                            </span>
+                            <div style="min-width:0">
+                                <strong style="display:block">{{ $resource->title }}</strong>
+                                @if($resource->description)<p style="margin:3px 0 0;color:var(--mute);font-size:12px">{{ $resource->description }}</p>@endif
+                                <small style="color:var(--mute)">{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                            @if($resource->is_free)
+                                <span class="c-badge">رایگان</span>
+                            @else
+                                <strong>{{ number_format((int) $resource->price) }} تومان</strong>
+                            @endif
+                            @if($hasCourseAccess && auth()->user()?->hasRole('student'))
+                                @if($resource->is_free || ($resource->is_purchased ?? false))
+                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                @else
+                                    <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
+                                        @csrf
+                                        <button class="btn s" type="submit">خرید فایل</button>
+                                    </form>
+                                @endif
+                            @else
+                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                            @endif
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </section>
+    @endif
 
     @if($relatedCourses->isNotEmpty())
 {{-- دوره‌های مرتبط واقعی --}}

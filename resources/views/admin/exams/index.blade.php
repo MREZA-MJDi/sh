@@ -42,71 +42,60 @@
     <div class="adm-toolbar-end"><x-admin.seg :options="['draft' => 'پیش‌نویس', 'scheduled' => 'زمان‌بندی', 'published' => 'منتشرشده', 'closed' => 'بسته‌شده']"/></div>
   </x-admin.toolbar>
 
-  <div class="adm-table-wrap">
-    <table class="adm-table">
-      <thead>
-        <tr><th>آزمون</th><th>دوره / کلاس</th><th>زمان شروع</th><th>مدت</th><th>سؤال / نتیجه</th><th>وضعیت</th><th></th></tr>
-      </thead>
-      <tbody data-filter-list>
-        @forelse($exams as $exam)
-          @php
-            $scopeName = $exam->classroom?->name ?? $exam->course?->title ?? 'بدون تخصیص';
-            $fill = [
-              'title' => $exam->title,
-              'description' => $exam->description,
-              'classroom_id' => (string) ($exam->classroom_id ?? ''),
-              'course_id' => (string) ($exam->course_id ?? ''),
-              'provider' => $exam->provider,
-              'external_id' => $exam->external_id,
-              'starts_at' => $exam->starts_at?->format('Y-m-d\TH:i'),
-              'duration_hours' => max(1, min(4, (int) ceil(((int) $exam->duration_minutes) / 60))),
-              'attempts_allowed' => $exam->attempts_allowed,
-              'show_to_guardians' => (bool) $exam->show_to_guardians,
-              'status' => $exam->status,
-            ];
-          @endphp
-          <tr data-name="{{ $exam->title }}" data-state="{{ $exam->status }}" data-provider="{{ $exam->provider }}">
-            <td>
-              <b>{{ $exam->title }}</b>
-              <small>{{ $exam->provider === 'quiz24' ? 'Quiz24' : 'آزمون داخلی شیخان' }} · {{ $exam->results_count }} نتیجه ثبت‌شده</small>
-            </td>
-            <td>{{ $scopeName }}</td>
-            <td class="adm-num is-nowrap">
-              {{ $exam->starts_at ? \App\Support\PersianDate::format($exam->starts_at, 'Y/m/d H:i') : 'بدون زمان' }}
-            </td>
-            <td class="adm-num">{{ $exam->duration_minutes }} دقیقه</td>
-            <td class="adm-num">{{ $exam->questions_count }} سؤال</td>
-            <td>
-              <x-admin.badge :tone="$statusTones[$exam->status] ?? 'warn'">{{ $statusLabels[$exam->status] ?? $exam->status }}</x-admin.badge>
-              @if($exam->provider === 'quiz24')
-                <small class="adm-muted">{{ $exam->integration_status ?: 'در انتظار بررسی' }}</small>
-              @endif
-            </td>
-            <td>
-              <div class="adm-actions">
-                @if($exam->provider === 'internal' || ! in_array($exam->integration_status, ['active', 'connected'], true))
-                  <x-admin.btn size="sm" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌ها</x-admin.btn>
-                @endif
-                <x-admin.btn size="sm" variant="soft" icon="chart" :href="route('admin.exams.results', $exam)">نتایج</x-admin.btn>
-                <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.exams.attempts', $exam)">تصحیح تشریحی</x-admin.btn>
-                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="exam-modal" data-title="ویرایش آزمون" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.exams.update', $exam)" data-method="PATCH">ویرایش</x-admin.btn>
-                @if(auth()->user()->hasRole('admin') && $exam->attempts_count === 0 && $exam->results_count === 0)
-                  <form method="POST" action="{{ route('admin.exams.destroy', $exam) }}" onsubmit="return confirm('این آزمون حذف شود؟')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">حذف</button>
-                  </form>
-                @endif
-              </div>
-              @if($exam->integration_note)
-                <small class="adm-muted">{{ $exam->integration_note }}</small>
-              @endif
-            </td>
-          </tr>
-        @empty
-          <tr><td colspan="7">هنوز آزمونی برای این محدوده دسترسی ثبت نشده است.</td></tr>
-        @endforelse
-      </tbody>
-    </table>
+  <div class="adm-grid adm-cols-2" data-filter-list>
+    @forelse($exams as $exam)
+      @php
+        $scopeName = $exam->classroom?->name ?? $exam->course?->title ?? 'بدون تخصیص';
+        $fill = [
+          'title' => $exam->title,
+          'description' => $exam->description,
+          'classroom_id' => (string) ($exam->classroom_id ?? ''),
+          'course_id' => (string) ($exam->course_id ?? ''),
+          'provider' => $exam->provider,
+          'external_id' => $exam->external_id,
+          'starts_at' => $exam->starts_at?->format('Y-m-d\\TH:i'),
+          'duration_hours' => max(1, min(4, (int) ceil(((int) $exam->duration_minutes) / 60))),
+          'attempts_allowed' => $exam->attempts_allowed,
+          'show_to_guardians' => (bool) $exam->show_to_guardians,
+          'status' => $exam->status,
+        ];
+      @endphp
+      <article class="adm-card" data-name="{{ $exam->title.' '.$scopeName }}" data-state="{{ $exam->status }}" data-provider="{{ $exam->provider }}">
+        <div class="adm-card-body">
+          <div class="adm-card-title">
+            <div><h3>{{ $exam->title }}</h3><p>{{ $scopeName }}</p></div>
+            <x-admin.badge :tone="$statusTones[$exam->status] ?? 'warn'">{{ $statusLabels[$exam->status] ?? $exam->status }}</x-admin.badge>
+          </div>
+          <div class="adm-meta">
+            <span><x-admin.icon name="calendar"/>{{ $exam->starts_at ? \App\Support\PersianDate::format($exam->starts_at, 'Y/m/d H:i') : 'بدون زمان‌بندی' }}</span>
+            <span><x-admin.icon name="clock"/>{{ number_format($exam->duration_minutes) }} دقیقه</span>
+            <span><x-admin.icon name="file"/>{{ number_format($exam->questions_count) }} سؤال</span>
+            <span><x-admin.icon name="chart"/>{{ number_format($exam->results_count) }} نتیجه</span>
+          </div>
+          <div class="adm-work-item" data-tone="track">
+            <span><x-admin.icon name="link"/></span>
+            <div><b>{{ $exam->provider === 'quiz24' ? 'آزمون متصل به Quiz24' : 'آزمون داخلی شیخان' }}</b><small>{{ $exam->provider === 'quiz24' ? ($exam->integration_status ?: 'در انتظار بررسی اتصال') : 'مدیریت سؤال و تصحیح در سامانه' }}</small></div>
+          </div>
+          @if($exam->integration_note)<p class="adm-panel-kicker">{{ $exam->integration_note }}</p>@endif
+          <div class="adm-actions">
+            @if($exam->provider === 'internal' || ! in_array($exam->integration_status, ['active', 'connected'], true))
+              <x-admin.btn size="sm" icon="list" :href="route('admin.exams.questions', $exam)">مدیریت سؤال‌ها</x-admin.btn>
+            @endif
+            <x-admin.btn size="sm" variant="soft" icon="chart" :href="route('admin.exams.results', $exam)">نتایج</x-admin.btn>
+            <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.exams.attempts', $exam)">تصحیح تشریحی</x-admin.btn>
+            <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="exam-modal" data-title="ویرایش آزمون" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.exams.update', $exam)" data-method="PATCH">ویرایش</x-admin.btn>
+            @if(auth()->user()->hasRole('admin') && $exam->attempts_count === 0 && $exam->results_count === 0)
+              <form method="POST" action="{{ route('admin.exams.destroy', $exam) }}" onsubmit="return confirm('این آزمون حذف شود؟')">
+                @csrf @method('DELETE')
+                <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">حذف</button>
+              </form>
+            @endif
+          </div>
+        </div>
+      </article>
+    @empty
+      <x-admin.empty text="هنوز آزمونی برای این محدوده دسترسی ثبت نشده است."/>
+    @endforelse
   </div>
   <x-admin.empty data-empty class="adm-hide" text="آزمونی با این مشخصات پیدا نشد."/>
   <x-slot:footer>{{ $exams->links() }}</x-slot:footer>

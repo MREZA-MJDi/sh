@@ -47,7 +47,9 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   previewMeta.className = 'adm-muted teacher-help';
   previewMeta.style.marginTop = '8px';
   preview.append(previewVideo, previewMeta);
-  fileInput.insertAdjacentElement('afterend', preview);
+  const uploadZone = fileInput.closest('.adm-upload');
+  if (uploadZone) uploadZone.insertAdjacentElement('afterend', preview);
+  else fileInput.insertAdjacentElement('afterend', preview);
   let previewUrl = null;
 
   fileInput.addEventListener('change', () => {
@@ -328,4 +330,26 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
     }
   });
+});
+
+
+const syncResourceVisibility = (form) => {
+  const classroomSelect = form?.querySelector('[data-resource-classroom]');
+  const visibilitySelect = form?.querySelector('[data-resource-visibility]');
+  const publicOption = visibilitySelect?.querySelector('option[value="public"]');
+  if (!classroomSelect || !visibilitySelect || !publicOption) return;
+
+  publicOption.disabled = Boolean(classroomSelect.value);
+  if (classroomSelect.value && visibilitySelect.value === 'public') {
+    visibilitySelect.value = 'enrolled';
+  }
+};
+
+document.addEventListener('change', (event) => {
+  if (!event.target.matches?.('[data-resource-classroom]')) return;
+  syncResourceVisibility(event.target.closest('form'));
+});
+
+document.addEventListener('reset', (event) => {
+  Promise.resolve().then(() => syncResourceVisibility(event.target));
 });

@@ -20,12 +20,12 @@
 
 <div class="adm-stats">
   <x-admin.stat tone="users" icon="users" label="کل حساب‌ها" :value="number_format($users->total())"/>
-  <x-admin.stat tone="users" icon="check" label="فعال" :value="number_format($users->getCollection()->where('is_active', true)->count())"/>
-  <x-admin.stat tone="users" icon="pause" label="غیرفعال" :value="number_format($users->getCollection()->where('is_active', false)->count())"/>
+  <x-admin.stat tone="users" icon="check" label="فعال" :value="number_format($users->getCollection()->where('is_active', true)->count())" hint="در صفحه جاری"/>
+  <x-admin.stat tone="users" icon="pause" label="غیرفعال" :value="number_format($users->getCollection()->where('is_active', false)->count())" hint="در صفحه جاری"/>
   <x-admin.stat tone="users" icon="user" label="نقش" :value="$roleLabel"/>
 </div>
 
-<x-admin.panel flush>
+<x-admin.panel flush data-filter>
   <x-admin.toolbar placeholder="جستجوی نام، ایمیل یا شماره تماس…">
     <div class="adm-toolbar-end">
       <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.students.index') }}">دانش‌آموزان</a>
@@ -35,32 +35,31 @@
       @endunless
     </div>
   </x-admin.toolbar>
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>کاربر</th><th>راه تماس</th><th>ارتباط آموزشی</th><th>وضعیت</th><th>اقدام</th></tr></thead>
-    <tbody>
-      @forelse($users as $user)
-        @php
-          $associations = $role === 'student'
-            ? $user->enrolledClasses->pluck('name')->join('، ')
-            : ($role === 'teacher'
-              ? number_format((int) $user->assigned_courses_count).' دوره'
-              : $user->children->pluck('name')->join('، '));
-          $fill = [
-            'name' => $user->name,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'grade' => $user->grade,
-            'subject' => $user->subject,
-            'profile_note' => $user->profile_note,
-            'status' => $user->is_active ? 'active' : 'pending',
-            'classroom_ids' => $role === 'student' ? $user->enrolledClasses->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
-            'child_ids' => $role === 'parent' ? $user->children->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
-            'child_ids_labels' => $role === 'parent' ? $user->children->pluck('name')->values()->all() : [],
-          ];
-          $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
-        @endphp
-        <tr>
-          <td>
+  <div class="adm-grid adm-cols-2" data-filter-list>
+    @forelse($users as $user)
+      @php
+        $associations = $role === 'student'
+          ? $user->enrolledClasses->pluck('name')->join('، ')
+          : ($role === 'teacher'
+            ? number_format((int) $user->assigned_courses_count).' دوره'
+            : $user->children->pluck('name')->join('، '));
+        $fill = [
+          'name' => $user->name,
+          'email' => $user->email,
+          'phone' => $user->phone,
+          'grade' => $user->grade,
+          'subject' => $user->subject,
+          'profile_note' => $user->profile_note,
+          'status' => $user->is_active ? 'active' : 'pending',
+          'classroom_ids' => $role === 'student' ? $user->enrolledClasses->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
+          'child_ids' => $role === 'parent' ? $user->children->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
+          'child_ids_labels' => $role === 'parent' ? $user->children->pluck('name')->values()->all() : [],
+        ];
+        $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
+      @endphp
+      <article class="adm-card" data-name="{{ $user->name.' '.$user->email.' '.$user->phone.' '.$associations }}">
+        <div class="adm-card-body">
+          <div class="adm-card-title">
             <div class="adm-person">
               <span class="adm-avatar">
                 @if($role === 'teacher' && $user->avatarUrl())
@@ -69,30 +68,36 @@
                   {{ mb_substr($user->name, 0, 1) }}
                 @endif
               </span>
-              <div><b>{{ $user->name }}</b><small>#{{ $user->id }} · {{ $user->created_at?->format('Y/m/d') }}</small></div>
+              <div><b>{{ $user->name }}</b><small>شناسه {{ $user->id }} · عضویت {{ $user->created_at?->format('Y/m/d') }}</small></div>
             </div>
-          </td>
-          <td>{{ $user->email ?: '—' }}<small>{{ $user->phone ?: '—' }}</small></td>
-          <td>{{ \Illuminate\Support\Str::limit($associations ?: 'بدون تخصیص', 90) }}</td>
-          <td><x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
-          <td><div class="adm-actions">
+            <x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge>
+          </div>
+          <div class="adm-meta">
+            @if($user->email)<span><x-admin.icon name="msg"/><span class="adm-ltr">{{ $user->email }}</span></span>@endif
+            @if($user->phone)<span><x-admin.icon name="phone"/><span class="adm-ltr">{{ $user->phone }}</span></span>@endif
+          </div>
+          <div class="adm-panel-kicker">{{ $role === 'student' ? 'کلاس‌های آموزشی' : ($role === 'teacher' ? 'دوره‌های تخصیص‌یافته' : 'فرزندان مرتبط') }}</div>
+          <p>{{ $associations ?: 'هنوز ارتباط آموزشی ثبت نشده است.' }}</p>
+          <div class="adm-actions">
             @if($canManage)
-              <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="user-modal" data-title="ویرایش کاربر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="$updateAction" data-method="PATCH">ویرایش</x-admin.btn>
-            @endif
-            @if($canManage)
+              <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="user-modal" data-title="ویرایش کاربر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="$updateAction" data-method="PATCH">ویرایش پرونده</x-admin.btn>
               <form method="POST" action="{{ route('admin.users.status', $user) }}">
                 @csrf @method('PATCH')
                 <input type="hidden" name="is_active" value="{{ $user->is_active ? 0 : 1 }}">
                 <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">{{ $user->is_active ? 'غیرفعال‌سازی' : 'فعال‌سازی' }}</button>
               </form>
             @endif
-          </div></td>
-        </tr>
-      @empty
-        <tr><td colspan="5">حسابی در این نقش ثبت نشده است.</td></tr>
-      @endforelse
-    </tbody>
-  </table></div>
+          </div>
+        </div>
+      </article>
+    @empty
+    @endforelse
+  </div>
+  @if($users->isEmpty())
+    <x-admin.empty text="حسابی در این نقش ثبت نشده است."/>
+  @else
+    <x-admin.empty data-empty class="adm-hide" text="کاربری با این مشخصات پیدا نشد."/>
+  @endif
   <x-slot:footer>{{ $users->links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection

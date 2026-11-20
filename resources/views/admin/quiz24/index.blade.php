@@ -28,72 +28,77 @@
 </x-admin.panel>
 
 <x-admin.panel title="آزمون‌های دارای ارائه‌دهنده Quiz24" flush>
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>آزمون</th><th>دوره / کلاس</th><th>شناسه خارجی</th><th>وضعیت</th><th>نتایج</th><th>اقدام</th></tr></thead>
-    <tbody>
-      @forelse($exams as $exam)
-        <tr>
-          <td><b>{{ $exam->title }}</b><small>{{ $exam->questions_count ?? $exam->questions()->count() }} سؤال محلی برای مسیر جایگزین</small></td>
-          <td>{{ $exam->course?->title ?? $exam->classroom?->name ?? '—' }}</td>
-          <td class="adm-num">{{ $exam->external_id ?: 'در انتظار نگاشت' }}</td>
-          <td>
+  <div class="adm-grid adm-cols-2">
+    @forelse($exams as $exam)
+      <article class="adm-card">
+        <div class="adm-card-body">
+          <div class="adm-card-title">
+            <div><h3>{{ $exam->title }}</h3><p>{{ $exam->course?->title ?? $exam->classroom?->name ?? 'بدون تخصیص' }}</p></div>
             <x-admin.badge :tone="$statusTones[$exam->status] ?? 'warn'">{{ $statusLabels[$exam->status] ?? $exam->status }}</x-admin.badge>
-            <small>{{ $exam->integration_status ?: 'ثبت نشده' }}</small>
-          </td>
-          <td class="adm-num">{{ number_format($exam->results_count) }}</td>
-          <td>
-            <div class="adm-actions">
-              @if(!in_array($exam->integration_status, ['active', 'connected'], true))
-                <x-admin.btn size="sm" variant="soft" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌های محلی</x-admin.btn>
-              @endif
-              @if(filled($exam->external_id) && in_array($exam->status, ['published', 'closed'], true))
-                <form method="POST" action="{{ route('admin.quiz24.sync-results', $exam) }}">@csrf<button type="submit" class="adm-btn adm-btn-line adm-btn-sm">درخواست نتایج</button></form>
-              @else
-                <span class="adm-muted">پس از نگاشت شناسه و انتشار</span>
-              @endif
-            </div>
-          </td>
-        </tr>
-      @empty
-        <tr><td colspan="6">هنوز آزمونی با ارائه‌دهنده Quiz24 ثبت نشده است. از مدیریت آزمون‌ها می‌توانید یک آزمون Quiz24 بسازید؛ تا زمان اتصال، آزمون محلی آن قابل اجرا خواهد بود.</td></tr>
-      @endforelse
-    </tbody>
-  </table></div>
+          </div>
+          <div class="adm-meta">
+            <span>شناسه خارجی: <b class="adm-ltr">{{ $exam->external_id ?: 'در انتظار نگاشت' }}</b></span>
+            <span>{{ number_format($exam->results_count) }} نتیجه ثبت‌شده</span>
+            <span>{{ $exam->questions_count ?? $exam->questions()->count() }} سؤال محلی</span>
+          </div>
+          <div class="adm-work-item" data-tone="track">
+            <span><x-admin.icon name="link"/></span>
+            <div><b>وضعیت یکپارچه‌سازی</b><small>{{ $exam->integration_status ?: 'هنوز ثبت نشده' }}</small></div>
+          </div>
+          <div class="adm-actions">
+            @if(!in_array($exam->integration_status, ['active', 'connected'], true))
+              <x-admin.btn size="sm" variant="soft" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌های محلی</x-admin.btn>
+            @endif
+            @if(filled($exam->external_id) && in_array($exam->status, ['published', 'closed'], true))
+              <form method="POST" action="{{ route('admin.quiz24.sync-results', $exam) }}">@csrf<button type="submit" class="adm-btn adm-btn-line adm-btn-sm">درخواست دریافت نتایج</button></form>
+            @else
+              <span class="adm-muted">پس از ثبت شناسه و انتشار آزمون</span>
+            @endif
+          </div>
+        </div>
+      </article>
+    @empty
+      <x-admin.empty text="هنوز آزمونی با ارائه‌دهنده Quiz24 ثبت نشده است. از مدیریت آزمون‌ها می‌توانید یک آزمون Quiz24 بسازید؛ تا زمان اتصال، آزمون محلی آن قابل اجرا خواهد بود."/>
+    @endforelse
+  </div>
   <x-slot:footer>{{ $exams->links() }}</x-slot:footer>
 </x-admin.panel>
 
 <x-admin.panel title="شرکت‌کنندگان و نتایج نیازمند تطبیق" desc="شناسه خارجی باید به یک حساب فعال دانش‌آموز متصل شود؛ نتیجه پس از تطبیق وارد کارنامه می‌شود." flush>
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>شرکت‌کننده خارجی</th><th>آزمون</th><th>نمره</th><th>وضعیت</th><th>تطبیق حساب</th></tr></thead>
-    <tbody>
-      @forelse($unmatched as $participant)
-        <tr>
-          <td><b>{{ $participant->display_name ?: 'بدون نام' }}</b><small class="adm-num">{{ $participant->external_identifier }}</small></td>
-          <td>{{ $participant->exam?->title ?? '—' }}</td>
-          <td class="adm-num">{{ $participant->score ?? '—' }} / {{ $participant->max_score ?? '—' }}</td>
-          <td><x-admin.badge :tone="$participant->status === 'conflict' ? 'bad' : 'warn'">{{ $participant->status }}</x-admin.badge></td>
-          <td>
-            @if($participant->status !== 'resolved')
-              <form method="POST" action="{{ route('admin.quiz24.unmatched.resolve', $participant) }}" class="adm-actions">
-                @csrf
+  <div class="adm-grid adm-cols-2">
+    @forelse($unmatched as $participant)
+      <article class="adm-card">
+        <div class="adm-card-body">
+          <div class="adm-card-title">
+            <div><h3>{{ $participant->display_name ?: 'شرکت‌کننده بدون نام' }}</h3><p>{{ $participant->exam?->title ?? 'آزمون نامشخص' }}</p></div>
+            <x-admin.badge :tone="$participant->status === 'conflict' ? 'bad' : 'warn'">{{ $participant->status }}</x-admin.badge>
+          </div>
+          <div class="adm-meta">
+            <span>شناسه خارجی: <b class="adm-ltr">{{ $participant->external_identifier }}</b></span>
+            <span>نمره: <b class="adm-num">{{ $participant->score ?? '—' }} / {{ $participant->max_score ?? '—' }}</b></span>
+          </div>
+          @if($participant->status !== 'resolved')
+            <form method="POST" action="{{ route('admin.quiz24.unmatched.resolve', $participant) }}" class="adm-match-form">
+              @csrf
+              <label class="adm-label">این نتیجه متعلق به کدام دانش‌آموز است؟
                 <select class="adm-select" name="student_id" required>
                   <option value="">انتخاب دانش‌آموز</option>
                   @foreach($studentOptions as $studentId => $studentName)
                     <option value="{{ $studentId }}">{{ $studentName }}</option>
                   @endforeach
                 </select>
-                <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">تطبیق و ثبت نتیجه</button>
-              </form>
-            @else
-              {{ $participant->resolvedUser?->name ?? 'تطبیق‌شده' }}
-            @endif
-          </td>
-        </tr>
-      @empty
-        <tr><td colspan="5">موردی برای تطبیق وجود ندارد.</td></tr>
-      @endforelse
-    </tbody>
-  </table></div>
+              </label>
+              <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">تطبیق و ثبت نتیجه</button>
+            </form>
+          @else
+            <div class="adm-work-item" data-tone="shop"><span><x-admin.icon name="check"/></span><div><b>تطبیق انجام شده</b><small>{{ $participant->resolvedUser?->name ?? 'حساب دانش‌آموز متصل شده است' }}</small></div></div>
+          @endif
+        </div>
+      </article>
+    @empty
+      <div class="adm-queue-empty"><x-admin.icon name="check"/><b>موردی برای تطبیق وجود ندارد</b><span>همه نتایج دریافتی به حساب دانش‌آموزان متصل شده‌اند.</span></div>
+    @endforelse
+  </div>
   <x-slot:footer>{{ $unmatched->links() }}</x-slot:footer>
 </x-admin.panel>
 

@@ -79,15 +79,18 @@
             <x-admin.badge tone="info" class="is-plain"><span class="adm-num">{{ number_format($classroom->students_count) }}</span> عضو</x-admin.badge>
           </div>
           @if($classroom->skyroom_status === 'waiting_contract')
-            <small class="adm-muted">Skyroom: در انتظار قرارداد · زمان‌بندی جلسات فعال است</small>
+            <small class="adm-muted">اتاق آنلاین هنوز فعال نشده؛ زمان‌بندی جلسه‌ها در دسترس است</small>
           @elseif($classroom->skyroom_status === 'ready')
-            <small class="adm-muted">Skyroom: اتاق آماده</small>
+            <small class="adm-muted">اتاق آنلاین آماده است</small>
           @elseif($classroom->skyroom_status === 'failed')
-            <small class="adm-muted">Skyroom: خطا در آخرین تلاش اتصال</small>
+            <small class="adm-muted">آماده‌سازی اتاق آنلاین ناموفق بود</small>
           @endif
 
           <div class="adm-actions">
-            <x-admin.btn size="sm" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">جلسات</x-admin.btn>
+            <x-admin.btn size="sm" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
+            @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+                  <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
+                @endcanany
             @if($canManage)
               <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="class-modal" data-title="ویرایش کلاس" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش</x-admin.btn>
               <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="class-del" :data-name="$classroom->name" :data-action="route('admin.classes.destroy', $classroom)" aria-label="حذف"/>
@@ -96,7 +99,7 @@
           @if($canManage)
             <form method="POST" action="{{ route('admin.classes.skyroom-room', $classroom) }}" style="margin-top:8px">
               @csrf
-              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm" style="width:100%">بررسی / ساخت اتاق Skyroom</button>
+              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm" style="width:100%">آماده‌سازی اتاق آنلاین</button>
             </form>
           @endif
         </div>
@@ -114,23 +117,14 @@
 @push('modals')
 @if($canManage)
 <x-admin.modal :demo="false" id="class-modal" title="کلاس جدید" size="lg" :action="route('admin.classes.store')">
-  <x-admin.legend title="اطلاعات گروه آموزشی"/>
-  <x-admin.input label="نام کلاس / گروه" name="name" wide required/>
-  <x-admin.select label="دوره مرتبط" name="course_id" :options="$courseOptions" :required="$teacherView" placeholder="کلاس مستقل / بدون دوره"/>
-  @unless($teacherView)
-    <x-admin.select label="مدرس مسئول" name="teacher_id" :options="$teacherOptions" required/>
-  @endunless
-  <x-admin.select label="وضعیت کلاس" name="status" :options="$statusOptions" required/>
-  <x-admin.input label="لینک پیش‌فرض جلسه (اختیاری)" name="meeting_url" placeholder="لینک امن جلسه یا اتاق Skyroom" wide/>
-
-  <x-admin.legend title="برنامه هفتگی"/>
-  <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="$days" hint="برای کلاس‌های بدون برنامه ثابت خالی بگذارید"/>
-  <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
-  <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" addon="دقیقه"/>
-
-  <x-admin.legend title="اعضای کلاس"/>
-  <x-admin.chips label="دانش‌آموزان فعال" name="student_ids" :options="$studentOptions" scroll hint="افزودن یا حذف عضو، تاریخچه عضویت را حفظ می‌کند"/>
-  <p class="adm-muted" style="grid-column:1/-1">ثبت کلاس و اعضا مستقل از فعال‌شدن Skyroom است. جلسات را پس از ساخت گروه از صفحه «جلسات» زمان‌بندی کنید.</p>
+  @include('admin.classes.partials.class-fields', [
+    'teacherOptions' => $teacherOptions,
+    'courseOptions' => $courseOptions,
+    'days' => $days,
+    'statusOptions' => $statusOptions,
+    'studentOptions' => $studentOptions,
+    'teacherView' => $teacherView,
+  ])
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="class-del" title="حذف کلاس" text="کلاسی که سابقه حضور، تکلیف، آزمون، عضو یا جلسه داشته باشد حذف نمی‌شود و باید بایگانی شود."/>
 @endif

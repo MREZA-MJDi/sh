@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\AcademicGrade;
 use App\Models\CourseEnrollment;
 use App\Models\Lesson;
+use App\Models\LearningResource;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
@@ -52,15 +53,32 @@ final class CourseController extends Controller
             ->get(['id', 'name']);
 
         $grades = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get(['id', 'name', 'code']);
+        $course->load([
+            'sections' => fn ($sections) => $sections->orderBy('sort_order')->orderBy('id')
+                ->with(['lessons' => fn ($lessons) => $lessons->orderBy('sort_order')->orderBy('id')]),
+        ]);
         $videos = $course->spotPlayerVideos()->with(['classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])->latest()->paginate(10, ['*'], 'videos');
         $classrooms = $course->classrooms()
             ->where('status', 'active')
-            ->with(['sessions' => fn ($sessions) => $sessions->where('status', '!=', 'cancelled')->orderByDesc('starts_at')])
+            ->with(['teacher:id,name', 'sessions' => fn ($sessions) => $sessions->where('status', 'scheduled')->where('starts_at', '>=', now())->orderBy('starts_at')->limit(1)])
+            ->withCount(['students', 'sessions'])
             ->orderBy('name')
             ->limit(100)
-            ->get(['id', 'name', 'course_id']);
+            ->get(['id', 'name', 'course_id', 'teacher_id', 'schedule', 'skyroom_status']);
+        $students = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+            ->orderBy('name')
+            ->limit(300)
+            ->get(['id', 'name']);
+        $resources = LearningResource::query()
+            ->where('course_id', $course->id)
+            ->with('classroom:id,name')
+            ->latest()
+            ->limit(8)
+            ->get();
 
-        return view('admin.courses.form', compact('course', 'teachers', 'videos', 'classrooms', 'grades') + ['isEditing' => true]);
+        return view('admin.courses.form', compact('course', 'teachers', 'videos', 'classrooms', 'grades', 'students', 'resources') + ['isEditing' => true]);
     }
 
     public function index(ClassroomWorkspaceService $workspace): View

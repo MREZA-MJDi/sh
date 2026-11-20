@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Classroom;
 use App\Models\CourseEnrollment;
+use App\Models\Course;
 use App\Models\LearningResource;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -100,13 +101,17 @@ final class LearningResourceAccessService
             $resource->status === 'published'
                 && $resource->visibility === 'public'
                 && ! $resource->classroom_id
-                && ! $resource->course_id
                 && (! $resource->release_at || $resource->release_at->lte(now()))
                 && $resource->file_path
                 && $resource->is_free
                 && ($resource->downloadable || $resource->kind === 'pdf'),
             404
         );
+
+        if ($resource->course_id) {
+            $course = Course::query()->whereKey($resource->course_id)->where('status', 'published')->first();
+            abort_unless($course && $course->featureEnabled('resources'), 404);
+        }
     }
 
     private function hasActiveCourseAccess(User $student, int $courseId): bool

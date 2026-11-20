@@ -59,6 +59,11 @@ class Course extends Model
         return $this->hasMany(Classroom::class);
     }
 
+    public function mediaAssets(): HasMany
+    {
+        return $this->hasMany(MediaAsset::class);
+    }
+
     public function resources(): HasMany
     {
         return $this->hasMany(LearningResource::class);

@@ -8,6 +8,7 @@ use App\Models\HomeQuizQuestion;
 use App\Models\CourseEnrollment;
 use App\Models\ClassSession;
 use App\Models\Lesson;
+use App\Models\LearningResource;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
@@ -140,7 +141,6 @@ final class PublicSiteController extends Controller
             ->count();
 
         $upcomingSessions = ClassSession::query()
-            ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->where('starts_at', '>=', now())
             ->whereHas('classroom', fn ($classrooms) => $classrooms
@@ -186,6 +186,28 @@ final class PublicSiteController extends Controller
         $hasCourseAccess = $request->user()?->hasRole('student') && $request->user()->is_active
             ? $enrollments->hasActiveAccess($request->user(), $course)
             : false;
+
+        $courseResources = collect();
+        if ($features['resources'] ?? false) {
+            $courseResources = LearningResource::query()
+                ->where('course_id', $course->id)
+                ->where(function ($scope) use ($hasCourseAccess, $activeClassroomIds): void {
+                    $scope->whereNull('classroom_id');
+                    if ($hasCourseAccess && $activeClassroomIds !== []) {
+                        $scope->orWhereIn('classroom_id', $activeClassroomIds);
+                    }
+                })
+                ->with('classroom:id,name')
+                ->where('status', 'published')
+                ->whereNotNull('file_path')
+                ->where(fn ($release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
+                ->when($hasCourseAccess, fn ($query) => $query->whereIn('visibility', ['public', 'authenticated', 'enrolled'])
+                    ->withExists(['purchases as is_purchased' => fn ($purchases) => $purchases
+                        ->where('student_id', $request->user()->id)->where('status', 'paid')]))
+                ->when(! $hasCourseAccess, fn ($query) => $query->where('visibility', 'public')->where('is_free', true))
+                ->orderBy('sort_order')->orderBy('id')
+                ->get(['id', 'course_id', 'classroom_id', 'title', 'description', 'kind', 'is_free', 'price', 'downloadable', 'file_path']);
+        }
 
         // Video playback is exposed only when both the enrollment and the
         // provider-issued license are currently valid. Embed hosts are explicitly
@@ -255,6 +277,7 @@ final class PublicSiteController extends Controller
             'totalLessons',
             'relatedCourses',
             'hasCourseAccess',
+            'courseResources',
             'upcomingOnlineSessionCount',
             'upcomingSessions',
             'features',

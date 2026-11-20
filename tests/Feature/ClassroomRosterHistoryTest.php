@@ -56,7 +56,7 @@ final class ClassroomRosterHistoryTest extends TestCase
             'schedule_days' => [],
             'schedule_time' => null,
             'duration_minutes' => 90,
-            'student_ids' => [],
+            'student_ids_present' => '1',
         ]);
 
         $this->assertDatabaseMissing('classroom_student', [
@@ -94,6 +94,49 @@ final class ClassroomRosterHistoryTest extends TestCase
             'student_id' => $student->id,
             'status' => 'active',
             'source' => 'classroom',
+        ]);
+    }
+
+    public function test_updating_class_details_without_a_roster_field_preserves_existing_members(): void
+    {
+        $admin = User::factory()->create();
+        $teacher = User::factory()->create();
+        $student = User::factory()->create();
+
+        $course = Course::query()->create([
+            'title' => 'دوره ویرایش کلاس',
+            'slug' => 'class-details-without-roster',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس اولیه',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id, ['assigned_by' => $admin->id]);
+
+        app(ClassroomService::class)->update($admin, $classroom, [
+            'name' => 'نام جدید کلاس',
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'meeting_url' => null,
+            'status' => 'active',
+            'schedule_days' => ['sat', 'mon'],
+            'schedule_time' => '17:00',
+            'duration_minutes' => 90,
+        ]);
+
+        $this->assertTrue($classroom->fresh()->students()->whereKey($student->id)->exists());
+        $this->assertDatabaseMissing('classroom_membership_history', [
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+            'removed_by' => $admin->id,
         ]);
     }
 
