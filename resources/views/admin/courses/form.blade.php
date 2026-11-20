@@ -40,13 +40,17 @@
           <x-admin.select label="فصل دوره" name="season" :options="$seasons" :selected="old('season', $course->season)" placeholder="انتخاب فصل" required/>
           <x-admin.select label="مدرس دوره" name="teacher_id" :options="$teachers->pluck('name', 'id')->all()" :selected="old('teacher_id', $course->teacher_id)" placeholder="انتخاب مدرس"/>
           <x-admin.textarea label="توضیح کوتاه زیر عنوان" name="description" :value="old('description', $course->description)" wide rows="4" placeholder="این متن در سربرگ و معرفی دوره نمایش داده می‌شود."/>
-          <div class="adm-field" style="grid-column:1/-1">
-            <label class="adm-label" for="course-cover-image">تصویر اصلی دوره</label>
-            <input id="course-cover-image" class="adm-input" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp">
-            <small class="adm-hint">JPG، PNG یا WebP؛ حداکثر ۵ مگابایت. این تصویر روی کارت دوره و سربرگ صفحه عمومی نمایش داده می‌شود.</small>
+          <div class="adm-field wide">
+            <span class="adm-label">تصویر روی کارت و صفحه دوره</span>
+            <label class="adm-upload adm-upload-wide">
+              <input id="course-cover-image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16/9" data-preview-fit="cover">
+              <span class="adm-upload-icon"><x-admin.icon name="image"/></span>
+              <b>تصویر دوره را اینجا رها کن یا انتخاب کن</b>
+              <small data-upload-name>JPG، PNG یا WebP · حداکثر ۵ مگابایت</small>
+            </label>
             @if($isEditing && $course->coverImageUrl)
-              <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
-                <img src="{{ $course->coverImageUrl }}" alt="تصویر فعلی {{ $course->title }}" style="width:150px;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)">
+              <div class="adm-current-cover">
+                <img src="{{ $course->coverImageUrl }}" alt="تصویر فعلی {{ $course->title }}" loading="lazy">
                 <label class="adm-check"><input type="checkbox" name="remove_cover_image" value="1"> حذف تصویر فعلی</label>
               </div>
             @endif
@@ -132,7 +136,10 @@
                   @endforeach
                 </select>
               </label>
-              <x-admin.input label="شناسه خارجی (در صورت وجود)" name="external_id" placeholder="در صورت داشتن شناسه SpotPlayer" data-upload-external/>
+              <details class="adm-advanced wide">
+                <summary>تنظیمات بیشتر (اختیاری)</summary>
+                <x-admin.input label="شناسه ویدیو در سرویس قبلی" name="external_id" placeholder="فقط در صورت داشتن شناسه قبلی" data-upload-external/>
+              </details>
               <label class="adm-upload adm-upload-wide">
                 <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v" data-upload-file>
                 <span class="adm-upload-icon"><x-admin.icon name="video"/></span>
@@ -159,7 +166,7 @@
                     'active' => ['ok', 'آماده پخش'],
                     'processing' => ['warn', 'در حال پردازش'],
                     'failed' => ['bad', 'پردازش ناموفق'],
-                    'waiting_contract' => ['warn', 'در انتظار قرارداد'],
+                    'waiting_contract' => ['warn', 'در حال آماده‌سازی پخش'],
                     default => ['mute', $video->status],
                   };
                 @endphp
@@ -169,7 +176,7 @@
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
             @endforelse
           </div>
-          <p class="adm-muted">فایل بارگذاری‌شده مستقیماً از پلیر داخلی پخش می‌شود و نیازی به شناسه یا لینک SpotPlayer ندارد. اگر فقط شناسه خارجی ثبت شود، تا زمان تکمیل اتصال رسمی، وضعیت در انتظار قرارداد می‌ماند.</p>
+          <p class="adm-muted">فایل بارگذاری‌شده مستقیماً از پلیر داخلی پخش می‌شود و نیازی به شناسه یا لینک SpotPlayer ندارد. اگر فقط شناسه سرویس قبلی را وارد کنی، پخش آن پس از آماده‌شدن اتصال فعال می‌شود.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @endif
