@@ -440,6 +440,7 @@ final class PortalController extends Controller
 
         if ($selectedMessage) {
             $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name']);
+            $selectedMessage->loadCount('replies');
             $latestReplies = $selectedMessage->replies()
                 ->with('sender:id,name')
                 ->latest()
