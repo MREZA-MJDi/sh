@@ -2,7 +2,7 @@
 @section('title', 'درخواست‌های مشاوره')
 @section('content')
 @php $kids = $children; $kid = $selected_child; @endphp
-<h2>درخواست‌های مشاوره</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">پشتیبانی آموزشی</span><h1>درخواست‌های مشاوره</h1><p>درخواست‌ها و پاسخ‌های مربوط به فرزند انتخاب‌شده</p></div></div>
 @include('parent.partials.kid-picker')
 <section class="c">
     <div class="chead"><h3>درخواست‌های ثبت‌شده</h3><a class="b s" href="{{ route('guardian.consultations.create', ['child' => $selected_child?->id]) }}">درخواست مشاوره جدید</a></div>
