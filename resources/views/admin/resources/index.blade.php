@@ -17,77 +17,85 @@
 </x-admin.page-head>
 
 <x-admin.panel flush>
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>منبع</th><th>دوره / کلاس</th><th>نوع و دسترسی</th><th>قیمت</th><th>رویدادهای دسترسی</th><th>وضعیت</th><th></th></tr></thead>
-    <tbody>
-      @forelse($resources as $resource)
-        @php
-          $fill = [
-            'title' => $resource->title,
-            'description' => $resource->description,
-            'kind' => $resource->kind,
-            'course_id' => (string) ($resource->course_id ?? ''),
-            'classroom_id' => (string) ($resource->classroom_id ?? ''),
-            'is_free' => (bool) $resource->is_free,
-            'price' => $resource->price,
-            'visibility' => $resource->visibility,
-            'release_at' => $resource->release_at?->format('Y-m-d\TH:i'),
-            'downloadable' => (bool) $resource->downloadable,
-            'status' => $resource->status,
-          ];
-        @endphp
-        <tr>
-          <td><b>{{ $resource->title }}</b><small>{{ $resource->uploader?->name ?? '—' }} · {{ $resource->file_path ? basename($resource->file_path) : 'بدون فایل' }}</small></td>
-          <td>{{ $resource->course?->title ?? '—' }}<small>{{ $resource->classroom?->name ?? 'سطح دوره' }}</small></td>
-          <td>{{ $kindOptions[$resource->kind] ?? $resource->kind }}<small>{{ $visibilityOptions[$resource->visibility] ?? $resource->visibility }}</small></td>
-          <td>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</td>
-          <td class="adm-num">{{ number_format($resource->access_logs_count) }}</td>
-          <td><x-admin.badge :tone="$resource->status === 'published' ? 'ok' : 'warn'">{{ $statusOptions[$resource->status] ?? $resource->status }}</x-admin.badge></td>
-          <td><div class="adm-actions">
-            @if($resource->file_path)<x-admin.btn size="sm" variant="line" :href="route('admin.resources.download', $resource)">دریافت</x-admin.btn>@endif
+  <div class="adm-grid adm-cols-2">
+    @forelse($resources as $resource)
+      @php
+        $fill = [
+          'title' => $resource->title,
+          'description' => $resource->description,
+          'kind' => $resource->kind,
+          'course_id' => (string) ($resource->course_id ?? ''),
+          'classroom_id' => (string) ($resource->classroom_id ?? ''),
+          'is_free' => (bool) $resource->is_free,
+          'price' => $resource->price,
+          'visibility' => $resource->visibility,
+          'release_at' => $resource->release_at?->format('Y-m-d\\TH:i'),
+          'downloadable' => (bool) $resource->downloadable,
+          'status' => $resource->status,
+        ];
+      @endphp
+      <article class="adm-card">
+        <div class="adm-card-body">
+          <div class="adm-card-title">
+            <div><h3>{{ $resource->title }}</h3><p>{{ $resource->uploader?->name ?? 'ثبت‌کننده نامشخص' }}</p></div>
+            <x-admin.badge :tone="$resource->status === 'published' ? 'ok' : 'warn'">{{ $statusOptions[$resource->status] ?? $resource->status }}</x-admin.badge>
+          </div>
+          <div class="adm-meta">
+            <span><x-admin.icon name="file"/>{{ $kindOptions[$resource->kind] ?? $resource->kind }}</span>
+            <span><x-admin.icon name="book"/>{{ $resource->course?->title ?? 'بدون دوره' }}</span>
+            <span><x-admin.icon name="users"/>{{ $resource->classroom?->name ?? 'در سطح دوره' }}</span>
+          </div>
+          <div class="adm-card-foot">
+            <strong class="adm-price {{ $resource->is_free ? 'is-free' : '' }}">{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</strong>
+            <span class="adm-muted">{{ $visibilityOptions[$resource->visibility] ?? $resource->visibility }}</span>
+          </div>
+          <div class="adm-kv">
+            <span>دریافت فایل: <b>{{ $resource->downloadable ? 'مجاز' : 'غیرفعال' }}</b></span>
+            <span>رویداد دسترسی: <b class="adm-num">{{ number_format($resource->access_logs_count) }}</b></span>
+            <span>فایل: <b>{{ $resource->file_path ? basename($resource->file_path) : 'ثبت نشده' }}</b></span>
+          </div>
+          <div class="adm-actions">
+            @if($resource->file_path)<x-admin.btn size="sm" variant="line" :href="route('admin.resources.download', $resource)">دریافت فایل</x-admin.btn>@endif
             <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="resource-modal" data-title="ویرایش منبع" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.resources.update', $resource)" data-method="PATCH">ویرایش</x-admin.btn>
             <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="resource-delete" :data-name="$resource->title" :data-action="route('admin.resources.destroy', $resource)"/>
-          </div></td>
-        </tr>
-      @empty
-        <tr><td colspan="7">هنوز منبعی ثبت نشده است.</td></tr>
-      @endforelse
-    </tbody>
-  </table></div>
+          </div>
+        </div>
+      </article>
+    @empty
+      <x-admin.empty text="هنوز منبعی ثبت نشده است."/>
+    @endforelse
+  </div>
   <x-slot:footer>{{ $resources->links() }}</x-slot:footer>
 </x-admin.panel>
 
 @if(!$teacherView)
 <x-admin.panel title="درخواست‌های خرید در انتظار بررسی" desc="پس از تطبیق رسید بانکی با واریز واقعی، خرید را تأیید کنید." flush data-tone="shop">
-    <div class="adm-table-wrap">
-        <table class="adm-table">
-            <thead><tr><th>دانش‌آموز</th><th>محصول</th><th>مبلغ (تومان)</th><th>شناسه رسید</th><th>زمان درخواست</th><th>تأیید</th></tr></thead>
-            <tbody>
-                @forelse($purchases as $purchase)
-                    <tr>
-                        <td>{{ $purchase->student?->name ?? '—' }}</td>
-                        <td>{{ $purchase->resource?->title ?? 'محصول حذف‌شده' }}</td>
-                        <td class="adm-num">{{ number_format($purchase->amount) }} تومان</td>
-                        <td dir="ltr">{{ $purchase->provider_reference }}</td>
-                        <td>{{ $purchase->created_at?->format('Y/m/d H:i') }}</td>
-                        <td>
-                            @if(auth()->user()->hasRole('admin'))
-                                <form method="POST" action="{{ route('admin.resources.purchases.verify', $purchase) }}"
-                                      onsubmit="return confirm('فقط پس از بررسی واریز واقعی، خرید را تأیید کنید.')">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button class="adm-btn adm-btn-primary adm-btn-sm" type="submit">تأیید خرید</button>
-                                </form>
-                            @else
-                                <span class="adm-muted">در انتظار تأیید مدیر سامانه</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6">درخواست خرید در انتظار بررسی وجود ندارد.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="adm-grid adm-cols-2" style="padding:16px">
+      @forelse($purchases as $purchase)
+        <article class="adm-card">
+          <div class="adm-card-body">
+            <div class="adm-card-title">
+              <div><h3>{{ $purchase->resource?->title ?? 'محصول حذف‌شده' }}</h3><p>{{ $purchase->student?->name ?? 'دانش‌آموز نامشخص' }}</p></div>
+              <x-admin.badge tone="warn">در انتظار بررسی</x-admin.badge>
+            </div>
+            <div class="adm-meta">
+              <span>مبلغ: <b class="adm-num">{{ number_format($purchase->amount) }} تومان</b></span>
+              <span>زمان درخواست: {{ $purchase->created_at?->format('Y/m/d H:i') }}</span>
+            </div>
+            <div class="adm-kv"><span>شناسه رسید: <b class="adm-ltr">{{ $purchase->provider_reference }}</b></span></div>
+            @if(auth()->user()->hasRole('admin'))
+              <form method="POST" action="{{ route('admin.resources.purchases.verify', $purchase) }}" onsubmit="return confirm('فقط پس از بررسی واریز واقعی، خرید را تأیید کنید.')">
+                @csrf @method('PATCH')
+                <button class="adm-btn adm-btn-primary adm-btn-sm" type="submit">تأیید خرید پس از تطبیق رسید</button>
+              </form>
+            @else
+              <span class="adm-muted">در انتظار تأیید مدیر سامانه</span>
+            @endif
+          </div>
+        </article>
+      @empty
+        <div class="adm-queue-empty"><x-admin.icon name="check"/><b>درخواست خرید معوقی وجود ندارد</b><span>در حال حاضر همه درخواست‌ها بررسی شده‌اند.</span></div>
+      @endforelse
     </div>
     <x-slot:footer>{{ $purchases->links() }}</x-slot:footer>
 </x-admin.panel>
