@@ -24,7 +24,7 @@ const jsonRequest = async (url, payload) => {
 };
 
 const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-const targetIsSessionUpload = (widget) => widget.dataset.target === 'spotplayer_video';
+const targetRequiresSession = (widget) => widget.dataset.requireSession === 'true';
 
 document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   const fileInput = widget.querySelector('[data-upload-file]');
@@ -128,7 +128,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     const classroomSelect = widget.querySelector('[data-upload-classroom]');
     const sessionSelect = widget.querySelector('[data-upload-session]');
     const classSessionId = Number(sessionSelect?.value || 0);
-    if (targetIsSessionUpload(widget) && !classSessionId) {
+    if (targetRequiresSession(widget) && !classSessionId) {
       setStatus('ابتدا کلاس و سپس جلسه موردنظر را انتخاب کنید.', true);
       sessionSelect?.focus();
       return;
