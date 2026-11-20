@@ -1,0 +1,12 @@
+(()=>{const root=document.getElementById('admin-inbox');if(!root)return;
+let role='',status='';const items=[...root.querySelectorAll('[data-inbox-item]')];
+const filter=()=>items.forEach(x=>x.hidden=!!((role&&x.dataset.role!==role)||(status&&x.dataset.status!==status)));
+root.querySelectorAll('[data-role-filter]').forEach(b=>b.addEventListener('click',()=>{role=b.dataset.roleFilter;root.querySelectorAll('[data-role-filter]').forEach(x=>x.classList.toggle('on',x===b));filter()}));
+root.querySelectorAll('[data-status-filter]').forEach(b=>b.addEventListener('click',()=>{status=b.dataset.statusFilter;root.querySelectorAll('[data-status-filter]').forEach(x=>x.classList.toggle('on',x===b));filter()}));
+root.querySelector('#ib-back')?.addEventListener('click',()=>root.classList.remove('chat'));
+if(matchMedia('(max-width:760px)').matches&&new URLSearchParams(location.search).has('message'))root.classList.add('chat');
+root.querySelector('[data-inbox-edit]')?.addEventListener('click',()=>document.getElementById('ib-edit-dialog')?.showModal());
+root.querySelector('[data-inbox-broadcast]')?.addEventListener('click',()=>document.getElementById('ib-broadcast-dialog')?.showModal());
+document.querySelectorAll('[data-inbox-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog')?.close()));
+const file=document.getElementById('ib-avatar-file');file?.addEventListener('change',()=>{const f=file.files?.[0];if(!f)return;if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>2097152){file.value='';alert('تصویر باید JPG، PNG یا WebP و حداکثر ۲ مگابایت باشد.');return}const url=URL.createObjectURL(f),preview=document.getElementById('ib-edit-preview');preview.innerHTML='';const img=document.createElement('img');img.src=url;img.alt='';img.onload=()=>URL.revokeObjectURL(url);preview.append(img)});
+const box=document.getElementById('ib-msgs');if(box)box.scrollTop=box.scrollHeight})();
