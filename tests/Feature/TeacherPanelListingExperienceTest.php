@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Permission;
 use App\Models\Role;
@@ -71,6 +72,67 @@ final class TeacherPanelListingExperienceTest extends TestCase
             ->assertOk()
             ->assertSee('کلاس ویژه جستجو')
             ->assertDontSee('کلاس شماره 1');
+    }
+
+    public function test_teacher_attendance_roster_is_paginated_for_large_classes(): void
+    {
+        $teacher = $this->teacher();
+        $teacher->permissions()->sync(Permission::query()
+            ->whereIn('name', [
+                'dashboard.view',
+                'classes.view.assigned',
+                'attendance.view.assigned',
+                'attendance.manage.assigned',
+            ])
+            ->pluck('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره حضور و غیاب',
+            'slug' => 'teacher-attendance-roster-course',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id,
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس بزرگ مدرس',
+            'status' => 'active',
+        ]);
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه حضور و غیاب',
+            'session_type' => 'onsite',
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->subMinutes(10),
+            'status' => 'scheduled',
+        ]);
+
+        for ($index = 1; $index <= 101; $index++) {
+            $student = User::factory()->create([
+                'name' => 'دانش‌آموز '.str_pad((string) $index, 3, '0', STR_PAD_LEFT),
+            ]);
+            $classroom->students()->attach($student->id);
+        }
+
+        $query = [
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $session->id,
+            'date' => $session->starts_at->toDateString(),
+        ];
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.attendance', $query))
+            ->assertOk()
+            ->assertSee('دانش‌آموز 001')
+            ->assertDontSee('دانش‌آموز 101');
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.attendance', [...$query, 'students' => 2]))
+            ->assertOk()
+            ->assertSee('دانش‌آموز 101');
     }
 
     public function test_teacher_list_filters_reject_unsupported_sort_values(): void
