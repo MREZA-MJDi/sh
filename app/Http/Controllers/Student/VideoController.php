@@ -166,6 +166,7 @@ final class VideoController extends Controller
         $activeClassroomIds = $access->activeClassroomIds($student, 'recorded_video');
 
         return SpotPlayerVideo::query()
+            ->where('approval_status', 'approved')
             ->where(function (Builder $delivery): void {
                 $delivery->whereNotNull('file_path')->orWhereNotNull('external_id');
             })
