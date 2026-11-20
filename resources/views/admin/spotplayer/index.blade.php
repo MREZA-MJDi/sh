@@ -60,6 +60,8 @@
                 };
               @endphp
               <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
+              @if($video->approval_status === 'pending')<x-admin.badge tone="warn">در انتظار تأیید مدیر</x-admin.badge>@elseif($video->approval_status === 'rejected')<x-admin.badge tone="bad">رد شده</x-admin.badge>@else<x-admin.badge tone="ok">تأیید انتشار</x-admin.badge>@endif
+              @if($video->review_note)<small>دلیل بررسی: {{ $video->review_note }}</small>@endif
               @if($video->processing_error)<small>{{ $video->processing_error }}</small>@endif
             </td>
             <td>
@@ -72,6 +74,10 @@
             </td>
             <td>
               <span class="adm-muted">{{ $video->staged_at?->format('Y/m/d H:i') ?? '—' }}</span>
+              @if(!$teacherView && $video->approval_status === 'pending')
+                <form method="POST" action="{{ route('admin.spotplayer.videos.approve', $video) }}" style="margin-top:8px">@csrf<button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">تأیید ویدیو</button></form>
+                <form method="POST" action="{{ route('admin.spotplayer.videos.reject', $video) }}" class="adm-stack" style="margin-top:8px">@csrf<textarea class="adm-input" name="reason" rows="2" minlength="5" maxlength="2000" required placeholder="دلیل رد ویدیو را بنویسید"></textarea><button type="submit" class="adm-btn adm-btn-line adm-btn-sm">رد و بازگشت برای اصلاح</button></form>
+              @endif
               @if($video->status === 'failed' && $video->file_path)
                 <form method="POST" action="{{ route('admin.spotplayer.videos.retry-processing', $video) }}" style="margin-top:8px">
                   @csrf
