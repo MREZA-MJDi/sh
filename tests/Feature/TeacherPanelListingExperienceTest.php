@@ -136,6 +136,30 @@ final class TeacherPanelListingExperienceTest extends TestCase
             ->assertSee('دانش‌آموز 101');
     }
 
+    public function test_teacher_navigation_exposes_accessible_controls_and_hides_unpermitted_sections(): void
+    {
+        $teacher = $this->teacher();
+
+        $response = $this->actingAs($teacher)
+            ->get(route('teacher.classes'))
+            ->assertOk()
+            ->assertSee('id="teacherNavToggle"', false)
+            ->assertSee('id="teacherSidebar"', false)
+            ->assertSee('id="teacherNavBackdrop"', false)
+            ->assertSee('id="globalSearch"', false)
+            ->assertSee('id="teacherSearchClear"', false)
+            ->assertSee('id="themeToggle"', false)
+            ->assertSee('notification-menu', false)
+            ->assertSee('teacher-profile-menu', false)
+            ->assertSee('aria-current="page"', false)
+            ->assertSee('داشبورد')
+            ->assertSee('کلاس‌ها');
+
+        $response->assertDontSee(route('teacher.homework'));
+        $response->assertDontSee(route('teacher.attendance'));
+        $response->assertDontSee(route('teacher.videos'));
+    }
+
     public function test_teacher_list_filters_reject_unsupported_sort_values(): void
     {
         $teacher = $this->teacher();
