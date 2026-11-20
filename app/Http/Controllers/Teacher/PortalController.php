@@ -31,8 +31,16 @@ final class PortalController extends Controller
 {
     public function classes(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['name', 'students', 'recent'])],
+        ]);
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $search->where('classrooms.name', 'like', '%'.$filters['q'].'%')
+                    ->orWhereHas('course', fn ($course) => $course->where('title', 'like', '%'.$filters['q'].'%'));
+            }))
             ->with([
                 'course:id,title,subject,grade,season',
                 'spotPlayerVideos' => fn ($query) => $query->latest()->limit(4),
@@ -43,8 +51,10 @@ final class PortalController extends Controller
                     ->orderBy('starts_at')
                     ->limit(4),
             ])
-            ->withCount('students')
-            ->orderBy('name')
+            ->withCount(['students', 'sessions'])
+            ->when(($filters['sort'] ?? 'name') === 'students', fn ($query) => $query->orderByDesc('students_count'))
+            ->when(($filters['sort'] ?? 'name') === 'recent', fn ($query) => $query->latest('classrooms.updated_at'))
+            ->when(($filters['sort'] ?? 'name') === 'name', fn ($query) => $query->orderBy('classrooms.name'))
             ->paginate(12)
             ->withQueryString();
 
@@ -66,6 +76,7 @@ final class PortalController extends Controller
             ->where('classrooms.status', 'active')
             ->with('course:id,title,grade,season')
             ->orderBy('classrooms.name')
+            ->limit(100)
             ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
@@ -96,7 +107,12 @@ final class PortalController extends Controller
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
 
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'title'])],
+        ]);
         $videos = SpotPlayerVideo::query()
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where('title', 'like', '%'.$filters['q'].'%'))
             ->with(['course:id,title,grade,season', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->where(function ($scope) use ($courseIds, $classroomIds): void {
                 $scope->where(function ($classScope) use ($courseIds, $classroomIds): void {
@@ -109,7 +125,9 @@ final class PortalController extends Controller
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
             })
-            ->latest()
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest())
+            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest())
             ->paginate(12)
             ->withQueryString();
 
@@ -120,6 +138,7 @@ final class PortalController extends Controller
                 })->orWhere('learning_features->recorded_video', true);
             })
             ->orderBy('title')
+            ->limit(100)
             ->get(['id', 'title', 'grade', 'season']);
 
         $classrooms = $workspace->queryFor($user)
@@ -128,11 +147,12 @@ final class PortalController extends Controller
             ->with(['sessions' => fn ($sessions) => $sessions
                 ->where('status', '!=', 'cancelled')
                 ->orderByDesc('starts_at')
-                ->limit(100)])
+                ->limit(50)])
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name', 'course_id']);
 
-        return view('teacher.videos', compact('videos', 'courses', 'classrooms'));
+        return view('teacher.videos', compact('videos', 'courses', 'classrooms', 'filters'));
     }
 
     public function resources(Request $request, ClassroomWorkspaceService $workspace): View
@@ -141,7 +161,12 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'title'])],
+        ]);
         $resources = LearningResource::query()
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where('title', 'like', '%'.$filters['q'].'%'))
             ->with(['course:id,title,grade,season', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function ($classScope) use ($classroomIds, $courseIds): void {
@@ -160,21 +185,24 @@ final class PortalController extends Controller
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
             })
-            ->latest()
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest())
+            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest())
             ->paginate(12)
             ->withQueryString();
 
-        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title', 'grade', 'season']);
+        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->limit(100)->get(['id', 'title', 'grade', 'season']);
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
             ->with(['sessions' => fn ($sessions) => $sessions
                 ->where('status', '!=', 'cancelled')
                 ->orderByDesc('starts_at')
-                ->limit(100)])
+                ->limit(50)])
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name', 'course_id']);
 
-        return view('teacher.resources', compact('resources', 'courses', 'classrooms'));
+        return view('teacher.resources', compact('resources', 'courses', 'classrooms', 'filters'));
     }
 
     public function attendance(Request $request, ClassroomWorkspaceService $workspace): View
@@ -182,6 +210,7 @@ final class PortalController extends Controller
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name']);
 
         $classroom = $classrooms->firstWhere('id', $request->integer('classroom_id')) ?? $classrooms->first();
@@ -215,7 +244,7 @@ final class PortalController extends Controller
         $history = Attendance::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
             ->with(['student:id,name', 'classroom:id,name', 'session:id,starts_at'])
-            ->latest('session_date')->latest('id')->limit(30)->get();
+            ->latest('session_date')->latest('id')->paginate(20, ['*'], 'history')->withQueryString();
 
         $dateIso = $date ?: $session?->starts_at?->toDateString() ?: now()->toDateString();
 
@@ -295,15 +324,26 @@ final class PortalController extends Controller
 
     public function meetings(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['requested', 'proposed', 'scheduled', 'completed', 'declined', 'cancelled'])],
+            'q' => ['nullable', 'string', 'max:100'],
+        ]);
         $meetings = ParentMeeting::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $term = '%'.$filters['q'].'%';
+                $search->where('title', 'like', $term)
+                    ->orWhereHas('guardian', fn ($guardian) => $guardian->where('name', 'like', $term))
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', $term));
+            }))
             ->with(['guardian:id,name', 'student:id,name', 'classroom:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
             ->paginate(15)
             ->withQueryString();
 
-        return view('teacher.meetings', compact('meetings'));
+        return view('teacher.meetings', compact('meetings', 'filters'));
     }
 
     public function updateMeeting(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
@@ -347,7 +387,19 @@ final class PortalController extends Controller
 
     public function messages(Request $request, MessageWorkspaceService $messages): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['open', 'answered', 'closed'])],
+        ]);
         $conversations = $messages->queryFor($request->user())
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $term = '%'.$filters['q'].'%';
+                $search->where('subject', 'like', $term)
+                    ->orWhere('body', 'like', $term)
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', $term))
+                    ->orWhereHas('sender', fn ($sender) => $sender->where('name', 'like', $term));
+            }))
             ->with(['sender:id,name', 'recipient:id,name', 'student:id,name'])
             ->latest()
             ->paginate(15)
@@ -361,7 +413,7 @@ final class PortalController extends Controller
             $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
         }
 
-        return view('teacher.messages', compact('conversations', 'selectedMessage'));
+        return view('teacher.messages', compact('conversations', 'selectedMessage', 'filters'));
     }
     public function reply(
         ReplyMessageRequest $request,
