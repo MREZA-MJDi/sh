@@ -59,7 +59,7 @@ class MessageController extends Controller
                 ->where('message_id', $selected->id)->latest()->get()
             : collect();
 
-        return view('admin.messages.index', compact('messages', 'selected', 'partner', 'notes', 'filters'));
+        return view('admin.messages.index', compact('messages', 'selected', 'partner', 'selectedRole', 'notes', 'filters'));
     }
 
     public function reply(
@@ -120,6 +120,7 @@ class MessageController extends Controller
         $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
         $partnerId = (int) $message->sender_id === (int) $request->user()->id
             ? $message->recipient_id : $message->sender_id;
+        abort_unless($partnerId, 404);
 
         MessageInternalNote::create([
             'message_id' => $message->id,
