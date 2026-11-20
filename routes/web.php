@@ -381,24 +381,24 @@ Route::middleware(['auth', 'role:parent', 'permission:dashboard.view'])
     ->name('guardian.')
     ->group(function (): void {
         Route::get('/', [GuardianDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/attendance', [GuardianDashboardController::class, 'attendance'])->name('attendance');
-        Route::get('/exams', [GuardianDashboardController::class, 'exams'])->name('exams');
-        Route::get('/homework', [GuardianDashboardController::class, 'homework'])->name('homework');
+        Route::get('/attendance', [GuardianDashboardController::class, 'attendance'])->middleware('permission:attendance.view.children')->name('attendance');
+        Route::get('/exams', [GuardianDashboardController::class, 'exams'])->middleware('permission:exams.view.children')->name('exams');
+        Route::get('/homework', [GuardianDashboardController::class, 'homework'])->middleware('permission:homework.view.children')->name('homework');
         Route::get('/resources', [GuardianDashboardController::class, 'resources'])->middleware('permission:resources.view.enrolled')->name('resources.index');
         Route::get('/meetings', [GuardianParentMeetingController::class, 'index'])->name('meetings.index');
         Route::post('/meetings', [GuardianParentMeetingController::class, 'store'])->middleware('throttle:5,1')->name('meetings.store');
     });
 
-Route::middleware(['auth', 'role:parent', 'permission:consultations.create'])
+Route::middleware(['auth', 'role:parent'])
     ->prefix('parent/consultations')
     ->name('guardian.consultations.')
     ->group(function (): void {
-        Route::get('/', [GuardianConsultationController::class, 'index'])->name('index');
-        Route::get('/create', [GuardianConsultationController::class, 'create'])->name('create');
-        Route::post('/', [GuardianConsultationController::class, 'store'])->name('store');
-        Route::get('/{consultation}', [GuardianConsultationController::class, 'show'])->name('show');
-        Route::post('/{consultation}/replies', [GuardianConsultationController::class, 'reply'])->name('reply');
-        Route::delete('/{consultation}', [GuardianConsultationController::class, 'destroy'])->name('destroy');
+        Route::get('/', [GuardianConsultationController::class, 'index'])->middleware('permission:consultations.view.children')->name('index');
+        Route::get('/create', [GuardianConsultationController::class, 'create'])->middleware('permission:consultations.create')->name('create');
+        Route::post('/', [GuardianConsultationController::class, 'store'])->middleware('permission:consultations.create')->name('store');
+        Route::get('/{consultation}', [GuardianConsultationController::class, 'show'])->middleware('permission:consultations.view.children')->name('show');
+        Route::post('/{consultation}/replies', [GuardianConsultationController::class, 'reply'])->middleware('permission:consultations.create')->name('reply');
+        Route::delete('/{consultation}', [GuardianConsultationController::class, 'destroy'])->middleware('permission:consultations.create')->name('destroy');
     });
 
 
