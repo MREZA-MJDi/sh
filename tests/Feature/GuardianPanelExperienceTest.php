@@ -84,9 +84,9 @@ final class GuardianPanelExperienceTest extends TestCase
         $this->assertGuest();
     }
 
-    private function userWithRole(string $role): User
+    private function userWithRole(string $role, array $attributes = []): User
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create($attributes);
         $user->roles()->attach(Role::query()->where('name', $role)->value('id'));
 
         return $user;
