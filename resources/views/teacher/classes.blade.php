@@ -42,7 +42,18 @@
     <section class="c"><h3>فیلم‌های ضبط‌شده</h3>
         @forelse ($videos as $video)
             <div class="row"><div>{{ $video->title ?? 'ویدئوی کلاس' }}<small>{{ $video->created_at?->format('Y/m/d') }}</small></div>
-                @if ($video->status === 'published')<i class="bd gn">منتشر شد</i>@else<i class="bd am">{{ $video->status }}</i>@endif
+                @php
+                    $videoStatus = $video->approval_status === 'pending'
+                        ? ['در انتظار تأیید', 'am']
+                        : match ($video->status) {
+                            'active' => ['آماده پخش', 'gn'],
+                            'processing' => ['در حال پردازش', 'bl'],
+                            'failed' => ['خطا در پردازش', 'rd'],
+                            'waiting_contract' => ['در انتظار اتصال سرویس', 'am'],
+                            default => ['در حال بررسی', 'am'],
+                        };
+                @endphp
+                <i class="bd {{ $videoStatus[1] }}">{{ $videoStatus[0] }}</i>
             </div>
         @empty
             <p>فیلمی برای کلاس‌های شما ثبت نشده است.</p>
@@ -52,7 +63,7 @@
     <section class="c"><div class="teacher-section-head"><h3>منابع و جزوه‌ها</h3><a href="{{ route('teacher.resources') }}">مدیریت منابع</a></div>
         @forelse ($resources as $resource)
             <div class="row"><div>{{ $resource->title }}<small>{{ $resource->kind }}</small></div>
-                <i class="bd {{ $resource->status === 'published' ? 'gn' : 'am' }}">{{ $resource->status }}</i>
+                <i class="bd {{ $resource->status === 'published' ? 'gn' : 'am' }}">{{ ['published' => 'منتشرشده', 'draft' => 'پیش‌نویس', 'archived' => 'بایگانی‌شده'][$resource->status] ?? 'در حال بررسی' }}</i>
             </div>
         @empty
             <p>منبعی برای کلاس‌های شما ثبت نشده است.</p>
