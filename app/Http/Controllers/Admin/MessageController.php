@@ -70,7 +70,7 @@ class MessageController extends Controller
             : collect();
 
         $consultations = $selected
-            ? Consultation::query()->with(['requester:id,name', 'student:id,name', 'teacher:id,name'])
+            ? Consultation::query()->with(['requester:id,name', 'student:id,name', 'teacher:id,name', 'replies.sender:id,name'])
                 ->where(function ($query) use ($selected, $partner): void {
                     if ($selected->student_id) {
                         $query->where('student_id', $selected->student_id);
