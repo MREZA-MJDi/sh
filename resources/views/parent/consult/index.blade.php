@@ -22,6 +22,6 @@
     @empty
         <div class="parent-empty-state"><strong>درخواستی برای این فرزند پیدا نشد.</strong><span>می‌توانید یک درخواست مشاوره جدید ثبت کنید.</span></div>
     @endforelse
-    {{ $consultations->links() }}
+    <div class="parent-pagination">{{ $consultations->links() }}</div>
 </section>
 @endsection
