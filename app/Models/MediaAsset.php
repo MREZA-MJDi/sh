@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Models;
+namespace App\Models;
 
-use Illuminate\\Database\\Eloquent\\Model;
-use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
-use Illuminate\\Support\\Facades\\Storage;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 final class MediaAsset extends Model
 {

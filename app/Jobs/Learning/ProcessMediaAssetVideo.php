@@ -1,16 +1,16 @@
 <?php
 
-namespace App\\Jobs\\Learning;
+namespace App\Jobs\Learning;
 
-use App\\Models\\MediaAsset;
-use Illuminate\\Bus\\Queueable;
-use Illuminate\\Contracts\\Queue\\ShouldQueue;
-use Illuminate\\Foundation\\Bus\\Dispatchable;
-use Illuminate\\Queue\\InteractsWithQueue;
-use Illuminate\\Queue\\SerializesModels;
-use Illuminate\\Support\\Facades\\Storage;
-use Illuminate\\Support\\Str;
-use Symfony\\Component\\Process\\Process;
+use App\Models\MediaAsset;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 final class ProcessMediaAssetVideo implements ShouldQueue
@@ -51,7 +51,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
                 '-i', $disk->path($asset->source_path),
                 '-map', '0:v:0', '-map', '0:a?',
                 '-sn', '-dn',
-                '-vf', 'scale=-2:min(1080\\,ih)',
+                '-vf', 'scale=-2:min(1080\,ih)',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24',
                 '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k',
                 '-movflags', '+faststart', '-map_metadata', '-1',
@@ -62,7 +62,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
 
             clearstatcache(true, $outputPath);
             if (! is_file($outputPath) || filesize($outputPath) < 1) {
-                throw new \\RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+                throw new \RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
             }
 
             $probe = new Process([
@@ -77,7 +77,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
             $sha256 = hash_file('sha256', $outputPath);
 
             if (! is_string($sha256)) {
-                throw new \\RuntimeException('محاسبه checksum فایل پردازش‌شده ناموفق بود.');
+                throw new \RuntimeException('محاسبه checksum فایل پردازش‌شده ناموفق بود.');
             }
 
             $asset->update([
