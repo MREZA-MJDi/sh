@@ -27,6 +27,20 @@ class CourseRecordedVideoFeatureTest extends TestCase
         $this->assertTrue($course->featureEnabled('recorded_video'));
     }
 
+    public function test_hybrid_course_can_enable_recorded_and_live_video_independently(): void
+    {
+        $course = new Course([
+            'delivery_type' => 'onsite',
+            'learning_features' => [
+                'recorded_video' => true,
+                'live_class' => true,
+            ],
+        ]);
+
+        $this->assertTrue($course->featureEnabled('recorded_video'));
+        $this->assertTrue($course->featureEnabled('live_class'));
+    }
+
     public function test_explicit_recorded_video_feature_setting_overrides_legacy_default(): void
     {
         $disabled = new Course([
