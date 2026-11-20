@@ -28,7 +28,7 @@
     root.querySelector('[data-inbox-edit]')?.addEventListener('click', () => {
         document.getElementById('ib-edit-dialog')?.showModal();
     });
-    root.querySelector('[data-inbox-broadcast]')?.addEventListener('click', () => {
+    document.querySelector('[data-inbox-broadcast]')?.addEventListener('click', () => {
         document.getElementById('ib-broadcast-dialog')?.showModal();
     });
     document.querySelectorAll('[data-inbox-close]').forEach(button => {
@@ -68,6 +68,8 @@
         image.onload = () => URL.revokeObjectURL(url);
         preview.append(image);
     });
+
+    root.querySelector('[data-mark-read]')?.requestSubmit();
 
     const messages = document.getElementById('ib-msgs');
     if (messages) messages.scrollTop = messages.scrollHeight;
