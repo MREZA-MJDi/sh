@@ -54,10 +54,10 @@
     @can('courses.manage')
       <a class="adm-action-tile" href="{{ route('admin.courses.index') }}"><span><x-admin.icon name="book"/></span><div><b>دوره‌ها</b><small>محتوا و انتشار دوره‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcan
-    @can('attendance.manage.all')
+    @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.attendance.index') }}"><span><x-admin.icon name="check"/></span><div><b>حضور و غیاب</b><small>ثبت وضعیت جلسات</small></div><x-admin.icon name="chev"/></a>
     @endcan
-    @can('homework.manage.all')
+    @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.homework.index') }}"><span><x-admin.icon name="file"/></span><div><b>تکالیف</b><small>ساخت و بررسی تمرین‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcan
     @canany(['messages.view.all', 'messages.view.assigned'])
