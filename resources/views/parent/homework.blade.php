@@ -4,7 +4,7 @@
 
 @section('content')
 @php $t = $hwTotals ?? []; @endphp
-<h2>تکالیف {{ data_get($kid ?? null, 'name') }}</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">پیگیری تکالیف</span><h1>تکالیف {{ data_get($kid ?? null, 'name') }}</h1><p>وضعیت تکالیف منتشرشده و روند ارسال شش ماه اخیر</p></div></div>
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>وضعیت کل تکالیف</h3>
