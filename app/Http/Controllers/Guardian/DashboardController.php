@@ -91,12 +91,20 @@ final class DashboardController extends Controller
 
     public function attendance(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
-        $now = now();
-        $jalaliNow = JalaliDate::fromGregorian($now);
-        $start = JalaliDate::toGregorian($jalaliNow['year'], $jalaliNow['month'], 1);
-        $monthDays = JalaliDate::daysInMonth($jalaliNow['year'], $jalaliNow['month']);
-        $todayJalaliDay = $jalaliNow['day'];
+        $filters = $request->validate([
+            'month' => ['nullable', 'regex:/^\\d{4}-(0[1-9]|1[0-2])$/'],
+        ]);
+        $currentJalali = JalaliDate::fromGregorian(now());
+        $monthKey = $filters['month'] ?? JalaliDate::monthKey($currentJalali['year'], $currentJalali['month']);
+        [$year, $month] = array_map('intval', explode('-', $monthKey));
+        abort_if($year < 1300 || $year > 1500, 422, 'ماه انتخاب‌شده معتبر نیست.');
+
+        $data = $this->build($request, $dashboard, $monthKey);
+        $start = JalaliDate::toGregorian($year, $month, 1);
+        $monthDays = JalaliDate::daysInMonth($year, $month);
+        $todayJalali = JalaliDate::fromGregorian(now());
+        $isCurrentMonth = $year === $todayJalali['year'] && $month === $todayJalali['month'];
+        $todayJalaliDay = $isCurrentMonth ? $todayJalali['day'] : 0;
 
         $records = $data['attendance_calendar']->groupBy(
             fn ($record) => JalaliDate::fromGregorian($record->session_date)['day']
@@ -107,7 +115,7 @@ final class DashboardController extends Controller
             $status = $statuses->contains('absent') ? 'a'
                 : ($statuses->contains('late') ? 'l'
                 : ($statuses->contains('present') ? 'p' : 'future'));
-            return ['day' => $day, 'status' => $status, 'today' => $day === $todayJalaliDay];
+            return ['day' => $day, 'status' => $status, 'today' => $todayJalaliDay > 0 && $day === $todayJalaliDay];
         });
 
         $monthBreakdown = $data['attendance_calendar']->groupBy('status')->map->count();
@@ -119,11 +127,18 @@ final class DashboardController extends Controller
             'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : 0,
         ];
 
+        $monthOptions = collect(range(0, 11))->map(function (int $offset) use ($currentJalali): array {
+            $value = JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], $offset);
+            [$optionYear, $optionMonth] = array_map('intval', explode('-', $value));
+            return ['value' => $value, 'label' => JalaliDate::monthLabel($optionYear, $optionMonth)];
+        });
+
         return view('parent.attendance', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
             'attendance' => $monthAttendance,
             'calendar' => $days, 'monthOffset' => ($start->dayOfWeek + 1) % 7,
-            'monthTitle' => JalaliDate::monthLabel($jalaliNow['year'], $jalaliNow['month']),
+            'monthTitle' => JalaliDate::monthLabel($year, $month),
+            'monthKey' => $monthKey, 'monthOptions' => $monthOptions,
             'absencePattern' => $data['attendance_breakdown']->get('absent', 0).' غیبت ثبت‌شده',
             'lastLate' => $data['last_late_attendance']?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
         ]);
@@ -186,12 +201,13 @@ final class DashboardController extends Controller
         ]);
     }
 
-    private function build(Request $request, GuardianDashboardService $dashboard): array
+    private function build(Request $request, GuardianDashboardService $dashboard, ?string $attendanceMonthKey = null): array
     {
         $validated = $request->validate(['child' => ['nullable', 'integer', 'min:1']]);
         return $dashboard->build(
             $request->user(),
-            isset($validated['child']) ? (int) $validated['child'] : null
+            isset($validated['child']) ? (int) $validated['child'] : null,
+            $attendanceMonthKey
         );
     }
 
