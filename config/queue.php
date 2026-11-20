@@ -44,8 +44,11 @@ return [
             'after_commit' => false,
         ],
         'video' => [
-            'driver' => 'redis',
-            'connection' => env('VIDEO_REDIS_QUEUE_CONNECTION', 'default'),
+            'driver' => env('VIDEO_QUEUE_DRIVER', 'redis'),
+            'connection' => env('VIDEO_QUEUE_DRIVER', 'redis') === 'redis'
+                ? env('VIDEO_REDIS_QUEUE_CONNECTION', 'default')
+                : (env('VIDEO_QUEUE_DATABASE_CONNECTION') ?: null),
+            'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
             'queue' => env('VIDEO_QUEUE', 'video'),
             'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3900),
             'block_for' => 5,
