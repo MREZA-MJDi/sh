@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
-    Route::post('/profile/avatar', function (\\Illuminate\\Http\\Request $request) {
+    Route::post('/profile/avatar', function (\Illuminate\\Http\\Request $request) {
         $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']]);
         $user = $request->user();
         $previous = $user->avatar_path;
@@ -105,7 +105,7 @@ Route::middleware('auth')->group(function (): void {
         abort_unless($path, 500, 'ذخیره تصویر پروفایل انجام نشد.');
         $user->forceFill(['avatar_path' => $path])->save();
         if ($previous && $previous !== $path) {
-            \\Illuminate\\Support\\Facades\\Storage::disk('public')->delete($previous);
+            \Illuminate\\Support\\Facades\\Storage::disk('public')->delete($previous);
         }
         return back()->with('success', 'تصویر پروفایل با موفقیت به‌روزرسانی شد.');
     })->middleware('throttle:10,1')->name('profile.avatar.update');
