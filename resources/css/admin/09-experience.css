@@ -306,3 +306,13 @@
   .adm-lesson>.adm-actions{width:100%;justify-content:flex-end}
   .adm-history-panel>summary{padding:13px}
 }
+
+.adm-current-cover{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px}
+.adm-current-cover img{width:min(220px,100%);aspect-ratio:16/9;object-fit:cover;border:1px solid var(--line);border-radius:12px}
+.adm-advanced{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface-2)}
+.adm-advanced>summary{font-size:12px;font-weight:700;color:var(--muted);cursor:pointer}
+.adm-advanced[open]>summary{margin-bottom:12px;color:var(--ink)}
+.adm-form-upload-feedback{display:grid;gap:8px;width:100%;font-size:12px;color:var(--muted)}
+.adm-form-upload-track{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.adm-form-upload-track i{display:block;width:0;height:100%;border-radius:inherit;background:var(--primary);transition:width .12s}
+.adm-modal-foot .adm-form-upload-feedback{flex-basis:100%;order:-1}
