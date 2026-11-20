@@ -182,7 +182,7 @@
             @php
               $next = $classroom->sessions->where('status', 'scheduled')->filter(fn ($item) => $item->starts_at?->isFuture())->sortBy('starts_at')->first();
               $scheduleDays = data_get($classroom->schedule, 'days', []);
-              $scheduleLabel = collect($scheduleDays)->map(fn ($day) => \\App\\Support\\PersianDate::weekdayName($day))->join('، ');
+              $scheduleLabel = collect($scheduleDays)->map(fn ($day) => \App\Support\PersianDate::weekdayName($day))->join('، ');
             @endphp
             <article class="adm-card">
               <div class="adm-card-body">
@@ -196,7 +196,7 @@
                   <span>ساعت معمول: <b>{{ data_get($classroom->schedule, 'time') ?: 'تعیین نشده' }}</b></span>
                 </div>
                 @if($next)
-                  <div class="adm-work-item" data-tone="track"><span><x-admin.icon name="clock"/></span><div><b>جلسه بعدی</b><small>{{ $next->title }} · {{ \\App\\Support\\PersianDate::format($next->starts_at) }}</small></div></div>
+                  <div class="adm-work-item" data-tone="track"><span><x-admin.icon name="clock"/></span><div><b>جلسه بعدی</b><small>{{ $next->title }} · {{ \App\Support\PersianDate::format($next->starts_at) }}</small></div></div>
                 @else
                   <p class="adm-muted">هنوز جلسه آینده‌ای برنامه‌ریزی نشده است.</p>
                 @endif
