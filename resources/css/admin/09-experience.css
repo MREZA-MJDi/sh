@@ -182,3 +182,6 @@
 [data-theme=dark] .adm-action-tile:hover{border-color:#40557e}
 [data-theme=dark] .adm-week-track{background:#202d47}
 [data-theme=dark] .adm-roster-avatar{background:#1f2d54}
+
+.adm-attendance-counts{padding-bottom:12px}
+.adm-roster-card>.adm-input{grid-column:1/-1}
