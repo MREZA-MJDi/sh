@@ -20,6 +20,8 @@
     <div class="teacher-section-head"><div><h2>فهرست جلسه‌ها</h2><p>فقط جلسه‌های آینده و جلسه‌های در حال برگزاری نمایش داده می‌شوند.</p></div></div>
     <form method="GET" action="{{ route('teacher.live') }}" class="teacher-live-filters">
         <label><span>کلاس</span><select name="classroom_id"><option value="">همه کلاس‌های من</option>@foreach ($assignedClassrooms as $classroom)<option value="{{ $classroom->id }}" @selected((int) ($filters['classroom_id'] ?? 0) === (int) $classroom->id)>{{ $classroom->name }}</option>@endforeach</select></label>
+        <label><span>جست‌وجوی جلسه یا کلاس</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="عنوان جلسه یا نام کلاس"></label>
+        <label><span>مرتب‌سازی</span><select name="sort"><option value="soonest" @selected(($filters['sort'] ?? 'soonest') === 'soonest')>نزدیک‌ترین جلسه</option><option value="latest" @selected(($filters['sort'] ?? '') === 'latest')>دیرترین جلسه</option></select></label>
         <label><span>سرویس برگزاری</span><select name="provider"><option value="">همه سرویس‌ها</option>@foreach ($providerNames as $key => $label)<option value="{{ $key }}" @selected(($filters['provider'] ?? '') === $key)>{{ $label }}</option>@endforeach</select></label>
         <div class="teacher-live-filter-actions"><button class="b" type="submit">اعمال فیلتر</button><a class="b s" href="{{ route('teacher.live') }}">پاک‌کردن</a></div>
     </form>

@@ -80,20 +80,33 @@ final class TeacherDashboardService
 
         $calendarStart = today()->copy()->startOfDay();
         $calendarEnd = today()->copy()->addDays(6)->endOfDay();
+        $calendarCounts = ClassSession::query()
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where('status', 'scheduled')
+            ->whereBetween('starts_at', [$calendarStart, $calendarEnd])
+            ->selectRaw('DATE(starts_at) as session_day, COUNT(*) as total')
+            ->groupBy('session_day')
+            ->pluck('total', 'session_day');
         $calendarSessions = ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
             ->where('status', 'scheduled')
             ->whereBetween('starts_at', [$calendarStart, $calendarEnd])
             ->with(['classroom:id,name', 'classroom.course:id,title,grade,season'])
-            ->orderBy('starts_at')->get();
+            ->orderBy('starts_at')
+            ->limit(100)
+            ->get();
 
-        $weekCalendar = collect(range(0, 6))->map(function (int $offset) use ($calendarSessions): array {
+        $weekCalendar = collect(range(0, 6))->map(function (int $offset) use ($calendarSessions, $calendarCounts): array {
             $date = today()->copy()->addDays($offset);
             $sessions = $calendarSessions->filter(
                 fn (ClassSession $session) => $session->starts_at?->isSameDay($date)
             )->values();
 
-            return ['date' => $date->toDateString(), 'count' => $sessions->count(), 'sessions' => $sessions];
+            return [
+                'date' => $date->toDateString(),
+                'count' => (int) $calendarCounts->get($date->toDateString(), 0),
+                'sessions' => $sessions,
+            ];
         });
 
         $pendingSubmissions = HomeworkSubmission::query()

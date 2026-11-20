@@ -5,7 +5,13 @@
 @php
     $requests = $meetings->getCollection()->whereIn('status', ['requested', 'proposed']);
     $scheduled = $meetings->getCollection()->where('status', 'scheduled');
+    $otherMeetings = $meetings->getCollection()->whereNotIn('status', ['requested', 'proposed', 'scheduled']);
 @endphp
+<form method="GET" action="{{ route('teacher.meetings') }}" class="c teacher-list-filters">
+    <label class="teacher-search-field"><span class="sr-only">جست‌وجوی جلسه</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="نام دانش‌آموز، ولی یا عنوان جلسه"></label>
+    <label><span class="sr-only">وضعیت جلسه</span><select name="status"><option value="">همه وضعیت‌ها</option>@foreach(['requested'=>'درخواست جدید','proposed'=>'پیشنهادشده','scheduled'=>'زمان‌بندی‌شده','completed'=>'برگزارشده','declined'=>'ردشده','cancelled'=>'لغوشده'] as $key=>$label)<option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $label }}</option>@endforeach</select></label>
+    <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.meetings') }}">پاک‌کردن</a>
+</form>
 <div class="g g2">
     <section class="c"><h3>درخواست‌های جدید</h3>
         @forelse ($requests as $meeting)
@@ -45,6 +51,17 @@
             </div>
         @empty
             <p>جلسه‌ی تأییدشده‌ای ثبت نشده است.</p>
+        @endforelse
+    </section>
+    <section class="c">
+        <h3>سوابق و سایر وضعیت‌ها</h3>
+        @forelse ($otherMeetings as $meeting)
+            <div class="row">
+                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y/m/d H:i') }}</time></small></div>
+                <i class="bd {{ $meeting->status === 'completed' ? 'gn' : 'am' }}">{{ ['declined' => 'ردشده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده'][$meeting->status] ?? $meeting->status }}</i>
+            </div>
+        @empty
+            <p>سابقه دیگری برای نمایش وجود ندارد.</p>
         @endforelse
     </section>
 </div>

@@ -12,11 +12,13 @@
 @stack('head')
 </head>
 <body>
+<a class="teacher-skip-link" href="#teacherMain">رفتن به محتوای اصلی</a>
 @include('teacher.partials.topbar')
+<button type="button" class="teacher-nav-backdrop" id="teacherNavBackdrop" aria-label="بستن منوی اصلی" hidden></button>
 
 <div class="app">
     @include('teacher.partials.sidebar')
-    <main data-fa>
+    <main id="teacherMain" tabindex="-1" data-fa>
         @if (session('success'))
             <div class="teacher-alert success" role="status">{{ session('success') }}</div>
         @endif

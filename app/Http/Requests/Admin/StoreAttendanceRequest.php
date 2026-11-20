@@ -63,7 +63,6 @@ class StoreAttendanceRequest extends FormRequest
         return [function (Validator $validator): void {
             $workspace = app(ClassroomWorkspaceService::class);
             $classroom = $workspace->queryFor($this->user())
-                ->with('students')
                 ->find($this->integer('classroom_id'));
 
             if (! $classroom) {
@@ -86,9 +85,20 @@ class StoreAttendanceRequest extends FormRequest
                 $validator->errors()->add('class_session_id', 'برای جلسه‌ای که هنوز شروع نشده حضور و غیاب ثبت نکنید.');
             }
 
-            $allowed = $classroom->students->modelKeys();
-            foreach ((array) $this->input('attendance', []) as $studentId => $entry) {
-                if (! in_array((int) $studentId, $allowed, true)) {
+            $submittedAttendance = (array) $this->input('attendance', []);
+            $submittedStudentIds = collect(array_keys($submittedAttendance))
+                ->map(fn ($studentId) => (int) $studentId)
+                ->unique()
+                ->values();
+            $allowedStudentIds = $classroom->students()
+                ->whereKey($submittedStudentIds->all())
+                ->pluck('users.id')
+                ->map(fn ($studentId) => (int) $studentId)
+                ->all();
+            $allowed = array_fill_keys($allowedStudentIds, true);
+
+            foreach ($submittedAttendance as $studentId => $entry) {
+                if (! isset($allowed[(int) $studentId])) {
                     $validator->errors()->add('attendance', 'همه افراد انتخاب‌شده عضو این کلاس نیستند.');
                     continue;
                 }

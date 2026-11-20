@@ -246,12 +246,13 @@ final class SpotPlayerVideoService
             return;
         }
 
-        $admins = User::query()
+        $notification = new CourseVideoSubmittedForReview($video->loadMissing('creator'));
+
+        User::query()
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'admin'))
             ->where('is_active', true)
-            ->get();
-
-        Notification::send($admins, new CourseVideoSubmittedForReview($video->loadMissing('creator')));
+            ->orderBy('id')
+            ->chunkById(100, fn ($admins) => Notification::send($admins, $notification));
     }
 
     private function dispatchProcessing(SpotPlayerVideo $video): void

@@ -31,8 +31,16 @@ final class PortalController extends Controller
 {
     public function classes(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['name', 'students', 'recent'])],
+        ]);
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $search->where('classrooms.name', 'like', '%'.$filters['q'].'%')
+                    ->orWhereHas('course', fn ($course) => $course->where('title', 'like', '%'.$filters['q'].'%'));
+            }))
             ->with([
                 'course:id,title,subject,grade,season',
                 'spotPlayerVideos' => fn ($query) => $query->latest()->limit(4),
@@ -43,8 +51,10 @@ final class PortalController extends Controller
                     ->orderBy('starts_at')
                     ->limit(4),
             ])
-            ->withCount('students')
-            ->orderBy('name')
+            ->withCount(['students', 'sessions'])
+            ->when(($filters['sort'] ?? 'name') === 'students', fn ($query) => $query->orderByDesc('students_count')->orderBy('classrooms.id'))
+            ->when(($filters['sort'] ?? 'name') === 'recent', fn ($query) => $query->latest('classrooms.updated_at')->orderBy('classrooms.id'))
+            ->when(($filters['sort'] ?? 'name') === 'name', fn ($query) => $query->orderBy('classrooms.name')->orderBy('classrooms.id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -52,7 +62,7 @@ final class PortalController extends Controller
         $videos = $visibleClassrooms->flatMap(fn ($classroom) => $classroom->spotPlayerVideos);
         $resources = $visibleClassrooms->flatMap(fn ($classroom) => $classroom->learningResources);
 
-        return view('teacher.classes', compact('classrooms', 'videos', 'resources'));
+        return view('teacher.classes', compact('classrooms', 'videos', 'resources', 'filters'));
     }
 
     public function homework(Request $request, ClassroomWorkspaceService $workspace): View
@@ -66,6 +76,7 @@ final class PortalController extends Controller
             ->where('classrooms.status', 'active')
             ->with('course:id,title,grade,season')
             ->orderBy('classrooms.name')
+            ->limit(100)
             ->get(['classrooms.id', 'classrooms.name', 'classrooms.course_id']);
         $homework = Homework::query()
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
@@ -74,6 +85,7 @@ final class PortalController extends Controller
             ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students')])
             ->withCount('submissions')
             ->latest()
+            ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString();
 
@@ -84,6 +96,7 @@ final class PortalController extends Controller
             ->whereHas('homework', fn ($query) => $query->whereIn('classroom_id', clone $classroomIds))
             ->with(['homework:id,title,classroom_id', 'student:id,name', 'files'])
             ->latest('submitted_at')
+            ->orderByDesc('id')
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
@@ -96,7 +109,12 @@ final class PortalController extends Controller
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
 
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'title'])],
+        ]);
         $videos = SpotPlayerVideo::query()
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where('title', 'like', '%'.$filters['q'].'%'))
             ->with(['course:id,title,grade,season', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->where(function ($scope) use ($courseIds, $classroomIds): void {
                 $scope->where(function ($classScope) use ($courseIds, $classroomIds): void {
@@ -109,7 +127,9 @@ final class PortalController extends Controller
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
             })
-            ->latest()
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest()->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title')->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest()->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -120,6 +140,7 @@ final class PortalController extends Controller
                 })->orWhere('learning_features->recorded_video', true);
             })
             ->orderBy('title')
+            ->limit(100)
             ->get(['id', 'title', 'grade', 'season']);
 
         $classrooms = $workspace->queryFor($user)
@@ -128,11 +149,12 @@ final class PortalController extends Controller
             ->with(['sessions' => fn ($sessions) => $sessions
                 ->where('status', '!=', 'cancelled')
                 ->orderByDesc('starts_at')
-                ->limit(100)])
+                ->limit(50)])
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name', 'course_id']);
 
-        return view('teacher.videos', compact('videos', 'courses', 'classrooms'));
+        return view('teacher.videos', compact('videos', 'courses', 'classrooms', 'filters'));
     }
 
     public function resources(Request $request, ClassroomWorkspaceService $workspace): View
@@ -141,7 +163,12 @@ final class PortalController extends Controller
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'title'])],
+        ]);
         $resources = LearningResource::query()
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where('title', 'like', '%'.$filters['q'].'%'))
             ->with(['course:id,title,grade,season', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
             ->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function ($classScope) use ($classroomIds, $courseIds): void {
@@ -160,21 +187,24 @@ final class PortalController extends Controller
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
             })
-            ->latest()
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest()->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title')->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest()->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
-        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title', 'grade', 'season']);
+        $courses = $workspace->coursesQueryFor($user)->orderBy('title')->limit(100)->get(['id', 'title', 'grade', 'season']);
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
             ->with(['sessions' => fn ($sessions) => $sessions
                 ->where('status', '!=', 'cancelled')
                 ->orderByDesc('starts_at')
-                ->limit(100)])
+                ->limit(50)])
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name', 'course_id']);
 
-        return view('teacher.resources', compact('resources', 'courses', 'classrooms'));
+        return view('teacher.resources', compact('resources', 'courses', 'classrooms', 'filters'));
     }
 
     public function attendance(Request $request, ClassroomWorkspaceService $workspace): View
@@ -182,6 +212,7 @@ final class PortalController extends Controller
         $classrooms = $workspace->queryFor($request->user())
             ->where('status', 'active')
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name']);
 
         $classroom = $classrooms->firstWhere('id', $request->integer('classroom_id')) ?? $classrooms->first();
@@ -199,27 +230,39 @@ final class PortalController extends Controller
             : collect();
 
         $session = $sessions->firstWhere('id', $request->integer('class_session_id')) ?? $sessions->first();
-        $records = $session
-            ? Attendance::query()->where('class_session_id', $session->id)->get()->keyBy('student_id')
+        $studentPaginator = $classroom
+            ? $classroom->students()
+                ->orderBy('users.name')
+                ->orderBy('users.id')
+                ->paginate(100, ['users.id', 'users.name'], 'students')
+                ->withQueryString()
+            : null;
+        $studentIds = $studentPaginator?->getCollection()->modelKeys() ?? [];
+        $records = $session && $studentIds
+            ? Attendance::query()
+                ->where('class_session_id', $session->id)
+                ->whereIn('student_id', $studentIds)
+                ->get()
+                ->keyBy('student_id')
             : collect();
 
-        $students = $classroom?->students->map(fn ($student) => [
+        $students = $studentPaginator?->getCollection()->map(fn ($student) => [
             'id' => $student->id,
             'name' => $student->name,
             'status' => $records->get($student->id)?->status,
             'note' => $records->get($student->id)?->note,
-            'joined_at' => $records->get($student->id)?->joined_at?->format('Y-m-d\TH:i'),
+            'joined_at' => $records->get($student->id)?->joined_at?->format('Y-m-d\\TH:i'),
             'attended_minutes' => $records->get($student->id)?->attended_minutes,
         ]) ?? collect();
 
         $history = Attendance::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
             ->with(['student:id,name', 'classroom:id,name', 'session:id,starts_at'])
-            ->latest('session_date')->latest('id')->limit(30)->get();
+            ->latest('session_date')->latest('id')->paginate(20, ['*'], 'history')->withQueryString();
 
         $dateIso = $date ?: $session?->starts_at?->toDateString() ?: now()->toDateString();
 
-        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'history', 'dateIso'));
+        return view('teacher.attendance', compact('classrooms', 'classroom', 'sessions', 'session', 'students', 'studentPaginator', 'history', 'dateIso'));
     }
 
     public function storeAttendance(
@@ -242,13 +285,21 @@ final class PortalController extends Controller
     public function live(Request $request, ClassroomWorkspaceService $workspace, SkyroomService $skyroom): View
     {
         $teacher = $request->user();
-        $assignedClassrooms = $workspace->queryFor($teacher)
-            ->where('status', 'active')
+        $filters = $request->validate([
+            'classroom_id' => ['nullable', 'integer'],
+            'provider' => ['nullable', Rule::in(['skyroom', 'jitsi', 'bbb', 'link'])],
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['soonest', 'latest'])],
+        ]);
+        $assignedClassroomQuery = $workspace->queryFor($teacher)->where('status', 'active');
+        $assignedClassroomIds = (clone $assignedClassroomQuery)->select('classrooms.id');
+        $assignedClassrooms = (clone $assignedClassroomQuery)
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name']);
 
         $query = ClassSession::query()
-            ->whereIn('classroom_id', $assignedClassrooms->modelKeys())
+            ->whereIn('classroom_id', clone $assignedClassroomIds)
             ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->where(function ($window): void {
@@ -258,13 +309,20 @@ final class PortalController extends Controller
                     });
             });
 
-        if ($request->filled('classroom_id')) {
-            $query->where('classroom_id', $request->integer('classroom_id'))
-                ->whereIn('classroom_id', $assignedClassrooms->modelKeys());
+        if (filled($filters['classroom_id'] ?? null)) {
+            $query->where('classroom_id', (int) $filters['classroom_id'])
+                ->whereIn('classroom_id', clone $assignedClassroomIds);
         }
 
-        if ($request->filled('provider') && in_array($request->input('provider'), ['skyroom', 'jitsi', 'bbb', 'link'], true)) {
-            $query->where('meeting_provider', $request->input('provider'));
+        if (filled($filters['provider'] ?? null)) {
+            $query->where('meeting_provider', $filters['provider']);
+        }
+
+        if (filled($filters['q'] ?? null)) {
+            $query->where(function ($search) use ($filters): void {
+                $search->where('title', 'like', '%'.$filters['q'].'%')
+                    ->orWhereHas('classroom', fn ($classroom) => $classroom->where('name', 'like', '%'.$filters['q'].'%'));
+            });
         }
 
         $liveCount = (clone $query)
@@ -280,30 +338,40 @@ final class PortalController extends Controller
 
         $sessions = $query
             ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
-            ->orderBy('starts_at')
+            ->when(($filters['sort'] ?? 'soonest') === 'latest', fn ($query) => $query->orderByDesc('starts_at')->orderByDesc('id'))
+            ->when(($filters['sort'] ?? 'soonest') === 'soonest', fn ($query) => $query->orderBy('starts_at')->orderBy('id'))
             ->paginate(12)
             ->withQueryString();
 
         $skyroomHealth = $skyroom->health();
-        $filters = [
-            'classroom_id' => $request->integer('classroom_id') ?: null,
-            'provider' => $request->input('provider'),
-        ];
+        $filters['classroom_id'] = filled($filters['classroom_id'] ?? null) ? (int) $filters['classroom_id'] : null;
 
         return view('teacher.live', compact('sessions', 'skyroomHealth', 'assignedClassrooms', 'filters', 'liveCount', 'upcomingCount', 'waitingCount'));
     }
 
     public function meetings(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['requested', 'proposed', 'scheduled', 'completed', 'declined', 'cancelled'])],
+            'q' => ['nullable', 'string', 'max:100'],
+        ]);
         $meetings = ParentMeeting::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $term = '%'.$filters['q'].'%';
+                $search->where('title', 'like', $term)
+                    ->orWhereHas('guardian', fn ($guardian) => $guardian->where('name', 'like', $term))
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', $term));
+            }))
             ->with(['guardian:id,name', 'student:id,name', 'classroom:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
+            ->orderBy('id')
             ->paginate(15)
             ->withQueryString();
 
-        return view('teacher.meetings', compact('meetings'));
+        return view('teacher.meetings', compact('meetings', 'filters'));
     }
 
     public function updateMeeting(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
@@ -347,9 +415,22 @@ final class PortalController extends Controller
 
     public function messages(Request $request, MessageWorkspaceService $messages): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['open', 'answered', 'closed'])],
+        ]);
         $conversations = $messages->queryFor($request->user())
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $term = '%'.$filters['q'].'%';
+                $search->where('subject', 'like', $term)
+                    ->orWhere('body', 'like', $term)
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', $term))
+                    ->orWhereHas('sender', fn ($sender) => $sender->where('name', 'like', $term));
+            }))
             ->with(['sender:id,name', 'recipient:id,name', 'student:id,name'])
             ->latest()
+            ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
 
@@ -358,10 +439,19 @@ final class PortalController extends Controller
             : $conversations->getCollection()->first();
 
         if ($selectedMessage) {
-            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name']);
+            $selectedMessage->loadCount('replies');
+            $latestReplies = $selectedMessage->replies()
+                ->with('sender:id,name')
+                ->latest()
+                ->limit(50)
+                ->get()
+                ->sortBy('created_at')
+                ->values();
+            $selectedMessage->setRelation('replies', $latestReplies);
         }
 
-        return view('teacher.messages', compact('conversations', 'selectedMessage'));
+        return view('teacher.messages', compact('conversations', 'selectedMessage', 'filters'));
     }
     public function reply(
         ReplyMessageRequest $request,

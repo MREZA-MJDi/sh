@@ -11,7 +11,7 @@
     <div>
         <span class="teacher-eyebrow">محتوای آموزشی</span>
         <h1>بارگذاری فیلم‌ها</h1>
-        <p>ویدئو فقط به دوره‌ها و کلاس‌های تخصیص‌یافته به شما متصل می‌شود. اتصال رسمی SpotPlayer پس از دریافت API فعال خواهد شد.</p>
+        <p>ویدئو فقط به دوره‌ها و کلاس‌های تخصیص‌یافته به شما متصل می‌شود. فایل‌ها در فضای خصوصی ذخیره و به‌صورت محلی پردازش می‌شوند؛ اتصال SpotPlayer موجود به API رسمی نیاز دارد.</p>
     </div>
 </div>
 
@@ -21,13 +21,13 @@
         <form class="teacher-form" data-learning-scope method="POST" action="{{ route('teacher.spotplayer.videos.store') }}" enctype="multipart/form-data">
             @csrf
             <label>عنوان ویدئو</label>
-            <input name="title" maxlength="180" required>
+            <input name="title" maxlength="180" required value="{{ old('title') }}">
 
             <label>دوره</label>
             <select name="course_id" required>
                 <option value="">انتخاب دوره</option>
                 @foreach($courses as $course)
-                    <option value="{{ $course->id }}">
+                    <option value="{{ $course->id }}" @selected((string) old('course_id') === (string) $course->id)>
                         {{ $course->title }}
                         @if($course->subject) · {{ $course->subject }}@endif
                         @if($course->grade) · پایه {{ $course->grade }}@endif
@@ -40,7 +40,7 @@
             <select name="classroom_id">
                 <option value="">کل دوره</option>
                 @foreach($classrooms as $classroom)
-                    <option value="{{ $classroom->id }}" data-course-id="{{ $classroom->course_id }}">{{ $classroom->name }}</option>
+                    <option value="{{ $classroom->id }}" @selected((string) old('classroom_id') === (string) $classroom->id) data-course-id="{{ $classroom->course_id }}">{{ $classroom->name }}</option>
                 @endforeach
             </select>
 
@@ -49,7 +49,7 @@
                 <option value="">انتخاب جلسه</option>
                 @foreach($classrooms as $classroom)
                     @foreach($classroom->sessions as $session)
-                        <option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">
+                        <option value="{{ $session->id }}" @selected((string) old('class_session_id') === (string) $session->id) data-classroom-id="{{ $classroom->id }}">
                             {{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}
                         </option>
                     @endforeach
@@ -57,7 +57,7 @@
             </select>
 
             <label>شناسه ویدئوی SpotPlayer (در صورت نداشتن فایل)</label>
-            <input name="external_id" maxlength="190" required>
+            <input name="external_id" maxlength="190" required value="{{ old('external_id') }}">
             <input type="hidden" name="status" value="waiting_contract">
             <button class="b" type="submit">ثبت شناسه ویدئوی موجود</button>
             <small class="teacher-help">برای ثبت ویدئوی موجود در SpotPlayer از شناسه خارجی استفاده کنید. برای بارگذاری فایل از آپلود امن تکه‌ای در بخش بعد استفاده کنید.</small>
@@ -130,7 +130,12 @@
     </section>
 
     <section class="c">
-        <h2>ویدئوهای ثبت‌شده</h2>
+        <div class="teacher-section-head"><div><h2>ویدئوهای ثبت‌شده</h2><p>{{ $videos->total() }} ویدئو · قابل جست‌وجو و مرتب‌سازی</p></div></div>
+        <form method="GET" action="{{ route('teacher.videos') }}" class="teacher-list-filters">
+            <label class="teacher-search-field"><span class="sr-only">جست‌وجوی ویدئو</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="جست‌وجوی عنوان ویدئو"></label>
+            <label><span class="sr-only">مرتب‌سازی</span><select name="sort"><option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>جدیدترین</option><option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>قدیمی‌ترین</option><option value="title" @selected(($filters['sort'] ?? '') === 'title')>عنوان</option></select></label>
+            <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.videos') }}">پاک‌کردن</a>
+        </form>
         @forelse($videos as $video)
             @php
                 $statusLabel = match ($video->approval_status) {
@@ -141,7 +146,7 @@
                         'processing' => 'تأیید شده · در حال پردازش',
                         'failed' => 'پردازش ناموفق',
                         'waiting_contract' => 'در انتظار قرارداد',
-                        default => $video->status,
+                        default => ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده'][$video->status] ?? 'در حال بررسی',
                     },
                 };
             @endphp

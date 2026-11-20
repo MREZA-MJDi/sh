@@ -1,49 +1,43 @@
 @php
     $t = $teacher ?? auth()->user();
     $nav = [
-        ['teacher', 'داشبورد', '🏠'],
-        ['teacher/profile', 'پروفایل و تصویر', '👤'],
+        ['teacher.dashboard', 'داشبورد', '🏠', 'teacher'],
+        ['teacher.profile.edit', 'پروفایل و تصویر', '👤', 'teacher/profile'],
     ];
     if ($t?->hasPermissionTo('classes.view.assigned')) {
-        $nav[] = ['teacher/classes', 'کلاس‌ها', '🎬'];
-        $nav[] = ['teacher/live', 'کلاس آنلاین', '🎥'];
-        $nav[] = ['teacher/meetings', 'جلسات', '🤝'];
+        $nav[] = ['teacher.classes', 'کلاس‌ها', '🎬', 'teacher/classes'];
+        $nav[] = ['teacher.live', 'کلاس آنلاین', '🎥', 'teacher/live'];
+        $nav[] = ['teacher.meetings', 'جلسات', '🤝', 'teacher/meetings'];
     }
-    if ($t?->hasPermissionTo('homework.view.assigned')) {
-        $nav[] = ['teacher/homework', 'تکالیف', '📝'];
-    }
-    if ($t?->hasPermissionTo('attendance.view.assigned')) {
-        $nav[] = ['teacher/attendance', 'حضور و غیاب', '✅'];
-    }
-    if ($t?->hasPermissionTo('messages.view.assigned')) {
-        $nav[] = ['teacher/messages', 'پیام اولیا', '💬'];
-    }
-    if ($t?->hasPermissionTo('consultations.create')) {
-        $nav[] = ['teacher/consultations', 'درخواست مشاوره', '🗨️'];
-    }
-
-    if ($t?->hasPermissionTo('resources.manage.assigned')) {
-        $nav[] = ['teacher/resources', 'بارگذاری جزوه و منابع', '📚'];
-    }
-    if ($t?->hasPermissionTo('videos.manage.assigned')) {
-        $nav[] = ['teacher/videos', 'بارگذاری فیلم‌ها', '🎞️'];
-    }
+    if ($t?->hasPermissionTo('homework.view.assigned')) $nav[] = ['teacher.homework', 'تکالیف', '📝', 'teacher/homework'];
+    if ($t?->hasPermissionTo('attendance.view.assigned')) $nav[] = ['teacher.attendance', 'حضور و غیاب', '✅', 'teacher/attendance'];
+    if ($t?->hasPermissionTo('messages.view.assigned')) $nav[] = ['teacher.messages.index', 'پیام اولیا', '💬', 'teacher/messages'];
+    if ($t?->hasPermissionTo('consultations.create')) $nav[] = ['teacher.consultations.index', 'درخواست مشاوره', '🗨️', 'teacher/consultations'];
+    if ($t?->hasPermissionTo('resources.manage.assigned')) $nav[] = ['teacher.resources', 'بارگذاری جزوه و منابع', '📚', 'teacher/resources'];
+    if ($t?->hasPermissionTo('videos.manage.assigned')) $nav[] = ['teacher.videos', 'بارگذاری فیلم‌ها', '🎞️', 'teacher/videos'];
 @endphp
-<div class="teacher-sidebar">
-    <a href="{{ route('teacher.profile.edit') }}" class="me" style="text-decoration:none;color:inherit;display:flex" title="ویرایش پروفایل و تصویر">
-        <div class="av" style="overflow:hidden">
+<aside class="teacher-sidebar" id="teacherSidebar" aria-label="منوی اصلی مدرس" tabindex="-1">
+    <a href="{{ route('teacher.profile.edit') }}" class="me teacher-sidebar-identity" title="ویرایش پروفایل و تصویر">
+        <span class="av">
             @if($t?->avatarUrl())
-                <img src="{{ $t->avatarUrl() }}" alt="{{ data_get($t, 'name') }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">
+                <img src="{{ $t->avatarUrl() }}" alt="">
             @else
                 {{ mb_substr((string) data_get($t, 'name', ''), 0, 1) }}
             @endif
-        </div>
-        <div style="flex:1">{{ data_get($t, 'name') }}<small>{{ data_get($t, 'subject') ?: 'مدرس' }}</small></div>
+        </span>
+        <span class="teacher-sidebar-identity-copy">
+            <strong>{{ data_get($t, 'name') }}</strong>
+            <small>{{ data_get($t, 'subject') ?: 'مدرس' }}</small>
+        </span>
     </a>
-    <nav>
-        @foreach ($nav as [$path, $label, $icon])
-            @php $active = $path === 'teacher' ? request()->is('teacher') : request()->is($path) || request()->is($path.'/*'); @endphp
-            <a href="{{ url($path) }}" class="{{ $active ? 'on' : '' }}" @if($active) aria-current="page" @endif><span>{{ $icon }}</span>{{ $label }}</a>
+    <nav class="teacher-sidebar-nav" aria-label="بخش‌های پنل مدرس">
+        @foreach ($nav as [$routeName, $label, $icon, $path])
+            @php $active = request()->routeIs($routeName) || ($path !== 'teacher' && request()->is($path.'/*')); @endphp
+            <a href="{{ route($routeName) }}" class="{{ $active ? 'on' : '' }}" @if($active) aria-current="page" @endif>
+                <span class="teacher-sidebar-icon" aria-hidden="true">{{ $icon }}</span>
+                <span>{{ $label }}</span>
+            </a>
         @endforeach
     </nav>
-</div>
+    <div class="teacher-sidebar-footer"><span>پنل اختصاصی مدرس</span><small>آکادمی شیخان</small></div>
+</aside>

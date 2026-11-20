@@ -11,23 +11,7 @@
     </div>
 </div>
 
-@if(session('success'))
-    <div style="background:#dcfce7;color:#166534;padding:12px 18px;border-radius:12px;margin-bottom:16px;font-weight:600">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if($errors->any())
-    <div style="background:#fee2e2;color:#991b1b;padding:12px 18px;border-radius:12px;margin-bottom:16px;font-weight:600">
-        <ul style="margin:0;padding-inline-start:18px">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-<div class="g g2">
+ <div class="g g2">
     <section class="c">
         <h3>اطلاعات فردی و تصویر</h3>
         <form method="POST" action="{{ route('teacher.profile.update') }}" enctype="multipart/form-data" class="teacher-form" style="display:flex;flex-direction:column;gap:16px">

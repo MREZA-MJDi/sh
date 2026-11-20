@@ -89,16 +89,17 @@ final class MessageController extends Controller
             $admins = User::query()
                 ->where('is_active', true)
                 ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
-                ->orderBy('id')
-                ->get();
+                ->orderBy('id');
 
-            if ($admins->isEmpty()) {
+            $firstAdmin = (clone $admins)->first();
+
+            if (! $firstAdmin) {
                 return back()->withInput()->withErrors(['target' => 'در حال حاضر مدیر فعالی برای دریافت پیام ثبت نشده است.']);
             }
 
             $message = Message::query()->create([
                 'sender_id' => $request->user()->id,
-                'recipient_id' => $admins->first()->id,
+                'recipient_id' => $firstAdmin->id,
                 'student_id' => null,
                 'parent_id' => null,
                 'subject' => trim($data['subject']),
@@ -106,9 +107,12 @@ final class MessageController extends Controller
                 'status' => 'open',
             ]);
 
-            foreach ($admins as $admin) {
-                $admin->notify(new MessageActivityNotification($message, 'پیام جدیدی از طرف مدرس برای مدیریت آکادمی ارسال شده است.'));
-            }
+            $admins->chunkById(100, fn ($recipients) => $recipients->each(
+                fn (User $admin) => $admin->notify(new MessageActivityNotification(
+                    $message,
+                    'پیام جدیدی از طرف مدرس برای مدیریت آکادمی ارسال شده است.'
+                ))
+            ));
 
             return redirect()->route('teacher.messages.index')
                 ->with('success', 'پیام برای کارتابل مدیریت آکادمی ارسال شد.');
