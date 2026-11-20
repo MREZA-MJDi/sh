@@ -130,11 +130,11 @@
   <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="$days" hint="اگر روز ثابتی ندارد، خالی بگذار."/>
   <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
   <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" addon="دقیقه"/>
-  <p class="adm-muted" style="grid-column:1/-1">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
+  <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
 
   <x-admin.legend title="اعضای کلاس"/>
   <x-admin.chips label="دانش‌آموزان فعال" name="student_ids" :options="$studentOptions" scroll hint="افزودن یا حذف عضو، تاریخچه عضویت را حفظ می‌کند"/>
-  <p class="adm-muted" style="grid-column:1/-1">کلاس و اعضای آن را همین‌جا ثبت کن؛ زمان‌بندی جلسه‌ها هم از تقویم کلاس در دسترس است.</p>
+  <p class="adm-muted adm-grid-note">کلاس و اعضای آن را همین‌جا ثبت کن؛ زمان‌بندی جلسه‌ها هم از تقویم کلاس در دسترس است.</p>
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="class-del" title="حذف کلاس" text="کلاسی که سابقه حضور، تکلیف، آزمون، عضو یا جلسه داشته باشد حذف نمی‌شود و باید بایگانی شود."/>
 @endif
