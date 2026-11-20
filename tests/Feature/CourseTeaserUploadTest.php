@@ -6,6 +6,7 @@ use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\VideoUploadSession;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -34,7 +35,7 @@ final class CourseTeaserUploadTest extends TestCase
         $course->update(['teaser_status' => 'uploading']);
 
         VideoUploadSession::query()->create([
-            'upload_id' => (string) \\Illuminate\\Support\\Str::uuid(),
+            'upload_id' => (string) \Illuminate\Support\Str::uuid(),
             'user_id' => $admin->id,
             'target' => 'teaser',
             'target_id' => $course->id,
