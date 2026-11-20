@@ -201,8 +201,9 @@
                   <p class="adm-muted">هنوز جلسه آینده‌ای برنامه‌ریزی نشده است.</p>
                 @endif
                 <div class="adm-actions">
-                  <x-admin.btn size="sm" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم و جلسه‌ها</x-admin.btn>
-                  <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
+                  <x-admin.btn size="sm" icon="plus" data-modal-open="quick-session-{{ $classroom->id }}">جلسه جدید</x-admin.btn>
+                  <x-admin.btn size="sm" variant="soft" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
+                  <x-admin.btn size="sm" variant="line" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
                 </div>
               </div>
             </article>
@@ -287,5 +288,18 @@
       <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'published'" required/>
     </x-admin.modal>
   @endif
+
+  @foreach($classrooms as $classroom)
+    <x-admin.modal :demo="false" :id="'quick-session-'.$classroom->id" title="برنامه‌ریزی جلسه برای کلاس" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
+      <x-admin.input label="موضوع جلسه" name="title" wide required placeholder="مثلاً جلسه سوم: حل تمرین"/>
+      <x-admin.select label="نوع برگزاری" name="session_type" :options="['onsite' => 'حضوری', 'online' => 'آنلاین']" :selected="'onsite'" required/>
+      <x-admin.select label="وضعیت" name="status" :options="['scheduled' => 'برنامه‌ریزی‌شده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده']" :selected="'scheduled'" required/>
+      <x-admin.input label="زمان شروع" name="starts_at" type="datetime-local" :value="now()->setTime(9, 0)->format('Y-m-d\\TH:i')" required/>
+      <x-admin.input label="زمان پایان" name="ends_at" type="datetime-local"/>
+      <x-admin.select label="اتاق آنلاین" name="meeting_provider" :options="['skyroom' => 'اتاق کلاس', 'jitsi' => 'Jitsi Meet', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی']" :selected="'skyroom'"/>
+      <x-admin.input label="لینک جلسه (اختیاری)" name="meeting_url" wide placeholder="https://..."/>
+      <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
+    </x-admin.modal>
+  @endforeach
 @endif
 @endpush
