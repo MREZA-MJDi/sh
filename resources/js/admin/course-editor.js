@@ -331,3 +331,19 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     }
   });
 });
+
+
+document.addEventListener('change', (event) => {
+  const classroomSelect = event.target.closest('[data-resource-classroom]');
+  if (!classroomSelect) return;
+
+  const modal = classroomSelect.closest('form');
+  const visibilitySelect = modal?.querySelector('[data-resource-visibility]');
+  const publicOption = visibilitySelect?.querySelector('option[value="public"]');
+  if (!visibilitySelect || !publicOption) return;
+
+  publicOption.disabled = Boolean(classroomSelect.value);
+  if (classroomSelect.value && visibilitySelect.value === 'public') {
+    visibilitySelect.value = 'enrolled';
+  }
+});
