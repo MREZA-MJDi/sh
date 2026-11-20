@@ -131,7 +131,7 @@
 
   <x-admin.legend title="اعضای کلاس"/>
   <x-admin.chips label="دانش‌آموزان فعال" name="student_ids" :options="$studentOptions" scroll hint="افزودن یا حذف عضو، تاریخچه عضویت را حفظ می‌کند"/>
-  <p class="adm-muted" style="grid-column:1/-1">ثبت کلاس و اعضا مستقل از فعال‌شدن Skyroom است. جلسات را پس از ساخت گروه از صفحه «جلسات» زمان‌بندی کنید.</p>
+  <p class="adm-muted" style="grid-column:1/-1">کلاس و اعضای آن را همین‌جا ثبت کن؛ زمان‌بندی جلسه‌ها هم از تقویم کلاس در دسترس است.</p>
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="class-del" title="حذف کلاس" text="کلاسی که سابقه حضور، تکلیف، آزمون، عضو یا جلسه داشته باشد حذف نمی‌شود و باید بایگانی شود."/>
 @endif
