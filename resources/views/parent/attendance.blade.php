@@ -11,8 +11,18 @@
         ['l' => 'تأخیر', 'v' => (int) ($att['late'] ?? 0),   'c' => '--am'],
     ];
 @endphp
-<h2>حضور و غیاب {{ data_get($kid ?? null, 'name') }}</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">گزارش آموزشی</span><h1>حضور و غیاب {{ data_get($kid ?? null, 'name') }}</h1><p>سوابق حضور فرزند را به تفکیک ماه بررسی کنید.</p></div></div>
 @include('parent.partials.kid-picker')
+<form method="GET" action="{{ route('guardian.attendance') }}" class="parent-month-filter">
+    <input type="hidden" name="child" value="{{ $kid?->id }}">
+    <label for="attendanceMonth">ماه موردنظر</label>
+    <select id="attendanceMonth" name="month">
+        @foreach ($monthOptions as $option)
+            <option value="{{ $option['value'] }}" @selected($monthKey === $option['value'])>{{ $option['label'] }}</option>
+        @endforeach
+    </select>
+    <button class="b s" type="submit">نمایش ماه</button>
+</form>
 <div class="g g2">
     <section class="c"><h3>{{ $monthTitle ?? 'تقویم' }}</h3>
         <div class="cal2 sh-calendar-grid">
