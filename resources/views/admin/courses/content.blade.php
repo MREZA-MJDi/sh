@@ -65,9 +65,9 @@
               <b>{{ $classroom->name }}</b>
               <small class="adm-muted">{{ $classroom->teacher?->name ?? 'مدرس تعیین نشده' }} · {{ $classroom->students_count }} دانش‌آموز · {{ $classroom->sessions_count }} جلسه</small>
               @if($classroom->skyroom_status === 'waiting_contract')
-                <small class="adm-muted">اتصال Skyroom در انتظار قرارداد</small>
+                <small class="adm-muted">اتصال اتاق آنلاین در انتظار قرارداد</small>
               @elseif($classroom->skyroom_status === 'ready')
-                <small class="adm-muted">اتاق Skyroom متصل است</small>
+                <small class="adm-muted">اتاق اتاق آنلاین متصل است</small>
               @endif
             </div>
             <x-admin.btn size="sm" variant="soft" :href="route('admin.classes.sessions.index', $classroom)">جلسات</x-admin.btn>
@@ -79,14 +79,14 @@
     </x-admin.panel>
 
     @unless($teacherView)
-    <x-admin.panel title="وضعیت یکپارچه‌سازی" desc="اتصال خارجی مستقل از ثبت‌نام و ساختار آموزشی نگهداری می‌شود." data-tone="shop">
+    <x-admin.panel title="وضعیت پخش ویدیو" desc="وضعیت آماده‌سازی ویدیو جدا از ثبت‌نام دوره نمایش داده می‌شود." data-tone="shop">
       <div class="adm-stack">
         <div class="adm-row-between">
-          <b>SpotPlayer</b>
+          <b>سرویس قبلی</b>
           <x-admin.badge :tone="in_array($course->integration_status, ['active', 'ready'], true) ? 'ok' : 'warn'">{{ $course->integration_status ?: 'ثبت نشده' }}</x-admin.badge>
         </div>
         @if($course->integration_note)<p class="adm-muted">{{ $course->integration_note }}</p>@endif
-        <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.index')">مدیریت ویدیو و لایسنس‌ها</x-admin.btn>
+        <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.index')">تنظیمات پخش ویدیو</x-admin.btn>
         <div class="adm-divider"></div>
         <p class="adm-muted">مدیریت برنامه و اجرای جلسات از مسیر مستقل کلاس‌ها انجام می‌شود؛ این صفحه روی ساختار دوره، گروه‌های آموزشی و محتوای آموزشی متمرکز است.</p>
         <x-admin.btn size="sm" variant="line" :href="route('admin.quiz24.index')">مدیریت Quiz24 و همگام‌سازی نتایج</x-admin.btn>
