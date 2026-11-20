@@ -144,7 +144,7 @@ function radar(labels, series) {
     });
   };
   var color = function (c) { return /^--[a-z0-9-]+$/i.test(c || '') ? c : '--pri'; };
-  var nums = function (a) { return (a || []).map(Number); };
+  var nums = function (a) { return (a || []).map(function (value) { return value === null || value === '' ? null : Number(value); }); };
   var legendHtml = function (series) {
     return '<div class="leg">' + series.map(function (s) {
       return '<span><i style="background:var(' + s.c + ')"></i>' + s.name + '</span>';
