@@ -1160,7 +1160,7 @@ nav[role="navigation"] span[aria-current="page"]{background:var(--pri);border-co
   .teacher-palette{gap:8px}
   .teacher-palette button{width:17px;height:17px}
   .teacher-sidebar{
-    position:fixed;z-index:46;top:calc(58px + env(safe-area-inset-top,0px));bottom:0;
+    position:fixed;z-index:46;top:calc(var(--teacher-topbar-height, 106px) + env(safe-area-inset-top,0px));bottom:0;
     inset-inline-start:auto;inset-inline-end:0;width:min(310px,88vw);max-height:none;
     overflow-y:auto;border-radius:18px 0 0 18px;box-shadow:0 18px 48px #10102030;
     transform:translateX(110%);visibility:hidden;transition:transform .22s ease,visibility .22s;
@@ -1171,7 +1171,7 @@ nav[role="navigation"] span[aria-current="page"]{background:var(--pri);border-co
   .teacher-sidebar .me{display:flex}
   .teacher-sidebar-nav{display:flex;flex-direction:column;gap:5px}
   .teacher-sidebar-nav a{min-height:46px;font-size:13px}
-  .teacher-nav-backdrop{display:block;position:fixed;z-index:44;inset:calc(58px + env(safe-area-inset-top,0px)) 0 0;border:0;background:#10102080;backdrop-filter:blur(2px)}
+  .teacher-nav-backdrop{display:block;position:fixed;z-index:44;inset:calc(var(--teacher-topbar-height, 106px) + env(safe-area-inset-top,0px)) 0 0;border:0;background:#10102080;backdrop-filter:blur(2px)}
   .teacher-nav-backdrop[hidden]{display:none}
   body.teacher-nav-open{overflow:hidden}
   .teacher-profile-name{display:none}
