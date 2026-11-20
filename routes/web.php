@@ -279,6 +279,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/spotplayer/videos', [SpotPlayerController::class, 'storeVideo'])->middleware(['role:admin', 'permission:integrations.manage'])->name('spotplayer.videos.store');
     Route::get('/spotplayer/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware(['role:admin', 'permission:integrations.manage'])->name('spotplayer.videos.download');
     Route::post('/spotplayer/videos/{video}/retry-processing', [SpotPlayerController::class, 'retryProcessing'])->middleware(['role:admin', 'permission:integrations.manage'])->name('spotplayer.videos.retry-processing');
+    Route::post('/spotplayer/videos/{video}/approve', [SpotPlayerController::class, 'approveVideo'])->middleware('role:admin')->name('spotplayer.videos.approve');
+    Route::post('/spotplayer/videos/{video}/reject', [SpotPlayerController::class, 'rejectVideo'])->middleware('role:admin')->name('spotplayer.videos.reject');
     Route::post('/spotplayer/licenses', [SpotPlayerController::class, 'requestLicense'])->middleware('permission:integrations.manage')->name('spotplayer.licenses.store');
     Route::post('/spotplayer/licenses/{license}/revoke', [SpotPlayerController::class, 'requestRevocation'])->middleware('permission:integrations.manage')->name('spotplayer.licenses.revoke');
 
@@ -345,6 +347,7 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::post('/videos', [SpotPlayerController::class, 'storeVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.store');
         Route::get('/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.download');
         Route::post('/videos/{video}/retry-processing', [SpotPlayerController::class, 'retryProcessing'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.retry-processing');
+        Route::post('/videos/{video}/resubmit', [SpotPlayerController::class, 'resubmitVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.resubmit');
         Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
         Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:videos.manage.assigned', 'throttle:60,1'])->name('uploads.resume');
         Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:videos.manage.assigned', 'throttle:60,1'])->name('uploads.status');

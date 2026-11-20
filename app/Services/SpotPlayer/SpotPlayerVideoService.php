@@ -6,6 +6,8 @@ use App\Jobs\Learning\ProcessCourseRecordingVideo;
 use App\Models\SpotPlayerVideo;
 use App\Models\ClassSession;
 use App\Models\User;
+use App\Notifications\CourseVideoSubmittedForReview;
+use Illuminate\Support\Facades\Notification;
 use App\Services\Integrations\IntegrationOperationService;
 use App\Services\Admin\ClassroomWorkspaceService;
 use Illuminate\Http\UploadedFile;
@@ -79,6 +81,7 @@ final class SpotPlayerVideoService
                 'external_id' => filled($data['external_id'] ?? null) ? trim($data['external_id']) : null,
                 'embed_url' => null,
                 'status' => 'processing',
+                'approval_status' => $actor->hasRole('teacher') && ! $actor->hasRole('admin') ? 'pending' : 'approved',
                 'created_by' => $actor->id,
                 'file_path' => $storagePath,
                 'file_original_name' => mb_substr($originalName, 0, 255),
@@ -113,6 +116,7 @@ final class SpotPlayerVideoService
             return $video->refresh();
         });
 
+        $this->notifyAdminsForReview($video, $actor);
         $this->dispatchProcessing($video);
 
         return $video;
@@ -123,7 +127,7 @@ final class SpotPlayerVideoService
         $uploadedFile = $data['file'] ?? null;
 
         if (! ($uploadedFile instanceof UploadedFile)) {
-            return DB::transaction(function () use ($data, $actor): SpotPlayerVideo {
+            $video = DB::transaction(function () use ($data, $actor): SpotPlayerVideo {
                 $externalId = trim((string) ($data['external_id'] ?? ''));
 
                 if ($externalId === '') {
@@ -138,6 +142,7 @@ final class SpotPlayerVideoService
                     'external_id' => $externalId,
                     'embed_url' => null,
                     'status' => filled($data['external_id'] ?? null) ? 'waiting_contract' : 'active',
+                    'approval_status' => $actor->hasRole('teacher') && ! $actor->hasRole('admin') ? 'pending' : 'approved',
                     'created_by' => $actor->id,
                     'file_path' => null,
                     'file_original_name' => null,
@@ -165,6 +170,8 @@ final class SpotPlayerVideoService
 
                 return $video->refresh();
             });
+            $this->notifyAdminsForReview($video, $actor);
+            return $video;
         }
 
         /** @var UploadedFile $uploadedFile */
@@ -189,6 +196,7 @@ final class SpotPlayerVideoService
                     'external_id' => $data['external_id'] ?? null,
                     'embed_url' => null,
                     'status' => 'processing',
+                    'approval_status' => $actor->hasRole('teacher') && ! $actor->hasRole('admin') ? 'pending' : 'approved',
                     'created_by' => $actor->id,
                     'file_path' => $storagePath,
                     'file_original_name' => mb_substr($uploadedFile->getClientOriginalName(), 0, 255),
@@ -222,6 +230,7 @@ final class SpotPlayerVideoService
                 return $video->refresh();
             });
 
+            $this->notifyAdminsForReview($video, $actor);
             $this->dispatchProcessing($video);
 
             return $video;
@@ -229,6 +238,20 @@ final class SpotPlayerVideoService
             Storage::disk('local')->delete($storagePath);
             throw $exception;
         }
+    }
+
+    private function notifyAdminsForReview(SpotPlayerVideo $video, User $actor): void
+    {
+        if (! $actor->hasRole('teacher') || $actor->hasRole('admin')) {
+            return;
+        }
+
+        $admins = User::query()
+            ->whereHas('roles', fn ($roles) => $roles->where('name', 'admin'))
+            ->where('is_active', true)
+            ->get();
+
+        Notification::send($admins, new CourseVideoSubmittedForReview($video->loadMissing('creator')));
     }
 
     private function dispatchProcessing(SpotPlayerVideo $video): void

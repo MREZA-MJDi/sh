@@ -290,4 +290,33 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertDontSee('تماشای ویدیوهای دوره')
             ->assertDontSee('course-video-dialog');
     }
+    public function test_pending_teacher_video_is_hidden_from_public_course_and_cannot_be_played(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $this->grantActiveEnrollment($student, $course);
+
+        Storage::fake('local');
+        Storage::disk('local')->put('private/course-videos/pending.mp4', 'video-content');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'title' => 'ویدیوی در انتظار تأیید',
+            'status' => 'active',
+            'approval_status' => 'pending',
+            'file_path' => 'private/course-videos/pending.mp4',
+            'file_original_name' => 'pending.mp4',
+            'file_mime_type' => 'video/mp4',
+            'file_size_bytes' => 13,
+            'file_sha256' => hash('sha256', 'video-content'),
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertDontSee('ویدیوی در انتظار تأیید');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertForbidden();
+    }
+
 }

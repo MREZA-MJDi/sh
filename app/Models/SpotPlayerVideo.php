@@ -11,11 +11,12 @@ class SpotPlayerVideo extends Model
         'course_id', 'classroom_id', 'class_session_id', 'created_by', 'title', 'external_id',
         'embed_url', 'status', 'file_path', 'file_original_name',
         'file_mime_type', 'file_size_bytes', 'file_sha256', 'staged_at', 'processing_error', 'processed_at',
+        'approval_status', 'reviewed_by', 'reviewed_at', 'review_note',
     ];
 
     protected function casts(): array
     {
-        return ['file_size_bytes' => 'integer', 'staged_at' => 'datetime', 'processed_at' => 'datetime'];
+        return ['file_size_bytes' => 'integer', 'staged_at' => 'datetime', 'processed_at' => 'datetime', 'reviewed_at' => 'datetime'];
     }
 
     public function course(): BelongsTo
