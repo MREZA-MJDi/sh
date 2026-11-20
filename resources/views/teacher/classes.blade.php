@@ -4,7 +4,12 @@
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">آموزش و اجرا</span><h1>کلاس‌ها و فیلم‌ها</h1><p>محتوای آموزشی و جلسه‌های کلاس‌های تخصیص‌یافته را پیگیری کنید.</p></div><div class="teacher-head-actions">@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}">بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="b s" href="{{ route('teacher.resources') }}">افزودن جزوه</a>@endif</div></div>
 <section class="c teacher-assigned-classes">
-    <div class="teacher-section-head"><div><h2>دوره‌ها و گروه‌های تخصیص‌یافته</h2><p>پایه و فصل هر گروه از اطلاعات دوره‌ی مرتبط نمایش داده می‌شود.</p></div></div>
+    <div class="teacher-section-head"><div><h2>دوره‌ها و گروه‌های تخصیص‌یافته</h2><p>پایه و فصل هر گروه از اطلاعات دوره‌ی مرتبط نمایش داده می‌شود.</p></div><span class="teacher-result-count">{{ $classrooms->total() }} کلاس</span></div>
+    <form method="GET" action="{{ route('teacher.classes') }}" class="teacher-list-filters">
+        <label class="teacher-search-field"><span class="sr-only">جست‌وجوی کلاس یا دوره</span><input type="search" name="q" value="{{ request('q') }}" maxlength="100" placeholder="جست‌وجوی نام کلاس یا دوره"></label>
+        <label><span class="sr-only">مرتب‌سازی</span><select name="sort"><option value="name" @selected(request('sort', 'name') === 'name')>نام کلاس</option><option value="students" @selected(request('sort') === 'students')>بیشترین دانش‌آموز</option><option value="recent" @selected(request('sort') === 'recent')>آخرین تغییر</option></select></label>
+        <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.classes') }}">پاک‌کردن</a>
+    </form>
     @forelse ($classrooms as $classroom)
         <div class="teacher-list-card">
             <div>
