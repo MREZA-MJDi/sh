@@ -6,7 +6,7 @@
   $topbarInitial = mb_substr((string) ($topbarUser?->name ?? '؟'), 0, 1);
 @endphp
 <header class="adm-topbar">
-  <x-admin.btn variant="line" size="icon" icon="menu" class="adm-menu-btn" data-menu aria-label="باز کردن منو"/>
+  <x-admin.btn variant="line" size="icon" icon="menu" class="adm-menu-btn" data-menu aria-label="باز کردن منو" aria-expanded="false" aria-controls="adm-sidebar"/>
 
   <nav class="adm-crumbs" aria-label="مسیر">
     <a href="{{ url(($topbarUser?->hasRole('seo') && ! $topbarUser?->hasRole('admin')) ? 'admin/seo' : 'admin') }}">{{ ($topbarUser?->hasRole('seo') && ! $topbarUser?->hasRole('admin')) ? 'مرکز مدیریت سئو' : 'پنل مدیریت' }}</a>
