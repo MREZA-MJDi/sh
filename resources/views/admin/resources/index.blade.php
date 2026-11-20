@@ -70,7 +70,7 @@
 
 @if(!$teacherView)
 <x-admin.panel title="درخواست‌های خرید در انتظار بررسی" desc="پس از تطبیق رسید بانکی با واریز واقعی، خرید را تأیید کنید." flush data-tone="shop">
-    <div class="adm-grid adm-cols-2" style="padding:16px">
+    <div class="adm-grid adm-cols-2">
       @forelse($purchases as $purchase)
         <article class="adm-card">
           <div class="adm-card-body">
