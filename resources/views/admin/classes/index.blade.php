@@ -117,24 +117,14 @@
 @push('modals')
 @if($canManage)
 <x-admin.modal :demo="false" id="class-modal" title="کلاس جدید" size="lg" :action="route('admin.classes.store')">
-  <x-admin.legend title="اطلاعات گروه آموزشی"/>
-  <x-admin.input label="نام کلاس / گروه" name="name" wide required/>
-  <x-admin.select label="دوره مرتبط" name="course_id" :options="$courseOptions" :required="$teacherView" placeholder="کلاس مستقل / بدون دوره"/>
-  @unless($teacherView)
-    <x-admin.select label="مدرس مسئول" name="teacher_id" :options="$teacherOptions" required/>
-  @endunless
-  <x-admin.select label="وضعیت کلاس" name="status" :options="$statusOptions" required/>
-  <x-admin.input label="لینک پیش‌فرض جلسه (اختیاری)" name="meeting_url" placeholder="لینک ورود به کلاس آنلاین" wide/>
-
-  <x-admin.legend title="روزها و ساعت معمول کلاس"/>
-  <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="$days" hint="اگر روز ثابتی ندارد، خالی بگذار."/>
-  <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
-  <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" addon="دقیقه"/>
-  <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
-
-  <x-admin.legend title="اعضای کلاس"/>
-  <x-admin.chips label="دانش‌آموزان فعال" name="student_ids" :options="$studentOptions" scroll hint="افزودن یا حذف عضو، تاریخچه عضویت را حفظ می‌کند"/>
-  <p class="adm-muted adm-grid-note">کلاس و اعضای آن را همین‌جا ثبت کن؛ زمان‌بندی جلسه‌ها هم از تقویم کلاس در دسترس است.</p>
+  @include('admin.classes.partials.class-fields', [
+    'teacherOptions' => $teacherOptions,
+    'courseOptions' => $courseOptions,
+    'days' => $days,
+    'statusOptions' => $statusOptions,
+    'studentOptions' => $studentOptions,
+    'teacherView' => $teacherView,
+  ])
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="class-del" title="حذف کلاس" text="کلاسی که سابقه حضور، تکلیف، آزمون، عضو یا جلسه داشته باشد حذف نمی‌شود و باید بایگانی شود."/>
 @endif
