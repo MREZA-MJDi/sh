@@ -30,6 +30,7 @@ class UpdateClassroomRequest extends FormRequest
             'schedule_days.*' => [Rule::in(['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'])],
             'schedule_time' => ['nullable', 'date_format:H:i'],
             'duration_minutes' => ['nullable', 'integer', 'min:15', 'max:300'],
+            'student_ids_present' => ['sometimes', 'boolean'],
             'student_ids' => ['nullable', 'array', 'max:300'],
             'student_ids.*' => ['integer', 'distinct', 'exists:users,id'],
         ];
