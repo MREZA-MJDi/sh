@@ -30,8 +30,11 @@
  </section>
  <section class="ib-card ib-cc">
  @if($selected && $partner)
+  @if($selected->status === 'open' && !$selected->closed_at)
+   <form method="POST" action="{{ route('admin.messages.read', $selected) }}" data-mark-read hidden>@csrf @method('PATCH')</form>
+  @endif
   <div class="ib-hd"><button class="ib-btn" id="ib-back" type="button">بازگشت</button><div class="ib-av ib-head-av">@if($avatar($partner))<img src="{{ $avatar($partner) }}" alt="">@else{{ mb_substr($partner->name,0,1) }}@endif</div>
-   <h2>{{ $partner->name }}<br><small>{{ $labels[$selectedRole]??'کاربر' }} · {{ $selected->closed_at ? 'بسته‌شده' : ($selected->status === 'answered' ? 'در انتظار پاسخ' : 'باز') }}</small></h2>
+   <h2>{{ $partner->name }}<br><small>{{ $labels[$selectedRole]??'کاربر' }} · {{ $selected->closed_at ? 'بسته‌شده' : ($selected->status === 'answered' ? 'در انتظار پاسخ' : ($selected->status === 'read' ? 'خوانده‌شده' : 'باز')) }}</small></h2>
    @if($selected->closed_at)<form method="POST" action="{{ route('admin.messages.reopen',$selected) }}">@csrf<button class="ib-btn" type="submit">بازکردن مجدد</button></form>
    @else<form method="POST" action="{{ route('admin.messages.close',$selected) }}">@csrf<button class="ib-btn d" type="submit">بستن گفتگو</button></form>@endif
   </div>
