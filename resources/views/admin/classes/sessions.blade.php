@@ -158,7 +158,7 @@
 
 @push('modals')
 <x-admin.modal :demo="false" id="session-modal" title="برنامه‌ریزی جلسه" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
-  @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => $selectedDate->format('Y-m-d').'T09:00'])
+  @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => $selectedDate->setTimeFromTimeString(data_get($classroom->schedule, 'time') ?: '09:00')->format('Y-m-d\\TH:i')])
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="session-delete" title="حذف جلسه" text="جلسه‌ای که حضور یا سابقه ورود دارد حذف نمی‌شود؛ آن را لغو کن تا سوابق حفظ شود."/>
 @endpush
