@@ -1,0 +1,147 @@
+/* Experience layer: task-first patterns shared across admin screens. */
+:root{
+  --bg:#f5f6f8;--surface:#fff;--surface-2:#f8fafc;--surface-3:#eef1f5;
+  --ink:#182338;--ink-2:#40506a;--muted:#738097;--line:#e6eaf0;--line-strong:#d5dce6;
+  --primary:#3156c9;--primary-hover:#2748ad;--primary-soft:#edf1ff;
+  --gold:#b98b43;--r-lg:18px;--r:13px;--r-sm:10px;
+  --shadow:0 2px 8px rgba(22,34,56,.035),0 12px 32px -24px rgba(22,34,56,.24);
+}
+[data-tone=users]{--tone:#bd7446;--tone-soft:#fbf1e9;--tone-lt:#e6b28f}
+[data-tone=edu]{--tone:#a17a36;--tone-soft:#f8f2e5;--tone-lt:#d9bc7b}
+[data-tone=track]{--tone:#4269bd;--tone-soft:#edf2fc;--tone-lt:#9bb2e5}
+[data-tone=comm]{--tone:#7861a8;--tone-soft:#f2eff8;--tone-lt:#b5a6d3}
+[data-tone=shop]{--tone:#43877c;--tone-soft:#edf6f3;--tone-lt:#9ac9be}
+
+/* Shared page rhythm */
+.adm-container{gap:24px;padding-top:28px}
+.adm-pagehead{margin-bottom:2px}
+.adm-pagehead h1{font-size:24px;letter-spacing:-.35px}
+.adm-pagehead p{font-size:13px;margin-top:3px}
+.adm-panel{border-radius:18px;box-shadow:0 2px 10px rgba(22,34,56,.035);overflow:hidden}
+.adm-panel-head{padding:18px 22px}
+.adm-panel-head h2{font-size:15px;letter-spacing:-.15px}
+.adm-panel-body{padding:22px}
+.adm-stat{min-height:104px;padding:18px 20px;border-radius:16px;box-shadow:none}
+.adm-stat-ico{width:42px;height:42px;border-radius:13px;box-shadow:none}
+.adm-stat strong{font-size:25px;letter-spacing:-.5px}
+.adm-btn{min-height:40px;border-radius:10px}
+.adm-btn-sm{min-height:34px}
+.adm-input,.adm-select{min-height:42px;border-radius:10px}
+.adm-table th{font-size:11.5px;letter-spacing:.1px}
+.adm-table td{padding-block:13px}
+
+/* Dashboard: orient the user around the next useful action. */
+.adm-welcome{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(230px,.6fr);gap:24px;align-items:center;padding:26px 30px;border:1px solid #dfe6f5;border-radius:22px;background:linear-gradient(115deg,#fff 0%,#f6f8ff 68%,#eef2ff 100%);overflow:hidden}
+.adm-welcome::after{content:"";position:absolute;z-index:-1;width:280px;height:280px;border:1px solid rgba(49,86,201,.1);border-radius:50%;inset-inline-end:-110px;top:-145px;box-shadow:0 0 0 28px rgba(49,86,201,.025),0 0 0 58px rgba(49,86,201,.02)}
+.adm-welcome-copy{display:grid;gap:8px}
+.adm-welcome-kicker{font-size:11px;font-weight:800;color:var(--primary);letter-spacing:.4px}
+.adm-welcome h1{font-size:25px;line-height:1.5;font-weight:850}
+.adm-welcome p{max-width:620px;color:var(--muted);font-size:13px}
+.adm-welcome-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+.adm-welcome-aside{display:flex;justify-content:center;align-items:center;gap:16px}
+.adm-rate-ring{--rate:0;width:132px;height:132px;display:grid;place-items:center;position:relative;flex:none;border-radius:50%;background:conic-gradient(var(--primary) calc(var(--rate)*1%),#e4e9f3 0)}
+.adm-rate-ring::before{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}
+.adm-rate-ring>div{position:relative;text-align:center;display:grid;line-height:1.4}
+.adm-rate-ring strong{font-size:27px;color:var(--ink);font-variant-numeric:tabular-nums}
+.adm-rate-ring small{font-size:10px;color:var(--muted)}
+.adm-rate-caption{max-width:105px;font-size:12px;color:var(--ink-2);line-height:1.8}
+.adm-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.adm-action-tile{display:flex;align-items:center;gap:12px;min-width:0;padding:15px 16px;background:var(--surface);border:1px solid var(--line);border-radius:15px;transition:border-color .16s,transform .16s,box-shadow .16s}
+.adm-action-tile:hover{border-color:#cbd5ef;transform:translateY(-2px);box-shadow:var(--shadow)}
+.adm-action-tile>span:first-child{width:42px;height:42px;display:grid;place-items:center;flex:none;border-radius:13px;background:var(--primary-soft);color:var(--primary)}
+.adm-action-tile .adm-icon{width:21px;height:21px}
+.adm-action-tile b{display:block;font-size:13px}
+.adm-action-tile small{display:block;color:var(--muted);font-size:11px}
+.adm-action-tile>.adm-icon{margin-inline-start:auto;color:var(--muted);width:16px;height:16px}
+.adm-work-queue{display:grid;gap:10px}
+.adm-work-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.adm-work-item:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.adm-work-item>span:first-child{width:38px;height:38px;display:grid;place-items:center;flex:none;border-radius:11px;background:var(--tone-soft);color:var(--tone)}
+.adm-work-item b{display:block;font-size:12.5px}
+.adm-work-item small{display:block;color:var(--muted);font-size:11px}
+.adm-work-item strong{margin-inline-start:auto;font-size:20px;color:var(--tone);font-variant-numeric:tabular-nums}
+.adm-work-item .adm-icon{width:19px;height:19px}
+.adm-panel-kicker{font-size:11px;color:var(--muted);font-weight:600}
+.adm-week-chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:end;min-height:190px;padding:16px 4px 0}
+.adm-week-day{display:grid;grid-template-rows:1fr auto;gap:8px;justify-items:center;height:100%;min-width:0}
+.adm-week-track{width:min(100%,36px);height:142px;display:flex;align-items:flex-end;border-radius:99px;background:#f0f2f7;overflow:hidden}
+.adm-week-fill{width:100%;height:var(--bar-height);min-height:4px;border-radius:99px;background:linear-gradient(180deg,#6f8be0,#3156c9)}
+.adm-week-day b{font-size:11px;color:var(--ink-2)}
+.adm-week-day small{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.adm-queue-empty{display:grid;justify-items:center;gap:8px;padding:26px 14px;text-align:center;color:var(--muted)}
+.adm-queue-empty .adm-icon{width:30px;height:30px;color:var(--ok)}
+
+/* Attendance: one learner = one clear decision surface. */
+.adm-roster-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:16px}
+.adm-roster-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.adm-roster-person{display:flex;align-items:center;gap:10px;min-width:0}
+.adm-roster-avatar{width:38px;height:38px;display:grid;place-items:center;flex:none;border-radius:12px;background:var(--primary-soft);color:var(--primary);font-weight:800}
+.adm-roster-person b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.adm-roster-person small{display:block;color:var(--muted);font-size:10.5px}
+.adm-roster-card .adm-marks{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;border:0;border-radius:10px;gap:5px;overflow:visible;background:transparent}
+.adm-roster-card .adm-marks label{min-width:0}
+.adm-roster-card .adm-marks span{padding:7px 5px;text-align:center;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);font-size:11px}
+.adm-roster-card .adm-marks label:first-child span{border-inline-start:1px solid var(--line)}
+.adm-roster-card .adm-marks [data-m=present] input:checked+span{border-color:#a8dec8}
+.adm-roster-card .adm-marks [data-m=absent] input:checked+span{border-color:#f0b5bf}
+.adm-roster-card .adm-marks [data-m=late] input:checked+span{border-color:#e9d19c}
+.adm-roster-card .adm-marks [data-m=excused] input:checked+span{border-color:#a8d5ec}
+.adm-attendance-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.adm-attendance-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.adm-attendance-summary{display:flex;gap:8px;flex-wrap:wrap}
+.adm-attendance-summary>div{padding:7px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:11px;color:var(--muted)}
+.adm-attendance-summary b{margin-inline-start:5px;font-size:16px;color:var(--ink)}
+.adm-attendance-report{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:16px}
+.adm-attendance-risk{padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.adm-attendance-risk-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.adm-attendance-risk p{font-size:12px;color:var(--muted);margin-top:5px}
+.adm-attendance-risk .adm-progress{margin-top:10px}
+
+/* Homework: submissions become a review queue, not a wide spreadsheet. */
+.adm-review-list{display:grid;gap:12px;padding:16px}
+.adm-review-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,.72fr);gap:18px;padding:17px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}
+.adm-review-main{display:grid;gap:11px;min-width:0;align-content:start}
+.adm-review-person{display:flex;align-items:center;gap:10px}
+.adm-review-person b{display:block;font-size:13px}
+.adm-review-person small{display:block;color:var(--muted);font-size:11px}
+.adm-review-meta{display:flex;gap:8px 14px;flex-wrap:wrap;color:var(--muted);font-size:11px}
+.adm-review-files{display:flex;gap:7px;flex-wrap:wrap}
+.adm-review-files a{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);font-size:11px}
+.adm-review-form{display:grid;grid-template-columns:100px minmax(0,1fr);gap:8px;align-content:start;padding:12px;border-radius:12px;background:var(--surface-2)}
+.adm-review-form textarea{grid-column:1/-1;min-height:76px}
+.adm-review-form button{grid-column:1/-1;justify-self:start}
+.adm-review-score{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:11px}
+.adm-review-score strong{font-size:18px;color:var(--ink)}
+.adm-review-empty{padding:38px 18px;text-align:center;color:var(--muted)}
+.adm-review-empty .adm-icon{width:34px;height:34px;color:var(--ok);margin-bottom:8px}
+
+@media(max-width:1100px){
+  .adm-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .adm-review-card{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:860px){
+  .adm-welcome{grid-template-columns:minmax(0,1fr);padding:22px}
+  .adm-welcome-aside{justify-content:flex-start}
+  .adm-rate-ring{width:104px;height:104px}
+  .adm-rate-ring strong{font-size:23px}
+  .adm-roster-grid,.adm-attendance-report{grid-template-columns:minmax(0,1fr)}
+  .adm-attendance-toolbar{align-items:stretch}
+  .adm-attendance-filters{width:100%}
+  .adm-attendance-filters>*{flex:1 1 140px}
+  .adm-attendance-summary{width:100%}
+  .adm-review-form{grid-template-columns:1fr}
+  .adm-review-form textarea,.adm-review-form button{grid-column:auto}
+}
+@media(max-width:520px){
+  .adm-container{gap:16px}
+  .adm-pagehead h1{font-size:20px}
+  .adm-welcome h1{font-size:21px}
+  .adm-action-grid{grid-template-columns:minmax(0,1fr)}
+  .adm-action-tile{padding:12px}
+  .adm-panel-head,.adm-panel-body{padding:15px}
+  .adm-roster-grid,.adm-attendance-report,.adm-review-list{padding:10px}
+  .adm-roster-card{padding:11px}
+  .adm-roster-card .adm-marks span{font-size:10px;padding:7px 2px}
+  .adm-week-chart{gap:5px}
+  .adm-week-track{width:25px;height:110px}
+}
