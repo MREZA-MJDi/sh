@@ -44,12 +44,12 @@ return [
             'after_commit' => false,
         ],
         'video' => [
-            'driver' => 'database',
-            'connection' => null,
-            'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
+            'driver' => 'redis',
+            'connection' => env('VIDEO_REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('VIDEO_QUEUE', 'video'),
-            'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3700),
-            'after_commit' => false,
+            'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3900),
+            'block_for' => 5,
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [
