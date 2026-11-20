@@ -97,6 +97,48 @@ final class TeacherVideoRouteAccessTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_approve_or_reject_teacher_submissions_with_a_reason(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+        $teacher = User::factory()->create();
+        $course = $this->courseFor($teacher, 'video-review-course');
+
+        $approved = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'created_by' => $teacher->id,
+            'title' => 'ویدیوی قابل تأیید',
+            'status' => 'active',
+            'approval_status' => 'pending',
+        ]);
+        $rejected = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id,
+            'created_by' => $teacher->id,
+            'title' => 'ویدیوی نیازمند اصلاح',
+            'status' => 'active',
+            'approval_status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.spotplayer.videos.approve', $approved))
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('spot_player_videos', [
+            'id' => $approved->id,
+            'approval_status' => 'approved',
+            'reviewed_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.spotplayer.index'))
+            ->post(route('admin.spotplayer.videos.reject', $rejected), ['reason' => 'صدای ویدیو واضح نیست'])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('spot_player_videos', [
+            'id' => $rejected->id,
+            'approval_status' => 'rejected',
+            'review_note' => 'صدای ویدیو واضح نیست',
+        ]);
+    }
+
     private function courseFor(User $teacher, string $slug): Course
     {
         return Course::query()->create([
