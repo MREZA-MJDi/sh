@@ -140,7 +140,10 @@
               <td class="adm-num is-nowrap">{{ \App\Support\PersianDate::format($session->starts_at) }}</td>
               <td class="adm-num">{{ number_format($session->attendances_count) }}</td>
               <td><x-admin.badge :tone="$statusTones[$session->status] ?? 'warn'">{{ $statusLabels[$session->status] ?? $session->status }}</x-admin.badge></td>
-              <td><x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn></td>
+              <td><div class="adm-actions">
+                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn>
+                <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="session-delete" :data-name="$session->title" :data-action="route('admin.classes.sessions.destroy', $session)" aria-label="حذف جلسه"/>
+              </div></td>
             </tr>
           @empty
             <tr><td colspan="6">هنوز جلسه‌ای برای این کلاس ثبت نشده است.</td></tr>
