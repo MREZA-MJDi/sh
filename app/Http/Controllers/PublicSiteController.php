@@ -141,7 +141,6 @@ final class PublicSiteController extends Controller
             ->count();
 
         $upcomingSessions = ClassSession::query()
-            ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->where('starts_at', '>=', now())
             ->whereHas('classroom', fn ($classrooms) => $classrooms
