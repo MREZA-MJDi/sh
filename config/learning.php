@@ -11,6 +11,7 @@ return [
     'max_teaser_mb' => 200,
     'max_lesson_mb' => 300,
     'chunk_mb' => max(1, (int) env('LEARNING_CHUNK_MB', 1)),
+    'upload_session_ttl_hours' => max(1, (int) env('LEARNING_UPLOAD_SESSION_TTL_HOURS', 24)),
 
     // نام route شروع پرداخت پروژه (باید یک Enrollment بگیرد)
     // اسم ستون‌های گزارش «نشست‌ها» در پنل اسکای‌روم (با فایل واقعی خودت تطبیق بده)

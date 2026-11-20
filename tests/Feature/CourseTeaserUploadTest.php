@@ -61,6 +61,86 @@ final class CourseTeaserUploadTest extends TestCase
             && $job->queue === 'video');
     }
 
+    public function test_chunk_retries_are_idempotent_and_resume_discards_truncated_chunks(): void
+    {
+        $admin = $this->admin();
+        $course = $this->course();
+        $payload = str_repeat('a', 64);
+
+        $start = $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'total_bytes' => strlen($payload),
+        ])->assertOk();
+
+        $uploadId = $start->json('upload_id');
+        $chunk = UploadedFile::fake()->createWithContent('part.mp4', $payload);
+
+        $this->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId,
+            'index' => 0,
+            'chunk' => $chunk,
+        ])->assertOk();
+
+        $this->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId,
+            'index' => 0,
+            'chunk' => UploadedFile::fake()->createWithContent('part.mp4', $payload),
+        ])->assertOk();
+
+        $this->assertDatabaseHas('video_upload_sessions', [
+            'upload_id' => $uploadId,
+            'bytes_uploaded' => 64,
+        ]);
+
+        Storage::disk('local')->put("chunks/{$uploadId}/0.part", str_repeat('x', 12));
+
+        $this->postJson(route('admin.uploads.resume'), [
+            'upload_id' => $uploadId,
+        ])->assertOk()->assertJsonPath('received_chunks', []);
+
+        $this->assertDatabaseHas('video_upload_sessions', [
+            'upload_id' => $uploadId,
+            'bytes_uploaded' => 0,
+        ]);
+        Storage::disk('local')->assertMissing("chunks/{$uploadId}/0.part");
+    }
+
+    public function test_failed_teaser_finalization_preserves_chunks_for_recovery(): void
+    {
+        $admin = $this->admin();
+        $course = $this->course();
+        $payload = str_repeat('not-a-video-', 8);
+
+        $start = $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'total_bytes' => strlen($payload),
+        ])->assertOk();
+
+        $uploadId = $start->json('upload_id');
+
+        $this->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId,
+            'index' => 0,
+            'chunk' => UploadedFile::fake()->createWithContent('part.mp4', $payload),
+        ])->assertOk();
+
+        $this->postJson(route('admin.uploads.complete'), [
+            'upload_id' => $uploadId,
+            'total' => 1,
+            'filename' => 'course-teaser.mp4',
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseHas('video_upload_sessions', [
+            'upload_id' => $uploadId,
+            'status' => 'uploading',
+            'bytes_uploaded' => strlen($payload),
+        ]);
+        Storage::disk('local')->assertExists("chunks/{$uploadId}/0.part");
+        $this->assertSame('uploading', $course->fresh()->teaser_status);
+    }
+
     public function test_teaser_upload_rejects_files_larger_than_200_mb_before_creating_a_session(): void
     {
         $admin = $this->admin();

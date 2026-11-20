@@ -53,35 +53,13 @@ final class ChunkUploadController extends Controller
             return $this->fail('تیزر قبلی هنوز در حال پردازش است؛ پس از پایان دوباره تلاش کنید.', 409);
         }
 
-        $expired = VideoUploadSession::query()
-            ->where('user_id', $request->user()->id)
-            ->where('target', $data['target'])
-            ->where('target_id', $course->id)
-            ->where('status', 'uploading')
-            ->where('expires_at', '<=', now())
-            ->get();
-
-        foreach ($expired as $oldSession) {
-            Storage::disk('local')->deleteDirectory('chunks/'.$oldSession->upload_id);
-            $oldSession->update(['status' => 'expired']);
-        }
-
-        if ($data['target'] === 'teaser') {
-            $activeUpload = VideoUploadSession::query()
-                ->where('target', 'teaser')
-                ->where('target_id', $course->id)
-                ->where('status', 'uploading')
-                ->where('expires_at', '>', now())
-                ->exists();
-
-            if ($activeUpload) {
-                return $this->fail('برای این دوره یک آپلود تیزر فعال وجود دارد؛ ابتدا همان را کامل یا منقضی کنید.', 409);
-            }
-
-            $course->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
-        }
-
-        $metadata = ['total_chunks' => $totalChunks, 'chunk_size_bytes' => $chunkSizeBytes, 'total_bytes' => (int) $data['total_bytes']];
+        // Expired sessions and their chunks are reclaimed by the locked scheduler task.
+        $metadata = [
+            'total_chunks' => $totalChunks,
+            'chunk_size_bytes' => $chunkSizeBytes,
+            'total_bytes' => (int) $data['total_bytes'],
+            'received_chunks' => [],
+        ];
         if ($data['target'] === 'spotplayer_video') {
             $metadata += [
                 'title' => trim($data['title']),
@@ -92,16 +70,43 @@ final class ChunkUploadController extends Controller
             ];
         }
 
-        $session = VideoUploadSession::query()->create([
-            'upload_id' => (string) Str::uuid(),
-            'user_id' => $request->user()->id,
-            'target' => $data['target'],
-            'target_id' => $course->id,
-            'status' => 'uploading',
-            'bytes_uploaded' => 0,
-            'metadata' => $metadata,
-            'expires_at' => now()->addHours(2),
-        ]);
+        $session = DB::transaction(function () use ($request, $data, $course, $metadata): ?VideoUploadSession {
+            if ($data['target'] === 'teaser') {
+                $lockedCourse = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+
+                if ($lockedCourse->teaser_status === 'processing') {
+                    return null;
+                }
+
+                $activeUpload = VideoUploadSession::query()
+                    ->where('target', 'teaser')
+                    ->where('target_id', $lockedCourse->id)
+                    ->where('status', 'uploading')
+                    ->where('expires_at', '>', now())
+                    ->exists();
+
+                if ($activeUpload) {
+                    return null;
+                }
+
+                $lockedCourse->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
+            }
+
+            return VideoUploadSession::query()->create([
+                'upload_id' => (string) Str::uuid(),
+                'user_id' => $request->user()->id,
+                'target' => $data['target'],
+                'target_id' => $course->id,
+                'status' => 'uploading',
+                'bytes_uploaded' => 0,
+                'metadata' => $metadata,
+                'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
+            ]);
+        });
+
+        if (! $session) {
+            return $this->fail('برای این دوره یک آپلود تیزر فعال است یا تیزر قبلی هنوز پردازش می‌شود.', 409);
+        }
 
         return response()->json([
             'ok' => true,
@@ -157,8 +162,27 @@ final class ChunkUploadController extends Controller
 
             abort_unless($locked, 409, 'نشست آپلود دیگر فعال نیست؛ بارگذاری را دوباره آغاز کنید.');
 
-            $oldChunkBytes = $disk->exists($path) ? $disk->size($path) : 0;
-            $newBytes = (int) $locked->bytes_uploaded - $oldChunkBytes + (int) $file->getSize();
+            $receivedChunks = $locked->metadata['received_chunks'] ?? null;
+
+            // Reconcile legacy sessions once; the manifest then makes retries O(1).
+            if (! is_array($receivedChunks)) {
+                $receivedChunks = [];
+                $totalChunks = (int) ($locked->metadata['total_chunks'] ?? 0);
+                $chunkSize = (int) ($locked->metadata['chunk_size_bytes'] ?? 0);
+                $totalBytes = (int) ($locked->metadata['total_bytes'] ?? 0);
+
+                for ($index = 0; $index < $totalChunks; $index++) {
+                    $existingPath = "chunks/{$locked->upload_id}/{$index}.part";
+                    $expectedSize = min($chunkSize, $totalBytes - ($index * $chunkSize));
+
+                    if ($expectedSize > 0 && $disk->exists($existingPath) && $disk->size($existingPath) === $expectedSize) {
+                        $receivedChunks[(string) $index] = $expectedSize;
+                    }
+                }
+            }
+
+            $receivedChunks[(string) $data['index']] = (int) $file->getSize();
+            $newBytes = array_sum(array_map('intval', $receivedChunks));
             if ($newBytes > $maxBytes) {
                 abort(422, 'حجم فایل از سقف مجاز بیشتر است.');
             }
@@ -168,7 +192,11 @@ final class ChunkUploadController extends Controller
                 abort(500, 'ذخیره تکه آپلود ناموفق بود.');
             }
 
-            $locked->update(['bytes_uploaded' => $newBytes]);
+            $locked->update([
+                'bytes_uploaded' => $newBytes,
+                'metadata' => [...($locked->metadata ?? []), 'received_chunks' => $receivedChunks],
+                'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
+            ]);
 
             return $locked->refresh();
         });
@@ -242,18 +270,33 @@ final class ChunkUploadController extends Controller
         $disk = Storage::disk('local');
         $chunkDirectory = "chunks/{$session->upload_id}";
 
+        $expectedTotalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
+        $verifiedChunkBytes = 0;
+
         for ($index = 0; $index < $data['total']; $index++) {
-            if (! $disk->exists("{$chunkDirectory}/{$index}.part")) {
+            $chunkPath = "{$chunkDirectory}/{$index}.part";
+            $expectedChunkBytes = min(
+                (int) $session->metadata['chunk_size_bytes'],
+                $expectedTotalBytes - ($index * (int) $session->metadata['chunk_size_bytes'])
+            );
+
+            if (! $disk->exists($chunkPath) || $expectedChunkBytes < 1 || $disk->size($chunkPath) !== $expectedChunkBytes) {
                 $session->update(['status' => 'uploading']);
-                return $this->fail("تکه {$index} ناقص است؛ دوباره آپلود کن.");
+                return $this->fail("تکه {$index} ناقص یا خراب است؛ نشست و تکه‌های سالم حفظ شدند.");
             }
+
+            $verifiedChunkBytes += $expectedChunkBytes;
+        }
+
+        if ($verifiedChunkBytes !== $expectedTotalBytes || (int) $session->bytes_uploaded !== $expectedTotalBytes) {
+            $session->update(['status' => 'uploading']);
+            return $this->fail('مجموع اندازه تکه‌ها معتبر نیست؛ تکه‌های موجود حفظ شدند.', 422);
         }
 
         $extension = strtolower(pathinfo($data['filename'], PATHINFO_EXTENSION));
         if (! in_array($extension, self::EXTENSIONS, true)) {
-            $session->update(['status' => 'failed']);
-            $disk->deleteDirectory($chunkDirectory);
-            return $this->fail('فرمت فایل مجاز نیست (mp4, mov, mkv, webm).');
+            $session->update(['status' => 'uploading']);
+            return $this->fail('فرمت فایل مجاز نیست (mp4, mov, mkv, webm, m4v).', 422);
         }
 
         $destination = $session->target === 'teaser'
@@ -297,19 +340,22 @@ final class ChunkUploadController extends Controller
 
             if ($session->target === 'teaser') {
                 $course = Course::query()->findOrFail($session->target_id);
-                $oldOriginalPath = $course->teaser_original_path;
+                $oldOriginalPath = null;
 
-                DB::transaction(function () use ($course, $session, $destination): void {
-                    $course->update([
+                DB::transaction(function () use ($course, $session, $destination, &$oldOriginalPath): void {
+                    $lockedCourse = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+                    $oldOriginalPath = $lockedCourse->teaser_original_path;
+
+                    $lockedCourse->update([
                         'teaser_original_path' => $destination,
                         'teaser_status' => 'processing',
                         'teaser_error' => null,
                     ]);
                     $session->update(['status' => 'completed', 'completed_at' => now()]);
-                    ProcessTeaserVideo::dispatch($course->id)->afterCommit();
+                    ProcessTeaserVideo::dispatch($lockedCourse->id, $destination)->afterCommit();
                 });
 
-                if ($oldOriginalPath) {
+                if ($oldOriginalPath && $oldOriginalPath !== $destination) {
                     $disk->delete($oldOriginalPath);
                 }
 
@@ -344,15 +390,14 @@ final class ChunkUploadController extends Controller
                 'video_id' => $video->id,
             ]);
         } catch (Throwable $exception) {
-            $disk->delete($destination);
-            $disk->deleteDirectory($chunkDirectory);
-            $session->update(['status' => 'failed']);
+            // A committed completion is authoritative even if cleanup/response handling fails.
+            $latestSession = $session->fresh();
 
-            if ($session->target === 'teaser') {
-                Course::query()->whereKey($session->target_id)->update([
-                    'teaser_status' => 'failed',
-                    'teaser_error' => mb_substr($exception->getMessage(), 0, 500),
-                ]);
+            if ($latestSession && $latestSession->status !== 'completed') {
+                $disk->delete($destination);
+
+                // Keep all uploaded chunks so transient storage/DB errors are recoverable.
+                $latestSession->update(['status' => 'uploading']);
             }
 
             throw $exception;
@@ -384,14 +429,30 @@ final class ChunkUploadController extends Controller
 
         $disk = Storage::disk('local');
         $received = [];
+        $receivedChunkManifest = [];
+        $verifiedBytes = 0;
+        $chunkSize = (int) ($session->metadata['chunk_size_bytes'] ?? 0);
+        $totalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
 
         for ($index = 0; $index < $total; $index++) {
-            if ($disk->exists("chunks/{$session->upload_id}/{$index}.part")) {
+            $path = "chunks/{$session->upload_id}/{$index}.part";
+            $expectedBytes = min($chunkSize, $totalBytes - ($index * $chunkSize));
+
+            if ($expectedBytes > 0 && $disk->exists($path) && $disk->size($path) === $expectedBytes) {
                 $received[] = $index;
+                $receivedChunkManifest[(string) $index] = $expectedBytes;
+                $verifiedBytes += $expectedBytes;
+            } elseif ($disk->exists($path)) {
+                // A truncated/partial chunk must be uploaded again, not skipped by the browser.
+                $disk->delete($path);
             }
         }
 
-        $session->update(['expires_at' => now()->addHours(2)]);
+        $session->update([
+            'bytes_uploaded' => $verifiedBytes,
+            'metadata' => [...($session->metadata ?? []), 'received_chunks' => $receivedChunkManifest],
+            'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
+        ]);
 
         return response()->json([
             'ok' => true,
@@ -443,21 +504,50 @@ final class ChunkUploadController extends Controller
         $data = $request->validate(['upload_id' => ['required', 'uuid']]);
 
         $session = $this->findUploadSession($data['upload_id'], $request);
-        abort_unless($session->status === 'uploading', 409, 'این نشست آپلود قبلاً بسته شده است.');
-
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
+        // Close the session under the same row lock used by chunk writes before
+        // removing its directory. A concurrent chunk can no longer recreate files.
+        $session = DB::transaction(function () use ($request, $data): VideoUploadSession {
+            $locked = VideoUploadSession::query()
+                ->where('upload_id', $data['upload_id'])
+                ->where('user_id', $request->user()->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless($locked->status === 'uploading', 409, 'این نشست آپلود قبلاً بسته شده است.');
+
+            $locked->update(['status' => 'cancelled']);
+
+            return $locked->refresh();
+        });
+
         Storage::disk('local')->deleteDirectory('chunks/'.$session->upload_id);
-        $session->update(['status' => 'cancelled']);
 
         if ($session->target === 'teaser') {
-            $course = Course::query()->find($session->target_id);
-            if ($course) {
-                $course->update([
-                    'teaser_status' => filled($course->teaser_path) ? 'ready' : 'none',
-                    'teaser_error' => null,
-                ]);
-            }
+            DB::transaction(function () use ($session): void {
+                $course = Course::query()->whereKey($session->target_id)->lockForUpdate()->first();
+
+                if (! $course) {
+                    return;
+                }
+
+                $hasActiveUpload = VideoUploadSession::query()
+                    ->where('target', 'teaser')
+                    ->where('target_id', $course->id)
+                    ->where('status', 'uploading')
+                    ->where('expires_at', '>', now())
+                    ->exists();
+
+                if (! $hasActiveUpload && $course->teaser_status === 'uploading') {
+                    $course->update([
+                        'teaser_status' => filled($course->teaser_path)
+                            ? 'ready'
+                            : (filled($course->teaser_original_path) ? 'failed' : 'none'),
+                        'teaser_error' => filled($course->teaser_path) ? null : $course->teaser_error,
+                    ]);
+                }
+            });
         }
 
         return response()->json(['ok' => true]);
