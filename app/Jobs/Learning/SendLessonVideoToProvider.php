@@ -21,7 +21,7 @@ class SendLessonVideoToProvider implements ShouldQueue
 
     public function __construct(public int $lessonId)
     {
-        $this->onQueue('video');
+        $this->onConnection('video')->onQueue('video');
     }
 
     public function handle(LearningProvider $provider): void
