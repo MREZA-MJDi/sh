@@ -187,6 +187,22 @@ final class PublicSiteController extends Controller
             ? $enrollments->hasActiveAccess($request->user(), $course)
             : false;
 
+        $courseResources = collect();
+        if ($features['resources'] ?? false) {
+            $courseResources = LearningResource::query()
+                ->where('course_id', $course->id)
+                ->whereNull('classroom_id')
+                ->where('status', 'published')
+                ->whereNotNull('file_path')
+                ->where(fn ($release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
+                ->when($hasCourseAccess, fn ($query) => $query->whereIn('visibility', ['public', 'authenticated', 'enrolled'])
+                    ->withExists(['purchases as is_purchased' => fn ($purchases) => $purchases
+                        ->where('student_id', $request->user()->id)->where('status', 'paid')]))
+                ->when(! $hasCourseAccess, fn ($query) => $query->where('visibility', 'public')->where('is_free', true))
+                ->orderBy('sort_order')->orderBy('id')
+                ->get(['id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'downloadable', 'file_path']);
+        }
+
         // Video playback is exposed only when both the enrollment and the
         // provider-issued license are currently valid. Embed hosts are explicitly
         // allow-listed in services.spotplayer.embed_hosts (never trust arbitrary URLs).
@@ -255,6 +271,7 @@ final class PublicSiteController extends Controller
             'totalLessons',
             'relatedCourses',
             'hasCourseAccess',
+            'courseResources',
             'upcomingOnlineSessionCount',
             'upcomingSessions',
             'features',
