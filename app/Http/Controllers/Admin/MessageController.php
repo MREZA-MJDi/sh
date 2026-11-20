@@ -156,14 +156,14 @@ class MessageController extends Controller
         if (filled($data['password'] ?? null)) {
             $partner->password = $data['password'];
         }
+        $oldAvatarPath = $partner->avatar_path;
         if ($request->hasFile('avatar')) {
-            $newPath = $request->file('avatar')->store('avatars/inbox', 'public');
-            if ($partner->avatar_path) {
-                Storage::disk('public')->delete($partner->avatar_path);
-            }
-            $partner->avatar_path = $newPath;
+            $partner->avatar_path = $request->file('avatar')->store('avatars/inbox', 'public');
         }
         $partner->save();
+        if ($request->hasFile('avatar') && $oldAvatarPath) {
+            Storage::disk('public')->delete($oldAvatarPath);
+        }
 
         return back()->with('success', 'اطلاعات کاربر به‌روزرسانی شد.');
     }
