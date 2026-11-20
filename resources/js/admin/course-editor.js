@@ -78,7 +78,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     progress.hidden = false;
     bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
   };
-  const setControlsDisabled = (disabled) => {
+  const setControlsDisabled = (disabled, courseSelect, classroomSelect, sessionSelect) => {
     startButton.disabled = disabled;
     fileInput.disabled = disabled;
     if (courseSelect) courseSelect.disabled = disabled;
@@ -150,7 +150,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     }
 
     const resumeKey = ['sh-video-upload', target, courseId, classSessionId || 0, file.name, file.size, file.lastModified].join(':');
-    setControlsDisabled(true);
+    setControlsDisabled(true, courseSelect, classroomSelect, sessionSelect);
     let started = null;
     let completedUpload = false;
     const receivedChunks = new Set();
@@ -275,7 +275,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             }
           }
           setStatus('پردازش تریلر هنوز ادامه دارد؛ وضعیت را کمی بعد دوباره بررسی کنید.');
-          setControlsDisabled(false);
+          setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
         } else {
           if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
           setStatus('تریلر بارگذاری شد و در صف پردازش قرار گرفت.');
@@ -310,7 +310,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             }
           }
           setStatus('پردازش ویدیو هنوز ادامه دارد؛ با انتخاب همین فایل و تلاش دوباره، وضعیت پردازش را ادامه می‌دهید.');
-          setControlsDisabled(false);
+          setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
         } else {
           if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
           setStatus(completed.status === 'ready'
@@ -325,7 +325,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         ? ' نشست آپلود حفظ شد؛ با انتخاب همین فایل و زدن دوباره دکمه، از بخش‌های دریافت‌شده ادامه می‌دهید.'
         : '';
       setStatus((error.message || 'بارگذاری فایل ناموفق بود.') + suffix, true);
-      setControlsDisabled(false);
+      setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
     }
   });
 });
