@@ -6,6 +6,11 @@
     $requests = $meetings->getCollection()->whereIn('status', ['requested', 'proposed']);
     $scheduled = $meetings->getCollection()->where('status', 'scheduled');
 @endphp
+<form method="GET" action="{{ route('teacher.meetings') }}" class="c teacher-list-filters">
+    <label class="teacher-search-field"><span class="sr-only">جست‌وجوی جلسه</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="نام دانش‌آموز، ولی یا عنوان جلسه"></label>
+    <label><span class="sr-only">وضعیت جلسه</span><select name="status"><option value="">همه وضعیت‌ها</option>@foreach(['requested'=>'درخواست جدید','proposed'=>'پیشنهادشده','scheduled'=>'زمان‌بندی‌شده','completed'=>'برگزارشده','declined'=>'ردشده','cancelled'=>'لغوشده'] as $key=>$label)<option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $label }}</option>@endforeach</select></label>
+    <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.meetings') }}">پاک‌کردن</a>
+</form>
 <div class="g g2">
     <section class="c"><h3>درخواست‌های جدید</h3>
         @forelse ($requests as $meeting)
