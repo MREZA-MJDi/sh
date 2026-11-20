@@ -2,7 +2,7 @@
 @section('title', 'درخواست مشاوره جدید')
 @section('content')
 @php $kids = $children; $kid = $selected_child; @endphp
-<h2>درخواست مشاوره جدید</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">پشتیبانی آموزشی</span><h1>درخواست مشاوره جدید</h1><p>نوع درخواست و اطلاعات تماس را با دقت وارد کنید.</p></div></div>
 @include('parent.partials.kid-picker')
 <section class="c">
     <form method="POST" action="{{ route('guardian.consultations.store') }}">
