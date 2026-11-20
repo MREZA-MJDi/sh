@@ -22,7 +22,7 @@ return [
             ['label' => 'یکپارچه‌سازی Quiz24', 'url' => 'admin/quiz24', 'icon' => 'exam'],
         ]],
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
-            ['label' => 'مرکز پیام‌ها', 'url' => 'admin/communication-center', 'icon' => 'msg'],
+            ['label' => 'کارتابل پیام‌ها', 'url' => 'admin/messages', 'icon' => 'msg'],
             ['label' => 'اعلان‌ها', 'url' => 'admin/announcements', 'icon' => 'bell'],
         ]],
         ['label' => 'ثبت‌نام و فروش', 'tone' => 'shop', 'items' => [
