@@ -5,7 +5,7 @@
 <div class="parent-page-heading"><div><span class="parent-eyebrow">پشتیبانی آموزشی</span><h1>درخواست‌های مشاوره</h1><p>درخواست‌ها و پاسخ‌های مربوط به فرزند انتخاب‌شده</p></div></div>
 @include('parent.partials.kid-picker')
 <section class="c">
-    <div class="chead"><h3>درخواست‌های ثبت‌شده</h3><a class="b s" href="{{ route('guardian.consultations.create', ['child' => $selected_child?->id]) }}">درخواست مشاوره جدید</a></div>
+    <div class="chead"><h3>درخواست‌های ثبت‌شده</h3>@if(auth()->user()->hasPermissionTo('consultations.create'))<a class="b s" href="{{ route('guardian.consultations.create', ['child' => $selected_child?->id]) }}">درخواست مشاوره جدید</a>@endif</div>
     <form method="GET" action="{{ route('guardian.consultations.index') }}" class="parent-inbox-filters">
         <input type="hidden" name="child" value="{{ $selected_child?->id }}">
         <label><span class="sr-only">جست‌وجو</span><input type="search" name="q" maxlength="100" value="{{ $filters['q'] ?? '' }}" placeholder="جست‌وجو در موضوع درخواست"></label>
