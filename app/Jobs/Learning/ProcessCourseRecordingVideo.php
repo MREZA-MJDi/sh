@@ -55,6 +55,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         $outputPath = $disk->path($outputRelativePath);
 
         $process = null;
+        $published = false;
         try {
             $process = new Process([
                 'ffmpeg',
@@ -106,9 +107,12 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
             ]);
 
             // Keep the source until the database points at the verified MP4.
+            $published = true;
             $disk->delete($sourceRelativePath);
         } catch (Throwable $exception) {
-            $disk->delete($outputRelativePath);
+            if (! $published) {
+                $disk->delete($outputRelativePath);
+            }
             $diagnostic = trim((string) $process?->getErrorOutput());
             $error = $diagnostic !== '' ? $diagnostic : $exception->getMessage();
 
@@ -118,7 +122,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        SpotPlayerVideo::query()->whereKey($this->videoId)->update([
+        SpotPlayerVideo::query()->whereKey($this->videoId)->where('status', 'processing')->update([
             'status' => 'failed',
             'processing_error' => mb_substr($exception->getMessage(), 0, 1000),
         ]);
