@@ -9,7 +9,7 @@
 @endphp
 
 <x-admin.page-head tone="edu" icon="calendar" :title="'برنامه کلاس '.$classroom->name" :desc="($classroom->course?->title ?? 'کلاس مستقل').' · '.($classroom->teacher?->name ?? 'مدرس تعیین نشده')"
-  :back-url="route('admin.classes.index')" back-label="کلاس‌ها">
+  :back-url="$classroom->course ? route('admin.courses.edit', $classroom->course) : route('admin.classes.index')" :back-label="$classroom->course ? 'بازگشت به دوره' : 'کلاس‌ها'">
   <x-admin.btn icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>
 </x-admin.page-head>
 
