@@ -47,7 +47,9 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   previewMeta.className = 'adm-muted teacher-help';
   previewMeta.style.marginTop = '8px';
   preview.append(previewVideo, previewMeta);
-  fileInput.insertAdjacentElement('afterend', preview);
+  const uploadZone = fileInput.closest('.adm-upload');
+  if (uploadZone) uploadZone.insertAdjacentElement('afterend', preview);
+  else fileInput.insertAdjacentElement('afterend', preview);
   let previewUrl = null;
 
   fileInput.addEventListener('change', () => {
