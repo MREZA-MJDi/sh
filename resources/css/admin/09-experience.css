@@ -316,3 +316,5 @@
 .adm-form-upload-track{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
 .adm-form-upload-track i{display:block;width:0;height:100%;border-radius:inherit;background:var(--primary);transition:width .12s}
 .adm-modal-foot .adm-form-upload-feedback{flex-basis:100%;order:-1}
+
+.adm-grid-note{grid-column:1/-1;margin:0}
