@@ -42,7 +42,20 @@ final class FinalizeChunkUpload implements ShouldQueue
     {
         $session = VideoUploadSession::query()->find($this->uploadSessionId);
 
-        if (! $session || $session->status !== 'processing') {
+        if (! $session) {
+            return;
+        }
+
+        $disk = Storage::disk('local');
+
+        if ($session->status === 'completed') {
+            // A worker may have committed the upload and died before chunk cleanup.
+            $disk->deleteDirectory('chunks/'.$session->upload_id);
+
+            return;
+        }
+
+        if ($session->status !== 'processing') {
             return;
         }
 
@@ -63,7 +76,6 @@ final class FinalizeChunkUpload implements ShouldQueue
             throw new RuntimeException('حجم فایل از سقف مجاز بیشتر است.');
         }
 
-        $disk = Storage::disk('local');
         $chunkDirectory = 'chunks/'.$session->upload_id;
         $destination = ($session->target === 'teaser' ? 'uploads/' : 'private/course-videos/')
             .$session->upload_id.'.'.$extension;
