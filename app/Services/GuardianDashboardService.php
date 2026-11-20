@@ -17,6 +17,7 @@ use App\Services\Learning\LearningAccessService;
 use App\Support\JalaliDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final class GuardianDashboardService
 {
@@ -324,6 +325,20 @@ final class GuardianDashboardService
      * @param  Collection<int, User>  $children
      * @return array<string, mixed>
      */
+    private function emptyPaginator(string $pageName): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator(
+            [],
+            0,
+            12,
+            LengthAwarePaginator::resolveCurrentPage($pageName),
+            [
+                'path' => LengthAwarePaginator::resolveCurrentPath(),
+                'pageName' => $pageName,
+            ]
+        );
+    }
+
     private function emptyDashboard(Collection $children): array
     {
         return [
@@ -332,7 +347,7 @@ final class GuardianDashboardService
             'classrooms' => collect(),
             'course_progress' => collect(),
             'classroom_count' => 0,
-            'homeworks' => collect(),
+            'homeworks' => $this->emptyPaginator('homework'),
             'homework_trend' => collect(),
             'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
@@ -342,8 +357,9 @@ final class GuardianDashboardService
             'attendance_count' => 0,
             'attendance_rate' => null,
             'results' => collect(),
+            'exam_results' => $this->emptyPaginator('results'),
             'result_trend' => collect(),
-            'resources' => collect(),
+            'resources' => $this->emptyPaginator('resources'),
             'resource_count' => 0,
             'announcements' => Announcement::query()
                 ->where('status', 'published')
