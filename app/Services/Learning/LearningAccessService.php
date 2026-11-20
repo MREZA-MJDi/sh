@@ -33,7 +33,7 @@ final class LearningAccessService
 
                                 if ($feature === 'live_class') {
                                     $legacy->where('delivery_type', 'skyroom');
-                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                                } elseif (! in_array($feature, ['recorded_video', 'resources', 'assignments', 'exams'], true)) {
                                     $legacy->whereRaw('1 = 0');
                                 }
                             });
@@ -66,7 +66,7 @@ final class LearningAccessService
 
                                 if ($feature === 'live_class') {
                                     $legacy->where('delivery_type', 'skyroom');
-                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                                } elseif (! in_array($feature, ['recorded_video', 'resources', 'assignments', 'exams'], true)) {
                                     $legacy->whereRaw('1 = 0');
                                 }
                             });
