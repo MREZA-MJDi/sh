@@ -121,7 +121,7 @@
         @if($course->integration_note)<p class="adm-muted">{{ $course->integration_note }}</p>@endif
         <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.index')">مدیریت ویدیو و لایسنس‌ها</x-admin.btn>
         <div class="adm-divider"></div>
-        <p class="adm-muted">برای ساخت و زمان‌بندی جلسه آنلاین، ابتدا گروه آموزشی بسازید و سپس وارد بخش «جلسات» همان گروه شوید. نبود قرارداد Skyroom مانع ثبت برنامه جلسات نیست.</p>
+        <p class="adm-muted">مدیریت برنامه و اجرای جلسات از مسیر مستقل کلاس‌ها انجام می‌شود؛ این صفحه روی ساختار دوره، گروه‌های آموزشی و محتوای آموزشی متمرکز است.</p>
         <x-admin.btn size="sm" variant="line" :href="route('admin.quiz24.index')">مدیریت Quiz24 و همگام‌سازی نتایج</x-admin.btn>
       </div>
     </x-admin.panel>
