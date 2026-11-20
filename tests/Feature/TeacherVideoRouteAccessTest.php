@@ -9,6 +9,8 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
+use App\Notifications\CourseVideoSubmittedForReview;
+use Illuminate\Support\Facades\Notification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,6 +28,9 @@ final class TeacherVideoRouteAccessTest extends TestCase
 
     public function test_teacher_can_stage_videos_only_for_assigned_courses(): void
     {
+        Notification::fake();
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
         $teacher = User::factory()->create(['permissions_customized' => true]);
         $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
         $teacher->permissions()->sync(Permission::query()->whereIn('name', [
@@ -73,7 +78,9 @@ final class TeacherVideoRouteAccessTest extends TestCase
             'title' => 'ویدئوی دوره من',
             'external_id' => 'spotplayer-video-123',
             'created_by' => $teacher->id,
+            'approval_status' => 'pending',
         ]);
+        Notification::assertSentTo($admin, CourseVideoSubmittedForReview::class);
 
         $this->actingAs($teacher)
             ->from(route('teacher.videos'))
