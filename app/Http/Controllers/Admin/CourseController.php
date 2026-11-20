@@ -60,7 +60,7 @@ final class CourseController extends Controller
         $videos = $course->spotPlayerVideos()->with(['classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])->latest()->paginate(10, ['*'], 'videos');
         $classrooms = $course->classrooms()
             ->where('status', 'active')
-            ->with(['teacher:id,name', 'sessions' => fn ($sessions) => $sessions->where('status', '!=', 'cancelled')->orderByDesc('starts_at')])
+            ->with(['teacher:id,name', 'sessions' => fn ($sessions) => $sessions->where('status', 'scheduled')->where('starts_at', '>=', now())->orderBy('starts_at')->limit(1)])
             ->withCount(['students', 'sessions'])
             ->orderBy('name')
             ->limit(100)
