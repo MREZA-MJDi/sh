@@ -53,34 +53,7 @@ final class ChunkUploadController extends Controller
             return $this->fail('تیزر قبلی هنوز در حال پردازش است؛ پس از پایان دوباره تلاش کنید.', 409);
         }
 
-        $expired = VideoUploadSession::query()
-            ->where('user_id', $request->user()->id)
-            ->where('target', $data['target'])
-            ->where('target_id', $course->id)
-            ->where('status', 'uploading')
-            ->where('expires_at', '<=', now())
-            ->get();
-
-        foreach ($expired as $oldSession) {
-            Storage::disk('local')->deleteDirectory('chunks/'.$oldSession->upload_id);
-            $oldSession->update(['status' => 'expired']);
-        }
-
-        if ($data['target'] === 'teaser') {
-            $activeUpload = VideoUploadSession::query()
-                ->where('target', 'teaser')
-                ->where('target_id', $course->id)
-                ->where('status', 'uploading')
-                ->where('expires_at', '>', now())
-                ->exists();
-
-            if ($activeUpload) {
-                return $this->fail('برای این دوره یک آپلود تیزر فعال وجود دارد؛ ابتدا همان را کامل یا منقضی کنید.', 409);
-            }
-
-            $course->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
-        }
-
+        // Expired sessions and their chunks are reclaimed by the locked scheduler task.
         $metadata = ['total_chunks' => $totalChunks, 'chunk_size_bytes' => $chunkSizeBytes, 'total_bytes' => (int) $data['total_bytes']];
         if ($data['target'] === 'spotplayer_video') {
             $metadata += [
@@ -92,16 +65,43 @@ final class ChunkUploadController extends Controller
             ];
         }
 
-        $session = VideoUploadSession::query()->create([
-            'upload_id' => (string) Str::uuid(),
-            'user_id' => $request->user()->id,
-            'target' => $data['target'],
-            'target_id' => $course->id,
-            'status' => 'uploading',
-            'bytes_uploaded' => 0,
-            'metadata' => $metadata,
-            'expires_at' => now()->addHours(2),
-        ]);
+        $session = DB::transaction(function () use ($request, $data, $course, $metadata): ?VideoUploadSession {
+            if ($data['target'] === 'teaser') {
+                $lockedCourse = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+
+                if ($lockedCourse->teaser_status === 'processing') {
+                    return null;
+                }
+
+                $activeUpload = VideoUploadSession::query()
+                    ->where('target', 'teaser')
+                    ->where('target_id', $lockedCourse->id)
+                    ->where('status', 'uploading')
+                    ->where('expires_at', '>', now())
+                    ->exists();
+
+                if ($activeUpload) {
+                    return null;
+                }
+
+                $lockedCourse->update(['teaser_status' => 'uploading', 'teaser_error' => null]);
+            }
+
+            return VideoUploadSession::query()->create([
+                'upload_id' => (string) Str::uuid(),
+                'user_id' => $request->user()->id,
+                'target' => $data['target'],
+                'target_id' => $course->id,
+                'status' => 'uploading',
+                'bytes_uploaded' => 0,
+                'metadata' => $metadata,
+                'expires_at' => now()->addHours(2),
+            ]);
+        });
+
+        if (! $session) {
+            return $this->fail('برای این دوره یک آپلود تیزر فعال است یا تیزر قبلی هنوز پردازش می‌شود.', 409);
+        }
 
         return response()->json([
             'ok' => true,
