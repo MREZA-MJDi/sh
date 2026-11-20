@@ -105,6 +105,7 @@ final class TeacherPanelListingExperienceTest extends TestCase
             'classroom_id' => $classroom->id,
             'title' => 'جلسه حضور و غیاب',
             'session_type' => 'onsite',
+            'meeting_provider' => 'link',
             'starts_at' => now()->subHour(),
             'ends_at' => now()->subMinutes(10),
             'status' => 'scheduled',
