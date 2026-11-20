@@ -70,10 +70,52 @@
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
-        @if($courseResources->isNotEmpty())<a href="#course-resources">جزوه‌ها و فایل‌ها</a>@endif
-        @if(($features['live_class'] ?? false) || $upcomingSessions->isNotEmpty())<a href="#live-sessions">برنامه جلسات</a>@endif
-        @if($teacher)<a href="#c3">مدرس دوره</a>@endif
-        @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
+        @if($courseResources->isNotEmpty())
+        <section class="card blk course-resources" id="course-resources">
+            <div class="course-resources-head">
+                <div>
+                    <h2>جزوه‌ها و فایل‌های این دوره</h2>
+                    <p>فایل‌هایی که مدرس برای این دوره آماده کرده است.</p>
+                </div>
+                <span class="c-badge">{{ $courseResources->count() }} فایل</span>
+            </div>
+            <div class="course-resources-list">
+                @foreach($courseResources as $resource)
+                    <article class="course-resource-card">
+                        <div class="course-resource-main">
+                            <span class="course-resource-icon"><svg class="i"><use href="#file"/></svg></span>
+                            <div class="course-resource-info">
+                                <strong>{{ $resource->title }}</strong>
+                                @if($resource->description)<p>{{ $resource->description }}</p>@endif
+                                <small>{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
+                            </div>
+                        </div>
+                        <div class="course-resource-actions">
+                            @if($resource->is_free)
+                                <span class="c-badge">رایگان</span>
+                            @else
+                                <strong>{{ number_format((int) $resource->price) }} تومان</strong>
+                            @endif
+                            @if($hasCourseAccess && auth()->user()?->hasRole('student'))
+                                @if($resource->is_free || ($resource->is_purchased ?? false))
+                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                @else
+                                    <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
+                                        @csrf
+                                        <button class="btn s" type="submit">خرید فایل</button>
+                                    </form>
+                                @endif
+                            @else
+                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                            @endif
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
 </div>
 
