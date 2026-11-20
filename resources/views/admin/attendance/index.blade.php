@@ -117,7 +117,13 @@
         @endforeach
       </div>
     @else
-      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>دانش‌آموزی برای ثبت حضور پیدا نشد</b><span>یک کلاس و جلسه‌ی معتبر انتخاب کن یا ابتدا برای این تاریخ جلسه بساز.</span></div>
+      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>{{ $session ? 'دانش‌آموزی برای ثبت حضور پیدا نشد' : 'برای این روز جلسه‌ای ثبت نشده' }}</b><span>{{ $session ? 'فهرست اعضای کلاس خالی است؛ ابتدا دانش‌آموزان را به کلاس اضافه کن.' : 'یک روز دارای جلسه انتخاب کن یا برای این تاریخ جلسه تازه‌ای بساز.' }}</span>
+        @canany(['classes.manage', 'classes.manage.assigned'])
+          @if(!$session && $classroom)
+            <x-admin.btn size="sm" icon="plus" :href="route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso])">ساخت جلسه برای این روز</x-admin.btn>
+          @endif
+        @endcanany
+      </div>
     @endif
   </form>
 </x-admin.panel>
