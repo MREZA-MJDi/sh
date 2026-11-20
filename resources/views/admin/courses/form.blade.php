@@ -267,10 +267,11 @@
     <x-admin.input label="نام کلاس" name="name" wide required placeholder="مثلاً کلاس آنلاین شیمی دوازدهم"/>
     <x-admin.select label="مدرس کلاس" name="teacher_id" :options="$teachers->pluck('name', 'id')->all()" :selected="$course->teacher_id" placeholder="انتخاب مدرس" required/>
     <x-admin.input label="لینک جلسه (اختیاری)" name="meeting_url" wide placeholder="اگر لینک ثابتی داری اینجا وارد کن"/>
-    <x-admin.legend title="برنامه هفتگی"/>
-    <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="['sat' => 'شنبه', 'sun' => 'یکشنبه', 'mon' => 'دوشنبه', 'tue' => 'سه‌شنبه', 'wed' => 'چهارشنبه', 'thu' => 'پنجشنبه', 'fri' => 'جمعه']"/>
+    <x-admin.legend title="روزها و ساعت معمول کلاس"/>
+    <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="['sat' => 'شنبه', 'sun' => 'یکشنبه', 'mon' => 'دوشنبه', 'tue' => 'سه‌شنبه', 'wed' => 'چهارشنبه', 'thu' => 'پنجشنبه', 'fri' => 'جمعه']" hint="روزهای معمول کلاس را انتخاب کن."/>
     <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
     <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" :value="90" addon="دقیقه"/>
+  <p class="adm-muted" style="grid-column:1/-1">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
     <x-admin.legend title="دانش‌آموزان کلاس"/>
     <x-admin.chips label="انتخاب دانش‌آموزان" name="student_ids" :options="$students->pluck('name', 'id')->all()" scroll hint="می‌توانی فعلاً خالی بگذاری و بعداً اعضا را اضافه کنی."/>
   </x-admin.modal>
