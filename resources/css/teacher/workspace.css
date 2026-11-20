@@ -51,3 +51,20 @@ body:has(.teacher-sidebar) #teacherMain{display:flex;flex-direction:column;gap:2
 @media(max-width:760px){body:has(.teacher-sidebar) .app{width:100%;grid-template-columns:minmax(0,1fr);gap:14px;padding:14px 12px 24px}body:has(.teacher-sidebar) #teacherMain{gap:14px}.teacher-sidebar{position:fixed;max-height:none;top:calc(var(--teacher-topbar-height,106px) + env(safe-area-inset-top,0px));bottom:0}.teacher-sidebar-nav{gap:12px}.teacher-dashboard-hero{align-items:flex-start}.teacher-dashboard-identity{align-items:flex-start}.teacher-section-head{align-items:flex-start}.teacher-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.teacher-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.teacher-stat-grid .st{min-height:108px;padding:12px}.teacher-action-grid{grid-template-columns:1fr}.teacher-action-card{min-height:0}.teacher-dashboard-avatar{width:54px;height:54px;border-radius:16px}.teacher-dashboard-hero{padding:14px}.teacher-sidebar-group-label{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.teacher-sidebar-nav a,.teacher-sidebar-identity{transition:none}}
+
+/* Actionable dashboard, upload and responsive data controls */
+.teacher-dashboard-focus{padding:16px;border:1px solid var(--ln);border-radius:16px;background:var(--sf);display:grid;gap:12px}
+.teacher-focus-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.teacher-focus-item{display:flex;align-items:center;gap:10px;min-width:0;padding:12px;border:1px solid var(--ln);border-radius:12px;color:var(--tx);text-decoration:none;background:var(--bg)}
+.teacher-focus-item:hover{border-color:color-mix(in srgb,var(--pri) 40%,var(--ln));background:var(--ps)}
+.teacher-focus-item>span:nth-child(2){display:grid;gap:3px;min-width:0}
+.teacher-focus-item small{color:var(--mu);font-size:11px;overflow-wrap:anywhere}
+.teacher-focus-symbol{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:10px;background:var(--ps);color:var(--pri);font-weight:800}
+.teacher-focus-arrow{margin-inline-start:auto;color:var(--pri)}
+.teacher-focus-item:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+[data-course-upload]{display:grid;gap:10px;min-width:0}
+[data-course-upload] input:not([type=file]),[data-course-upload] select,[data-course-upload] input[type=file]{width:100%;min-width:0;max-width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+[data-course-upload] [data-upload-progress]{height:10px;overflow:hidden;border-radius:999px;background:var(--ln)}
+[data-course-upload] [data-upload-bar]{display:block;height:100%;background:var(--pri);border-radius:999px;transition:width .2s}
+@media(max-width:900px){.teacher-focus-items{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.teacher-focus-items{grid-template-columns:1fr}}
