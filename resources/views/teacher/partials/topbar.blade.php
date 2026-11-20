@@ -17,11 +17,11 @@
 
     <label class="teacher-global-search">
         <span class="sr-only">جست‌وجو در محتوای همین صفحه</span>
-        <input class="sr" id="globalSearch" type="search" placeholder="جستجو در همین صفحه…" autocomplete="off" aria-controls="teacherSearchResults" aria-describedby="teacherSearchHint">
+        <input class="sr" id="globalSearch" type="search" placeholder="جست‌وجوی سریع در پنل…" autocomplete="off" aria-controls="teacherSearchResults" aria-describedby="teacherSearchHint">
         <span id="teacherSearchHint" class="sr-only">نتایج جست‌وجو فقط در اطلاعات بارگذاری‌شده همین صفحه بررسی می‌شوند.</span>
         <button type="button" class="teacher-search-clear" id="teacherSearchClear" aria-label="پاک کردن جست‌وجو" hidden>×</button>
     </label>
-    <span id="teacherSearchResults" class="sr-only" role="status" aria-live="polite"></span>
+    <span id="teacherSearchResults" class="sr-only" role="status" aria-live="polite"></span><div class="teacher-search-links" id="teacherSearchLinks" hidden><strong>رفتن به بخش</strong>@if($teacherUser?->hasPermissionTo('classes.view.assigned'))<a data-search-route href="{{ route('teacher.classes') }}">کلاس‌ها و دوره‌ها</a><a data-search-route href="{{ route('teacher.live') }}">کلاس آنلاین</a><a data-search-route href="{{ route('teacher.meetings') }}">جلسات</a>@endif @if($teacherUser?->hasPermissionTo('homework.view.assigned'))<a data-search-route href="{{ route('teacher.homework') }}">تکالیف</a>@endif @if($teacherUser?->hasPermissionTo('attendance.view.assigned'))<a data-search-route href="{{ route('teacher.attendance') }}">حضور و غیاب</a>@endif @if($teacherUser?->hasPermissionTo('messages.view.assigned'))<a data-search-route href="{{ route('teacher.messages.index') }}">پیام‌ها</a>@endif @if($teacherUser?->hasPermissionTo('resources.manage.assigned'))<a data-search-route href="{{ route('teacher.resources') }}">منابع آموزشی</a>@endif @if($teacherUser?->hasPermissionTo('videos.manage.assigned'))<a data-search-route href="{{ route('teacher.videos') }}">ویدئوها</a>@endif<a data-search-route href="{{ route('teacher.profile.edit') }}">پروفایل</a></div>
 
     <details class="notification-menu teacher-menu">
         <summary class="ic" aria-label="اعلان‌ها، {{ $teacherUnreadCount }} اعلان خوانده‌نشده" title="اعلان‌ها">
