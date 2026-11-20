@@ -44,7 +44,7 @@
 
 <section class="adm-stack" aria-label="دسترسی سریع">
   <div class="adm-pagehead">
-    <div><h2>از کجا شروع کنیم؟</h2><p>کارهای پرتکرار را مستقیم باز کن.</p></div>
+    <div><h2>میانبرهای سریع</h2><p>کارهای پرتکرار را مستقیم باز کن.</p></div>
   </div>
   <div class="adm-action-grid">
     @can('users.manage')
@@ -89,6 +89,12 @@
         @php $hasWork = $hasWork || $pendingConsultations > 0; @endphp
         @if($pendingConsultations > 0)
           <a class="adm-work-item" data-tone="comm" href="{{ route('admin.consultations.index') }}"><span><x-admin.icon name="chat"/></span><div><b>درخواست مشاوره جدید</b><small>برای درخواست‌ها زمان‌بندی تعیین کن</small></div><strong>{{ number_format($pendingConsultations) }}</strong></a>
+        @endif
+      @endcan
+      @can('announcements.manage')
+        @if(($publishedAnnouncementCount ?? 0) > 0)
+          @php $hasWork = true; @endphp
+          <a class="adm-work-item" data-tone="edu" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
         @endif
       @endcan
       @if(!$hasWork)
