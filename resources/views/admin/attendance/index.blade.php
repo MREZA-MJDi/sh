@@ -6,7 +6,9 @@
   $marks = ['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'];
 @endphp
 
-<x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت کن."/>
+<x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت کن."
+  :back-url="$classroom ? route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso]) : route('admin.classes.index')"
+  :back-label="$classroom ? 'بازگشت به برنامه کلاس' : 'کلاس‌ها'"/>
 
 <form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}">
   <input type="hidden" name="date" value="{{ $dateIso }}">
