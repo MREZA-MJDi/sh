@@ -279,6 +279,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/spotplayer/videos', [SpotPlayerController::class, 'storeVideo'])->middleware(['role:admin', 'permission:integrations.manage'])->name('spotplayer.videos.store');
     Route::get('/spotplayer/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware(['role:admin', 'permission:integrations.manage'])->name('spotplayer.videos.download');
     Route::post('/spotplayer/videos/{video}/retry-processing', [SpotPlayerController::class, 'retryProcessing'])->middleware(['role:admin', 'permission:integrations.manage'])->name('spotplayer.videos.retry-processing');
+    Route::post('/spotplayer/videos/{video}/approve', [SpotPlayerController::class, 'approveVideo'])->middleware('role:admin')->name('spotplayer.videos.approve');
+    Route::post('/spotplayer/videos/{video}/reject', [SpotPlayerController::class, 'rejectVideo'])->middleware('role:admin')->name('spotplayer.videos.reject');
     Route::post('/spotplayer/licenses', [SpotPlayerController::class, 'requestLicense'])->middleware('permission:integrations.manage')->name('spotplayer.licenses.store');
     Route::post('/spotplayer/licenses/{license}/revoke', [SpotPlayerController::class, 'requestRevocation'])->middleware('permission:integrations.manage')->name('spotplayer.licenses.revoke');
 
