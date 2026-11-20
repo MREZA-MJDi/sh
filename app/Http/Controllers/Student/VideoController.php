@@ -173,7 +173,7 @@ final class VideoController extends Controller
                 ->where('status', 'published')
                 ->where(function (Builder $videoDelivery): void {
                     $videoDelivery->where(function (Builder $legacy): void {
-                        $legacy->whereNull('learning_features->recorded_video');
+                        $legacy->whereNull('learning_features->recorded_video')->where('delivery_type', 'spotplayer');
                     })->orWhere('learning_features->recorded_video', true);
                 })
                 ->whereIn('courses.id', clone $activeCourseIds))
