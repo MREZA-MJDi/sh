@@ -21,7 +21,7 @@ final class ConsultationController extends Controller
         $consultations = Consultation::query()
             ->where('requester_id', $request->user()->id)
             ->when($selected_child, fn ($query) => $query->where('student_id', $selected_child->id))
-            ->with(['student:id,name,grade', 'replies.sender:id,name'])
+            ->with('student:id,name,grade')
             ->latest()
             ->paginate(12)
             ->withQueryString();
@@ -65,8 +65,13 @@ final class ConsultationController extends Controller
     {
         $consultation = $request->user()->consultations()
             ->whereKey($consultation->getKey())
-            ->with(['student:id,name,grade', 'replies.sender:id,name'])
+            ->with('student:id,name,grade')
+            ->withCount('replies')
             ->firstOrFail();
+        $consultation->setRelation(
+            'replies',
+            $consultation->replies()->with('sender:id,name')->latest()->limit(50)->get()->reverse()->values()
+        );
 
         $children = $this->linkedChildren($request);
         $selected_child = $children->firstWhere('id', $consultation->student_id) ?? $children->first();
