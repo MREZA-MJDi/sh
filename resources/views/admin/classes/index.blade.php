@@ -88,7 +88,9 @@
 
           <div class="adm-actions">
             <x-admin.btn size="sm" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
-            <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
+            @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+                  <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
+                @endcanany
             @if($canManage)
               <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="class-modal" data-title="ویرایش کلاس" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش</x-admin.btn>
               <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="class-del" :data-name="$classroom->name" :data-action="route('admin.classes.destroy', $classroom)" aria-label="حذف"/>
