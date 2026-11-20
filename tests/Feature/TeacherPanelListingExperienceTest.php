@@ -35,9 +35,19 @@ final class TeacherPanelListingExperienceTest extends TestCase
     public function test_teacher_class_list_is_paginated_and_search_is_scoped_to_assigned_classes(): void
     {
         $teacher = $this->teacher();
+        $course = Course::query()->create([
+            'title' => 'دوره کلاس‌های مدرس',
+            'slug' => 'teacher-listing-course',
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
 
         for ($index = 1; $index <= 13; $index++) {
             Classroom::query()->create([
+                'course_id' => $course->id,
                 'teacher_id' => $teacher->id,
                 'name' => $index === 13 ? 'کلاس ویژه جستجو' : 'کلاس شماره '.$index,
                 'status' => 'active',
