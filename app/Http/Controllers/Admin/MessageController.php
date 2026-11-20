@@ -38,7 +38,8 @@ class MessageController extends Controller
                     ->orWhereHas('sender', fn ($sender) => $sender->where('name', 'like', "%{$term}%"))
                     ->orWhereHas('recipient', fn ($recipient) => $recipient->where('name', 'like', "%{$term}%"));
             }))
-            ->when(($filters['status'] ?? '') !== '', fn ($query) => $query->where('status', $filters['status']))
+            ->when(($filters['status'] ?? '') === 'closed', fn ($query) => $query->whereNotNull('closed_at'))
+            ->when(($filters['status'] ?? '') !== '' && ($filters['status'] ?? '') !== 'closed', fn ($query) => $query->whereNull('closed_at')->where('status', $filters['status']))
             ->latest()->paginate(40)->withQueryString();
 
         $selected = $request->filled('message')
@@ -68,7 +69,7 @@ class MessageController extends Controller
         MessageWorkspaceService $workspace
     ): RedirectResponse {
         $message = $workspace->findVisible($request->user(), $message->id);
-        abort_if($message->status === 'closed', 422, 'گفت‌وگوی بسته‌شده قابل پاسخ‌گویی نیست.');
+        abort_if($message->closed_at !== null, 422, 'گفت‌وگوی بسته‌شده قابل پاسخ‌گویی نیست.');
 
         MessageReply::create([
             'message_id' => $message->id,
@@ -91,7 +92,7 @@ class MessageController extends Controller
     public function markRead(Request $request, Message $message, MessageWorkspaceService $workspace): RedirectResponse
     {
         $message = $workspace->findVisible($request->user(), $message->id);
-        if ($message->status !== 'closed') {
+        if ($message->closed_at === null) {
             $message->update(['status' => 'read']);
         }
 
@@ -101,7 +102,7 @@ class MessageController extends Controller
     public function close(Request $request, Message $message, MessageWorkspaceService $workspace): RedirectResponse
     {
         $message = $workspace->findVisible($request->user(), $message->id);
-        $message->update(['status' => 'closed']);
+        $message->forceFill(['closed_at' => now()])->save();
 
         return back()->with('success', 'گفت‌وگو بسته شد.');
     }
@@ -109,7 +110,7 @@ class MessageController extends Controller
     public function reopen(Request $request, Message $message, MessageWorkspaceService $workspace): RedirectResponse
     {
         $message = $workspace->findVisible($request->user(), $message->id);
-        $message->update(['status' => 'open']);
+        $message->forceFill(['closed_at' => null])->save();
 
         return back()->with('success', 'گفت‌وگو دوباره باز شد.');
     }
