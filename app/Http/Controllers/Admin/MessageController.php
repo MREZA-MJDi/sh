@@ -143,6 +143,16 @@ class MessageController extends Controller
         $partner = User::query()->findOrFail($partnerId);
         abort_if($partner->hasRole(['admin', 'seo']) || ! $partner->hasRole(['student', 'parent', 'teacher']), 403);
 
+        if ($request->has('phone')) {
+            $digits = strtr((string) $request->input('phone'), [
+                '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+                '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+                '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+                '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+            ]);
+            $request->merge(['phone' => preg_replace('/[\\s-]+/u', '', trim($digits))]);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:160'],
             'phone' => ['nullable', 'string', 'max:30', Rule::unique('users', 'phone')->ignore($partner->id)],
