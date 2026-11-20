@@ -1,7 +1,7 @@
 @extends('parent.layouts.app')
 @section('title', 'منابع آموزشی')
 @section('content')
-<h2>منابع، جزوه‌ها و محصولات آموزشی {{ data_get($kid ?? null, 'name') }}</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">کتابخانه آموزشی</span><h1>منابع و جزوه‌ها</h1><p>منابع قابل دسترس برای {{ data_get($kid ?? null, 'name') }}</p></div></div>
 @include('parent.partials.kid-picker')
 <div class="g g3">
     @forelse(($resources ?? collect()) as $resource)
