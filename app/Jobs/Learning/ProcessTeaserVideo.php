@@ -3,7 +3,7 @@
 namespace App\\Jobs\\Learning;
 
 use App\\Models\\Course;
-use Illuminate\\Bus\\Queueable;
+use Illuminate\\Foundation\\Queue\\Queueable;
 use Illuminate\\Contracts\\Queue\\ShouldQueue;
 use Illuminate\\Queue\\Middleware\\WithoutOverlapping;
 use Illuminate\\Support\\Facades\\DB;
