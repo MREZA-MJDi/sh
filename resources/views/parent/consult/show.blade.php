@@ -12,15 +12,16 @@
     @foreach ($consultation->replies as $reply)
         <div class="row"><div>{{ $reply->sender?->name }}<small>{{ $reply->body }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</small></div></div>
     @endforeach
-    @if (!in_array($consultation->status, ['done', 'cancelled'], true))
-        <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}">
+    @if (($consultation->replies_count ?? 0) > $consultation->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
+    @if (auth()->user()->hasPermissionTo('consultations.create') && !in_array($consultation->status, ['done', 'cancelled'], true))
+        <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}" class="parent-simple-form">
             @csrf
             <label>پیام جدید</label>
-            <textarea name="body" required minlength="2" maxlength="5000"></textarea>
+            <textarea name="body" required minlength="2" maxlength="5000">{{ old('body') }}</textarea>
             <button class="b" type="submit">ارسال پیام</button>
         </form>
     @endif
-    @if ($consultation->status === 'pending')
+    @if (auth()->user()->hasPermissionTo('consultations.create') && $consultation->status === 'pending')
         <form method="POST" action="{{ route('guardian.consultations.destroy', $consultation) }}">
             @csrf @method('DELETE')
             <button class="b s" type="submit">حذف درخواست</button>

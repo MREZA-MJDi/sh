@@ -10,6 +10,7 @@ use App\Models\ConsultationReply;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Validation\Rule;
 
 final class ConsultationController extends Controller
 {
@@ -17,16 +18,28 @@ final class ConsultationController extends Controller
     {
         $children = $this->linkedChildren($request);
         $selected_child = $children->firstWhere('id', $request->integer('child')) ?? $children->first();
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['pending', 'scheduled', 'done', 'cancelled'])],
+            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'topic'])],
+        ]);
 
         $consultations = Consultation::query()
             ->where('requester_id', $request->user()->id)
             ->when($selected_child, fn ($query) => $query->where('student_id', $selected_child->id))
-            ->with(['student:id,name,grade', 'replies.sender:id,name'])
-            ->latest()
+            ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
+                $search->where('topic', 'like', '%'.$filters['q'].'%')
+                    ->orWhere('notes', 'like', '%'.$filters['q'].'%');
+            }))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->with('student:id,name,grade')
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest()->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'topic', fn ($query) => $query->orderBy('topic')->orderByDesc('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest()->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
-        return view('parent.consult.index', compact('consultations', 'children', 'selected_child'));
+        return view('parent.consult.index', compact('consultations', 'children', 'selected_child', 'filters'));
     }
 
     public function create(Request $request): View
@@ -65,8 +78,13 @@ final class ConsultationController extends Controller
     {
         $consultation = $request->user()->consultations()
             ->whereKey($consultation->getKey())
-            ->with(['student:id,name,grade', 'replies.sender:id,name'])
+            ->with('student:id,name,grade')
+            ->withCount('replies')
             ->firstOrFail();
+        $consultation->setRelation(
+            'replies',
+            $consultation->replies()->with('sender:id,name')->latest()->limit(50)->get()->reverse()->values()
+        );
 
         $children = $this->linkedChildren($request);
         $selected_child = $children->firstWhere('id', $consultation->student_id) ?? $children->first();

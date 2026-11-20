@@ -17,6 +17,7 @@ use App\Services\Learning\LearningAccessService;
 use App\Support\JalaliDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final class GuardianDashboardService
 {
@@ -29,7 +30,7 @@ final class GuardianDashboardService
      * active linked child, and an account without linked children receives
      * empty collections.
      */
-    public function build(User $guardian, ?int $selectedChildId = null): array
+    public function build(User $guardian, ?int $selectedChildId = null, ?string $attendanceMonthKey = null): array
     {
         $children = $guardian->children()
             ->where('users.is_active', true)
@@ -68,7 +69,8 @@ final class GuardianDashboardService
             ->with('classroom:id,name,course_id')
             ->with(['submissions' => fn ($query) => $query
                 ->where('student_id', $student->id)
-                ->orderByDesc('submitted_at')])
+                ->orderByDesc('submitted_at')
+                ->limit(1)])
             ->withCount([
                 'submissions as selected_student_submission_count' => fn (Builder $query) => $query
                     ->where('student_id', $student->id),
@@ -76,26 +78,30 @@ final class GuardianDashboardService
             ->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_at')
             ->latest('created_at')
-            ->limit(8)
-            ->get();
+            ->paginate(12, ['*'], 'homework')
+            ->withQueryString();
 
         $currentJalali = JalaliDate::fromGregorian(now());
         $trendStartKey = JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], 5);
         [$trendStartYear, $trendStartMonth] = array_map('intval', explode('-', $trendStartKey));
         $trendStart = JalaliDate::toGregorian($trendStartYear, $trendStartMonth, 1);
 
-        $homeworkTrend = (clone $homeworkQuery)
+        $homeworkTrend = collect();
+        (clone $homeworkQuery)
             ->where('created_at', '>=', $trendStart)
             ->with(['submissions' => fn ($query) => $query
                 ->where('student_id', $student->id)
                 ->orderByDesc('submitted_at')
-                ->select(['id', 'homework_id', 'submitted_at'])])
-            ->get(['id', 'classroom_id', 'title', 'created_at', 'due_at'])
-            ->groupBy(function (Homework $homework): string { $date = JalaliDate::fromGregorian($homework->created_at); return JalaliDate::monthKey($date['year'], $date['month']); })
-            ->map(function (Collection $items): array {
-                $counts = ['on_time' => 0, 'late' => 0, 'missing' => 0];
+                ->select(['id', 'homework_id', 'submitted_at'])
+                ->limit(1)])
+            ->orderBy('id')
+            ->chunkById(500, function (Collection $items) use (&$homeworkTrend): void {
                 foreach ($items as $homework) {
+                    $date = JalaliDate::fromGregorian($homework->created_at);
+                    $key = JalaliDate::monthKey($date['year'], $date['month']);
+                    $counts = $homeworkTrend->get($key, ['on_time' => 0, 'late' => 0, 'missing' => 0]);
                     $submission = $homework->submissions->first();
+
                     if ($submission) {
                         if ($homework->due_at && $submission->submitted_at && $submission->submitted_at->gt($homework->due_at)) {
                             $counts['late']++;
@@ -105,9 +111,9 @@ final class GuardianDashboardService
                     } elseif ($homework->due_at && $homework->due_at->isPast()) {
                         $counts['missing']++;
                     }
-                }
 
-                return $counts;
+                    $homeworkTrend->put($key, $counts);
+                }
             });
 
         $reviewedHomework = HomeworkSubmission::query()
@@ -144,11 +150,14 @@ final class GuardianDashboardService
             ->get();
 
         $currentMonth = JalaliDate::fromGregorian(now());
-        $jalaliMonthStart = JalaliDate::toGregorian($currentMonth['year'], $currentMonth['month'], 1);
+        [$attendanceYear, $attendanceMonth] = $attendanceMonthKey
+            ? array_map('intval', explode('-', $attendanceMonthKey))
+            : [$currentMonth['year'], $currentMonth['month']];
+        $jalaliMonthStart = JalaliDate::toGregorian($attendanceYear, $attendanceMonth, 1);
         $jalaliMonthEnd = JalaliDate::toGregorian(
-            $currentMonth['year'],
-            $currentMonth['month'],
-            JalaliDate::daysInMonth($currentMonth['year'], $currentMonth['month'])
+            $attendanceYear,
+            $attendanceMonth,
+            JalaliDate::daysInMonth($attendanceYear, $attendanceMonth)
         );
 
         $attendanceCalendar = (clone $attendanceQuery)
@@ -161,6 +170,10 @@ final class GuardianDashboardService
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
+        $lastLateAttendance = (clone $attendanceQuery)
+            ->where('status', 'late')
+            ->latest('session_date')
+            ->first(['session_date']);
 
         $resultQuery = ExamResult::query()
             ->where('student_id', $student->id)
@@ -185,17 +198,42 @@ final class GuardianDashboardService
                 });
             });
 
+        $averageExamScore = (clone $resultQuery)
+            ->whereNotNull('score')
+            ->where('max_score', '>', 0)
+            ->selectRaw('AVG((score / max_score) * 20) as aggregate')
+            ->value('aggregate');
+
         $results = (clone $resultQuery)
             ->with(['exam:id,title,classroom_id,course_id', 'exam.course:id,title', 'exam.classroom:id,name'])
             ->latest()
             ->limit(8)
             ->get();
 
-        $resultTrend = (clone $resultQuery)
+        $examResults = (clone $resultQuery)
+            ->with(['exam:id,title,classroom_id,course_id', 'exam.course:id,title', 'exam.classroom:id,name'])
+            ->latest()
+            ->paginate(12, ['*'], 'results')
+            ->withQueryString();
+
+        $resultTrend = collect();
+        (clone $resultQuery)
             ->whereNotNull('score')
             ->where('created_at', '>=', $trendStart)
-            ->orderBy('created_at')
-            ->get(['id', 'score', 'max_score', 'created_at']);
+            ->orderBy('id')
+            ->chunkById(500, function (Collection $items) use (&$resultTrend): void {
+                foreach ($items as $result) {
+                    $date = JalaliDate::fromGregorian($result->created_at);
+                    $key = JalaliDate::monthKey($date['year'], $date['month']);
+                    $score = $result->max_score > 0 ? $result->score / $result->max_score * 20 : null;
+                    if ($score === null) continue;
+                    $summary = $resultTrend->get($key, ['sum' => 0.0, 'count' => 0]);
+                    $summary['sum'] += $score;
+                    $summary['count']++;
+                    $resultTrend->put($key, $summary);
+                }
+            });
+        $resultTrend = $resultTrend->map(fn (array $summary) => round($summary['sum'] / max(1, $summary['count']), 1));
 
         $resourceQuery = LearningResource::query()
             ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
@@ -223,10 +261,10 @@ final class GuardianDashboardService
 
         $resources = (clone $resourceQuery)
             ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
-            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
+            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)->latest()->limit(1)])
             ->latest()
-            ->limit(6)
-            ->get(['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'created_at']);
+            ->paginate(12, ['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'created_at'], 'resources')
+            ->withQueryString();
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 8);
 
@@ -259,7 +297,7 @@ final class GuardianDashboardService
             ->where(fn (Builder $participants) => $participants
                 ->where('sender_id', $guardian->id)
                 ->orWhere('recipient_id', $guardian->id))
-            ->with(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name'])
+            ->with(['sender:id,name', 'recipient:id,name'])
             ->latest()
             ->limit(5)
             ->get();
@@ -280,11 +318,14 @@ final class GuardianDashboardService
             'attendance' => $attendance,
             'attendance_calendar' => $attendanceCalendar,
             'attendance_breakdown' => $attendanceBreakdown,
+            'last_late_attendance' => $lastLateAttendance,
             'attendance_count' => $attendanceTotal,
             'attendance_rate' => $attendanceTotal > 0
                 ? (int) round($attendancePresent / $attendanceTotal * 100)
                 : null,
             'results' => $results,
+            'average_exam_score' => $averageExamScore,
+            'exam_results' => $examResults,
             'result_trend' => $resultTrend,
             'resources' => $resources,
             'resource_count' => (clone $resourceQuery)->count(),
@@ -299,6 +340,20 @@ final class GuardianDashboardService
      * @param  Collection<int, User>  $children
      * @return array<string, mixed>
      */
+    private function emptyPaginator(string $pageName): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator(
+            [],
+            0,
+            12,
+            LengthAwarePaginator::resolveCurrentPage($pageName),
+            [
+                'path' => LengthAwarePaginator::resolveCurrentPath(),
+                'pageName' => $pageName,
+            ]
+        );
+    }
+
     private function emptyDashboard(Collection $children): array
     {
         return [
@@ -307,18 +362,21 @@ final class GuardianDashboardService
             'classrooms' => collect(),
             'course_progress' => collect(),
             'classroom_count' => 0,
-            'homeworks' => collect(),
+            'homeworks' => $this->emptyPaginator('homework'),
             'homework_trend' => collect(),
             'reviewed_homework' => collect(),
             'pending_homework_count' => 0,
             'attendance' => collect(),
             'attendance_calendar' => collect(),
             'attendance_breakdown' => collect(),
+            'last_late_attendance' => null,
             'attendance_count' => 0,
             'attendance_rate' => null,
             'results' => collect(),
+            'average_exam_score' => null,
+            'exam_results' => $this->emptyPaginator('results'),
             'result_trend' => collect(),
-            'resources' => collect(),
+            'resources' => $this->emptyPaginator('resources'),
             'resource_count' => 0,
             'announcements' => Announcement::query()
                 ->where('status', 'published')

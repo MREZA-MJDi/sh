@@ -2,7 +2,7 @@
 @section('title', 'آزمون‌ها')
 @section('content')
 @php $subj = collect($subjects ?? []); @endphp
-<h2>آزمون‌ها</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">ارزیابی آموزشی</span><h1>آزمون‌ها و نمرات</h1><p>نتایج ثبت‌شده و قابل مشاهده برای فرزند انتخاب‌شده</p></div></div>
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>نمره ثبت‌شده به تفکیک درس</h3>
@@ -14,14 +14,15 @@
             ],
         ])
     </section>
-    <section class="c"><h3>نتایج قابل مشاهده</h3>
+    <section class="c"><div class="parent-section-heading"><div><h3>نتایج قابل مشاهده</h3><p>{{ $results->total() }} نتیجه</p></div></div>
         @forelse (($results ?? collect()) as $result)
             <div class="row"><div>{{ $result->exam?->title }}<small>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name }} · {{ $result->created_at?->format('Y/m/d') }}</small></div>
                 <i class="bd pk">{{ $result->score }} از {{ $result->max_score }}</i>
             </div>
         @empty
-            <p>نتیجه‌ای ثبت نشده است.</p>
+            <div class="parent-empty-state"><strong>هنوز نتیجه‌ای برای نمایش وجود ندارد.</strong><span>نتایج پس از ثبت و تأیید مدرس در این بخش قرار می‌گیرند.</span></div>
         @endforelse
+        <div class="parent-pagination">{{ $results->links() }}</div>
     </section>
 </div>
 @endsection

@@ -1,14 +1,14 @@
 @extends('parent.layouts.app')
 @section('title', 'منابع آموزشی')
 @section('content')
-<h2>منابع، جزوه‌ها و محصولات آموزشی {{ data_get($kid ?? null, 'name') }}</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">کتابخانه آموزشی</span><h1>منابع و جزوه‌ها</h1><p>منابع قابل دسترس برای {{ data_get($kid ?? null, 'name') }}</p></div></div>
 @include('parent.partials.kid-picker')
 <div class="g g3">
     @forelse(($resources ?? collect()) as $resource)
         @php $purchase = $resource->purchases->first(); @endphp
-        <article class="c">
+        <article class="c parent-resource-card">
             <h3>{{ $resource->title }}</h3>
-            <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif · {{ $resource->kind }}</p>
+            <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif · {{ ['pdf' => 'جزوه PDF', 'book' => 'کتاب', 'other' => 'سایر منابع'][$resource->kind] ?? 'منبع آموزشی' }}</p>
             <b>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</b>
             @if($resource->file_path && ($resource->is_free || $purchase?->status === 'paid'))
                 <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $kid?->id]) }}">مشاهده / دریافت منبع</a>
@@ -20,15 +20,16 @@
                 <form method="POST" action="{{ route('guardian.resources.purchase', ['resource' => $resource, 'child' => $kid?->id]) }}">
                     @csrf
                     <label>شماره پیگیری واریز</label>
-                    <input name="provider_reference" maxlength="190" required>
+                    <input name="provider_reference" value="{{ old('provider_reference') }}" maxlength="190" required>
                     <label>توضیح (اختیاری)</label>
-                    <input name="note" maxlength="1000">
+                    <input name="note" value="{{ old('note') }}" maxlength="1000">
                     <button class="b s" type="submit">ثبت درخواست خرید</button>
                 </form>
             @endif
         </article>
     @empty
-        <p>منبعی برای کلاس‌ها یا دوره‌های فرزند انتخاب‌شده منتشر نشده است.</p>
+        <div class="parent-empty-state"><strong>منبعی برای این فرزند منتشر نشده است.</strong><span>به‌محض انتشار منبع جدید، در همین بخش نمایش داده می‌شود.</span></div>
     @endforelse
 </div>
+<div class="parent-pagination">{{ $resources->links() }}</div>
 @endsection

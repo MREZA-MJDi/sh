@@ -13,6 +13,22 @@ final class DashboardController extends Controller
     public function index(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
+        $guardian = $request->user();
+        if (! $guardian->hasPermissionTo('exams.view.children')) {
+            $data['results'] = collect();
+            $data['result_trend'] = collect();
+            $data['average_exam_score'] = null;
+        }
+        if (! $guardian->hasPermissionTo('homework.view.children')) {
+            $data['homework_trend'] = collect();
+            $data['reviewed_homework'] = collect();
+            $data['pending_homework_count'] = 0;
+        }
+        if (! $guardian->hasPermissionTo('attendance.view.children')) {
+            $data['attendance_breakdown'] = collect();
+            $data['attendance_rate'] = null;
+            $data['attendance_count'] = 0;
+        }
         $data['kids'] = $data['children'];
         $data['kid'] = $data['selected_child'];
 
@@ -24,13 +40,11 @@ final class DashboardController extends Controller
             'percent' => $data['attendance_rate'] ?? 0,
         ];
 
-        $scores = $data['results']->filter(fn ($result) => $result->score !== null)
-            ->map(fn ($result) => $result->max_score > 0 ? round($result->score / $result->max_score * 20, 1) : null)
-            ->filter();
+        $averageExamScore = $data['average_exam_score'];
 
         $data['stats'] = [
-            'avg' => $scores->isNotEmpty() ? round($scores->avg(), 1) : '—',
-            'avg_note' => $scores->isNotEmpty() ? 'بر اساس نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
+            'avg' => $averageExamScore !== null ? round((float) $averageExamScore, 1) : '—',
+            'avg_note' => $averageExamScore !== null ? 'میانگین همه نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
             'open_homework' => (int) $data['pending_homework_count'],
             'open_homework_note' => 'تکلیف بدون ارسال',
             'next_meeting' => optional($data['meetings']->firstWhere('status', 'scheduled')?->starts_at)->format('Y/m/d H:i') ?? '—',
@@ -45,10 +59,7 @@ final class DashboardController extends Controller
                 'class_avg' => null,
             ])->values();
 
-        $trend = $data['result_trend']->groupBy(function ($result): string {
-            $date = JalaliDate::fromGregorian($result->created_at);
-            return JalaliDate::monthKey($date['year'], $date['month']);
-        });
+        $trend = $data['result_trend'];
         $currentJalali = JalaliDate::fromGregorian(now());
         $periods = collect(range(5, 0))->map(
             fn ($offset) => JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], $offset)
@@ -58,8 +69,7 @@ final class DashboardController extends Controller
             return JalaliDate::monthLabel($year, $monthNumber);
         })->values();
         $data['scores'] = $periods->map(function ($month) use ($trend) {
-            $items = $trend->get($month, collect());
-            return $items->isEmpty() ? null : round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1);
+            return $trend->get($month);
         })->values();
         $data['classAvg'] = [];
         $homeworkTrend = $data['homework_trend'];
@@ -81,12 +91,20 @@ final class DashboardController extends Controller
 
     public function attendance(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
-        $now = now();
-        $jalaliNow = JalaliDate::fromGregorian($now);
-        $start = JalaliDate::toGregorian($jalaliNow['year'], $jalaliNow['month'], 1);
-        $monthDays = JalaliDate::daysInMonth($jalaliNow['year'], $jalaliNow['month']);
-        $todayJalaliDay = $jalaliNow['day'];
+        $filters = $request->validate([
+            'month' => ['nullable', 'regex:/^\\d{4}-(0[1-9]|1[0-2])$/'],
+        ]);
+        $currentJalali = JalaliDate::fromGregorian(now());
+        $monthKey = $filters['month'] ?? JalaliDate::monthKey($currentJalali['year'], $currentJalali['month']);
+        [$year, $month] = array_map('intval', explode('-', $monthKey));
+        abort_if($year < 1300 || $year > 1500, 422, 'ماه انتخاب‌شده معتبر نیست.');
+
+        $data = $this->build($request, $dashboard, $monthKey);
+        $start = JalaliDate::toGregorian($year, $month, 1);
+        $monthDays = JalaliDate::daysInMonth($year, $month);
+        $todayJalali = JalaliDate::fromGregorian(now());
+        $isCurrentMonth = $year === $todayJalali['year'] && $month === $todayJalali['month'];
+        $todayJalaliDay = $isCurrentMonth ? $todayJalali['day'] : 0;
 
         $records = $data['attendance_calendar']->groupBy(
             fn ($record) => JalaliDate::fromGregorian($record->session_date)['day']
@@ -97,7 +115,7 @@ final class DashboardController extends Controller
             $status = $statuses->contains('absent') ? 'a'
                 : ($statuses->contains('late') ? 'l'
                 : ($statuses->contains('present') ? 'p' : 'future'));
-            return ['day' => $day, 'status' => $status, 'today' => $day === $todayJalaliDay];
+            return ['day' => $day, 'status' => $status, 'today' => $todayJalaliDay > 0 && $day === $todayJalaliDay];
         });
 
         $monthBreakdown = $data['attendance_calendar']->groupBy('status')->map->count();
@@ -109,20 +127,28 @@ final class DashboardController extends Controller
             'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : 0,
         ];
 
+        $monthOptions = collect(range(0, 11))->map(function (int $offset) use ($currentJalali): array {
+            $value = JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], $offset);
+            [$optionYear, $optionMonth] = array_map('intval', explode('-', $value));
+            return ['value' => $value, 'label' => JalaliDate::monthLabel($optionYear, $optionMonth)];
+        });
+
         return view('parent.attendance', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
             'attendance' => $monthAttendance,
             'calendar' => $days, 'monthOffset' => ($start->dayOfWeek + 1) % 7,
-            'monthTitle' => JalaliDate::monthLabel($jalaliNow['year'], $jalaliNow['month']),
-            'absencePattern' => $data['attendance_breakdown']->get('absent', 0).' غیبت ثبت‌شده',
-            'lastLate' => $data['attendance']->firstWhere('status', 'late')?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
+            'monthTitle' => JalaliDate::monthLabel($year, $month),
+            'monthKey' => $monthKey, 'monthOptions' => $monthOptions,
+            'absencePattern' => (int) $monthBreakdown->get('absent', 0).' غیبت در این ماه',
+            'lastLate' => $data['last_late_attendance']?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
         ]);
     }
 
     public function exams(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
-        $subjects = $data['results']->filter(fn ($result) => $result->exam?->course)
+        $results = $data['exam_results'];
+        $subjects = $results->getCollection()->filter(fn ($result) => $result->exam?->course)
             ->groupBy(fn ($result) => $result->exam->course->title)
             ->map(fn ($items, $name) => [
                 'name' => $name,
@@ -132,14 +158,15 @@ final class DashboardController extends Controller
 
         return view('parent.exams', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'subjects' => $subjects, 'results' => $data['results'],
+            'subjects' => $subjects, 'results' => $results,
         ]);
     }
 
     public function homework(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
-        $homework = $data['homeworks']->map(function ($item): array {
+        $homeworkPaginator = $data['homeworks'];
+        $homework = $homeworkPaginator->getCollection()->map(function ($item): array {
             $submission = $item->submissions->first();
             $late = $submission && $item->due_at && $submission->submitted_at && $submission->submitted_at->gt($item->due_at);
             $missing = ! $submission && $item->due_at && $item->due_at->isPast();
@@ -159,7 +186,7 @@ final class DashboardController extends Controller
 
         return view('parent.homework', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'homework' => $homework, 'hwTotals' => $totals,
+            'homework' => $homework, 'homeworkPaginator' => $homeworkPaginator, 'hwTotals' => $totals,
         ]);
     }
 
@@ -174,12 +201,13 @@ final class DashboardController extends Controller
         ]);
     }
 
-    private function build(Request $request, GuardianDashboardService $dashboard): array
+    private function build(Request $request, GuardianDashboardService $dashboard, ?string $attendanceMonthKey = null): array
     {
         $validated = $request->validate(['child' => ['nullable', 'integer', 'min:1']]);
         return $dashboard->build(
             $request->user(),
-            isset($validated['child']) ? (int) $validated['child'] : null
+            isset($validated['child']) ? (int) $validated['child'] : null,
+            $attendanceMonthKey
         );
     }
 

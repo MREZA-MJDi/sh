@@ -1,18 +1,8 @@
 @extends('parent.layouts.app')
 @section('title', 'پیام جدید')
 @section('content')
-<h2>ارسال پیام به مدرس</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">ارتباط با مدرس</span><h1>ارسال پیام جدید</h1><p>گفت‌وگویی تازه درباره وضعیت آموزشی فرزندتان آغاز کنید.</p></div></div>
 @include('parent.partials.kid-picker')
-
-@if (session('status'))
-    <div class="parent-alert success" role="status">{{ session('status') }}</div>
-@endif
-@if ($errors->any())
-    <div class="parent-alert error" role="alert">
-        <strong>لطفاً خطاهای فرم را برطرف کنید.</strong>
-        <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-    </div>
-@endif
 
 <section class="c parent-message-card">
     <div class="parent-form-heading">

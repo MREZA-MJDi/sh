@@ -12,11 +12,16 @@
 @stack('head')
 </head>
 <body>
+<a class="parent-skip-link" href="#parentMain">رفتن به محتوای اصلی</a>
 @include('parent.partials.topbar')
+<button type="button" class="parent-nav-backdrop" id="parentNavBackdrop" aria-label="بستن منوی اصلی" hidden></button>
 
 <div class="app">
     @include('parent.partials.sidebar')
-    <main data-fa>
+    <main id="parentMain" tabindex="-1" data-fa>
+        @if (session('success') || session('status'))<div class="parent-alert success" role="status">{{ session('success') ?? session('status') }}</div>@endif
+        @if (session('error'))<div class="parent-alert error" role="alert">{{ session('error') }}</div>@endif
+        @if ($errors->any())<div class="parent-alert error" role="alert"><strong>ذخیره انجام نشد؛ موارد زیر را بررسی کنید.</strong><ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
         @yield('content')
     </main>
 </div>

@@ -40,6 +40,7 @@ final class ParentMeetingController extends Controller
             ->whereHas('students', fn (Builder $students) => $students->whereKey($selectedChild?->id ?? 0))
             ->with('course:id,title')
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name', 'course_id']);
 
         return view('parent.meetings', [
@@ -87,9 +88,11 @@ final class ParentMeetingController extends Controller
             'status' => 'requested',
         ]);
 
-        $admins = User::query()->where('is_active', true)
-            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))->get();
-        Notification::send($admins, new ParentMeetingNotification($meeting, 'درخواست جدید جلسه از طرف ولی ثبت شد.'));
+        $notification = new ParentMeetingNotification($meeting, 'درخواست جدید جلسه از طرف ولی ثبت شد.');
+        User::query()->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+            ->orderBy('id')
+            ->chunkById(100, fn ($admins) => Notification::send($admins, $notification));
         $student->notify(new ParentMeetingNotification($meeting, 'ولی شما درخواست جلسه‌ای را برای بررسی آموزشگاه ثبت کرده است.'));
 
         return redirect()->route('guardian.meetings.index', ['child' => $student->id])->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');

@@ -20,6 +20,21 @@ import '../shared/iranian-locale.js';
     var t = e.target.closest('[data-toast]');
     if (t) { e.preventDefault(); window.shToast(t.getAttribute('data-toast')); }
   });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      parentMenus.forEach(function (menu) { menu.open = false; });
+      closeNav(true);
+      return;
+    }
+    if (e.key === 'Tab' && navToggle && navSidebar && navToggle.getAttribute('aria-expanded') === 'true') {
+      var focusable = $$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', navSidebar)
+        .filter(function (el) { return el.offsetWidth || el.offsetHeight || el.getClientRects().length; });
+      if (!focusable.length) { e.preventDefault(); navSidebar.focus(); return; }
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
 
   /* ==========================================================================
      SVG charts — رنگ‌ها از متغیرهای CSS می‌آیند تا با تم/پالت هماهنگ بمانند.
@@ -46,14 +61,26 @@ function lineChart(labels, series, options = {}) {
     const y = v => PAD.t + ih * (1 - (v - min) / (max - min));
     const xLabels = labels.map((l, i) => `<text class="ax" x="${x(i)}" y="${h - 6}" text-anchor="middle">${l}</text>`).join('');
     const lines = series.map((s, k) => {
-        const pts = s.data.map((v, i) => [x(i), y(v)]);
-        const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-        const area = s.area
-            ? `<defs><linearGradient id="lg${id}${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(${s.c});stop-opacity:.35"/><stop offset="1" style="stop-color:var(${s.c});stop-opacity:0"/></linearGradient></defs>` +
-                `<path d="${d} L${pts[n - 1][0]},${y(min)} L${pts[0][0]},${y(min)}Z" fill="url(#lg${id}${k})"/>`
+        const pts = s.data.map((v, i) => Number.isFinite(v) ? [x(i), y(v), i] : null);
+        const segments = [];
+        let segment = [];
+        pts.forEach(point => {
+            if (point) segment.push(point);
+            else if (segment.length) { segments.push(segment); segment = []; }
+        });
+        if (segment.length) segments.push(segment);
+        const paths = segments.map((group, segmentIndex) => {
+            const d = group.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+            const area = s.area && group.length > 1
+                ? `<path d="${d} L${group[group.length - 1][0]},${y(min)} L${group[0][0]},${y(min)}Z" fill="url(#lg${id}${k})"/>`
+                : '';
+            return `${area}<path d="${d}" fill="none" stroke-width="${s.dash ? 2 : 3}" stroke-linecap="round" stroke-linejoin="round" ${s.dash ? 'stroke-dasharray="5 4"' : ''} style="stroke:var(${s.c})"/>`;
+        }).join('');
+        const gradient = s.area
+            ? `<defs><linearGradient id="lg${id}${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(${s.c});stop-opacity:.35"/><stop offset="1" style="stop-color:var(${s.c});stop-opacity:0"/></linearGradient></defs>`
             : '';
-        const dots = s.dash ? '' : pts.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4" stroke-width="2" style="fill:var(--sf);stroke:var(${s.c})"><title>${s.name} ${labels[i]}: ${fa(s.data[i])}</title></circle>`).join('');
-        return `${area}<path d="${d}" fill="none" stroke-width="${s.dash ? 2 : 3}" stroke-linecap="round" stroke-linejoin="round" ${s.dash ? 'stroke-dasharray="5 4"' : ''} style="stroke:var(${s.c})"/>${dots}`;
+        const dots = s.dash ? '' : pts.map(p => p ? `<circle cx="${p[0]}" cy="${p[1]}" r="4" stroke-width="2" style="fill:var(--sf);stroke:var(${s.c})"><title>${s.name} ${labels[p[2]]}: ${fa(s.data[p[2]])}</title></circle>` : '').join('');
+        return `${gradient}${paths}${dots}`;
     }).join('');
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="نمودار خطی">${gridLines(w, h, min, max, y)}${xLabels}${lines}</svg>`;
 }
@@ -117,7 +144,7 @@ function radar(labels, series) {
     });
   };
   var color = function (c) { return /^--[a-z0-9-]+$/i.test(c || '') ? c : '--pri'; };
-  var nums = function (a) { return (a || []).map(Number); };
+  var nums = function (a) { return (a || []).map(function (value) { return value === null || value === '' ? null : Number(value); }); };
   var legendHtml = function (series) {
     return '<div class="leg">' + series.map(function (s) {
       return '<span><i style="background:var(' + s.c + ')"></i>' + s.name + '</span>';
@@ -164,28 +191,95 @@ function radar(labels, series) {
   }
   $$('[data-fa]').forEach(faDigits);
 
-  /* ---------- تم تیره/روشن و پالت رنگ ---------- */
+  /* Accessible theme and palette state. */
   var tg = $('#themeToggle');
+  var syncTheme = function () {
+    if (!tg) return;
+    var dark = root.dataset.theme === 'dark' || (!root.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    tg.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    tg.setAttribute('aria-label', dark ? 'فعال‌سازی تم روشن' : 'فعال‌سازی تم تیره');
+  };
+  syncTheme();
   if (tg) tg.addEventListener('click', function () {
     var cur = root.dataset.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     var next = cur === 'dark' ? 'light' : 'dark';
     root.dataset.theme = next;
     try { localStorage.setItem('pa-theme', next); } catch (e) {}
+    syncTheme();
   });
-  $$('[data-pal]').forEach(function (b) {
+  var paletteButtons = $$('[data-pal]');
+  var syncPalette = function () {
+    paletteButtons.forEach(function (button) {
+      button.setAttribute('aria-pressed', (button.getAttribute('data-pal') || '') === (root.dataset.pal || '') ? 'true' : 'false');
+    });
+  };
+  syncPalette();
+  paletteButtons.forEach(function (b) {
     b.addEventListener('click', function () {
-      var p = b.getAttribute('data-pal');
+      var p = b.getAttribute('data-pal') || '';
       if (p) root.dataset.pal = p; else delete root.dataset.pal;
       try { localStorage.setItem('pa-pal', p); } catch (e) {}
+      syncPalette();
     });
   });
 
-  /* ---------- جست‌وجوی زنده بین ردیف‌های صفحه ---------- */
-  var sr = $('#globalSearch');
-  if (sr) sr.addEventListener('input', function () {
-    var q = sr.value.trim().toLowerCase();
-    $$('main .row').forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1; });
+  /* Responsive parent drawer with focus management. */
+  var navToggle = $('#parentNavToggle'), navSidebar = $('#parentSidebar'), navBackdrop = $('#parentNavBackdrop');
+  var topbar = $('[data-parent-topbar]');
+  var syncTopbarHeight = function () { if (topbar) root.style.setProperty('--parent-topbar-height', topbar.offsetHeight + 'px'); };
+  syncTopbarHeight();
+  if (window.ResizeObserver && topbar) new ResizeObserver(syncTopbarHeight).observe(topbar);
+  else window.addEventListener('resize', syncTopbarHeight);
+  var closeNav = function (restoreFocus) {
+    if (!navToggle || !navSidebar || !navBackdrop) return;
+    var wasOpen = navToggle.getAttribute('aria-expanded') === 'true';
+    document.body.classList.remove('parent-nav-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', 'باز کردن منوی اصلی');
+    navBackdrop.hidden = true;
+    if (restoreFocus && wasOpen) navToggle.focus();
+  };
+  var openNav = function () {
+    if (!navToggle || !navSidebar || !navBackdrop) return;
+    document.body.classList.add('parent-nav-open');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.setAttribute('aria-label', 'بستن منوی اصلی');
+    navBackdrop.hidden = false;
+    navSidebar.focus();
+  };
+  if (navToggle) navToggle.addEventListener('click', function () {
+    if (navToggle.getAttribute('aria-expanded') === 'true') closeNav(true); else openNav();
   });
+  if (navBackdrop) navBackdrop.addEventListener('click', function () { closeNav(true); });
+  if (navSidebar) navSidebar.addEventListener('click', function (event) { if (event.target.closest('a')) closeNav(false); });
+  window.addEventListener('resize', function () { if (window.innerWidth > 800) closeNav(false); });
+
+  var parentMenus = $$('.parent-menu');
+  parentMenus.forEach(function (menu) {
+    menu.addEventListener('toggle', function () {
+      if (menu.open) parentMenus.forEach(function (other) { if (other !== menu) other.open = false; });
+    });
+  });
+  document.addEventListener('click', function (event) {
+    parentMenus.forEach(function (menu) { if (!menu.contains(event.target)) menu.open = false; });
+  });
+
+  /* Search visible content on the current page only. */
+  var sr = $('#globalSearch'), searchClear = $('#parentSearchClear'), searchStatus = $('#parentSearchResults');
+  var searchable = $$('.row, .c, .st, .parent-resource-card, .teacher-inbox-item');
+  var updateSearch = function () {
+    if (!sr) return;
+    var q = sr.value.trim().toLocaleLowerCase(), visible = 0;
+    searchable.forEach(function (el) {
+      var match = !q || el.textContent.toLocaleLowerCase().indexOf(q) !== -1;
+      el.hidden = !match;
+      if (match) visible++;
+    });
+    if (searchClear) searchClear.hidden = !q;
+    if (searchStatus) searchStatus.textContent = q ? (visible ? visible + ' نتیجه در این صفحه پیدا شد.' : 'نتیجه‌ای در این صفحه پیدا نشد.') : '';
+  };
+  if (sr) sr.addEventListener('input', updateSearch);
+  if (searchClear && sr) searchClear.addEventListener('click', function () { sr.value = ''; updateSearch(); sr.focus(); });
 
   /* ---------- فرم جلسه: انتخاب زمان الزامی است ---------- */
   $$('[data-require-choice]').forEach(function (f) {
