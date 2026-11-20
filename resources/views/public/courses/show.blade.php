@@ -413,7 +413,7 @@
                             <div style="min-width:0">
                                 <strong style="display:block">{{ $resource->title }}</strong>
                                 @if($resource->description)<p style="margin:3px 0 0;color:var(--mute);font-size:12px">{{ $resource->description }}</p>@endif
-                                <small style="color:var(--mute)">{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}</small>
+                                <small style="color:var(--mute)">{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
