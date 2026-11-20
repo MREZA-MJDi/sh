@@ -20,7 +20,12 @@
 <label><input type="checkbox" name="downloadable" value="1" checked> امکان دانلود</label>
 <button class="b" type="submit">ثبت منبع</button>
 </form></section>
-<section class="c"><h2>منابع ثبت‌شده</h2>
+<section class="c"><div class="teacher-section-head"><div><h2>منابع ثبت‌شده</h2><p>{{ $resources->total() }} منبع آموزشی</p></div></div>
+<form method="GET" action="{{ route('teacher.resources') }}" class="teacher-list-filters">
+<label class="teacher-search-field"><span class="sr-only">جست‌وجوی منبع</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="جست‌وجوی عنوان منبع"></label>
+<label><span class="sr-only">مرتب‌سازی</span><select name="sort"><option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>جدیدترین</option><option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>قدیمی‌ترین</option><option value="title" @selected(($filters['sort'] ?? '') === 'title')>عنوان</option></select></label>
+<button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.resources') }}">پاک‌کردن</a>
+</form>
 @forelse($resources as $resource)<div class="teacher-list-card"><div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? '—' }}@if($resource->course?->grade) · پایه {{ $resource->course->grade }}@endif @if($resource->course?->season) · {{ $seasonLabels[$resource->course->season] ?? $resource->course->season }}@endif · {{ $resource->classroom?->name ?? 'کل دوره' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif</small></div><div class="teacher-list-meta"><span>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</span><span>{{ $resource->status }}</span>@if($resource->file_path && $resource->downloadable)<a href="{{ route('teacher.resources.download',$resource) }}">دریافت فایل</a>@endif</div></div>
 @empty<p>هنوز منبعی برای دوره‌ها و کلاس‌های شما ثبت نشده است.</p>@endforelse
 {{ $resources->links() }}</section></div>
