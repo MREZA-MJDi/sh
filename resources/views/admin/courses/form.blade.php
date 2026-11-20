@@ -271,7 +271,7 @@
     <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="['sat' => 'شنبه', 'sun' => 'یکشنبه', 'mon' => 'دوشنبه', 'tue' => 'سه‌شنبه', 'wed' => 'چهارشنبه', 'thu' => 'پنجشنبه', 'fri' => 'جمعه']" hint="روزهای معمول کلاس را انتخاب کن."/>
     <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
     <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" :value="90" addon="دقیقه"/>
-  <p class="adm-muted" style="grid-column:1/-1">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
+  <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
     <x-admin.legend title="دانش‌آموزان کلاس"/>
     <x-admin.chips label="انتخاب دانش‌آموزان" name="student_ids" :options="$students->pluck('name', 'id')->all()" scroll hint="می‌توانی فعلاً خالی بگذاری و بعداً اعضا را اضافه کنی."/>
   </x-admin.modal>
@@ -292,7 +292,7 @@
       <x-admin.switch label="این فایل رایگان است" name="is_free" :checked="true"/>
       <x-admin.input label="قیمت (تومان)" name="price" type="number" min="0" :value="0"/>
       <x-admin.select label="چه کسانی ببینند؟" name="visibility" :options="['enrolled' => 'دانش‌آموزان ثبت‌نام‌شده', 'authenticated' => 'کاربران واردشده', 'public' => 'همه بازدیدکنندگان']" :selected="'enrolled'" data-resource-visibility required/>
-      <p class="adm-muted" style="grid-column:1/-1">فایلی که به یک کلاس مشخص وصل شود فقط برای اعضای مجاز همان کلاس نمایش داده می‌شود.</p>
+      <p class="adm-muted adm-grid-note">فایلی که به یک کلاس مشخص وصل شود فقط برای اعضای مجاز همان کلاس نمایش داده می‌شود.</p>
       <x-admin.input label="زمان نمایش (اختیاری)" name="release_at" type="datetime-local"/>
       <x-admin.switch label="امکان دریافت فایل" name="downloadable" :checked="true"/>
       <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'published'" required/>
