@@ -147,7 +147,7 @@ final class CourseTeaserUploadTest extends TestCase
         Storage::disk('local')->assertMissing("chunks/{$uploadId}/0.part");
     }
 
-    public function test_failed_teaser_finalization_preserves_chunks_for_recovery(): void
+    public function test_failed_teaser_finalization_preserves_chunks_without_publishing_a_broken_file(): void
     {
         $admin = $this->admin();
         $course = $this->course();
@@ -188,6 +188,7 @@ final class CourseTeaserUploadTest extends TestCase
             'bytes_uploaded' => strlen($payload),
         ]);
         Storage::disk('local')->assertExists("chunks/{$uploadId}/0.part");
+        Storage::disk('local')->assertMissing("uploads/{$uploadId}.mp4");
         $this->assertSame('failed', $course->fresh()->teaser_status);
     }
 
