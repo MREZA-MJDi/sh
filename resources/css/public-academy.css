@@ -1034,3 +1034,18 @@ footer .cp { border-top: 1px solid #22305a; margin-top: 40px; padding-top: 20px;
 .quiz-bottom-note span{color:#e0a43a}
 @media(max-width:640px){.home-quiz-section{padding:44px 0}.home-quiz-card{border-radius:18px;padding:17px}.quiz-options{grid-template-columns:1fr;gap:9px}.quiz-option{min-height:52px}.quiz-question-title{font-size:17px}.quiz-progress-top{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.quiz-spinner{animation:none}.quiz-progress-fill,.quiz-option{transition:none}}
+
+/* Public course resources */
+.course-resources-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.course-resources-head h2{margin:0}
+.course-resources-head p{margin:5px 0 0;color:var(--mute);font-size:13px}
+.course-resources-list{display:grid;gap:10px}
+.course-resource-card{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid var(--ln);border-radius:13px}
+.course-resource-main{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
+.course-resource-icon{width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:11px;background:var(--soft);color:var(--pri)}
+.course-resource-info{min-width:0}
+.course-resource-info strong{display:block}
+.course-resource-info p{margin:3px 0 0;color:var(--mute);font-size:12px}
+.course-resource-info small{display:block;margin-top:3px;color:var(--mute);font-size:11px}
+.course-resource-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@media(max-width:560px){.course-resource-card{align-items:flex-start}.course-resource-actions{width:100%;justify-content:flex-start}}
