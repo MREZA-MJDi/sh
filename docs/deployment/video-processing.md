@@ -12,11 +12,13 @@
 
 ## صف‌ها و Workerها
 
-صف عمومی برنامه از اتصال پیش‌فرض Redis استفاده می‌کند. پردازش ویدئو و نهایی‌سازی آپلود از اتصال اختصاصی video استفاده می‌کنند که آن هم به Redis وصل است.
+صف عمومی برنامه از اتصال پیش‌فرض Redis استفاده می‌کند. نهایی‌سازی آپلود و پردازش سنگین ویدئو دو صف جدا دارند؛ هر دو روی Redis هستند، اما Workerهای مستقل دارند تا تبدیل طولانی ویدئو جلوی تکمیل آپلودهای تازه را نگیرد.
 
 Worker عمومی: php artisan queue:work redis --queue=default --sleep=2 --tries=3 --timeout=120
 
-Worker ویدئو: php artisan queue:work video --queue=video --sleep=3 --tries=3 --timeout=3600
+Worker نهایی‌سازی آپلود: php artisan queue:work upload-finalization --queue=upload-finalize --sleep=1 --tries=3 --timeout=900
+
+Worker پردازش ویدئو: php artisan queue:work video --queue=video --sleep=3 --tries=3 --timeout=3600
 
 Workerها باید با Supervisor یا systemd دائماً فعال باشند و بعد از هر انتشار نسخه، restart شوند. زمان‌بندی Laravel نیز باید فعال باشد تا نشست‌های منقضی‌شده و بخش‌های باقی‌مانده پاک‌سازی شوند؛ cron استاندارد php artisan schedule:run باید هر دقیقه اجرا شود.
 
