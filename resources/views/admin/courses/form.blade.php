@@ -331,7 +331,7 @@
       ])
     </x-admin.modal>
     <x-admin.modal :demo="false" :id="'quick-session-'.$classroom->id" title="برنامه‌ریزی جلسه برای کلاس" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
-      @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => now()->setTime(9, 0)->format('Y-m-d\\TH:i')])
+      @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => now()->setTimeFromTimeString(data_get($classroom->schedule, 'time') ?: '09:00')->format('Y-m-d\\TH:i')])
     </x-admin.modal>
   @endforeach
 @endif
