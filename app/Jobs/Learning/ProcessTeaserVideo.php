@@ -61,7 +61,7 @@ class ProcessTeaserVideo implements ShouldQueue
             ]))->setTimeout(3300)->mustRun();
             clearstatcache(true, $public->path($video));
             if (! is_file($public->path($video)) || filesize($public->path($video)) < 1) {
-                throw new \\RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+                throw new \RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
             }
         } catch (Throwable $e) {
             $public->delete($video);
