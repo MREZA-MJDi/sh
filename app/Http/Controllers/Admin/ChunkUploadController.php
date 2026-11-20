@@ -54,7 +54,12 @@ final class ChunkUploadController extends Controller
         }
 
         // Expired sessions and their chunks are reclaimed by the locked scheduler task.
-        $metadata = ['total_chunks' => $totalChunks, 'chunk_size_bytes' => $chunkSizeBytes, 'total_bytes' => (int) $data['total_bytes']];
+        $metadata = [
+            'total_chunks' => $totalChunks,
+            'chunk_size_bytes' => $chunkSizeBytes,
+            'total_bytes' => (int) $data['total_bytes'],
+            'received_chunks' => [],
+        ];
         if ($data['target'] === 'spotplayer_video') {
             $metadata += [
                 'title' => trim($data['title']),
@@ -157,8 +162,27 @@ final class ChunkUploadController extends Controller
 
             abort_unless($locked, 409, 'نشست آپلود دیگر فعال نیست؛ بارگذاری را دوباره آغاز کنید.');
 
-            $oldChunkBytes = $disk->exists($path) ? $disk->size($path) : 0;
-            $newBytes = (int) $locked->bytes_uploaded - $oldChunkBytes + (int) $file->getSize();
+            $receivedChunks = $locked->metadata['received_chunks'] ?? null;
+
+            // Reconcile legacy sessions once; the manifest then makes retries O(1).
+            if (! is_array($receivedChunks)) {
+                $receivedChunks = [];
+                $totalChunks = (int) ($locked->metadata['total_chunks'] ?? 0);
+                $chunkSize = (int) ($locked->metadata['chunk_size_bytes'] ?? 0);
+                $totalBytes = (int) ($locked->metadata['total_bytes'] ?? 0);
+
+                for ($index = 0; $index < $totalChunks; $index++) {
+                    $existingPath = "chunks/{$locked->upload_id}/{$index}.part";
+                    $expectedSize = min($chunkSize, $totalBytes - ($index * $chunkSize));
+
+                    if ($expectedSize > 0 && $disk->exists($existingPath) && $disk->size($existingPath) === $expectedSize) {
+                        $receivedChunks[(string) $index] = $expectedSize;
+                    }
+                }
+            }
+
+            $receivedChunks[(string) $data['index']] = (int) $file->getSize();
+            $newBytes = array_sum(array_map('intval', $receivedChunks));
             if ($newBytes > $maxBytes) {
                 abort(422, 'حجم فایل از سقف مجاز بیشتر است.');
             }
@@ -170,6 +194,7 @@ final class ChunkUploadController extends Controller
 
             $locked->update([
                 'bytes_uploaded' => $newBytes,
+                'metadata' => [...($locked->metadata ?? []), 'received_chunks' => $receivedChunks],
                 'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
             ]);
 
@@ -404,6 +429,7 @@ final class ChunkUploadController extends Controller
 
         $disk = Storage::disk('local');
         $received = [];
+        $receivedChunkManifest = [];
         $verifiedBytes = 0;
         $chunkSize = (int) ($session->metadata['chunk_size_bytes'] ?? 0);
         $totalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
@@ -414,6 +440,7 @@ final class ChunkUploadController extends Controller
 
             if ($expectedBytes > 0 && $disk->exists($path) && $disk->size($path) === $expectedBytes) {
                 $received[] = $index;
+                $receivedChunkManifest[(string) $index] = $expectedBytes;
                 $verifiedBytes += $expectedBytes;
             } elseif ($disk->exists($path)) {
                 // A truncated/partial chunk must be uploaded again, not skipped by the browser.
@@ -423,6 +450,7 @@ final class ChunkUploadController extends Controller
 
         $session->update([
             'bytes_uploaded' => $verifiedBytes,
+            'metadata' => [...($session->metadata ?? []), 'received_chunks' => $receivedChunkManifest],
             'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
         ]);
 
