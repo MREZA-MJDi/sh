@@ -191,7 +191,13 @@ final class PublicSiteController extends Controller
         if ($features['resources'] ?? false) {
             $courseResources = LearningResource::query()
                 ->where('course_id', $course->id)
-                ->whereNull('classroom_id')
+                ->where(function ($scope) use ($hasCourseAccess, $activeClassroomIds): void {
+                    $scope->whereNull('classroom_id');
+                    if ($hasCourseAccess && $activeClassroomIds !== []) {
+                        $scope->orWhereIn('classroom_id', $activeClassroomIds);
+                    }
+                })
+                ->with('classroom:id,name')
                 ->where('status', 'published')
                 ->whereNotNull('file_path')
                 ->where(fn ($release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
