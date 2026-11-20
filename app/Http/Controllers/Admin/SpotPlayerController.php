@@ -15,6 +15,8 @@ use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerSetting;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
+use App\Notifications\CourseVideoSubmittedForReview;
+use Illuminate\Support\Facades\Notification;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Integrations\IntegrationException;
 use App\Services\SpotPlayer\SpotPlayerService;
@@ -230,6 +232,20 @@ class SpotPlayerController extends Controller
         ])->save();
 
         return back()->with('success', 'ویدیو رد شد و دلیل بررسی ثبت شد.');
+    }
+
+    public function resubmitVideo(Request $request, SpotPlayerVideo $video, ClassroomWorkspaceService $workspace): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('teacher') && ! $request->user()->hasRole('admin'), 403);
+        abort_unless((int) $video->created_by === (int) $request->user()->id, 404);
+        abort_unless($video->approval_status === 'rejected', 409, 'فقط ویدیوهای ردشده امکان ارسال مجدد دارند.');
+        abort_unless($workspace->coursesQueryFor($request->user())->whereKey($video->course_id)->exists(), 404);
+
+        $video->forceFill(['approval_status' => 'pending', 'reviewed_by' => null, 'reviewed_at' => null])->save();
+        $admins = User::query()->whereHas('roles', fn ($roles) => $roles->where('name', 'admin'))->where('is_active', true)->get();
+        Notification::send($admins, new CourseVideoSubmittedForReview($video->loadMissing('creator')));
+
+        return back()->with('success', 'ویدیو دوباره برای بررسی مدیر ارسال شد.');
     }
 
     public function requestLicense(RequestSpotPlayerLicenseRequest $request, SpotPlayerService $spotPlayer): RedirectResponse
