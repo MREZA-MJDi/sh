@@ -27,7 +27,7 @@ import '../shared/iranian-locale.js';
       return;
     }
     if (e.key === 'Tab' && navToggle && navSidebar && navToggle.getAttribute('aria-expanded') === 'true') {
-      var focusable = $('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', navSidebar)
+      var focusable = $$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', navSidebar)
         .filter(function (el) { return el.offsetWidth || el.offsetHeight || el.getClientRects().length; });
       if (!focusable.length) { e.preventDefault(); navSidebar.focus(); return; }
       var first = focusable[0], last = focusable[focusable.length - 1];
