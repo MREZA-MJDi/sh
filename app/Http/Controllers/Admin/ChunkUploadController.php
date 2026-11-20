@@ -4,13 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\Learning\FinalizeChunkUpload;
-use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
 use App\Models\ClassSession;
 use App\Models\SpotPlayerVideo;
 use App\Models\VideoUploadSession;
 use App\Services\Admin\ClassroomWorkspaceService;
-use App\Services\SpotPlayer\SpotPlayerVideoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
