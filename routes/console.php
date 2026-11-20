@@ -2,12 +2,12 @@
 
 use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
-use App\\Models\\VideoUploadSession;
-use Illuminate\\Foundation\\Inspiring;
-use Illuminate\\Support\\Facades\\Artisan;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Schedule;
-use Illuminate\\Support\\Facades\\Storage;
+use App\Models\VideoUploadSession;
+use Illuminate\Foundation\Inspiring;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Storage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -71,7 +71,6 @@ Schedule::call(function (): void {
         });
 })->everyTenMinutes()->name('prune-expired-video-upload-sessions')->withoutOverlapping();
 
-
 /*
  * Recover jobs that were committed as processing but could not be enqueued
  * after a transient queue/database failure. Unique jobs prevent duplicates.
@@ -83,7 +82,7 @@ Schedule::call(function (): void {
         ->orderBy('id')
         ->chunkById(50, function ($courses): void {
             foreach ($courses as $course) {
-                ProcessTeaserVideo::dispatch($course->id, $course->teaser_original_path)->onConnection('video')->onQueue('video');
+                ProcessTeaserVideo::dispatch($course->id, $course->teaser_original_path);
             }
         });
 })->everyFiveMinutes()->name('recover-stalled-teaser-processing')->withoutOverlapping();
