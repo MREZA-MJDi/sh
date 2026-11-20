@@ -283,7 +283,7 @@
       <x-admin.textarea label="توضیح کوتاه برای دانش‌آموز" name="description" wide/>
       <x-admin.select label="نوع فایل" name="kind" :options="['pdf' => 'PDF', 'book' => 'کتاب یا جزوه', 'other' => 'سایر فایل‌ها']" :selected="'pdf'" required/>
       <label class="adm-upload adm-upload-wide">
-        <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip">
+        <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" required>
         <span class="adm-upload-icon"><x-admin.icon name="upload"/></span>
         <b>فایل را اینجا رها کن یا انتخاب کن</b>
         <small data-upload-name>PDF، Word، تصویر یا ZIP · حداکثر ۳۰ مگابایت</small>
