@@ -14,7 +14,14 @@
 <div class="ib-root" id="admin-inbox" data-tone="comm">
  <section class="ib-card gold ib-lc">
   <div class="ib-hd"><h2>گفتگوها</h2><span class="ib-total">{{ number_format($messages->total()) }}</span></div>
-  <form method="GET" action="{{ route('admin.messages.index') }}"><input class="ib-search" type="search" name="q" value="{{ $filters['q']??'' }}" placeholder="جستجوی نام یا پیام…"></form>
+  <form method="GET" action="{{ route('admin.messages.index') }}" class="ib-filter-form">
+   <input class="ib-search" type="search" name="q" value="{{ $filters['q']??'' }}" placeholder="جستجوی نام یا پیام…">
+   <select class="ib-filter-select" name="category" aria-label="نوع گفتگو">
+    <option value="">همه پیام‌ها</option><option value="parents" @selected(($filters['category']??'')==='parents')>پیام اولیا</option><option value="students" @selected(($filters['category']??'')==='students')>پیام دانش‌آموز</option><option value="teachers" @selected(($filters['category']??'')==='teachers')>پیام معلم</option><option value="teacher_student" @selected(($filters['category']??'')==='teacher_student')>گفتگوی معلم و دانش‌آموز</option>
+   </select>
+   <select class="ib-filter-select" name="sort" aria-label="مرتب‌سازی"><option value="latest" @selected(($filters['sort']??'latest')==='latest')>جدیدترین</option><option value="oldest" @selected(($filters['sort']??'')==='oldest')>قدیمی‌ترین</option></select>
+   <button class="ib-btn p" type="submit">اعمال فیلتر</button>
+  </form>
   <div class="ib-chips">@foreach($messages->getCollection()->map(fn($m)=>$personFor($m)?->roles?->first()?->name)->filter()->unique() as $role)<button type="button" class="ib-chip" data-role-filter="{{ $role }}">{{ $labels[$role]??$role }}</button>@endforeach<button type="button" class="ib-chip on" data-role-filter="">همه</button></div>
   <div class="ib-chips" style="padding-top:0"><button type="button" class="ib-chip on" data-status-filter="">همه وضعیت‌ها</button><button type="button" class="ib-chip" data-status-filter="open">باز</button><button type="button" class="ib-chip" data-status-filter="answered">در انتظار پاسخ</button><button type="button" class="ib-chip" data-status-filter="closed">بسته‌شده</button></div>
   <div class="ib-list">
@@ -50,22 +57,27 @@
   @endif
  @else<div class="ib-empty">یک گفتگو را از فهرست انتخاب کنید</div>@endif
  </section>
- <section class="ib-card ib-info">
- @if($selected && $partner)
-  <div class="ib-av ib-profile-av">@if($avatar($partner))<img src="{{ $avatar($partner) }}" alt="">@else{{ mb_substr($partner->name,0,1) }}@endif</div><h3>{{ $partner->name }}</h3><div class="c">{{ $labels[$selectedRole]??'کاربر' }}</div>
-  @if(auth()->user()->hasRole('admin'))<button class="ib-btn ib-wide" type="button" data-inbox-edit>ویرایش کاربر</button>@endif
-  <div class="ib-row"><span>شناسه</span><span>{{ $partner->external_student_id ?: $partner->id }}</span></div><div class="ib-row"><span>شماره تماس</span><span dir="ltr">{{ $partner->phone?:'—' }}</span></div><div class="ib-row"><span>ایمیل</span><span dir="ltr">{{ $partner->email?:'—' }}</span></div><div class="ib-row"><span>موضوع</span><span>{{ $selected->subject?:'—' }}</span></div>
-  <h4 class="ib-section-title">یادداشت‌های داخلی</h4><form method="POST" action="{{ route('admin.messages.notes.store',$selected) }}">@csrf<textarea class="ib-note" name="body" maxlength="5000" placeholder="یادداشت داخلی بنویسید…" required></textarea><button class="ib-btn ib-wide ib-note-submit" type="submit">افزودن یادداشت</button></form>
-  @forelse($notes as $note)<div class="ib-nt"><b>{{ $note->author?->name??'مدیریت' }}</b><small>{{ $note->created_at?->format('Y/m/d H:i') }}</small><p>{{ $note->body }}</p></div>@empty<div class="ib-note-empty">یادداشتی ثبت نشده است.</div>@endforelse
- @else<div class="ib-empty">اطلاعات کاربر پس از انتخاب گفتگو نمایش داده می‌شود.</div>@endif
+ <section class="ib-card ib-consult">
+  <div class="ib-hd"><h2>مشاوره‌های مرتبط</h2><span class="ib-total">{{ number_format($consultations->count()) }}</span></div>
+  <div class="ib-consult-body">
+   @forelse($consultations as $consultation)
+    @php($consultationStatus=['pending'=>'در انتظار بررسی','scheduled'=>'زمان‌بندی‌شده','done'=>'انجام‌شده','cancelled'=>'لغوشده','approved'=>'تأییدشده','completed'=>'تکمیل‌شده'][$consultation->status]??$consultation->status)
+    <a class="ib-consult-item" href="{{ route('admin.consultations.index',['consultation'=>$consultation->id]) }}">
+     <span class="ib-consult-top"><b>{{ $consultation->topic ?: 'درخواست مشاوره' }}</b><small>{{ $consultation->created_at?->format('Y/m/d') }}</small></span>
+     <span class="ib-consult-meta">{{ $consultation->requester?->name ?? 'درخواست‌کننده' }} · {{ $consultation->student?->name ?? 'بدون دانش‌آموز مرتبط' }}</span>
+     <span class="ib-consult-meta">مدرس: {{ $consultation->teacher?->name ?? 'تعیین‌نشده' }} · {{ $consultationStatus }}</span>
+     @if($consultation->notes)<p>{{ $consultation->notes }}</p>@endif
+     @foreach($consultation->replies->take(2) as $consultationReply)
+      <p class="ib-consult-reply"><b>{{ $consultationReply->sender?->name ?? 'پاسخ' }}:</b> {{ $consultationReply->body }}<small>{{ $consultationReply->created_at?->format('Y/m/d H:i') }}</small></p>
+     @endforeach
+    </a>
+   @empty
+    <div class="ib-empty">برای این گفتگو درخواست مشاوره‌ای ثبت نشده است.</div>
+   @endforelse
+   @if(auth()->user()->hasPermissionTo('consultations.manage'))<a class="ib-btn ib-wide" href="{{ route('admin.consultations.index') }}">مشاهده همه مشاوره‌ها</a>@endif
+  </div>
  </section>
 </div>
-@if($selected && $partner && auth()->user()->hasRole('admin'))
-<dialog class="ib-dlg" id="ib-edit-dialog"><form method="POST" action="{{ route('admin.messages.participant.update',$selected) }}" enctype="multipart/form-data">@csrf<h3>ویرایش کاربر</h3>
- <div class="ib-edit-avatar"><div class="ib-av" id="ib-edit-preview">@if($avatar($partner))<img src="{{ $avatar($partner) }}" alt="">@else{{ mb_substr($partner->name,0,1) }}@endif</div><label class="ib-btn">تغییر عکس پروفایل<input type="file" name="avatar" id="ib-avatar-file" accept="image/jpeg,image/png,image/webp" hidden></label></div>
- <label>نام و نام خانوادگی<input name="name" value="{{ $partner->name }}" maxlength="160" required></label><label>شماره تماس<input name="phone" value="{{ $partner->phone }}" dir="ltr" maxlength="30"></label><label>ایمیل<input name="email" type="email" value="{{ $partner->email }}" dir="ltr" maxlength="190"></label><label>رمز عبور جدید (خالی = بدون تغییر)</label><div class="ib-password-row"><input id="ib-new-password" name="password" type="password" minlength="12" autocomplete="new-password"><button type="button" class="ib-btn" id="ib-toggle-password">نمایش</button><button type="button" class="ib-btn" id="ib-generate-password">رمز تصادفی</button></div>
- <div class="ib-dialog-actions"><button type="button" class="ib-btn" data-inbox-close>انصراف</button><button class="ib-btn p" type="submit">ذخیره تغییرات</button></div></form></dialog>
-@endif
 @if(auth()->user()->hasPermissionTo('announcements.manage'))
 <dialog class="ib-dlg" id="ib-broadcast-dialog"><form method="POST" action="{{ route('admin.announcements.store') }}">@csrf<h3>ارسال اعلان عمومی</h3>
  <label>گیرندگان<select name="audience" required><option value="all">همه کاربران</option><option value="parents">همه اولیا</option><option value="students">همه دانش‌آموزان</option><option value="teachers">همه مدرسان</option></select></label>

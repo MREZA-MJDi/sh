@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Models\Message;
+use App\Models\Consultation;
 use App\Models\MessageInternalNote;
 use App\Models\MessageReply;
 use App\Models\User;
@@ -23,6 +24,8 @@ class MessageController extends Controller
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::in(['', 'open', 'answered', 'read', 'closed'])],
+            'category' => ['nullable', Rule::in(['', 'parents', 'students', 'teachers', 'teacher_student'])],
+            'sort' => ['nullable', Rule::in(['latest', 'oldest'])],
         ]);
 
         $base = $workspace->queryFor($request->user())
@@ -41,7 +44,12 @@ class MessageController extends Controller
             }))
             ->when(($filters['status'] ?? '') === 'closed', fn ($query) => $query->whereNotNull('closed_at'))
             ->when(($filters['status'] ?? '') !== '' && ($filters['status'] ?? '') !== 'closed', fn ($query) => $query->whereNull('closed_at')->where('status', $filters['status']))
-            ->latest()->paginate(40)->withQueryString();
+            ->when(($filters['category'] ?? '') === 'parents', fn ($query) => $query->where(fn ($q) => $q->whereHas('sender.roles', fn ($r) => $r->where('name', 'parent'))->orWhereHas('recipient.roles', fn ($r) => $r->where('name', 'parent'))))
+            ->when(($filters['category'] ?? '') === 'students', fn ($query) => $query->where(fn ($q) => $q->whereHas('sender.roles', fn ($r) => $r->where('name', 'student'))->orWhereHas('recipient.roles', fn ($r) => $r->where('name', 'student'))))
+            ->when(($filters['category'] ?? '') === 'teachers', fn ($query) => $query->where(fn ($q) => $q->whereHas('sender.roles', fn ($r) => $r->where('name', 'teacher'))->orWhereHas('recipient.roles', fn ($r) => $r->where('name', 'teacher'))))
+            ->when(($filters['category'] ?? '') === 'teacher_student', fn ($query) => $query->where(fn ($q) => $q->where(fn ($pair) => $pair->whereHas('sender.roles', fn ($r) => $r->where('name', 'teacher'))->whereHas('recipient.roles', fn ($r) => $r->where('name', 'student')))->orWhere(fn ($pair) => $pair->whereHas('sender.roles', fn ($r) => $r->where('name', 'student'))->whereHas('recipient.roles', fn ($r) => $r->where('name', 'teacher')))))
+            ->when(($filters['sort'] ?? 'latest') === 'oldest', fn ($query) => $query->oldest(), fn ($query) => $query->latest())
+            ->paginate(40)->withQueryString();
 
         $selected = $request->filled('message')
             ? $workspace->findVisible($request->user(), $request->integer('message'))
@@ -61,7 +69,18 @@ class MessageController extends Controller
                 ->where('message_id', $selected->id)->latest()->get()
             : collect();
 
-        return view('admin.messages.index', compact('messages', 'selected', 'partner', 'selectedRole', 'notes', 'filters'));
+        $consultations = $selected
+            ? Consultation::query()->with(['requester:id,name', 'student:id,name', 'teacher:id,name', 'replies.sender:id,name'])
+                ->where(function ($query) use ($selected, $partner): void {
+                    if ($selected->student_id) {
+                        $query->where('student_id', $selected->student_id);
+                    } elseif ($partner) {
+                        $query->where('requester_id', $partner->id);
+                    }
+                })->latest()->limit(8)->get()
+            : collect();
+
+        return view('admin.messages.index', compact('messages', 'selected', 'partner', 'selectedRole', 'notes', 'consultations', 'filters'));
     }
 
     public function reply(

@@ -5,5 +5,7 @@
         <input type="search" id="globalSearch" placeholder="جست‌وجوی دوره، آزمون، تکلیف..." autocomplete="off">
     </label>
     <button type="button" class="ib" id="themeToggle" aria-label="تغییر حالت تیره/روشن"><svg class="i"><use href="#i-moon"/></svg></button>
-    <a class="ib pr" href="{{ url('student/profile') }}" aria-label="حساب کاربری"><svg class="i"><use href="#i-user"/></svg></a>
+    <a class="ib pr" href="{{ url('student/profile') }}" aria-label="حساب کاربری" style="overflow:hidden;padding:0;width:38px;height:38px;border-radius:50%;display:grid;place-items:center">
+        @if(auth()->user()->avatarUrl())<img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()->name }}" style="width:100%;height:100%;object-fit:cover">@else<svg class="i"><use href="#i-user"/></svg>@endif
+    </a>
 </header>
