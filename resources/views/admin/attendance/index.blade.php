@@ -79,7 +79,7 @@
   </form>
 </x-admin.panel>
 
-<x-admin.panel title="نیازمند پیگیری" desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
+<x-admin.panel title="غیبت زیاد" desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
   @if(count($report))
     <div class="adm-attendance-report">
       @foreach ($report as [$studentId, $classroomId, $name, $className, $total, $absent])
@@ -90,7 +90,7 @@
               <div><b>{{ $name }}</b><small>{{ $className }}</small></div>
             </div>
             @if ($absent >= 3)
-              <x-admin.badge tone="bad">نیازمند پیگیری</x-admin.badge>
+              <x-admin.badge tone="bad">غیبت زیاد</x-admin.badge>
             @else
               <x-admin.badge tone="warn">در حال پایش</x-admin.badge>
             @endif
