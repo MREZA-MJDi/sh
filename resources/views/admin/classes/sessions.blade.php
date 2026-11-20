@@ -28,6 +28,7 @@
   <div class="adm-attendance-calendar-head">
     <div class="adm-calendar-month">
       <a href="{{ route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $calendar['previous_date']]) }}" aria-label="ماه قبل">‹</a>
+      <a class="adm-calendar-today" href="{{ route('admin.classes.sessions.index', ['classroom' => $classroom?->id, 'date' => now()->format('Y-m-d')]) }}">امروز</a>
       <strong>{{ $calendar['label'] }}</strong>
       <a href="{{ route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $calendar['next_date']]) }}" aria-label="ماه بعد">›</a>
     </div>
