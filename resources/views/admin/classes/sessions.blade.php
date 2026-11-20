@@ -64,7 +64,7 @@
   </div>
 </x-admin.panel>
 
-<x-admin.panel :title="'برنامه '.\\App\\Support\\PersianDate::format($selectedDate, 'l، d F')" :desc="$daySessions->count().' جلسه در این روز'" data-tone="track">
+<x-admin.panel :title="'برنامه '.\App\Support\PersianDate::format($selectedDate, 'l، d F')" :desc="$daySessions->count().' جلسه در این روز'" data-tone="track">
   @if($daySessions->isNotEmpty())
     <div class="adm-session-agenda">
       @foreach($daySessions as $session)
@@ -72,8 +72,8 @@
           $fill = [
             'title' => $session->title,
             'session_type' => $session->session_type,
-            'starts_at' => $session->starts_at?->format('Y-m-d\\TH:i'),
-            'ends_at' => $session->ends_at?->format('Y-m-d\\TH:i'),
+            'starts_at' => $session->starts_at?->format('Y-m-d\TH:i'),
+            'ends_at' => $session->ends_at?->format('Y-m-d\TH:i'),
             'meeting_url' => $session->meeting_url,
             'meeting_provider' => $session->meeting_provider,
             'status' => $session->status,
@@ -123,8 +123,8 @@
               $fill = [
                 'title' => $session->title,
                 'session_type' => $session->session_type,
-                'starts_at' => $session->starts_at?->format('Y-m-d\\TH:i'),
-                'ends_at' => $session->ends_at?->format('Y-m-d\\TH:i'),
+                'starts_at' => $session->starts_at?->format('Y-m-d\TH:i'),
+                'ends_at' => $session->ends_at?->format('Y-m-d\TH:i'),
                 'meeting_url' => $session->meeting_url,
                 'meeting_provider' => $session->meeting_provider,
                 'status' => $session->status,
@@ -134,7 +134,7 @@
             <tr data-name="{{ $session->title }}" data-state="{{ $session->status }}" data-type="{{ $session->session_type }}">
               <td><b>{{ $session->title }}</b></td>
               <td>{{ $typeLabels[$session->session_type] ?? $session->session_type }}</td>
-              <td class="adm-num is-nowrap">{{ \\App\\Support\\PersianDate::format($session->starts_at) }}</td>
+              <td class="adm-num is-nowrap">{{ \App\Support\PersianDate::format($session->starts_at) }}</td>
               <td class="adm-num">{{ number_format($session->attendances_count) }}</td>
               <td><x-admin.badge :tone="$statusTones[$session->status] ?? 'warn'">{{ $statusLabels[$session->status] ?? $session->status }}</x-admin.badge></td>
               <td><x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn></td>
