@@ -29,10 +29,10 @@ import '../shared/iranian-locale.js';
     var list = [], n; while ((n = w.nextNode())) list.push(n);
     list.forEach(function (t) { t.nodeValue = fa(t.nodeValue); });
   }
-  $('[data-fa]').forEach(faDigits);
+  $$('[data-fa]').forEach(faDigits);
 
   /* One course → classroom → session selector across teacher content forms. */
-  $('[data-learning-scope]').forEach(function (scope) {
+  $$('[data-learning-scope]').forEach(function (scope) {
     var course = $('[name="course_id"],[data-upload-course]', scope);
     var classroom = $('[name="classroom_id"],[data-upload-classroom]', scope);
     var session = $('[name="class_session_id"],[data-upload-session]', scope);
