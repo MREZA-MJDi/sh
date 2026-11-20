@@ -19,13 +19,14 @@
         ])
     </section>
 
-    <section class="c"><h3>وضعیت فعلی</h3>
+    <section class="c"><div class="parent-section-heading"><div><h3>وضعیت فعلی</h3><p>{{ $homeworkPaginator->total() }} تکلیف</p></div></div>
         {{-- tone: am | gn | bl | rd --}}
         @forelse (($homework ?? []) as $h)
             <div class="row"><div>{{ data_get($h, 'title') }}<small>مهلت: {{ data_get($h, 'due') }}</small></div><i class="bd {{ data_get($h, 'tone', 'am') }}">{{ data_get($h, 'status') }}</i></div>
         @empty
-            <p>تکلیفی ثبت نشده است.</p>
+            <div class="parent-empty-state"><strong>تکلیفی برای این فرزند ثبت نشده است.</strong><span>تکالیف جدید پس از انتشار در این قسمت دیده می‌شوند.</span></div>
         @endforelse
+        <div class="parent-pagination">{{ $homeworkPaginator->links() }}</div>
     </section>
 </div>
 @endsection
