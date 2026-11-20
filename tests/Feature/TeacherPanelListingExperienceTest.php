@@ -56,13 +56,13 @@ final class TeacherPanelListingExperienceTest extends TestCase
         }
 
         $this->actingAs($teacher)
-            ->get(route('teacher.classes'))
+            ->get(route('teacher.classes', ['sort' => 'students']))
             ->assertOk()
             ->assertSee('کلاس شماره 1')
             ->assertDontSee('کلاس ویژه جستجو');
 
         $this->actingAs($teacher)
-            ->get(route('teacher.classes', ['page' => 2]))
+            ->get(route('teacher.classes', ['sort' => 'students', 'page' => 2]))
             ->assertOk()
             ->assertSee('کلاس ویژه جستجو');
 
