@@ -8,16 +8,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lesson extends Model
 {
-    protected $fillable = ['course_section_id', 'title', 'body', 'duration_minutes', 'sort_order', 'status'];
+    protected $fillable = ['course_section_id', 'title', 'body', 'duration_minutes', 'sort_order', 'status', 'video_provider', 'media_asset_id', 'spot_player_video_id', 'is_free_preview'];
 
     protected function casts(): array
     {
-        return ['duration_minutes' => 'integer', 'sort_order' => 'integer'];
+        return ['duration_minutes' => 'integer', 'sort_order' => 'integer', 'is_free_preview' => 'boolean'];
     }
 
     public function section(): BelongsTo
     {
         return $this->belongsTo(CourseSection::class, 'course_section_id');
+    }
+
+    public function mediaAsset(): BelongsTo
+    {
+        return $this->belongsTo(MediaAsset::class);
+    }
+
+    public function spotPlayerVideo(): BelongsTo
+    {
+        return $this->belongsTo(SpotPlayerVideo::class, 'spot_player_video_id');
     }
 
     public function progress(): HasMany
