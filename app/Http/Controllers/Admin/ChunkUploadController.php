@@ -251,6 +251,9 @@ final class ChunkUploadController extends Controller
         $expectedChunks = (int) ($existing->metadata['total_chunks'] ?? 0);
         abort_unless($expectedChunks === (int) $data['total'], 422, 'تعداد تکه‌ها با اطلاعات شروع آپلود سازگار نیست.');
 
+        $extension = strtolower(pathinfo($data['filename'], PATHINFO_EXTENSION));
+        abort_unless(in_array($extension, self::EXTENSIONS, true), 422, 'فرمت فایل مجاز نیست (mp4, mov, mkv, webm, m4v).');
+
         $received = $existing->metadata['received_chunks'] ?? [];
         $expectedBytes = (int) ($existing->metadata['total_bytes'] ?? 0);
         abort_unless(
@@ -431,7 +434,7 @@ final class ChunkUploadController extends Controller
                     default => 'failed',
                 },
             },
-            'error' => $video?->processing_error,
+            'error' => $video?->processing_error ?? ($session->metadata['finalization_error'] ?? null),
             'video_id' => $video?->id,
         ]);
     }
