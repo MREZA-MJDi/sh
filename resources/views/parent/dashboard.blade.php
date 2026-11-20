@@ -12,7 +12,7 @@
     ];
     $subj = collect($subjects ?? []);
 @endphp
-<h2>وضعیت آموزشی {{ data_get($kid ?? null, 'name') }}</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">داشبورد خانواده</span><h1>وضعیت آموزشی {{ data_get($kid ?? null, 'name') }}</h1><p>خلاصه‌ای از پیشرفت، حضور و نتایج آموزشی فرزند شما</p></div></div>
 @include('parent.partials.kid-picker')
 <div class="g">
     <div class="g g4">
