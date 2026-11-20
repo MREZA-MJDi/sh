@@ -24,7 +24,8 @@
   <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
   <input type="hidden" name="class_session_id" value="{{ $session->id }}">
   <section class="c teacher-attendance-roster">
-   <div class="teacher-section-head"><div><h3>{{ $classroom->name }}</h3><p>{{ $session->title ?: 'جلسه آموزشی' }} · {{ $session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</p></div><span class="teacher-result-count">{{ $students->count() }} دانش‌آموز</span></div>
+   <div class="teacher-section-head"><div><h3>{{ $classroom->name }}</h3><p>{{ $session->title ?: 'جلسه آموزشی' }} · {{ $session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</p></div><span class="teacher-result-count">{{ $studentPaginator?->total() ?? 0 }} دانش‌آموز</span></div>
+   <p class="teacher-help">فهرست دانش‌آموزان صفحه‌بندی شده است. هر صفحه را جداگانه ذخیره کنید و سپس به صفحه بعد بروید.</p>
    @forelse ($students as $student)
     <div class="row"><div>{{ $student['name'] }}</div>
      <select name="attendance[{{ $student['id'] }}][status]" required @disabled(!auth()->user()->hasPermissionTo('attendance.manage.assigned'))>
@@ -41,6 +42,7 @@
    @empty
     <p>دانش‌آموزی در این کلاس ثبت نشده است.</p>
    @endforelse
+   {{ $studentPaginator?->links() }}
    @if ($students->isNotEmpty() && auth()->user()->hasPermissionTo('attendance.manage.assigned'))<button class="b" type="submit">ذخیره حضور و غیاب</button>@elseif($students->isNotEmpty())<p class="teacher-help">دسترسی شما فقط برای مشاهده حضور و غیاب است.</p>@endif
   </section>
  </form>
