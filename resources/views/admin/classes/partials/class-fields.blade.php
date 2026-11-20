@@ -22,6 +22,7 @@
 <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" addon="دقیقه"/>
 <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
 @if(isset($studentOptions))
+  <input type="hidden" name="student_ids_present" value="1">
   <x-admin.legend title="اعضای کلاس"/>
   <x-admin.chips label="دانش‌آموزان فعال" name="student_ids" :options="$studentOptions" scroll hint="افزودن یا حذف عضو، تاریخچه عضویت را حفظ می‌کند"/>
   <p class="adm-muted adm-grid-note">کلاس و اعضای آن را همین‌جا ثبت کن؛ زمان‌بندی جلسه‌ها هم از تقویم کلاس در دسترس است.</p>
