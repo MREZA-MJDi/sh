@@ -106,13 +106,21 @@ import '../shared/iranian-locale.js';
   var navToggle = $('#teacherNavToggle');
   var navSidebar = $('#teacherSidebar');
   var navBackdrop = $('#teacherNavBackdrop');
+  var teacherTopbar = $('[data-teacher-topbar]');
+  var syncTeacherTopbarHeight = function () {
+    if (teacherTopbar) root.style.setProperty('--teacher-topbar-height', teacherTopbar.offsetHeight + 'px');
+  };
+  syncTeacherTopbarHeight();
+  if (window.ResizeObserver && teacherTopbar) new ResizeObserver(syncTeacherTopbarHeight).observe(teacherTopbar);
+  else window.addEventListener('resize', syncTeacherTopbarHeight);
   var closeTeacherNav = function (restoreFocus) {
     if (!navSidebar || !navToggle || !navBackdrop) return;
+    var wasOpen = navToggle.getAttribute('aria-expanded') === 'true';
     document.body.classList.remove('teacher-nav-open');
     navToggle.setAttribute('aria-expanded', 'false');
     navToggle.setAttribute('aria-label', 'باز کردن منوی اصلی');
     navBackdrop.hidden = true;
-    if (restoreFocus) navToggle.focus();
+    if (restoreFocus && wasOpen) navToggle.focus();
   };
   var openTeacherNav = function () {
     if (!navSidebar || !navToggle || !navBackdrop) return;
@@ -211,7 +219,22 @@ import '../shared/iranian-locale.js';
       d._t = setTimeout(function () { disarm(d); }, 4000);
     }
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModals(); topbarMenus.forEach(function (menu) { menu.open = false; }); closeTeacherNav(true); } });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closeModals();
+      topbarMenus.forEach(function (menu) { menu.open = false; });
+      closeTeacherNav(true);
+      return;
+    }
+    if (e.key === 'Tab' && navToggle && navSidebar && navToggle.getAttribute('aria-expanded') === 'true') {
+      var focusable = $('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', navSidebar)
+        .filter(function (el) { return el.offsetWidth || el.offsetHeight || el.getClientRects().length; });
+      if (!focusable.length) { e.preventDefault(); navSidebar.focus(); return; }
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
 
   /* ---------- حضور و غیاب: چرخش وضعیت حاضر ← غایب ← تأخیر ---------- */
   var rc = $('[data-rollcall]');
