@@ -206,7 +206,7 @@ final class PublicSiteController extends Controller
                         ->where('student_id', $request->user()->id)->where('status', 'paid')]))
                 ->when(! $hasCourseAccess, fn ($query) => $query->where('visibility', 'public')->where('is_free', true))
                 ->orderBy('sort_order')->orderBy('id')
-                ->get(['id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'downloadable', 'file_path']);
+                ->get(['id', 'course_id', 'classroom_id', 'title', 'description', 'kind', 'is_free', 'price', 'downloadable', 'file_path']);
         }
 
         // Video playback is exposed only when both the enrollment and the
