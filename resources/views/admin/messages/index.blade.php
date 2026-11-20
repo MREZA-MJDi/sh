@@ -67,11 +67,14 @@
      <span class="ib-consult-meta">{{ $consultation->requester?->name ?? 'درخواست‌کننده' }} · {{ $consultation->student?->name ?? 'بدون دانش‌آموز مرتبط' }}</span>
      <span class="ib-consult-meta">مدرس: {{ $consultation->teacher?->name ?? 'تعیین‌نشده' }} · {{ $consultationStatus }}</span>
      @if($consultation->notes)<p>{{ $consultation->notes }}</p>@endif
+     @foreach($consultation->replies->take(2) as $consultationReply)
+      <p class="ib-consult-reply"><b>{{ $consultationReply->sender?->name ?? 'پاسخ' }}:</b> {{ $consultationReply->body }}<small>{{ $consultationReply->created_at?->format('Y/m/d H:i') }}</small></p>
+     @endforeach
     </a>
    @empty
     <div class="ib-empty">برای این گفتگو درخواست مشاوره‌ای ثبت نشده است.</div>
    @endforelse
-   <a class="ib-btn ib-wide" href="{{ route('admin.consultations.index') }}">مشاهده همه مشاوره‌ها</a>
+   @if(auth()->user()->hasPermissionTo('consultations.manage'))<a class="ib-btn ib-wide" href="{{ route('admin.consultations.index') }}">مشاهده همه مشاوره‌ها</a>@endif
   </div>
  </section>
 </div>
