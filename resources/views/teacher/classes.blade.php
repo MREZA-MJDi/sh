@@ -23,7 +23,7 @@
     @endforelse
 </section>
 <div class="g g2">
-    <section class="c"><h3>مدیریت ویدئوهای آموزشی</h3><p>ویدئوهای دوره و کلاس را از مسیر آپلود امن بارگذاری کنید و وضعیت اتصال را پیگیری کنید.</p><a class="b s" href="{{ route('teacher.videos') }}">رفتن به بارگذاری ویدئو</a><a class="b s" href="{{ route('teacher.live') }}">مشاهده جلسات آنلاین</a></section>
+    <section class="c"><h3>مدیریت ویدئوهای آموزشی</h3><p>ویدئوهای دوره و کلاس را از مسیر آپلود امن بارگذاری کنید و وضعیت اتصال را پیگیری کنید.</p>@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}">رفتن به بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('classes.view.assigned'))<a class="b s" href="{{ route('teacher.live') }}">مشاهده جلسات آنلاین</a>@endif</section>
 
     <section class="c"><h3>لینک کلاس آنلاین</h3>
         @forelse ($classrooms as $classroom)
@@ -60,7 +60,7 @@
         @endforelse
     </section>
 
-    <section class="c"><div class="teacher-section-head"><h3>منابع و جزوه‌ها</h3><a href="{{ route('teacher.resources') }}">مدیریت منابع</a></div>
+    <section class="c"><div class="teacher-section-head"><h3>منابع و جزوه‌ها</h3>@if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a href="{{ route('teacher.resources') }}">مدیریت منابع</a>@endif</div>
         @forelse ($resources as $resource)
             <div class="row"><div>{{ $resource->title }}<small>{{ $resource->kind }}</small></div>
                 <i class="bd {{ $resource->status === 'published' ? 'gn' : 'am' }}">{{ ['published' => 'منتشرشده', 'draft' => 'پیش‌نویس', 'archived' => 'بایگانی‌شده'][$resource->status] ?? 'در حال بررسی' }}</i>
