@@ -7,7 +7,7 @@
     if ($parent?->hasPermissionTo('homework.view.children')) $nav[] = ['guardian.homework', 'تکالیف', '📝', 'parent/homework'];
     if ($parent?->hasPermissionTo('resources.view.enrolled')) $nav[] = ['guardian.resources.index', 'منابع آموزشی', '📚', 'parent/resources'];
     if ($parent?->hasPermissionTo('messages.view.children')) $nav[] = ['guardian.messages.index', 'پیام به مدرس', '💬', 'parent/messages'];
-    if ($parent?->hasPermissionTo('consultations.view.children') || $parent?->hasPermissionTo('consultations.create')) $nav[] = ['guardian.consultations.index', 'درخواست مشاوره', '🗨️', 'parent/consultations'];
+    if ($parent?->hasPermissionTo('consultations.view.children')) $nav[] = ['guardian.consultations.index', 'درخواست مشاوره', '🗨️', 'parent/consultations'];
     $nav[] = ['guardian.meetings.index', 'جلسات', '🤝', 'parent/meetings'];
 @endphp
 <aside class="parent-sidebar" id="parentSidebar" aria-label="منوی اصلی اولیا" tabindex="-1">
