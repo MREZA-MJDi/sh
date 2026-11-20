@@ -2,7 +2,6 @@
 @section('title', 'کلاس‌ها و فیلم‌ها')
 @section('content')
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
-@php($videoStatusLabels = ['active' => ['آماده پخش', 'gn'], 'processing' => ['در حال پردازش', 'bl'], 'failed' => ['خطا در پردازش', 'rd'], 'waiting_contract' => ['در انتظار اتصال سرویس', 'am']])
 <div class="teacher-page-head"><div><span class="teacher-eyebrow">آموزش و اجرا</span><h1>کلاس‌ها و فیلم‌ها</h1><p>محتوای آموزشی و جلسه‌های کلاس‌های تخصیص‌یافته را پیگیری کنید.</p></div><div class="teacher-head-actions">@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}">بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="b s" href="{{ route('teacher.resources') }}">افزودن جزوه</a>@endif</div></div>
 <section class="c teacher-assigned-classes">
     <div class="teacher-section-head"><div><h2>دوره‌ها و گروه‌های تخصیص‌یافته</h2><p>پایه و فصل هر گروه از اطلاعات دوره‌ی مرتبط نمایش داده می‌شود.</p></div><span class="teacher-result-count">{{ $classrooms->total() }} کلاس</span></div>
@@ -43,8 +42,7 @@
     <section class="c"><h3>فیلم‌های ضبط‌شده</h3>
         @forelse ($videos as $video)
             <div class="row"><div>{{ $video->title ?? 'ویدئوی کلاس' }}<small>{{ $video->created_at?->format('Y/m/d') }}</small></div>
-                @php($videoStatus = $video->approval_status === 'pending' ? ['در انتظار تأیید', 'am'] : ($videoStatusLabels[$video->status] ?? ['در حال بررسی', 'am']))
-                <i class="bd {{ $videoStatus[1] }}">{{ $videoStatus[0] }}</i>
+                <i class="bd {{ $video->approval_status === 'pending' ? 'am' : (['active' => 'gn', 'processing' => 'bl', 'failed' => 'rd', 'waiting_contract' => 'am'][$video->status] ?? 'am') }}">{{ $video->approval_status === 'pending' ? 'در انتظار تأیید' : (['active' => 'آماده پخش', 'processing' => 'در حال پردازش', 'failed' => 'خطا در پردازش', 'waiting_contract' => 'در انتظار اتصال سرویس'][$video->status] ?? 'در حال بررسی') }}</i>
             </div>
         @empty
             <p>فیلمی برای کلاس‌های شما ثبت نشده است.</p>
