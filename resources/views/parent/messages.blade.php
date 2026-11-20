@@ -3,7 +3,7 @@
 @section('content')
 <div class="teacher-page-head">
     <div><span class="teacher-eyebrow">ارتباطات خانواده</span><h1>مرکز پیام‌ها</h1><p>گفت‌وگوهای مربوط به فرزند انتخاب‌شده را یکجا ببینید.</p></div>
-    <a class="b" href="{{ route('guardian.messages.create', ['child' => $selected_child?->id]) }}">پیام جدید</a>
+    @if(auth()->user()->hasPermissionTo('messages.send.own'))<a class="b" href="{{ route('guardian.messages.create', ['child' => $selected_child?->id]) }}">پیام جدید</a>@endif
 </div>
 @include('parent.partials.kid-picker')
 <div class="teacher-inbox">
