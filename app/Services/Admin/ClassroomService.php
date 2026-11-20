@@ -36,7 +36,7 @@ final class ClassroomService
                 'created_by' => $actor->id,
             ]);
 
-            if (array_key_exists('student_ids', $data)) {
+            if (array_key_exists('student_ids', $data) || ! empty($data['student_ids_present'])) {
                 $this->syncRoster($classroom, $data['student_ids'] ?? [], $actor);
             }
             $this->enrollments->syncClassroomRoster($classroom);
