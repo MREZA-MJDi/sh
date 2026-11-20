@@ -1190,3 +1190,7 @@ nav[role="navigation"] span[aria-current="page"]{background:var(--pri);border-co
 .teacher-sidebar .teacher-sidebar-nav{position:static;display:flex;flex-direction:column;align-items:stretch;gap:4px}
 .teacher-sidebar .teacher-sidebar-nav a{display:flex;align-items:center;min-width:0}
 @media(max-width:760px){.teacher-sidebar .teacher-sidebar-nav{position:static;display:flex;flex-direction:column;align-items:stretch}}
+
+.teacher-palette button:nth-child(1){background:#4f46e5}
+.teacher-palette button:nth-child(2){background:#0f9d74}
+.teacher-palette button:nth-child(3){background:#e0572f}
