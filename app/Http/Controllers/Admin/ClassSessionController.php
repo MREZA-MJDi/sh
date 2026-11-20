@@ -22,8 +22,9 @@ class ClassSessionController extends Controller
         $classroom = $workspace->queryFor($request->user())->with(['course:id,title', 'teacher:id,name'])->findOrFail($classroom);
 
         $timezone = config('app.timezone', 'Asia/Tehran');
-        $selectedDate = $request->filled('date')
-            ? CarbonImmutable::parse($request->query('date'), $timezone)->startOfDay()
+        $dateInput = $request->query('date');
+        $selectedDate = is_string($dateInput) && preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $dateInput)
+            ? CarbonImmutable::parse($dateInput, $timezone)->startOfDay()
             : CarbonImmutable::now($timezone)->startOfDay();
         $jalaliParts = JalaliDate::fromGregorian($selectedDate);
         $monthStart = JalaliDate::toGregorian($jalaliParts['year'], $jalaliParts['month'], 1)->startOfDay();
