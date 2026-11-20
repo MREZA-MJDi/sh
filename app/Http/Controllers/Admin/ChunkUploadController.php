@@ -504,21 +504,50 @@ final class ChunkUploadController extends Controller
         $data = $request->validate(['upload_id' => ['required', 'uuid']]);
 
         $session = $this->findUploadSession($data['upload_id'], $request);
-        abort_unless($session->status === 'uploading', 409, 'این نشست آپلود قبلاً بسته شده است.');
-
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
+        // Close the session under the same row lock used by chunk writes before
+        // removing its directory. A concurrent chunk can no longer recreate files.
+        $session = DB::transaction(function () use ($request, $data): VideoUploadSession {
+            $locked = VideoUploadSession::query()
+                ->where('upload_id', $data['upload_id'])
+                ->where('user_id', $request->user()->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless($locked->status === 'uploading', 409, 'این نشست آپلود قبلاً بسته شده است.');
+
+            $locked->update(['status' => 'cancelled']);
+
+            return $locked->refresh();
+        });
+
         Storage::disk('local')->deleteDirectory('chunks/'.$session->upload_id);
-        $session->update(['status' => 'cancelled']);
 
         if ($session->target === 'teaser') {
-            $course = Course::query()->find($session->target_id);
-            if ($course) {
-                $course->update([
-                    'teaser_status' => filled($course->teaser_path) ? 'ready' : 'none',
-                    'teaser_error' => null,
-                ]);
-            }
+            DB::transaction(function () use ($session): void {
+                $course = Course::query()->whereKey($session->target_id)->lockForUpdate()->first();
+
+                if (! $course) {
+                    return;
+                }
+
+                $hasActiveUpload = VideoUploadSession::query()
+                    ->where('target', 'teaser')
+                    ->where('target_id', $course->id)
+                    ->where('status', 'uploading')
+                    ->where('expires_at', '>', now())
+                    ->exists();
+
+                if (! $hasActiveUpload && $course->teaser_status === 'uploading') {
+                    $course->update([
+                        'teaser_status' => filled($course->teaser_path)
+                            ? 'ready'
+                            : (filled($course->teaser_original_path) ? 'failed' : 'none'),
+                        'teaser_error' => filled($course->teaser_path) ? null : $course->teaser_error,
+                    ]);
+                }
+            });
         }
 
         return response()->json(['ok' => true]);
