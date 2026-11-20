@@ -288,6 +288,7 @@
   @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
     <x-admin.modal :demo="false" id="course-resource-modal" title="افزودن جزوه یا فایل" size="lg" :action="route('admin.resources.store')">
       <input type="hidden" name="course_id" value="{{ $course->id }}">
+      <input type="hidden" name="downloadable" value="1">
       <x-admin.input label="نام فایل" name="title" wide required placeholder="مثلاً جزوه فصل اول"/>
       <x-admin.textarea label="توضیح کوتاه برای دانش‌آموز" name="description" wide/>
       <x-admin.select label="نوع فایل" name="kind" :options="['pdf' => 'PDF', 'book' => 'کتاب یا جزوه', 'other' => 'سایر فایل‌ها']" :selected="'pdf'" required/>
@@ -303,7 +304,6 @@
       <x-admin.select label="چه کسانی ببینند؟" name="visibility" :options="['enrolled' => 'دانش‌آموزان ثبت‌نام‌شده', 'public' => 'همه بازدیدکنندگان']" :selected="'enrolled'" data-resource-visibility required/>
       <p class="adm-muted adm-grid-note">فایلی که به یک کلاس مشخص وصل شود فقط برای اعضای مجاز همان کلاس نمایش داده می‌شود.</p>
       <x-admin.input label="زمان نمایش (اختیاری)" name="release_at" type="datetime-local"/>
-      <x-admin.switch label="امکان دریافت فایل" name="downloadable" :checked="true"/>
       <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'published'" required/>
     </x-admin.modal>
   @endif
