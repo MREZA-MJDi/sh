@@ -87,7 +87,7 @@
       @endcanany
       @php $hasWork = $hasWork || $pendingConsultations > 0; @endphp
       @if($pendingConsultations > 0)
-        <a class="adm-work-item" data-tone="comm" href="{{ route('admin.consultations.index') }}"><span><x-admin.icon name="chat"/></span><div><b>درخواست مشاوره جدید</b><small>برای درخواست‌ها زمان‌بندی تعیین کن</small></div><strong>{{ number_format($pendingConsultations) }}</strong></a>
+        <a class="adm-work-item" data-tone="comm" href="{{ route('admin.consultations.index') }}"><span><x-admin.icon name="chat"/></span><div><b>درخواست‌های مشاوره جدید</b><small>برای درخواست‌ها زمان‌بندی تعیین کن</small></div><strong>{{ number_format($pendingConsultations) }}</strong></a>
       @endif
       @if(($publishedAnnouncementCount ?? 0) > 0)
         @php $hasWork = true; @endphp
