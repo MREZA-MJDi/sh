@@ -5,7 +5,7 @@
 <div class="parent-page-heading"><div><span class="parent-eyebrow">پشتیبانی آموزشی</span><h1>درخواست مشاوره جدید</h1><p>نوع درخواست و اطلاعات تماس را با دقت وارد کنید.</p></div></div>
 @include('parent.partials.kid-picker')
 <section class="c">
-    <form method="POST" action="{{ route('guardian.consultations.store') }}">
+    <form method="POST" action="{{ route('guardian.consultations.store') }}" class="parent-simple-form">
         @csrf
         <label>فرزند</label>
         <select name="student_id" required>
