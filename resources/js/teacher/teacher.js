@@ -161,7 +161,7 @@ import '../shared/iranian-locale.js';
   var searchClear = $('#teacherSearchClear');
   var searchStatus = $('#teacherSearchResults');
   var searchableSelector = '.row, .teacher-list-card, .teacher-review-row, .teacher-live-session-card, .teacher-inbox-item, .teacher-week-event';
-  var searchableItems = $(searchableSelector);
+  var searchableItems = $(searchableSelector).filter(function (el) { return !el.parentElement.closest(searchableSelector); });
   var updatePageSearch = function () {
     if (!sr) return;
     var q = sr.value.trim().toLocaleLowerCase();
