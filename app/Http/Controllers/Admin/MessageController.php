@@ -52,6 +52,7 @@ class MessageController extends Controller
         $partner = $selected
             ? ((int) $selected->sender_id === (int) $request->user()->id ? $selected->recipient : $selected->sender)
             : null;
+        $selectedRole = $partner?->roles?->first()?->name ?? 'user';
 
         $notes = $selected
             ? MessageInternalNote::query()->with('author:id,name')
