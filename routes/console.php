@@ -1,6 +1,6 @@
 <?php
 
-use App\\Models\\Course;
+use App\\Jobs\\Learning\\ProcessTeaserVideo;\nuse App\\Models\\Course;
 use App\\Models\\VideoUploadSession;
 use Illuminate\\Foundation\\Inspiring;
 use Illuminate\\Support\\Facades\\Artisan;
@@ -69,3 +69,20 @@ Schedule::call(function (): void {
             }
         });
 })->everyTenMinutes()->name('prune-expired-video-upload-sessions')->withoutOverlapping();
+
+
+/*
+ * Recover jobs that were committed as processing but could not be enqueued
+ * after a transient queue/database failure. Unique jobs prevent duplicates.
+ */
+Schedule::call(function (): void {
+    Course::query()
+        ->where('teaser_status', 'processing')
+        ->whereNotNull('teaser_original_path')
+        ->orderBy('id')
+        ->chunkById(50, function ($courses): void {
+            foreach ($courses as $course) {
+                ProcessTeaserVideo::dispatch($course->id, $course->teaser_original_path)->onConnection('video')->onQueue('video');
+            }
+        });
+})->everyFiveMinutes()->name('recover-stalled-teaser-processing')->withoutOverlapping();
