@@ -8,7 +8,9 @@ use App\Models\Course;
 use App\Models\Role;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
+use App\Jobs\Learning\FinalizeChunkUpload;
 use App\Jobs\Learning\ProcessCourseRecordingVideo;
+use App\Services\SpotPlayer\SpotPlayerVideoService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -74,8 +76,16 @@ final class SpotPlayerChunkUploadTest extends TestCase
             'filename' => 'lesson-one.mp4',
         ])->assertOk()->assertJsonPath('status', 'processing');
 
-        $video = SpotPlayerVideo::query()->findOrFail($complete->json('video_id'));
+        $session = \App\Models\VideoUploadSession::query()->where('upload_id', $uploadId)->firstOrFail();
+        $this->assertNull($complete->json('video_id'));
+        $this->assertSame('processing', $session->status);
+        Queue::assertPushed(FinalizeChunkUpload::class);
 
+        (new FinalizeChunkUpload($session->id))->handle(app(SpotPlayerVideoService::class));
+        $session->refresh();
+        $video = SpotPlayerVideo::query()->findOrFail($session->metadata['result_video_id']);
+
+        $this->assertSame('completed', $session->status);
         $this->assertSame('processing', $video->status);
         Queue::assertPushed(ProcessCourseRecordingVideo::class, fn ($job) => $job->videoId === $video->id);
         $this->assertSame($classroom->id, $video->classroom_id);
