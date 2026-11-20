@@ -68,3 +68,11 @@ body:has(.teacher-sidebar) #teacherMain{display:flex;flex-direction:column;gap:2
 [data-course-upload] [data-upload-bar]{display:block;height:100%;background:var(--pri);border-radius:999px;transition:width .2s}
 @media(max-width:900px){.teacher-focus-items{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.teacher-focus-items{grid-template-columns:1fr}}
+
+.teacher-global-search{position:relative}
+.teacher-search-links{position:absolute;top:calc(100% + 8px);inset-inline:0;z-index:60;display:grid;gap:4px;padding:10px;border:1px solid var(--ln);border-radius:13px;background:var(--sf);box-shadow:0 14px 38px #10102025;max-height:min(55vh,420px);overflow:auto}
+.teacher-search-links[hidden]{display:none}
+.teacher-search-links strong{font-size:11px;color:var(--mu);padding:4px 6px}
+.teacher-search-links a{padding:9px;border-radius:9px;color:var(--tx);text-decoration:none;font-size:13px}
+.teacher-search-links a:hover,.teacher-search-links a:focus-visible{background:var(--ps);color:var(--pri);outline-color:var(--pri)}
+.teacher-search-links a[hidden]{display:none}
