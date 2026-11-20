@@ -15,7 +15,7 @@
             <button class="b s" type="submit">فیلتر</button><a class="b s" href="{{ route('teacher.messages.index') }}">پاک‌کردن</a>
         </form>
         @forelse ($conversations as $conversation)
-            <a class="teacher-inbox-item {{ $selectedMessage?->id === $conversation->id ? 'is-active' : '' }}" href="{{ route('teacher.messages.index', ['message' => $conversation->id]) }}">
+            <a class="teacher-inbox-item {{ $selectedMessage?->id === $conversation->id ? 'is-active' : '' }}" href="{{ route('teacher.messages.index', array_filter(['message' => $conversation->id, 'q' => $filters['q'] ?? null, 'status' => $filters['status'] ?? null, 'page' => $conversations->currentPage()])) }}">
                 <span class="teacher-inbox-avatar">{{ mb_substr($conversation->student?->name ?? $conversation->sender?->name ?? 'م', 0, 1) }}</span>
                 <span class="teacher-inbox-copy"><strong>{{ $conversation->subject ?: 'بدون موضوع' }}</strong><small>{{ $conversation->student?->name ?? $conversation->sender?->name }} · {{ $conversation->created_at?->format('Y/m/d H:i') }}</small></span>
                 <i class="bd {{ $conversation->status === 'open' ? 'am' : 'gn' }}">{{ $conversation->status === 'open' ? 'باز' : ($conversation->status === 'answered' ? 'پاسخ‌داده‌شده' : 'بسته') }}</i>
