@@ -25,7 +25,7 @@
             <label>توضیحات</label>
             <textarea name="message" rows="3" maxlength="2000" placeholder="توضیحات تکمیلی (اختیاری)">{{ old('message') }}</textarea>
             <label>زمان پیشنهادی</label>
-            <input type="datetime-local" name="preferred_at" min="{{ now()->addMinute()->format('Y-m-d\TH:i') }}">
+            <input type="datetime-local" name="preferred_at" value="{{ old('preferred_at') }}" min="{{ now()->addMinute()->format('Y-m-d\TH:i') }}">
             <button class="b" type="submit">ارسال درخواست</button>
         </form>
     </section>
