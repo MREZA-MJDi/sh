@@ -161,3 +161,24 @@
 @media(max-width:380px){
   .adm-stats{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Re-declare the dark palette after the experience tokens so theme switching stays intact. */
+[data-theme=dark]{
+  --bg:#0b1220;--surface:#131d31;--surface-2:#18243c;--surface-3:#1d2b47;
+  --ink:#e8edf7;--ink-2:#c3cce0;--muted:#97a3b8;--line:#243350;--line-strong:#33456a;
+  --primary:#8aa5ff;--primary-hover:#a3b8ff;--primary-ink:#0b1220;--primary-soft:#1f2d54;
+  --ok:#5fd3a8;--ok-soft:#12382d;--warn:#f0b35a;--warn-soft:#41311a;
+  --bad:#ff8c9a;--bad-soft:#44222a;--info:#7fb2f0;--info-soft:#1a2f4d;
+  --side:#0a1222;--side-2:#070d19;--shadow:none;--shadow-pop:0 30px 80px -20px rgba(0,0,0,.7);
+}
+[data-theme=dark] [data-tone=users]{--tone:#f3a06a;--tone-soft:#3d2616}
+[data-theme=dark] [data-tone=edu]{--tone:#e8bd55;--tone-soft:#3a2f14}
+[data-theme=dark] [data-tone=track]{--tone:#38bdf8;--tone-soft:#123247}
+[data-theme=dark] [data-tone=comm]{--tone:#c084fc;--tone-soft:#2d2046}
+[data-theme=dark] [data-tone=shop]{--tone:#62c7b6;--tone-soft:#142f2c}
+[data-theme=dark] .adm-welcome{background:linear-gradient(115deg,#131d31 0%,#17233d 68%,#1d2b47 100%);border-color:#2a3b5c}
+[data-theme=dark] .adm-welcome::after{border-color:rgba(142,162,245,.12);box-shadow:0 0 0 28px rgba(142,162,245,.025),0 0 0 58px rgba(142,162,245,.02)}
+[data-theme=dark] .adm-rate-ring::before{background:#131d31}
+[data-theme=dark] .adm-action-tile:hover{border-color:#40557e}
+[data-theme=dark] .adm-week-track{background:#202d47}
+[data-theme=dark] .adm-roster-avatar{background:#1f2d54}
