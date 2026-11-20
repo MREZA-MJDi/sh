@@ -49,6 +49,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
         $outputDisk->makeDirectory(dirname($outputRelative));
         $outputPath = $outputDisk->path($outputRelative);
         $process = null;
+        $published = false;
 
         try {
             $process = new Process([
@@ -98,11 +99,15 @@ final class ProcessMediaAssetVideo implements ShouldQueue
                 'processed_at' => now(),
             ]);
 
+            $published = true;
+
             if ($asset->source_disk === 'local' && $asset->source_path !== $outputRelative) {
                 $disk->delete($asset->source_path);
             }
         } catch (Throwable $exception) {
-            $outputDisk->delete($outputRelative);
+            if (! $published) {
+                $outputDisk->delete($outputRelative);
+            }
             $diagnostic = trim((string) $process?->getErrorOutput());
 
             throw new RuntimeException(
