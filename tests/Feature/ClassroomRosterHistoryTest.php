@@ -133,10 +133,10 @@ final class ClassroomRosterHistoryTest extends TestCase
         ]);
 
         $this->assertTrue($classroom->fresh()->students()->whereKey($student->id)->exists());
-        $this->assertDatabaseHas('classroom_membership_history', [
+        $this->assertDatabaseMissing('classroom_membership_history', [
             'classroom_id' => $classroom->id,
             'student_id' => $student->id,
-            'removed_at' => null,
+            'removed_by' => $admin->id,
         ]);
     }
 
