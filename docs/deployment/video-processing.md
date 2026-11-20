@@ -11,13 +11,13 @@
 
 ## Worker
 
-Worker پردازش ویدیو باید صف `video` را مصرف کند:
+تمام Jobهای پردازش تریلر و ویدیوهای آموزشی از اتصال اختصاصی `video` و صف `video` استفاده می‌کنند؛ اجرای Worker روی اتصال پیش‌فرض کافی نیست:
 
 ```bash
-php artisan queue:work --queue=video,default --sleep=3 --tries=1 --timeout=3600
+php artisan queue:work video --queue=video --sleep=3 --tries=1 --timeout=3600
 ```
 
-این worker را زیر Supervisor یا systemd اجرا کنید و بعد از deploy/restart، وضعیت آن را بررسی کنید. زمان‌بندی Laravel نیز باید فعال باشد تا sessionهای آپلود منقضی‌شده و chunkهای باقی‌مانده را پاک کند؛ cron استاندارد `php artisan schedule:run` را هر دقیقه اجرا کنید. صرفاً قرار گرفتن Job در صف به معنی آماده‌شدن تیزر نیست؛ وضعیت دوره تا پایان پردازش `processing` می‌ماند و در صورت نبود ffmpeg یا خطای تبدیل به `failed` تغییر می‌کند.
+این Worker را زیر Supervisor یا systemd اجرا کنید و بعد از deploy/restart، وضعیت آن را بررسی کنید. زمان‌بندی Laravel نیز باید فعال باشد تا sessionهای آپلود منقضی‌شده و chunkهای باقی‌مانده را پاک کند؛ cron استاندارد `php artisan schedule:run` را هر دقیقه اجرا کنید. صرفاً قرار گرفتن Job در صف به معنی آماده‌شدن تیزر نیست؛ وضعیت دوره تا پایان پردازش `processing` می‌ماند و در صورت نبود ffmpeg یا خطای تبدیل به `failed` تغییر می‌کند.
 
 ## محدودیت‌ها
 
