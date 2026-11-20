@@ -207,6 +207,14 @@ final class FinalizeChunkUpload implements ShouldQueue
             return;
         }
 
+        $extension = strtolower(pathinfo((string) ($session->metadata['original_filename'] ?? ''), PATHINFO_EXTENSION));
+        if (in_array($extension, ['mp4', 'mov', 'mkv', 'webm', 'm4v'], true)) {
+            $directory = $session->target === 'teaser' ? 'uploads' : 'private/course-videos';
+            $disk = Storage::disk('local');
+            $disk->delete($directory.'/'.$session->upload_id.'.'.$extension);
+            $disk->delete($directory.'/'.$session->upload_id.'.'.$extension.'.assembling');
+        }
+
         $session->update([
             'status' => 'failed',
             'metadata' => [
