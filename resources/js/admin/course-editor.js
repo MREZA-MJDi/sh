@@ -253,12 +253,13 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         if (statusUrl) {
           for (let attempt = 0; attempt < 90; attempt++) {
             await sleep(2000);
-            const response = await fetch(statusUrl, {
-              credentials: 'same-origin',
-              headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-            });
-            if (!response.ok) break;
-            const state = await response.json();
+            let state;
+            try {
+              state = await jsonRequest(statusUrl, {upload_id: started.upload_id});
+            } catch (pollError) {
+              if (pollError.status && pollError.status < 500) throw pollError;
+              continue;
+            }
             if (state.status === 'ready') {
               if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
               setStatus('تریلر آماده نمایش است. صفحه در حال به‌روزرسانی است.');
