@@ -318,3 +318,5 @@
 .adm-modal-foot .adm-form-upload-feedback{flex-basis:100%;order:-1}
 
 .adm-grid-note{grid-column:1/-1;margin:0}
+
+.adm-calendar-today{font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap}
