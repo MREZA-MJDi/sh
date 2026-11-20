@@ -32,7 +32,7 @@
       <input type="hidden" name="delivery_type" value="onsite">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
-      <x-admin.panel title="۱. معرفی دوره" desc="این اطلاعات در صفحه‌ای که دانش‌آموز می‌بیند نمایش داده می‌شوند." data-tone="edu">
+      <x-admin.panel title="۱. سربرگ صفحه عمومی دوره" desc="این اطلاعات در صفحه‌ای که دانش‌آموز می‌بیند نمایش داده می‌شوند." data-tone="edu">
         <div class="adm-form">
           <x-admin.input label="عنوان اصلی دوره" name="title" :value="old('title', $course->title)" placeholder="مثلاً شیمی دوازدهم؛ آموزش مفهومی و مسئله‌محور" wide required/>
           <x-admin.input label="موضوع یا درس" name="subject" :value="old('subject', $course->subject)" placeholder="مثلاً شیمی، زیست‌شناسی، ریاضی"/>
@@ -66,7 +66,7 @@
         </div>
       </x-admin.panel>
 
-      <x-admin.panel title="۳. امکانات دوره" desc="فقط مواردی را روشن کن که واقعاً در این دوره ارائه می‌شوند." data-tone="edu">
+      <x-admin.panel title="۳. امکاناتی که دانش‌آموز در صفحه دوره می‌بیند" desc="فقط مواردی را روشن کن که واقعاً در این دوره ارائه می‌شوند." data-tone="edu">
         <div class="adm-form">
           @foreach($featureLabels as $key => $label)
             <x-admin.switch :label="$label" :name="'learning_features['.$key.']'" :checked="(bool) old('learning_features.'.$key, $course->featureEnabled($key))" wide/>
