@@ -19,7 +19,7 @@
     </a>
     <nav class="parent-sidebar-nav" aria-label="بخش‌های پنل اولیا">
         @foreach ($nav as [$routeName, $label, $icon, $path])
-            @php $active = request()->routeIs($routeName) || request()->is($path.'/*'); @endphp
+            @php $active = $path === 'parent' ? request()->is('parent') : (request()->routeIs($routeName) || request()->is($path.'/*')); @endphp
             <a href="{{ route($routeName) }}" class="{{ $active ? 'on' : '' }}" @if($active) aria-current="page" @endif>
                 <span class="parent-sidebar-icon" aria-hidden="true">{{ $icon }}</span><span>{{ $label }}</span>
             </a>
