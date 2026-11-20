@@ -199,6 +199,37 @@ class SpotPlayerController extends Controller
         return back()->with('success', 'پردازش دوباره ویدیو در صف قرار گرفت.');
     }
 
+    public function approveVideo(Request $request, SpotPlayerVideo $video): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('admin'), 403);
+        abort_unless($video->approval_status === 'pending', 409, 'این ویدیو دیگر در صف بررسی نیست.');
+
+        $video->forceFill([
+            'approval_status' => 'approved',
+            'reviewed_by' => $request->user()->id,
+            'reviewed_at' => now(),
+            'review_note' => null,
+        ])->save();
+
+        return back()->with('success', 'ویدیو تأیید شد. پس از آماده‌شدن پردازش، برای دانش‌آموزان مجاز قابل مشاهده خواهد بود.');
+    }
+
+    public function rejectVideo(Request $request, SpotPlayerVideo $video): RedirectResponse
+    {
+        abort_unless($request->user()->hasRole('admin'), 403);
+        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:2000']]);
+        abort_unless($video->approval_status === 'pending', 409, 'این ویدیو دیگر در صف بررسی نیست.');
+
+        $video->forceFill([
+            'approval_status' => 'rejected',
+            'reviewed_by' => $request->user()->id,
+            'reviewed_at' => now(),
+            'review_note' => trim($data['reason']),
+        ])->save();
+
+        return back()->with('success', 'ویدیو رد شد و دلیل بررسی ثبت شد.');
+    }
+
     public function requestLicense(RequestSpotPlayerLicenseRequest $request, SpotPlayerService $spotPlayer): RedirectResponse
     {
         $data = $request->validated();
