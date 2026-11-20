@@ -948,3 +948,25 @@ button.b,a.b,.sel a{cursor:pointer}.b:disabled{opacity:.5;cursor:not-allowed}
 }
 @media(max-width:420px){.parent-topbar{padding-inline:9px}.parent-nav-toggle{padding-inline:8px}.parent-global-search{flex-basis:100%}.parent-profile-trigger{padding-inline:5px}}
 @media(prefers-reduced-motion:reduce){.parent-sidebar,.parent-palette button{transition:none}}
+
+.parent-inbox-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,.7fr);gap:8px;margin:12px 0;padding:10px;border:1px solid var(--ln);border-radius:12px;background:var(--bg)}
+.parent-inbox-filters label{min-width:0}
+.parent-inbox-filters input,.parent-inbox-filters select{width:100%;min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--ln);border-radius:9px;background:var(--sf);color:var(--tx);font:inherit}
+.parent-inbox-filters .b,.parent-inbox-filters a{min-height:40px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.parent-inbox-filters .b{grid-column:1/-1;justify-self:start}
+.parent-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.parent-section-heading h3,.parent-section-heading p{margin:0}
+.parent-section-heading p,.parent-form-intro,.parent-thread-note{color:var(--mu);font-size:12px}
+.parent-thread-note{padding:9px 11px;border-radius:9px;background:var(--ams)}
+.parent-form-intro{margin:0 0 12px}
+.parent-resource-card{display:flex;flex-direction:column;gap:10px}
+.parent-resource-card .b{align-self:flex-start;margin-top:auto;text-decoration:none}
+.parent-resource-card form label{font-size:12px;font-weight:700}
+.parent-resource-card p{color:var(--mu);font-size:12px}
+.parent-resource-card .tag{padding:8px;border-radius:9px;background:var(--bg);color:var(--mu);font-size:11px}
+.parent-pagination nav{position:static;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 0;margin-top:14px;border-top:1px solid var(--ln)}
+.parent-pagination nav a,.parent-pagination nav span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:34px;padding:5px 10px;border:1px solid var(--ln);border-radius:9px;background:var(--sf);color:var(--tx);text-decoration:none;font-size:12px}
+.parent-pagination nav [aria-current=page] span{background:var(--pri);border-color:var(--pri);color:#fff}
+.parent-alert{line-height:1.9}
+.parent-alert ul{margin:6px 0 0;padding-inline-start:22px}
+@media(max-width:650px){.parent-inbox-filters{grid-template-columns:1fr}.parent-inbox-filters .b{grid-column:auto}.parent-pagination nav{justify-content:center}}
