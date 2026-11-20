@@ -17,7 +17,7 @@ final class ConsultationController extends Controller
     {
         $consultations = Consultation::query()
             ->where('requester_id', $request->user()->id)
-            ->with(['student:id,name', 'replies.sender:id,name'])
+            ->with('student:id,name')
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -48,8 +48,10 @@ final class ConsultationController extends Controller
         User::query()
             ->where('is_active', true)
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
-            ->get()
-            ->each(fn (User $admin) => $admin->notify(new ConsultationRequestNotification($consultation)));
+            ->orderBy('id')
+            ->chunkById(100, fn ($admins) => $admins->each(
+                fn (User $admin) => $admin->notify(new ConsultationRequestNotification($consultation))
+            ));
 
         return redirect()
             ->route('teacher.consultations.index')
