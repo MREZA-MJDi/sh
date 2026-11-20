@@ -14,6 +14,9 @@
     'projects' => 'پروژه و ارزیابی مرحله‌ای',
   ];
   $formAction = $isEditing ? route('admin.courses.update', $course) : route('admin.courses.store');
+  $classTeacherOptions = $teachers->pluck('name', 'id')->all();
+  $classDayOptions = ['sat' => 'شنبه', 'sun' => 'یکشنبه', 'mon' => 'دوشنبه', 'tue' => 'سه‌شنبه', 'wed' => 'چهارشنبه', 'thu' => 'پنجشنبه', 'fri' => 'جمعه'];
+  $classStatusOptions = ['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی'];
 @endphp
 
 <x-admin.page-head tone="edu" icon="book" :title="$isEditing ? 'ویرایش صفحه دوره' : 'ساخت دوره جدید'"
@@ -190,6 +193,16 @@
               $next = $classroom->sessions->first();
               $scheduleDays = data_get($classroom->schedule, 'days', []);
               $scheduleLabel = collect($scheduleDays)->map(fn ($day) => \App\Support\PersianDate::weekdayName($day))->join('، ');
+              $classFill = [
+                'name' => $classroom->name,
+                'course_id' => (string) $course->id,
+                'teacher_id' => (string) $classroom->teacher_id,
+                'meeting_url' => $classroom->meeting_url,
+                'status' => $classroom->status,
+                'schedule_days' => $scheduleDays,
+                'schedule_time' => data_get($classroom->schedule, 'time'),
+                'duration_minutes' => data_get($classroom->schedule, 'duration_minutes', 90),
+              ];
             @endphp
             <article class="adm-card">
               <div class="adm-card-body">
@@ -208,6 +221,7 @@
                   <p class="adm-muted">هنوز جلسه آینده‌ای برنامه‌ریزی نشده است.</p>
                 @endif
                 <div class="adm-actions">
+                  <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="course-class-edit-{{ $classroom->id }}" data-title="ویرایش کلاس" :data-fill="json_encode($classFill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش کلاس</x-admin.btn>
                   <x-admin.btn size="sm" icon="plus" data-modal-open="quick-session-{{ $classroom->id }}">جلسه جدید</x-admin.btn>
                   <x-admin.btn size="sm" variant="soft" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
                   <x-admin.btn size="sm" variant="line" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
@@ -262,18 +276,13 @@
 @push('modals')
 @if($isEditing)
   <x-admin.modal :demo="false" id="course-class-modal" title="ساخت کلاس جدید" size="lg" :action="route('admin.classes.store')">
-    <input type="hidden" name="course_id" value="{{ $course->id }}">
-    <input type="hidden" name="status" value="active">
-    <x-admin.input label="نام کلاس" name="name" wide required placeholder="مثلاً کلاس آنلاین شیمی دوازدهم"/>
-    <x-admin.select label="مدرس کلاس" name="teacher_id" :options="$teachers->pluck('name', 'id')->all()" :selected="$course->teacher_id" placeholder="انتخاب مدرس" required/>
-    <x-admin.input label="لینک جلسه (اختیاری)" name="meeting_url" wide placeholder="اگر لینک ثابتی داری اینجا وارد کن"/>
-    <x-admin.legend title="روزها و ساعت معمول کلاس"/>
-    <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="['sat' => 'شنبه', 'sun' => 'یکشنبه', 'mon' => 'دوشنبه', 'tue' => 'سه‌شنبه', 'wed' => 'چهارشنبه', 'thu' => 'پنجشنبه', 'fri' => 'جمعه']" hint="روزهای معمول کلاس را انتخاب کن."/>
-    <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
-    <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" :value="90" addon="دقیقه"/>
-  <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
-    <x-admin.legend title="دانش‌آموزان کلاس"/>
-    <x-admin.chips label="انتخاب دانش‌آموزان" name="student_ids" :options="$students->pluck('name', 'id')->all()" scroll hint="می‌توانی فعلاً خالی بگذاری و بعداً اعضا را اضافه کنی."/>
+    @include('admin.classes.partials.class-fields', [
+      'fixedCourseId' => $course->id,
+      'teacherOptions' => $classTeacherOptions,
+      'days' => $classDayOptions,
+      'statusOptions' => $classStatusOptions,
+      'studentOptions' => $students->pluck('name', 'id')->all(),
+    ])
   </x-admin.modal>
 
   @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
@@ -300,6 +309,27 @@
   @endif
 
   @foreach($classrooms as $classroom)
+    @php
+      $classScheduleDays = data_get($classroom->schedule, 'days', []);
+      $classFill = [
+        'name' => $classroom->name,
+        'course_id' => (string) $course->id,
+        'teacher_id' => (string) $classroom->teacher_id,
+        'meeting_url' => $classroom->meeting_url,
+        'status' => $classroom->status,
+        'schedule_days' => $classScheduleDays,
+        'schedule_time' => data_get($classroom->schedule, 'time'),
+        'duration_minutes' => data_get($classroom->schedule, 'duration_minutes', 90),
+      ];
+    @endphp
+    <x-admin.modal :demo="false" :id="'course-class-edit-'.$classroom->id" title="ویرایش کلاس" size="lg" :action="route('admin.classes.update', $classroom)" method="PATCH">
+      @include('admin.classes.partials.class-fields', [
+        'fixedCourseId' => $course->id,
+        'teacherOptions' => $classTeacherOptions,
+        'days' => $classDayOptions,
+        'statusOptions' => $classStatusOptions,
+      ])
+    </x-admin.modal>
     <x-admin.modal :demo="false" :id="'quick-session-'.$classroom->id" title="برنامه‌ریزی جلسه برای کلاس" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
       @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => now()->setTime(9, 0)->format('Y-m-d\\TH:i')])
     </x-admin.modal>
