@@ -12,6 +12,8 @@ use App\Services\SpotPlayer\UnavailableSpotPlayerGateway;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +27,18 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        foreach ([
+            'start' => 20,
+            'resume' => 60,
+            'status' => 120,
+            'chunk' => 1800,
+            'complete' => 30,
+            'cancel' => 20,
+        ] as $name => $limit) {
+            RateLimiter::for("upload-{$name}", fn ($request) => Limit::perMinute($limit)
+                ->by("upload-{$name}:".($request->user()?->id ?? $request->ip())));
+        }
+
         Auth::provider('legacy-aware-eloquent', function ($app, array $config): LegacyAwareUserProvider {
             return new LegacyAwareUserProvider($app['hash'], $config['model']);
         });

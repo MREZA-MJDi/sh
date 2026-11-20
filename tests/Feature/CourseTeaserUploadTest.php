@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\Learning\FinalizeChunkUpload;
 use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
 use App\Models\Role;
@@ -86,6 +87,13 @@ final class CourseTeaserUploadTest extends TestCase
             'filename' => 'course-teaser.mp4',
         ])->assertOk()->assertJsonPath('status', 'processing');
 
+        $this->assertDatabaseHas('courses', ['id' => $course->id, 'teaser_status' => 'uploading']);
+        $this->assertDatabaseHas('video_upload_sessions', ['upload_id' => $uploadId, 'status' => 'processing']);
+        Queue::assertPushed(FinalizeChunkUpload::class);
+
+        $session = VideoUploadSession::query()->where('upload_id', $uploadId)->firstOrFail();
+        (new FinalizeChunkUpload($session->id))->handle(app(\App\Services\SpotPlayer\SpotPlayerVideoService::class));
+
         $this->assertDatabaseHas('courses', ['id' => $course->id, 'teaser_status' => 'processing']);
         $this->assertDatabaseHas('video_upload_sessions', ['upload_id' => $uploadId, 'status' => 'completed']);
         $this->assertNotEmpty($course->fresh()->teaser_original_path);
@@ -139,7 +147,7 @@ final class CourseTeaserUploadTest extends TestCase
         Storage::disk('local')->assertMissing("chunks/{$uploadId}/0.part");
     }
 
-    public function test_failed_teaser_finalization_preserves_chunks_for_recovery(): void
+    public function test_failed_teaser_finalization_preserves_chunks_without_publishing_a_broken_file(): void
     {
         $admin = $this->admin();
         $course = $this->course();
@@ -163,15 +171,25 @@ final class CourseTeaserUploadTest extends TestCase
             'upload_id' => $uploadId,
             'total' => 1,
             'filename' => 'course-teaser.mp4',
-        ])->assertUnprocessable();
+        ])->assertOk()->assertJsonPath('status', 'processing');
+
+        $session = VideoUploadSession::query()->where('upload_id', $uploadId)->firstOrFail();
+        $job = new FinalizeChunkUpload($session->id);
+        try {
+            $job->handle(app(\App\Services\SpotPlayer\SpotPlayerVideoService::class));
+            $this->fail('Invalid teaser content should fail during queued finalization.');
+        } catch (\RuntimeException $exception) {
+            $job->failed($exception);
+        }
 
         $this->assertDatabaseHas('video_upload_sessions', [
             'upload_id' => $uploadId,
-            'status' => 'uploading',
+            'status' => 'failed',
             'bytes_uploaded' => strlen($payload),
         ]);
         Storage::disk('local')->assertExists("chunks/{$uploadId}/0.part");
-        $this->assertSame('uploading', $course->fresh()->teaser_status);
+        Storage::disk('local')->assertMissing("uploads/{$uploadId}.mp4");
+        $this->assertSame('failed', $course->fresh()->teaser_status);
     }
 
     public function test_teaser_upload_rejects_files_larger_than_200_mb_before_creating_a_session(): void

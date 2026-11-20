@@ -3,6 +3,7 @@
 namespace App\Jobs\Learning;
 
 use App\Models\SpotPlayerVideo;
+use RuntimeException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -21,8 +22,13 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 1;
+    public int $tries = 3;
     public int $timeout = 3600;
+
+    public function backoff(): array
+    {
+        return [30, 120, 300];
+    }
 
     public function __construct(public readonly int $videoId)
     {
@@ -40,12 +46,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         $disk = Storage::disk('local');
 
         if (! $disk->exists($video->file_path)) {
-            $video->update([
-                'status' => 'failed',
-                'processing_error' => 'فایل مبدأ در فضای خصوصی پیدا نشد.',
-            ]);
-
-            return;
+            throw new RuntimeException('فایل مبدأ در فضای خصوصی پیدا نشد.');
         }
 
         $sourcePath = $disk->path($video->file_path);
@@ -54,6 +55,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         $outputPath = $disk->path($outputRelativePath);
 
         $process = null;
+        $published = false;
         try {
             $process = new Process([
                 'ffmpeg',
@@ -105,22 +107,22 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
             ]);
 
             // Keep the source until the database points at the verified MP4.
+            $published = true;
             $disk->delete($sourceRelativePath);
         } catch (Throwable $exception) {
-            $disk->delete($outputRelativePath);
+            if (! $published) {
+                $disk->delete($outputRelativePath);
+            }
             $diagnostic = trim((string) $process?->getErrorOutput());
             $error = $diagnostic !== '' ? $diagnostic : $exception->getMessage();
 
-            $video->update([
-                'status' => 'failed',
-                'processing_error' => mb_substr($error, 0, 1000),
-            ]);
+            throw new RuntimeException($error, 0, $exception);
         }
     }
 
     public function failed(Throwable $exception): void
     {
-        SpotPlayerVideo::query()->whereKey($this->videoId)->update([
+        SpotPlayerVideo::query()->whereKey($this->videoId)->where('status', 'processing')->update([
             'status' => 'failed',
             'processing_error' => mb_substr($exception->getMessage(), 0, 1000),
         ]);

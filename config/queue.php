@@ -44,12 +44,27 @@ return [
             'after_commit' => false,
         ],
         'video' => [
-            'driver' => 'database',
-            'connection' => null,
+            'driver' => env('VIDEO_QUEUE_DRIVER', 'redis'),
+            'connection' => env('VIDEO_QUEUE_DRIVER', 'redis') === 'redis'
+                ? env('VIDEO_REDIS_QUEUE_CONNECTION', 'default')
+                : (env('VIDEO_QUEUE_DATABASE_CONNECTION') ?: null),
             'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
             'queue' => env('VIDEO_QUEUE', 'video'),
-            'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3700),
-            'after_commit' => false,
+            'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 3900),
+            'block_for' => 5,
+            'after_commit' => true,
+        ],
+
+        'upload-finalization' => [
+            'driver' => env('UPLOAD_FINALIZATION_QUEUE_DRIVER', 'redis'),
+            'connection' => env('UPLOAD_FINALIZATION_QUEUE_DRIVER', 'redis') === 'redis'
+                ? env('VIDEO_REDIS_QUEUE_CONNECTION', 'default')
+                : (env('VIDEO_QUEUE_DATABASE_CONNECTION') ?: null),
+            'table' => env('VIDEO_QUEUE_TABLE', 'video_jobs'),
+            'queue' => env('UPLOAD_FINALIZATION_QUEUE', 'upload-finalize'),
+            'retry_after' => (int) env('UPLOAD_FINALIZATION_RETRY_AFTER', 1200),
+            'block_for' => 5,
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [
@@ -78,7 +93,7 @@ return [
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 3700),
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'deferred' => [

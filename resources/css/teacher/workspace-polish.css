@@ -1,0 +1,44 @@
+/* Teacher workspace polish — scoped to the teacher portal. */
+:root{
+  --teacher-layout-width:1440px;
+  --teacher-layout-gap:20px;
+}
+body:has(.teacher-sidebar) .app{
+  width:min(100%,var(--teacher-layout-width));
+  grid-template-columns:minmax(230px,260px) minmax(0,1fr);
+  gap:var(--teacher-layout-gap);
+  padding:24px clamp(14px,2vw,28px);
+  align-items:start;
+}
+body:has(.teacher-sidebar) #teacherMain{min-width:0;display:grid;gap:18px;align-content:start}
+.teacher-sidebar{position:sticky;top:calc(var(--teacher-topbar-height,72px) + 16px);max-height:calc(100dvh - var(--teacher-topbar-height,72px) - 32px);overflow:auto}
+.teacher-sidebar-nav a{transition:background-color .15s ease,border-color .15s ease,color .15s ease}
+.teacher-sidebar-nav a:not(.on):hover{background:var(--sf);border-color:var(--ln)}
+.teacher-page-head{margin-bottom:0}
+.teacher-dashboard-hero{gap:18px}
+.teacher-stat-grid{gap:14px}
+.teacher-action-grid{gap:12px}
+.teacher-section-head{min-width:0}
+.teacher-section-head a{white-space:nowrap}
+.teacher-week-calendar{min-width:0}
+.teacher-week-day{min-width:0}
+.teacher-week-event{overflow-wrap:anywhere}
+.teacher-sidebar-footer{margin-top:auto}
+.teacher-sidebar{display:flex;flex-direction:column}
+.teacher-sidebar-nav{flex:1}
+.teacher-page-head,.teacher-dashboard-hero,.teacher-section-head{scroll-margin-top:100px}
+@media(max-width:760px){
+ body:has(.teacher-sidebar) .app{width:100%;grid-template-columns:minmax(0,1fr);gap:14px;padding:14px 12px 24px}
+ .teacher-sidebar{position:fixed;top:calc(var(--teacher-topbar-height,106px) + env(safe-area-inset-top,0px));max-height:none;bottom:0}
+ body:has(.teacher-sidebar) #teacherMain{gap:14px}
+ .teacher-dashboard-hero{align-items:flex-start}
+ .teacher-section-head{align-items:flex-start}
+}
+@media(max-width:520px){
+ .teacher-dashboard-hero{padding:14px}
+ .teacher-dashboard-identity{align-items:flex-start}
+ .teacher-section-head a{white-space:normal}
+}
+@media(prefers-reduced-motion:reduce){
+ .teacher-sidebar-nav a{transition:none}
+}
