@@ -56,7 +56,9 @@ final class CourseTeaserUploadTest extends TestCase
         $this->assertDatabaseHas('courses', ['id' => $course->id, 'teaser_status' => 'processing']);
         $this->assertDatabaseHas('video_upload_sessions', ['upload_id' => $uploadId, 'status' => 'completed']);
         $this->assertNotEmpty($course->fresh()->teaser_original_path);
-        Queue::assertPushed(ProcessTeaserVideo::class, fn ($job) => $job->courseId === $course->id);
+        Queue::assertPushed(ProcessTeaserVideo::class, fn ($job) => $job->courseId === $course->id
+            && $job->connection === 'video'
+            && $job->queue === 'video');
     }
 
     public function test_teaser_upload_rejects_files_larger_than_200_mb_before_creating_a_session(): void
