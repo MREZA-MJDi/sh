@@ -56,7 +56,7 @@ final class ClassroomRosterHistoryTest extends TestCase
             'schedule_days' => [],
             'schedule_time' => null,
             'duration_minutes' => 90,
-            'student_ids' => [],
+            'student_ids_present' => '1',
         ]);
 
         $this->assertDatabaseMissing('classroom_student', [
