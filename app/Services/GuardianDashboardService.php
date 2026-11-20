@@ -30,7 +30,7 @@ final class GuardianDashboardService
      * active linked child, and an account without linked children receives
      * empty collections.
      */
-    public function build(User $guardian, ?int $selectedChildId = null): array
+    public function build(User $guardian, ?int $selectedChildId = null, ?string $attendanceMonthKey = null): array
     {
         $children = $guardian->children()
             ->where('users.is_active', true)
@@ -150,11 +150,14 @@ final class GuardianDashboardService
             ->get();
 
         $currentMonth = JalaliDate::fromGregorian(now());
-        $jalaliMonthStart = JalaliDate::toGregorian($currentMonth['year'], $currentMonth['month'], 1);
+        [$attendanceYear, $attendanceMonth] = $attendanceMonthKey
+            ? array_map('intval', explode('-', $attendanceMonthKey))
+            : [$currentMonth['year'], $currentMonth['month']];
+        $jalaliMonthStart = JalaliDate::toGregorian($attendanceYear, $attendanceMonth, 1);
         $jalaliMonthEnd = JalaliDate::toGregorian(
-            $currentMonth['year'],
-            $currentMonth['month'],
-            JalaliDate::daysInMonth($currentMonth['year'], $currentMonth['month'])
+            $attendanceYear,
+            $attendanceMonth,
+            JalaliDate::daysInMonth($attendanceYear, $attendanceMonth)
         );
 
         $attendanceCalendar = (clone $attendanceQuery)
