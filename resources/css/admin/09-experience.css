@@ -185,3 +185,11 @@
 
 .adm-attendance-counts{padding-bottom:12px}
 .adm-roster-card>.adm-input{grid-column:1/-1}
+
+.adm-integration-review{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding-top:12px;border-top:1px solid var(--line)}
+.adm-integration-review .adm-stack{gap:8px}
+.adm-integration-review textarea{min-height:68px}
+.adm-integration-revoke{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+@media(max-width:520px){
+  .adm-integration-review,.adm-integration-revoke{grid-template-columns:minmax(0,1fr)}
+}
