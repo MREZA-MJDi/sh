@@ -28,7 +28,7 @@ class MessageController extends Controller
         $base = $workspace->queryFor($request->user())
             ->with(['sender:id,name,email,phone,avatar_path', 'sender.roles:id,name',
                 'recipient:id,name,email,phone,avatar_path', 'recipient.roles:id,name',
-                'student:id,name', 'replies.sender:id,name']);
+                'student:id,name', 'replies.sender:id,name', 'replies.sender.roles:id,name']);
 
         $term = trim((string) ($filters['q'] ?? ''));
         $messages = (clone $base)
@@ -36,7 +36,8 @@ class MessageController extends Controller
                 $search->where('subject', 'like', "%{$term}%")
                     ->orWhere('body', 'like', "%{$term}%")
                     ->orWhereHas('sender', fn ($sender) => $sender->where('name', 'like', "%{$term}%"))
-                    ->orWhereHas('recipient', fn ($recipient) => $recipient->where('name', 'like', "%{$term}%"));
+                    ->orWhereHas('recipient', fn ($recipient) => $recipient->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('replies', fn ($replies) => $replies->where('body', 'like', "%{$term}%"));
             }))
             ->when(($filters['status'] ?? '') === 'closed', fn ($query) => $query->whereNotNull('closed_at'))
             ->when(($filters['status'] ?? '') !== '' && ($filters['status'] ?? '') !== 'closed', fn ($query) => $query->whereNull('closed_at')->where('status', $filters['status']))
@@ -47,7 +48,7 @@ class MessageController extends Controller
             : $messages->first();
 
         if ($selected) {
-            $selected->loadMissing(['sender.roles', 'recipient.roles', 'student', 'replies.sender']);
+            $selected->loadMissing(['sender.roles', 'recipient.roles', 'student', 'replies.sender.roles']);
         }
 
         $partner = $selected
