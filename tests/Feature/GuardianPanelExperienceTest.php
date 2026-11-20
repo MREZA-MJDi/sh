@@ -61,6 +61,12 @@ final class GuardianPanelExperienceTest extends TestCase
             ->assertDontSee(route('guardian.resources.index'))
             ->assertDontSee(route('guardian.messages.index'))
             ->assertDontSee(route('guardian.consultations.index'));
+
+        $this->actingAs($guardian)->get(route('guardian.attendance'))->assertForbidden();
+        $this->actingAs($guardian)->get(route('guardian.exams'))->assertForbidden();
+        $this->actingAs($guardian)->get(route('guardian.homework'))->assertForbidden();
+        $this->actingAs($guardian)->get(route('guardian.messages.index'))->assertForbidden();
+        $this->actingAs($guardian)->get(route('guardian.consultations.index'))->assertForbidden();
     }
 
     public function test_parent_list_pages_render_empty_paginators_when_no_child_is_linked(): void
