@@ -62,7 +62,7 @@ final class PortalController extends Controller
         $videos = $visibleClassrooms->flatMap(fn ($classroom) => $classroom->spotPlayerVideos);
         $resources = $visibleClassrooms->flatMap(fn ($classroom) => $classroom->learningResources);
 
-        return view('teacher.classes', compact('classrooms', 'videos', 'resources'));
+        return view('teacher.classes', compact('classrooms', 'videos', 'resources', 'filters'));
     }
 
     public function homework(Request $request, ClassroomWorkspaceService $workspace): View
