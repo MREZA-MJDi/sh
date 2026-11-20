@@ -1,19 +1,35 @@
 @php
-    $teacherNotifications = auth()->user()?->unreadNotifications()->latest()->limit(6)->get() ?? collect();
-    $teacherUnreadCount = auth()->user()?->unreadNotifications()->count() ?? 0;
+    $teacherUser = auth()->user();
+    $teacherNotifications = $teacherUser?->unreadNotifications()->latest()->limit(6)->get() ?? collect();
+    $teacherUnreadCount = $teacherUser?->unreadNotifications()->count() ?? 0;
 @endphp
-<header class="top">
-    <div class="logo">آکادمی <span>شیخان</span></div>
-    <div class="dots">
-        <button type="button" style="background:#4f46e5" data-pal="" aria-label="رنگ‌بندی پیش‌فرض"></button>
-        <button type="button" style="background:#0f9d74" data-pal="g" aria-label="رنگ‌بندی سبز"></button>
-        <button type="button" style="background:#e0572f" data-pal="o" aria-label="رنگ‌بندی نارنجی"></button>
+<header class="top" data-teacher-topbar>
+    <button type="button" class="ic teacher-nav-toggle" id="teacherNavToggle" aria-controls="teacherSidebar" aria-expanded="false" aria-label="باز کردن منوی اصلی">
+        <span aria-hidden="true">☰</span><span class="teacher-nav-toggle-label">منو</span>
+    </button>
+    <a class="logo" href="{{ route('teacher.dashboard') }}" aria-label="داشبورد مدرس">آکادمی <span>شیخان</span></a>
+
+    <div class="dots teacher-palette" role="group" aria-label="انتخاب رنگ پنل">
+        <button type="button" data-pal="" aria-label="رنگ‌بندی بنفش" aria-pressed="true" title="بنفش"></button>
+        <button type="button" data-pal="g" aria-label="رنگ‌بندی سبز" aria-pressed="false" title="سبز"></button>
+        <button type="button" data-pal="o" aria-label="رنگ‌بندی نارنجی" aria-pressed="false" title="نارنجی"></button>
     </div>
-    <input class="sr" id="globalSearch" type="search" placeholder="جستجو در همین صفحه…" aria-label="جستجو در همین صفحه" autocomplete="off">
-    <details class="notification-menu">
-        <summary class="ic" aria-label="اعلان‌ها">🔔 @if($teacherUnreadCount > 0)<sup>{{ $teacherUnreadCount }}</sup>@endif</summary>
-        <div class="notification-pop">
-            <strong>اعلان‌های خوانده‌نشده</strong>
+
+    <label class="teacher-global-search">
+        <span class="sr-only">جست‌وجو در محتوای همین صفحه</span>
+        <input class="sr" id="globalSearch" type="search" placeholder="جستجو در همین صفحه…" autocomplete="off" aria-controls="teacherSearchResults" aria-describedby="teacherSearchHint">
+        <span id="teacherSearchHint" class="sr-only">نتایج جست‌وجو فقط در اطلاعات بارگذاری‌شده همین صفحه بررسی می‌شوند.</span>
+        <button type="button" class="teacher-search-clear" id="teacherSearchClear" aria-label="پاک کردن جست‌وجو" hidden>×</button>
+    </label>
+    <span id="teacherSearchResults" class="sr-only" role="status" aria-live="polite"></span>
+
+    <details class="notification-menu teacher-menu">
+        <summary class="ic" aria-label="اعلان‌ها، {{ $teacherUnreadCount }} اعلان خوانده‌نشده" title="اعلان‌ها">
+            <span aria-hidden="true">🔔</span>
+            @if($teacherUnreadCount > 0)<sup>{{ $teacherUnreadCount > 99 ? '۹۹+' : $teacherUnreadCount }}</sup>@endif
+        </summary>
+        <div class="notification-pop" aria-label="فهرست اعلان‌ها">
+            <div class="teacher-menu-heading"><strong>اعلان‌های خوانده‌نشده</strong><span>{{ $teacherUnreadCount }}</span></div>
             @forelse($teacherNotifications as $notification)
                 <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
                     @csrf @method('PATCH')
@@ -24,21 +40,38 @@
                     </button>
                 </form>
             @empty
-                <p>اعلان خوانده‌نشده‌ای ندارید.</p>
+                <p class="teacher-menu-empty">اعلان خوانده‌نشده‌ای ندارید.</p>
             @endforelse
             @if($teacherUnreadCount > 0)
-                <form method="POST" action="{{ route('notifications.read-all') }}">@csrf @method('PATCH')<button type="submit" class="notification-read-all">خواندن همه</button></form>
+                <form method="POST" action="{{ route('notifications.read-all') }}">@csrf @method('PATCH')<button type="submit" class="notification-read-all">خواندن همه اعلان‌ها</button></form>
             @endif
         </div>
     </details>
-    <button type="button" class="ic" id="themeToggle" aria-label="تم تیره و روشن">◐</button>
-    <details class="ic" style="position:relative;cursor:pointer"><summary aria-label="پروفایل" style="list-style:none;width:38px;height:38px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--pri);color:#fff">
-      @if(auth()->user()->avatarUrl())<img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()->name }}" style="width:100%;height:100%;object-fit:cover">@else{{ mb_substr(auth()->user()->name,0,1) }}@endif
-    </summary><form method="POST" action="{{ route('profile.avatar.update') }}" enctype="multipart/form-data" style="position:absolute;z-index:20;top:44px;left:0;background:var(--card,#fff);padding:12px;border:1px solid var(--ln);border-radius:12px;min-width:190px">
-      @csrf<label style="font-size:12px;display:grid;gap:8px">تغییر عکس پروفایل<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required onchange="this.form.submit()"></label>
-    </form></details>
-    <form method="POST" action="{{ route('logout') }}" class="logout-form">
-        @csrf
-        <button type="submit" class="logout-btn"><span aria-hidden="true">↪</span> خروج</button>
-    </form>
+
+    <button type="button" class="ic" id="themeToggle" aria-label="فعال‌سازی تم تیره" aria-pressed="false" title="تغییر پوسته">◐</button>
+
+    <details class="teacher-profile-menu teacher-menu">
+        <summary class="teacher-profile-trigger" aria-label="منوی حساب کاربری" title="حساب کاربری">
+            <span class="teacher-profile-avatar">
+                @if($teacherUser?->avatarUrl())
+                    <img src="{{ $teacherUser->avatarUrl() }}" alt="">
+                @else
+                    {{ mb_substr((string) $teacherUser?->name, 0, 1) }}
+                @endif
+            </span>
+            <span class="teacher-profile-name">{{ $teacherUser?->name }}</span>
+            <span aria-hidden="true">⌄</span>
+        </summary>
+        <div class="teacher-profile-pop">
+            <a href="{{ route('teacher.profile.edit') }}">ویرایش پروفایل</a>
+            <form method="POST" action="{{ route('profile.avatar.update') }}" enctype="multipart/form-data">
+                @csrf
+                <label class="teacher-avatar-upload">تغییر تصویر پروفایل
+                    <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required>
+                </label>
+                <button type="submit" class="teacher-avatar-submit">بارگذاری تصویر</button>
+            </form>
+            <form method="POST" action="{{ route('logout') }}" class="teacher-profile-logout">@csrf<button type="submit">خروج از حساب</button></form>
+        </div>
+    </details>
 </header>
