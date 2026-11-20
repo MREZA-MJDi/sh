@@ -14,7 +14,7 @@
 <section class="adm-welcome" aria-labelledby="dashboard-title">
   <div class="adm-welcome-copy">
     <span class="adm-welcome-kicker">مرکز فرماندهی آکادمی</span>
-    <h1 id="dashboard-title">سلام {{ auth()->user()?->name ?? 'مدیر عزیز' }}، روزت بخیر</h1>
+    <h1 id="dashboard-title">سلام {{ auth()->user()?->name ?? 'مدیر عزیز' }}، خوش اومدی</h1>
     <p>وضعیت امروز آکادمی را یک‌جا ببین و کارهای مهم را بدون گشتن بین منوها انجام بده.</p>
     <div class="adm-welcome-actions">
       @can('courses.manage')
