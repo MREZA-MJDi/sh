@@ -46,7 +46,7 @@
                 <p class="parent-thread-note">برای سبک ماندن گفتگو، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>
             @endif
             @if (auth()->user()->hasPermissionTo('messages.send.own') && !in_array($selectedMessage->status, ['closed','deleted'], true))
-                <form class="teacher-thread-reply" method="POST" action="{{ route('guardian.messages.reply', $selectedMessage) }}">@csrf<textarea name="body" required maxlength="30000" placeholder="پیام خود را بنویسید…"></textarea><button class="b" type="submit">ارسال پیام</button></form>
+                <form class="teacher-thread-reply" method="POST" action="{{ route('guardian.messages.reply', $selectedMessage) }}">@csrf<textarea name="body" required maxlength="30000" placeholder="پیام خود را بنویسید…">{{ old('body') }}</textarea><button class="b" type="submit">ارسال پیام</button></form>
             @endif
         @else
             <div class="teacher-inbox-placeholder"><strong>یک گفت‌وگو را انتخاب کنید</strong><p>پیام‌ها و پاسخ‌ها در این بخش نمایش داده می‌شوند.</p></div>
