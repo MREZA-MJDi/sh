@@ -97,7 +97,7 @@ class Course extends Model
         }
 
         return match ($feature) {
-            'recorded_video' => $this->delivery_type === 'spotplayer',
+            'recorded_video' => true,
             'live_class' => $this->delivery_type === 'skyroom',
             'resources', 'assignments', 'exams' => true,
             'projects' => false,
