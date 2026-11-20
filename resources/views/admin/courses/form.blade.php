@@ -83,7 +83,7 @@
     </form>
 
     @if($isEditing)
-      <x-admin.panel title="۴. ویدیوی معرفی دوره" desc="این ویدیو بالای صفحه دوره نمایش داده می‌شود. اگر اینترنت قطع شود، بارگذاری از همان‌جا ادامه پیدا می‌کند." data-tone="shop">
+      <x-admin.panel title="۴. ویدیوی معرفی / تریلر دوره" desc="این ویدیو بالای صفحه دوره نمایش داده می‌شود. اگر اینترنت قطع شود، بارگذاری از همان‌جا ادامه پیدا می‌کند." data-tone="shop">
         @if($course->teaser_status === 'ready')
           <video controls preload="metadata" style="display:block;width:100%;max-height:360px;border-radius:14px;background:#0f172a" src="{{ route('admin.courses.teaser', $course) }}"></video>
         @elseif($course->teaser_status === 'processing')
