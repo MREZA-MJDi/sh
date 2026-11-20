@@ -8,6 +8,7 @@ use App\Models\HomeQuizQuestion;
 use App\Models\CourseEnrollment;
 use App\Models\ClassSession;
 use App\Models\Lesson;
+use App\Models\LearningResource;
 use App\Models\SeoArticle;
 use App\Models\SeoBanner;
 use App\Models\SeoSetting;
