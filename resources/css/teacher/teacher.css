@@ -1186,3 +1186,7 @@ nav[role="navigation"] span[aria-current="page"]{background:var(--pri);border-co
 @media(prefers-reduced-motion:reduce){
   .teacher-sidebar,.teacher-palette button{transition:none}
 }
+
+.teacher-sidebar .teacher-sidebar-nav{position:static;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.teacher-sidebar .teacher-sidebar-nav a{display:flex;align-items:center;min-width:0}
+@media(max-width:760px){.teacher-sidebar .teacher-sidebar-nav{position:static;display:flex;flex-direction:column;align-items:stretch}}
