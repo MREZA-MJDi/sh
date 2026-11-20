@@ -14,7 +14,7 @@
     @endforeach
     @if (($consultation->replies_count ?? 0) > $consultation->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
     @if (auth()->user()->hasPermissionTo('consultations.create') && !in_array($consultation->status, ['done', 'cancelled'], true))
-        <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}">
+        <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}" class="parent-simple-form">
             @csrf
             <label>پیام جدید</label>
             <textarea name="body" required minlength="2" maxlength="5000">{{ old('body') }}</textarea>
