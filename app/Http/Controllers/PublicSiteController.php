@@ -284,11 +284,12 @@ final class PublicSiteController extends Controller
         abort_unless($course->featureEnabled('recorded_video'), 404);
 
         $courseVideo = SpotPlayerVideo::query()
-            ->where('approval_status', 'approved')
             ->where('id', $video)
             ->where('course_id', $course->id)
             ->where('status', 'active')
             ->firstOrFail();
+
+        abort_unless($courseVideo->approval_status === 'approved', 403);
 
         if ($courseVideo->classroom_id) {
             abort_unless(
