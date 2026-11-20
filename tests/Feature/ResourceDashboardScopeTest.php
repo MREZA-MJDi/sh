@@ -65,6 +65,44 @@ final class ResourceDashboardScopeTest extends TestCase
             ->assertDontSee('جزوه ناسازگار نباید نمایش داده شود');
     }
 
+    public function test_parent_resource_page_is_paginated_for_large_resource_lists(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $parent = $this->userWithRole('parent');
+        $parent->children()->attach($student->id);
+
+        $course = $this->courseFor($teacher, 'parent-resource-pagination');
+        $classroom = $this->classroomFor($teacher, $course, 'کلاس منابع');
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        for ($index = 1; $index <= 13; $index++) {
+            LearningResource::query()->create([
+                'course_id' => $course->id,
+                'classroom_id' => $classroom->id,
+                'uploaded_by' => $teacher->id,
+                'title' => 'منبع والدین '.$index,
+                'kind' => 'pdf',
+                'price' => 0,
+                'is_free' => true,
+                'visibility' => 'enrolled',
+                'status' => 'published',
+            ]);
+        }
+
+        $this->actingAs($parent)
+            ->get(route('guardian.resources.index'))
+            ->assertOk()
+            ->assertSee('منبع والدین 1')
+            ->assertDontSee('منبع والدین 13');
+
+        $this->actingAs($parent)
+            ->get(route('guardian.resources.index', ['resources' => 2]))
+            ->assertOk()
+            ->assertSee('منبع والدین 13');
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
