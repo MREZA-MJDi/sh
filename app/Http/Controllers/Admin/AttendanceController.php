@@ -43,6 +43,17 @@ class AttendanceController extends Controller
         $selectedDate = $this->resolveDate($request->query('date'));
         $date = $this->formatJalaliDate($selectedDate);
         $dateIso = $selectedDate->format('Y-m-d');
+        $jalaliParts = JalaliDate::fromGregorian($selectedDate);
+        $calendarStart = JalaliDate::toGregorian($jalaliParts['year'], $jalaliParts['month'], 1)->startOfDay();
+        $calendarEnd = $calendarStart->addDays(JalaliDate::daysInMonth($jalaliParts['year'], $jalaliParts['month']) - 1)->endOfDay();
+        $calendarSessions = $classroom
+            ? ClassSession::query()
+                ->where('classroom_id', $classroom->id)
+                ->whereBetween('starts_at', [$calendarStart, $calendarEnd])
+                ->where('status', '!=', 'cancelled')
+                ->get(['id', 'classroom_id', 'starts_at', 'status'])
+            : collect();
+        $calendar = JalaliCalendar::make($selectedDate, $calendarSessions);
 
         $sessions = $classroom
             ? ClassSession::query()
@@ -120,6 +131,7 @@ class AttendanceController extends Controller
             'classroom',
             'date',
             'dateIso',
+            'calendar',
             'sessions',
             'session',
             'roster',
