@@ -42,17 +42,9 @@
     <section class="c"><h3>فیلم‌های ضبط‌شده</h3>
         @forelse ($videos as $video)
             <div class="row"><div>{{ $video->title ?? 'ویدئوی کلاس' }}<small>{{ $video->created_at?->format('Y/m/d') }}</small></div>
-                @php
-                    $videoStatus = $video->approval_status === 'pending'
-                        ? ['در انتظار تأیید', 'am']
-                        : match ($video->status) {
-                            'active' => ['آماده پخش', 'gn'],
-                            'processing' => ['در حال پردازش', 'bl'],
-                            'failed' => ['خطا در پردازش', 'rd'],
-                            'waiting_contract' => ['در انتظار اتصال سرویس', 'am'],
-                            default => ['در حال بررسی', 'am'],
-                        };
-                @endphp
+                @php($videoStatus = $video->approval_status === 'pending'
+                    ? ['در انتظار تأیید', 'am']
+                    : (['active' => ['آماده پخش', 'gn'], 'processing' => ['در حال پردازش', 'bl'], 'failed' => ['خطا در پردازش', 'rd'], 'waiting_contract' => ['در انتظار اتصال سرویس', 'am']][$video->status] ?? ['در حال بررسی', 'am']))
                 <i class="bd {{ $videoStatus[1] }}">{{ $videoStatus[0] }}</i>
             </div>
         @empty
