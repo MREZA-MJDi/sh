@@ -10,6 +10,7 @@
    <div class="m {{ $reply->sender_id === auth()->id() ? 'me2' : '' }}">{{ $reply->sender?->name }}: {{ $reply->body }}</div>
   @endforeach
  </div>
+ @if (($message->replies_count ?? 0) > $message->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
  @if (!in_array($message->status, ['closed','deleted'], true))
   <form method="POST" action="{{ route('guardian.messages.reply', $message) }}" class="send">@csrf<textarea name="body" required maxlength="30000" placeholder="پاسخ شما"></textarea><button class="b" type="submit">ارسال پاسخ</button></form>
  @endif
