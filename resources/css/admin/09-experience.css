@@ -197,3 +197,112 @@
 .adm-match-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .adm-match-form .adm-label{min-width:0}
 @media(max-width:520px){.adm-match-form{grid-template-columns:minmax(0,1fr)}}
+
+/* Persian month calendar: visual day selection with compact session markers. */
+.adm-attendance-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.adm-attendance-calendar-head>.adm-label{width:min(360px,100%)}
+.adm-calendar-month{display:flex;align-items:center;gap:16px}
+.adm-calendar-month strong{min-width:130px;text-align:center;font-size:16px}
+.adm-calendar-month a{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:22px;line-height:1}
+.adm-calendar-month a:hover{border-color:var(--primary);color:var(--primary)}
+.adm-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.adm-calendar-weekday{display:grid;place-items:center;padding:8px 0;color:var(--muted);font-size:11px;font-weight:800}
+.adm-calendar-blank{min-height:78px}
+.adm-calendar-day{position:relative;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px 3px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);transition:border-color .15s,background .15s,transform .15s}
+.adm-calendar-day:hover{border-color:var(--primary);background:var(--primary-soft);transform:translateY(-1px)}
+.adm-calendar-day b{font-size:15px;font-variant-numeric:tabular-nums}
+.adm-calendar-day small{font-size:10px;color:var(--muted)}
+.adm-calendar-day small.is-empty{opacity:.45}
+.adm-calendar-day.is-today{border-color:var(--gold)}
+.adm-calendar-day.is-selected{border:2px solid var(--primary);background:var(--primary-soft);color:var(--primary)}
+.adm-calendar-day.is-selected small{color:var(--primary)}
+.adm-calendar-dots{display:flex;gap:4px;min-height:6px}
+.adm-calendar-dots i,.adm-calendar-legend i{width:6px;height:6px;display:inline-block;border-radius:50%;background:var(--line-strong)}
+.adm-calendar-dots i[data-state=completed],.adm-calendar-legend i[data-state=completed]{background:var(--ok)}
+.adm-calendar-dots i[data-state=scheduled],.adm-calendar-legend i[data-state=scheduled]{background:var(--info)}
+.adm-calendar-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:11px}
+.adm-calendar-legend span{display:flex;align-items:center;gap:7px}
+.adm-calendar-legend i[data-state=none]{background:var(--line-strong)}
+.adm-attendance-selected-date{display:grid;gap:2px;align-content:center}
+.adm-attendance-selected-date b{font-size:15px;color:var(--ink)}
+.adm-attendance-selected-date small{font-size:11px;color:var(--muted)}
+
+/* Daily session agenda: time, topic, and next action are visible together. */
+.adm-session-agenda{display:grid;gap:10px;padding:16px}
+.adm-session-card{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:15px;align-items:center;padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}
+.adm-session-card[data-state=completed]{border-inline-start:4px solid var(--ok)}
+.adm-session-card[data-state=scheduled]{border-inline-start:4px solid var(--info)}
+.adm-session-card[data-state=cancelled]{border-inline-start:4px solid var(--warn);opacity:.8}
+.adm-session-time{display:grid;gap:3px;justify-items:center;padding:10px 6px;border-radius:11px;background:var(--surface-2)}
+.adm-session-time strong{font-size:18px;font-variant-numeric:tabular-nums}
+.adm-session-time small{font-size:10px;color:var(--muted)}
+.adm-session-copy{display:grid;gap:5px;min-width:0}
+.adm-session-copy .adm-card-title{align-items:center}
+.adm-session-copy h3{font-size:14px}
+.adm-session-copy p{font-size:11px;color:var(--muted)}
+.adm-history-panel{border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
+.adm-history-panel>summary{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;list-style:none}
+.adm-history-panel>summary::-webkit-details-marker{display:none}
+.adm-history-panel>summary span:first-child{display:grid;gap:3px}
+.adm-history-panel>summary b{font-size:13px}
+.adm-history-panel>summary small{font-size:11px;color:var(--muted)}
+.adm-history-count{font-size:12px;color:var(--muted)}
+.adm-history-panel[open]>summary{border-bottom:1px solid var(--line)}
+
+/* Course workspace: curriculum, classes, and file uploads share one visual language. */
+.adm-curriculum{display:grid;gap:12px;padding:16px}
+.adm-chapter{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.adm-chapter-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;background:var(--surface-2)}
+.adm-chapter-no{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--tone-soft);color:var(--tone);font-weight:800}
+.adm-chapter-head h3{font-size:14px;font-weight:800}
+.adm-chapter-head p{font-size:11px;margin-top:4px}
+.adm-chapter-body{display:grid;padding-inline:14px}
+.adm-lesson{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.adm-lesson-ico{width:34px;height:34px;display:grid;place-items:center;flex:none;border-radius:10px;background:var(--primary-soft);color:var(--primary)}
+.adm-lesson b{display:block;font-size:12px}
+.adm-lesson p{font-size:11px;margin-top:4px}
+.adm-curriculum-empty{padding:16px;border:1px dashed var(--line-strong);border-radius:12px;color:var(--muted);font-size:12px;text-align:center;background:var(--surface-2)}
+.adm-course-class-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.adm-course-class-grid .adm-card{min-width:0}
+
+/* Clear drop targets for video, image and document uploads. */
+.adm-upload{position:relative;display:grid;justify-items:center;gap:7px;min-height:132px;padding:20px;border:1.5px dashed var(--line-strong);border-radius:15px;background:var(--surface-2);text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.adm-upload:hover,.adm-upload.is-drag{border-color:var(--primary);background:var(--primary-soft)}
+.adm-upload.has-file{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
+.adm-upload input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.adm-upload b{font-size:13px;color:var(--ink)}
+.adm-upload small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.adm-upload-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:var(--primary-soft);color:var(--primary)}
+.adm-upload-icon .adm-icon{width:21px;height:21px}
+.adm-upload-wide{grid-column:1/-1}
+.adm-upload-actions{margin-top:12px}
+.adm-video-upload-preview{display:grid;gap:8px}
+.adm-video-upload-preview video{width:100%;max-height:320px;aspect-ratio:16/9;object-fit:contain}
+.adm-image-preview{margin-top:12px;max-width:100%;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:var(--surface-2)}
+.adm-image-preview img{display:block;width:100%;max-height:260px;aspect-ratio:var(--adm-preview-ratio,16/9);object-fit:cover}
+.adm-image-preview-meta{display:flex;gap:8px 14px;flex-wrap:wrap;padding:8px 10px;color:var(--muted);font-size:11px}
+.adm-image-preview-meta strong{color:var(--ink)}
+.adm-upload input:focus-visible{outline:2px solid var(--primary);outline-offset:4px}
+
+@media(max-width:860px){
+  .adm-session-card{grid-template-columns:64px minmax(0,1fr)}
+  .adm-session-card>.adm-actions{grid-column:1/-1;justify-content:flex-start}
+  .adm-course-class-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:520px){
+  .adm-calendar-grid{gap:4px}
+  .adm-calendar-day{min-height:62px;border-radius:9px}
+  .adm-calendar-day b{font-size:13px}
+  .adm-calendar-day small{font-size:9px}
+  .adm-calendar-blank{min-height:62px}
+  .adm-calendar-month strong{font-size:14px}
+  .adm-attendance-calendar-head{align-items:stretch}
+  .adm-session-agenda{padding:10px}
+  .adm-session-card{grid-template-columns:56px minmax(0,1fr);gap:10px;padding:11px}
+  .adm-session-time strong{font-size:16px}
+  .adm-chapter-head>.adm-actions{width:100%}
+  .adm-chapter-head>.adm-actions .adm-btn{flex:1}
+  .adm-lesson{flex-wrap:wrap}
+  .adm-lesson>.adm-actions{width:100%;justify-content:flex-end}
+  .adm-history-panel>summary{padding:13px}
+}
