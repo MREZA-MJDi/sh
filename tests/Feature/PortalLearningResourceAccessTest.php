@@ -190,6 +190,43 @@ class PortalLearningResourceAccessTest extends TestCase
         ]);
     }
 
+    public function test_public_course_resource_appears_on_course_page_and_can_be_downloaded(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره با جزوه عمومی',
+            'slug' => 'public-resource-course-'.uniqid(),
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+            'learning_features' => ['resources' => true],
+        ]);
+
+        $resource = LearningResource::query()->create([
+            'course_id' => $course->id,
+            'uploaded_by' => $teacher->id,
+            'title' => 'جزوه رایگان فصل اول',
+            'kind' => 'pdf',
+            'is_free' => true,
+            'price' => 0,
+            'visibility' => 'public',
+            'file_path' => 'private/resources/public-course-guide.pdf',
+            'status' => 'published',
+        ]);
+        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 public course guide');
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('جزوه‌ها و فایل‌های این دوره')
+            ->assertSee('جزوه رایگان فصل اول');
+
+        $this->get(route('public.resources.download', $resource))->assertOk();
+    }
+
     public function test_public_visibility_does_not_bypass_course_or_class_membership(): void
     {
         [, , , $resource] = $this->makePublishedResourceForStudent();
