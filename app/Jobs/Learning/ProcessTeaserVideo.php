@@ -50,22 +50,27 @@ class ProcessTeaserVideo implements ShouldQueue
         $video = "{$dir}/{$name}.mp4";
         $poster = "{$dir}/{$name}.jpg";
 
+        $process = null;
         try {
-            (new Process([
+            $process = new Process([
                 'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', $input,
-                '-vf', 'scale=-2:min(720\,ih)',
+                '-vf', 'scale=-2:min(720\\,ih)',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26',
                 '-c:a', 'aac', '-b:a', '96k',
                 '-movflags', '+faststart',
                 $public->path($video),
-            ]))->setTimeout(3300)->mustRun();
+            ]);
+            $process->setTimeout(3300)->mustRun();
+
             clearstatcache(true, $public->path($video));
             if (! is_file($public->path($video)) || filesize($public->path($video)) < 1) {
-                throw new \RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+                throw new \\RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
             }
         } catch (Throwable $e) {
             $public->delete($video);
-            $course->update(['teaser_status' => 'failed', 'teaser_error' => mb_substr($e->getMessage(), 0, 500)]);
+            $diagnostic = trim((string) $process?->getErrorOutput());
+            $error = $diagnostic !== '' ? $diagnostic : $e->getMessage();
+            $course->update(['teaser_status' => 'failed', 'teaser_error' => mb_substr($error, 0, 500)]);
             return;
         }
 
