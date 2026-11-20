@@ -155,6 +155,10 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
                 }
             }
 
+            if (! $hasPoster) {
+                $public->delete($posterTemp);
+            }
+
             $oldVideo = null;
             $oldPoster = null;
             $published = DB::transaction(function () use (
