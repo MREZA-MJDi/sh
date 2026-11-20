@@ -85,8 +85,8 @@ class Course extends Model
     }
 
     /**
-     * Backward-compatible feature policy: explicit matrix values always win;
-     * legacy courses retain their former delivery defaults until configured.
+     * Explicit feature-matrix values always win. Recorded videos are a
+     * first-class learning feature and do not depend on the delivery provider.
      */
     public function featureEnabled(string $feature): bool
     {
