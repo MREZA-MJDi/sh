@@ -194,16 +194,31 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
                 return;
             }
 
-            // The database now points at the validated output; only now reclaim old files.
+            // From this point the database references the new validated files.
+            // Cleanup failures must never roll back the publication by deleting them.
+            $published = true;
+
             foreach ([$oldVideo, $oldPoster] as $oldPath) {
-                if ($oldPath && ! in_array($oldPath, [$video, $poster], true)) {
+                if (! $oldPath || in_array($oldPath, [$video, $poster], true)) {
+                    continue;
+                }
+
+                try {
                     $public->delete($oldPath);
+                } catch (Throwable $cleanupException) {
+                    report($cleanupException);
                 }
             }
 
-            $local->delete($sourcePath);
+            try {
+                $local->delete($sourcePath);
+            } catch (Throwable $cleanupException) {
+                report($cleanupException);
+            }
         } catch (Throwable $exception) {
-            $public->delete([$videoTemp, $video, $posterTemp, $poster]);
+            if (! ($published ?? false)) {
+                $public->delete([$videoTemp, $video, $posterTemp, $poster]);
+            }
 
             throw $exception;
         }
@@ -211,15 +226,19 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
 
     public function failed(Throwable $exception): void
     {
-        $query = Course::query()->whereKey($this->courseId);
-
-        if ($this->sourcePath) {
-            $query->where('teaser_original_path', $this->sourcePath);
+        // A legacy job without a source token cannot safely identify which
+        // upload it belongs to; never let it mark a newer upload as failed.
+        if (! $this->sourcePath) {
+            return;
         }
 
-        $query->update([
-            'teaser_status' => 'failed',
-            'teaser_error' => mb_substr($exception->getMessage(), 0, 500),
-        ]);
+        Course::query()
+            ->whereKey($this->courseId)
+            ->where('teaser_original_path', $this->sourcePath)
+            ->where('teaser_status', 'processing')
+            ->update([
+                'teaser_status' => 'failed',
+                'teaser_error' => mb_substr($exception->getMessage(), 0, 500),
+            ]);
     }
 }

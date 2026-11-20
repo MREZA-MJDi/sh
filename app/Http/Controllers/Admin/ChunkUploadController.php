@@ -81,7 +81,9 @@ final class ChunkUploadController extends Controller
                 $activeUpload = VideoUploadSession::query()
                     ->where('target', 'teaser')
                     ->where('target_id', $lockedCourse->id)
-                    ->where('status', 'uploading')
+                    // A completion request temporarily changes the session to
+                    // processing before it commits the course's processing state.
+                    ->whereIn('status', ['uploading', 'processing'])
                     ->where('expires_at', '>', now())
                     ->exists();
 
@@ -428,38 +430,78 @@ final class ChunkUploadController extends Controller
         abort_unless($session->status === 'uploading' && $session->expires_at->isFuture(), 410, 'نشست آپلود دیگر قابل ادامه نیست؛ یک آپلود تازه آغاز کنید.');
 
         $disk = Storage::disk('local');
-        $received = [];
-        $receivedChunkManifest = [];
-        $verifiedBytes = 0;
-        $chunkSize = (int) ($session->metadata['chunk_size_bytes'] ?? 0);
-        $totalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
+        $resumeState = DB::transaction(function () use ($session, $disk): array {
+            // Serialize reconciliation with chunk writes and completion.
+            $locked = VideoUploadSession::query()->whereKey($session->id)->lockForUpdate()->firstOrFail();
 
-        for ($index = 0; $index < $total; $index++) {
-            $path = "chunks/{$session->upload_id}/{$index}.part";
-            $expectedBytes = min($chunkSize, $totalBytes - ($index * $chunkSize));
+            if (in_array($locked->status, ['processing', 'completed'], true)) {
+                $total = (int) ($locked->metadata['total_chunks'] ?? 0);
 
-            if ($expectedBytes > 0 && $disk->exists($path) && $disk->size($path) === $expectedBytes) {
-                $received[] = $index;
-                $receivedChunkManifest[(string) $index] = $expectedBytes;
-                $verifiedBytes += $expectedBytes;
-            } elseif ($disk->exists($path)) {
-                // A truncated/partial chunk must be uploaded again, not skipped by the browser.
-                $disk->delete($path);
+                return [
+                    'session' => $locked,
+                    'received' => $total > 0 ? range(0, $total - 1) : [],
+                    'total' => $total,
+                    'chunk_size' => (int) ($locked->metadata['chunk_size_bytes'] ?? 0),
+                ];
             }
-        }
 
-        $session->update([
-            'bytes_uploaded' => $verifiedBytes,
-            'metadata' => [...($session->metadata ?? []), 'received_chunks' => $receivedChunkManifest],
-            'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
-        ]);
+            abort_unless($locked->status === 'uploading' && $locked->expires_at->isFuture(), 410,
+                'نشست آپلود دیگر قابل ادامه نیست؛ یک آپلود تازه آغاز کنید.');
+
+            $received = [];
+            $receivedChunkManifest = [];
+            $verifiedBytes = 0;
+            $chunkSize = (int) ($locked->metadata['chunk_size_bytes'] ?? 0);
+            $totalBytes = (int) ($locked->metadata['total_bytes'] ?? 0);
+            $total = (int) ($locked->metadata['total_chunks'] ?? 0);
+
+            for ($index = 0; $index < $total; $index++) {
+                $path = "chunks/{$locked->upload_id}/{$index}.part";
+                $expectedBytes = min($chunkSize, $totalBytes - ($index * $chunkSize));
+
+                if ($expectedBytes > 0 && $disk->exists($path) && $disk->size($path) === $expectedBytes) {
+                    $received[] = $index;
+                    $receivedChunkManifest[(string) $index] = $expectedBytes;
+                    $verifiedBytes += $expectedBytes;
+                } elseif ($disk->exists($path)) {
+                    // A truncated/partial chunk must be uploaded again, not skipped by the browser.
+                    $disk->delete($path);
+                }
+            }
+
+            $locked->update([
+                'bytes_uploaded' => $verifiedBytes,
+                'metadata' => [...($locked->metadata ?? []), 'received_chunks' => $receivedChunkManifest],
+                'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
+            ]);
+
+            return [
+                'session' => $locked->refresh(),
+                'received' => $received,
+                'total' => $total,
+                'chunk_size' => $chunkSize,
+            ];
+        });
+
+        $session = $resumeState['session'];
+
+        if (in_array($session->status, ['processing', 'completed'], true)) {
+            return response()->json([
+                'ok' => true,
+                'status' => $session->status,
+                'upload_id' => $session->upload_id,
+                'total_chunks' => $resumeState['total'],
+                'chunk_size_bytes' => $resumeState['chunk_size'],
+                'received_chunks' => $resumeState['received'],
+            ]);
+        }
 
         return response()->json([
             'ok' => true,
             'upload_id' => $session->upload_id,
-            'total_chunks' => $total,
-            'chunk_size_bytes' => (int) ($session->metadata['chunk_size_bytes'] ?? 0),
-            'received_chunks' => $received,
+            'total_chunks' => $resumeState['total'],
+            'chunk_size_bytes' => $resumeState['chunk_size'],
+            'received_chunks' => $resumeState['received'],
         ]);
     }
 

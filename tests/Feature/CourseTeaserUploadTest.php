@@ -6,6 +6,7 @@ use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\VideoUploadSession;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -25,6 +26,38 @@ final class CourseTeaserUploadTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
         Queue::fake();
+    }
+
+    public function test_new_teaser_upload_is_blocked_while_an_existing_session_is_finalizing(): void
+    {
+        $admin = $this->admin();
+        $course = $this->course();
+        $course->update(['teaser_status' => 'uploading']);
+
+        VideoUploadSession::query()->create([
+            'upload_id' => (string) \Illuminate\Support\Str::uuid(),
+            'user_id' => $admin->id,
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'status' => 'processing',
+            'bytes_uploaded' => 64,
+            'metadata' => [
+                'total_chunks' => 1,
+                'chunk_size_bytes' => 64,
+                'total_bytes' => 64,
+                'received_chunks' => ['0' => 64],
+            ],
+            'expires_at' => now()->addHour(),
+        ]);
+
+        $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'teaser',
+            'target_id' => $course->id,
+            'total_bytes' => 64,
+        ])->assertStatus(409);
+
+        $this->assertDatabaseCount('video_upload_sessions', 1);
+        $this->assertSame('uploading', $course->fresh()->teaser_status);
     }
 
     public function test_admin_can_upload_course_teaser_in_chunks_and_queue_processing(): void
