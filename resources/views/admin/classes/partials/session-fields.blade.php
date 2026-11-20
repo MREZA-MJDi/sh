@@ -9,7 +9,7 @@
 <x-admin.select label="وضعیت" name="status" :options="$sessionStatusOptions" :selected="'scheduled'" required/>
 <x-admin.input label="زمان شروع" name="starts_at" type="datetime-local" :value="$sessionDefaultDate" required/>
 <x-admin.input label="زمان پایان" name="ends_at" type="datetime-local"/>
-<p class="adm-muted" style="grid-column:1/-1">برای جلسه آنلاین، زمان پایان را هم وارد کن. برای جلسه حضوری نیازی به لینک ورود نیست.</p>
+<p class="adm-muted adm-grid-note">برای جلسه آنلاین، زمان پایان را هم وارد کن. برای جلسه حضوری نیازی به لینک ورود نیست.</p>
 <x-admin.select label="اتاق آنلاین" name="meeting_provider" :options="$sessionProviderOptions" :selected="'skyroom'"/>
 <x-admin.input label="لینک جلسه (اختیاری)" name="meeting_url" wide placeholder="https://..."/>
 <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
