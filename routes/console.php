@@ -1,6 +1,7 @@
 <?php
 
-use App\\Jobs\\Learning\\ProcessTeaserVideo;\nuse App\\Models\\Course;
+use App\Jobs\Learning\ProcessTeaserVideo;
+use App\Models\Course;
 use App\\Models\\VideoUploadSession;
 use Illuminate\\Foundation\\Inspiring;
 use Illuminate\\Support\\Facades\\Artisan;
