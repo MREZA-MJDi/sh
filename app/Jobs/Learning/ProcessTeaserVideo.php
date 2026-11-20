@@ -171,6 +171,7 @@ final class ProcessTeaserVideo implements ShouldQueue
                     'teaser_poster_path' => $hasPoster ? $poster : null,
                     'teaser_status' => 'ready',
                     'teaser_error' => null,
+                    'teaser_original_path' => null,
                 ]);
 
                 return true;
@@ -189,10 +190,6 @@ final class ProcessTeaserVideo implements ShouldQueue
             }
 
             $local->delete($sourcePath);
-            Course::query()
-                ->whereKey($this->courseId)
-                ->where('teaser_original_path', $sourcePath)
-                ->update(['teaser_original_path' => null]);
         } catch (Throwable $exception) {
             $public->delete([$videoTemp, $video, $posterTemp, $poster]);
 
