@@ -271,13 +271,21 @@ final class PortalController extends Controller
     public function live(Request $request, ClassroomWorkspaceService $workspace, SkyroomService $skyroom): View
     {
         $teacher = $request->user();
-        $assignedClassrooms = $workspace->queryFor($teacher)
-            ->where('status', 'active')
+        $filters = $request->validate([
+            'classroom_id' => ['nullable', 'integer'],
+            'provider' => ['nullable', Rule::in(['skyroom', 'jitsi', 'bbb', 'link'])],
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', Rule::in(['soonest', 'latest'])],
+        ]);
+        $assignedClassroomQuery = $workspace->queryFor($teacher)->where('status', 'active');
+        $assignedClassroomIds = (clone $assignedClassroomQuery)->select('classrooms.id');
+        $assignedClassrooms = (clone $assignedClassroomQuery)
             ->orderBy('name')
+            ->limit(100)
             ->get(['id', 'name']);
 
         $query = ClassSession::query()
-            ->whereIn('classroom_id', $assignedClassrooms->modelKeys())
+            ->whereIn('classroom_id', clone $assignedClassroomIds)
             ->where('session_type', 'online')
             ->where('status', 'scheduled')
             ->where(function ($window): void {
@@ -287,13 +295,20 @@ final class PortalController extends Controller
                     });
             });
 
-        if ($request->filled('classroom_id')) {
-            $query->where('classroom_id', $request->integer('classroom_id'))
-                ->whereIn('classroom_id', $assignedClassrooms->modelKeys());
+        if (filled($filters['classroom_id'] ?? null)) {
+            $query->where('classroom_id', (int) $filters['classroom_id'])
+                ->whereIn('classroom_id', clone $assignedClassroomIds);
         }
 
-        if ($request->filled('provider') && in_array($request->input('provider'), ['skyroom', 'jitsi', 'bbb', 'link'], true)) {
-            $query->where('meeting_provider', $request->input('provider'));
+        if (filled($filters['provider'] ?? null)) {
+            $query->where('meeting_provider', $filters['provider']);
+        }
+
+        if (filled($filters['q'] ?? null)) {
+            $query->where(function ($search) use ($filters): void {
+                $search->where('title', 'like', '%'.$filters['q'].'%')
+                    ->orWhereHas('classroom', fn ($classroom) => $classroom->where('name', 'like', '%'.$filters['q'].'%'));
+            });
         }
 
         $liveCount = (clone $query)
@@ -309,15 +324,13 @@ final class PortalController extends Controller
 
         $sessions = $query
             ->with('classroom:id,name,meeting_url,skyroom_room_id,skyroom_status')
-            ->orderBy('starts_at')
+            ->when(($filters['sort'] ?? 'soonest') === 'latest', fn ($query) => $query->orderByDesc('starts_at'))
+            ->when(($filters['sort'] ?? 'soonest') === 'soonest', fn ($query) => $query->orderBy('starts_at'))
             ->paginate(12)
             ->withQueryString();
 
         $skyroomHealth = $skyroom->health();
-        $filters = [
-            'classroom_id' => $request->integer('classroom_id') ?: null,
-            'provider' => $request->input('provider'),
-        ];
+        $filters['classroom_id'] = filled($filters['classroom_id'] ?? null) ? (int) $filters['classroom_id'] : null;
 
         return view('teacher.live', compact('sessions', 'skyroomHealth', 'assignedClassrooms', 'filters', 'liveCount', 'upcomingCount', 'waitingCount'));
     }
@@ -410,7 +423,15 @@ final class PortalController extends Controller
             : $conversations->getCollection()->first();
 
         if ($selectedMessage) {
-            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name']);
+            $latestReplies = $selectedMessage->replies()
+                ->with('sender:id,name')
+                ->latest()
+                ->limit(50)
+                ->get()
+                ->sortBy('created_at')
+                ->values();
+            $selectedMessage->setRelation('replies', $latestReplies);
         }
 
         return view('teacher.messages', compact('conversations', 'selectedMessage', 'filters'));
