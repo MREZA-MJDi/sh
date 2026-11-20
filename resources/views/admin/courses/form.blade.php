@@ -163,14 +163,14 @@
             @forelse($videos as $video)
               <div>
                 <span class="adm-stat-ico" data-tone="edu"><x-admin.icon name="video"/></span>
-                <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small>@if($video->processing_error)<small class="adm-muted">{{ $video->processing_error }}</small>@endif</div>
+                <div class="adm-grow"><b>{{ $video->title }}</b><small class="adm-muted">{{ $video->classroom?->name ?? 'در سطح کل دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif · {{ $video->file_original_name ?: $video->external_id ?: 'فایل ثبت‌شده' }}</small>@if($video->processing_error)<small class="adm-muted">آماده‌سازی این ویدیو کامل نشد؛ می‌توانی دوباره تلاش کنی.</small>@endif</div>
                 @php
                   $videoState = match ($video->status) {
                     'active' => ['ok', 'آماده پخش'],
                     'processing' => ['warn', 'در حال پردازش'],
                     'failed' => ['bad', 'پردازش ناموفق'],
                     'waiting_contract' => ['warn', 'در حال آماده‌سازی پخش'],
-                    default => ['mute', $video->status],
+                    default => ['mute', 'در انتظار بررسی'],
                   };
                 @endphp
                 <x-admin.badge :tone="$videoState[0]">{{ $videoState[1] }}</x-admin.badge>
@@ -179,7 +179,7 @@
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
             @endforelse
           </div>
-          <p class="adm-muted">فایل بارگذاری‌شده مستقیماً از پخش‌کننده داخل سایت پخش می‌شود و نیازی به شناسه یا لینک سرویس قبلی ندارد. اگر فقط شناسه سرویس قبلی را وارد کنی، پخش آن پس از آماده‌شدن اتصال فعال می‌شود.</p>
+          <p class="adm-muted">فایل بارگذاری‌شده از داخل سایت پخش می‌شود و نیازی به لینک جداگانه ندارد. اگر ویدیو را از قبل در سرویس دیگری داری، شناسه آن را در تنظیمات بیشتر وارد کن.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @endif
