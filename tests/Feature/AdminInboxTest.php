@@ -85,6 +85,23 @@ final class AdminInboxTest extends TestCase
         $this->assertTrue(Hash::check('A-new-strong-password-2026', $parent->password));
     }
 
+    public function test_admin_cannot_edit_another_privileged_account_through_a_conversation(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $anotherAdmin = $this->userWithRole('admin');
+        $message = $this->conversation($anotherAdmin, $admin);
+
+        $this->actingAs($admin)
+            ->post(route('admin.messages.participant.update', $message), [
+                'name' => 'تغییر غیرمجاز',
+                'email' => $anotherAdmin->email,
+                'phone' => null,
+            ])
+            ->assertForbidden();
+
+        $this->assertNotSame('تغییر غیرمجاز', $anotherAdmin->fresh()->name);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
