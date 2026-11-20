@@ -17,7 +17,7 @@ class Message extends Model
 
     protected function casts(): array
     {
-        return ['replied_at' => 'datetime'];
+        return ['replied_at' => 'datetime', 'closed_at' => 'datetime'];
     }
 
     public function sender(): BelongsTo
