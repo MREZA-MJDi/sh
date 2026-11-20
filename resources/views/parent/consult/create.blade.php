@@ -10,14 +10,14 @@
         <label>فرزند</label>
         <select name="student_id" required>
             @foreach ($children as $child)
-                <option value="{{ $child->id }}" @selected($child->id === $selected_child?->id)>{{ $child->name }}</option>
+                <option value="{{ $child->id }}" @selected((string) old('student_id', $selected_child?->id) === (string) $child->id)>{{ $child->name }}</option>
             @endforeach
         </select>
         <label>نوع درخواست</label>
         <select name="type" required>
-            <option value="ticket">پیام و تیکت</option>
-            <option value="phone">تماس تلفنی</option>
-            <option value="in_person">حضوری</option>
+            <option value="ticket" @selected(old('type', 'ticket') === 'ticket')>پیام و تیکت</option>
+            <option value="phone" @selected(old('type') === 'phone')>تماس تلفنی</option>
+            <option value="in_person" @selected(old('type') === 'in_person')>حضوری</option>
         </select>
         <label>موضوع</label>
         <input name="topic" required minlength="3" maxlength="190" value="{{ old('topic') }}">
