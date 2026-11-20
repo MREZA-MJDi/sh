@@ -32,7 +32,8 @@ final class MessageController extends Controller
                 $participants->where('sender_id', $request->user()->id)
                     ->orWhere('recipient_id', $request->user()->id);
             })
-            ->with(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name'])
+            ->with(['sender:id,name', 'recipient:id,name'])
+            ->withCount('replies')
             ->latest()
             ->paginate(12)
             ->withQueryString();
@@ -42,7 +43,12 @@ final class MessageController extends Controller
             : $messages->getCollection()->first();
 
         if ($selectedMessage) {
-            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+            $selectedMessage->loadMissing(['sender:id,name', 'recipient:id,name']);
+            $selectedMessage->loadCount('replies');
+            $selectedMessage->setRelation(
+                'replies',
+                $selectedMessage->replies()->with('sender:id,name')->latest()->limit(50)->get()->reverse()->values()
+            );
         }
 
         return view($request->user()->hasRole('parent') ? 'parent.messages' : 'student.messages', [
@@ -105,7 +111,12 @@ final class MessageController extends Controller
     public function show(Request $request, Message $message): View
     {
         $message = $this->accessibleMessage($request, $message)
-            ->load(['sender:id,name', 'recipient:id,name', 'replies.sender:id,name']);
+            ->load(['sender:id,name', 'recipient:id,name'])
+            ->loadCount('replies');
+        $message->setRelation(
+            'replies',
+            $message->replies()->with('sender:id,name')->latest()->limit(50)->get()->reverse()->values()
+        );
 
         if ($request->user()->hasRole('parent')) {
             $request->merge(['child' => $message->student_id]);
