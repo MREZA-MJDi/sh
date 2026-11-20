@@ -25,7 +25,7 @@
   <x-admin.stat tone="users" icon="user" label="نقش" :value="$roleLabel"/>
 </div>
 
-<x-admin.panel flush>
+<x-admin.panel flush data-filter>
   <x-admin.toolbar placeholder="جستجوی نام، ایمیل یا شماره تماس…">
     <div class="adm-toolbar-end">
       <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.students.index') }}">دانش‌آموزان</a>
