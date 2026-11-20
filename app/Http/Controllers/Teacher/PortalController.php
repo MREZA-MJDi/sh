@@ -52,9 +52,9 @@ final class PortalController extends Controller
                     ->limit(4),
             ])
             ->withCount(['students', 'sessions'])
-            ->when(($filters['sort'] ?? 'name') === 'students', fn ($query) => $query->orderByDesc('students_count'))
-            ->when(($filters['sort'] ?? 'name') === 'recent', fn ($query) => $query->latest('classrooms.updated_at'))
-            ->when(($filters['sort'] ?? 'name') === 'name', fn ($query) => $query->orderBy('classrooms.name'))
+            ->when(($filters['sort'] ?? 'name') === 'students', fn ($query) => $query->orderByDesc('students_count')->orderBy('classrooms.id'))
+            ->when(($filters['sort'] ?? 'name') === 'recent', fn ($query) => $query->latest('classrooms.updated_at')->orderBy('classrooms.id'))
+            ->when(($filters['sort'] ?? 'name') === 'name', fn ($query) => $query->orderBy('classrooms.name')->orderBy('classrooms.id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -85,6 +85,7 @@ final class PortalController extends Controller
             ->with(['classroom' => fn ($query) => $query->select('id', 'name')->withCount('students')])
             ->withCount('submissions')
             ->latest()
+            ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString();
 
@@ -95,6 +96,7 @@ final class PortalController extends Controller
             ->whereHas('homework', fn ($query) => $query->whereIn('classroom_id', clone $classroomIds))
             ->with(['homework:id,title,classroom_id', 'student:id,name', 'files'])
             ->latest('submitted_at')
+            ->orderByDesc('id')
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
@@ -185,9 +187,9 @@ final class PortalController extends Controller
                     $courseScope->whereNull('classroom_id')->whereIn('course_id', clone $courseIds);
                 });
             })
-            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest())
-            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title'))
-            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest())
+            ->when(($filters['sort'] ?? 'newest') === 'oldest', fn ($query) => $query->oldest()->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'title', fn ($query) => $query->orderBy('title')->orderBy('id'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest()->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
