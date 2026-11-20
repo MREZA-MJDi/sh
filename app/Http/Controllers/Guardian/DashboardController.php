@@ -24,13 +24,11 @@ final class DashboardController extends Controller
             'percent' => $data['attendance_rate'] ?? 0,
         ];
 
-        $scores = $data['results']->filter(fn ($result) => $result->score !== null)
-            ->map(fn ($result) => $result->max_score > 0 ? round($result->score / $result->max_score * 20, 1) : null)
-            ->filter();
+        $averageExamScore = $data['average_exam_score'];
 
         $data['stats'] = [
-            'avg' => $scores->isNotEmpty() ? round($scores->avg(), 1) : '—',
-            'avg_note' => $scores->isNotEmpty() ? 'بر اساس نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
+            'avg' => $averageExamScore !== null ? round((float) $averageExamScore, 1) : '—',
+            'avg_note' => $averageExamScore !== null ? 'میانگین همه نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
             'open_homework' => (int) $data['pending_homework_count'],
             'open_homework_note' => 'تکلیف بدون ارسال',
             'next_meeting' => optional($data['meetings']->firstWhere('status', 'scheduled')?->starts_at)->format('Y/m/d H:i') ?? '—',
@@ -111,7 +109,7 @@ final class DashboardController extends Controller
             'calendar' => $days, 'monthOffset' => ($start->dayOfWeek + 1) % 7,
             'monthTitle' => JalaliDate::monthLabel($jalaliNow['year'], $jalaliNow['month']),
             'absencePattern' => $data['attendance_breakdown']->get('absent', 0).' غیبت ثبت‌شده',
-            'lastLate' => $data['attendance']->firstWhere('status', 'late')?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
+            'lastLate' => $data['last_late_attendance']?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
         ]);
     }
 
