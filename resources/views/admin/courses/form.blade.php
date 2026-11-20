@@ -278,8 +278,6 @@
   @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
     <x-admin.modal :demo="false" id="course-resource-modal" title="افزودن جزوه یا فایل" size="lg" :action="route('admin.resources.store')">
       <input type="hidden" name="course_id" value="{{ $course->id }}">
-      <input type="hidden" name="is_free" value="1">
-      <input type="hidden" name="downloadable" value="1">
       <x-admin.input label="نام فایل" name="title" wide required placeholder="مثلاً جزوه فصل اول"/>
       <x-admin.textarea label="توضیح کوتاه برای دانش‌آموز" name="description" wide/>
       <x-admin.select label="نوع فایل" name="kind" :options="['pdf' => 'PDF', 'book' => 'کتاب یا جزوه', 'other' => 'سایر فایل‌ها']" :selected="'pdf'" required/>
@@ -290,8 +288,11 @@
         <small data-upload-name>PDF، Word، تصویر یا ZIP · حداکثر ۳۰ مگابایت</small>
       </label>
       <x-admin.select label="مخصوص کدام کلاس؟" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="برای همه کلاس‌های دوره"/>
+      <x-admin.switch label="این فایل رایگان است" name="is_free" :checked="true"/>
+      <x-admin.input label="قیمت (تومان)" name="price" type="number" min="0" :value="0"/>
       <x-admin.select label="چه کسانی ببینند؟" name="visibility" :options="['enrolled' => 'دانش‌آموزان ثبت‌نام‌شده', 'authenticated' => 'کاربران واردشده', 'public' => 'همه بازدیدکنندگان']" :selected="'enrolled'" required/>
       <x-admin.input label="زمان نمایش (اختیاری)" name="release_at" type="datetime-local"/>
+      <x-admin.switch label="امکان دریافت فایل" name="downloadable" :checked="true"/>
       <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'published'" required/>
     </x-admin.modal>
   @endif
