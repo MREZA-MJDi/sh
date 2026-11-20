@@ -230,6 +230,7 @@ final class SpotPlayerVideoService
                 return $video->refresh();
             });
 
+            $this->notifyAdminsForReview($video, $actor);
             $this->dispatchProcessing($video);
 
             return $video;
