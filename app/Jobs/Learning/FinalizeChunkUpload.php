@@ -1,34 +1,31 @@
 <?php
 
-namespace App\\Jobs\\Learning;
+namespace App\Jobs\Learning;
 
-use App\\Models\\Course;
-use App\\Models\\User;
-use App\\Models\\VideoUploadSession;
-use App\\Services\\SpotPlayer\\SpotPlayerVideoService;
-use Illuminate\\Bus\\Queueable;
-use Illuminate\\Contracts\\Queue\\ShouldQueue;
-use Illuminate\\Foundation\\Bus\\Dispatchable;
-use Illuminate\\Queue\\InteractsWithQueue;
-use Illuminate\\Queue\\SerializesModels;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Storage;
-use Illuminate\\Support\\Str;
+use App\Models\Course;
+use App\Models\User;
+use App\Models\VideoUploadSession;
+use App\Services\SpotPlayer\SpotPlayerVideoService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Throwable;
 
 /**
  * Finalizes a resumable upload away from the user's HTTP request.
- *
- * Chunk files are retained until the final file and its database record have
- * been committed, making queue retries safe after worker restarts.
+ * Uploaded chunks remain available until the final file and database record
+ * are committed, so a worker restart can safely retry the operation.
  */
 final class FinalizeChunkUpload implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
-
     public int $timeout = 900;
 
     public function __construct(public readonly int $uploadSessionId)
@@ -73,7 +70,7 @@ final class FinalizeChunkUpload implements ShouldQueue
         $temporary = $destination.'.assembling';
         $disk->makeDirectory(dirname($destination));
 
-        // If a worker died after the atomic rename, reuse the complete file.
+        // Reuse the completed file if a worker died after the atomic rename.
         if (! $disk->exists($destination) || $disk->size($destination) !== $totalBytes) {
             $disk->delete($temporary);
             $output = fopen($disk->path($temporary), 'wb');
@@ -84,6 +81,7 @@ final class FinalizeChunkUpload implements ShouldQueue
 
             try {
                 $written = 0;
+
                 for ($index = 0; $index < $totalChunks; $index++) {
                     $chunkPath = $chunkDirectory.'/'.$index.'.part';
                     $expected = min($chunkSize, $totalBytes - ($index * $chunkSize));
@@ -219,7 +217,10 @@ final class FinalizeChunkUpload implements ShouldQueue
 
         if ($session->target === 'teaser') {
             Course::query()->whereKey($session->target_id)->where('teaser_status', 'uploading')
-                ->update(['teaser_status' => 'failed', 'teaser_error' => mb_substr($exception->getMessage(), 0, 1000)]);
+                ->update([
+                    'teaser_status' => 'failed',
+                    'teaser_error' => mb_substr($exception->getMessage(), 0, 1000),
+                ]);
         }
     }
 }
