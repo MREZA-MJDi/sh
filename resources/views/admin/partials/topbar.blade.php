@@ -78,6 +78,10 @@
             @if($topbarUser?->email)<small class="adm-profile-email">{{ $topbarUser->email }}</small>@endif
           </div>
         </div>
+        <form method="POST" action="{{ route('profile.avatar.update') }}" enctype="multipart/form-data" style="padding:10px 14px;border-bottom:1px solid var(--line)">
+          @csrf
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px"><span>تغییر عکس پروفایل</span><input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required style="max-width:150px" onchange="this.form.submit()"></label>
+        </form>
         <form method="POST" action="{{ url('logout') }}">
           @csrf
           <button type="submit" class="adm-profile-logout"><x-admin.icon name="logout"/>خروج از حساب</button>
