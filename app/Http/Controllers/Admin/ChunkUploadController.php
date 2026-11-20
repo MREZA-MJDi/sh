@@ -474,7 +474,11 @@ final class ChunkUploadController extends Controller
         }
 
         abort_unless($target === 'spotplayer_video', 404);
-        abort_unless($request->user()->hasAnyPermission(['integrations.manage', 'videos.manage.assigned']), 403);
+        $isExternalSpotPlayerAsset = filled($metadata['external_id'] ?? null);
+        abort_unless($request->user()->hasAnyPermission(['courses.manage', 'videos.manage.assigned', 'integrations.manage']), 403);
+        if ($isExternalSpotPlayerAsset) {
+            abort_unless($request->user()->hasAnyPermission(['integrations.manage', 'courses.manage']), 403);
+        }
 
         $course = $workspace->coursesQueryFor($request->user())
             ->where(function ($query): void {
