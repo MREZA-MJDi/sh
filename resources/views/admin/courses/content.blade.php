@@ -50,41 +50,8 @@
       </x-slot:footer>
     </x-admin.panel>
 
-    <x-admin.panel title="فصل‌ها و درس‌ها" :desc="$course->sections->count().' فصل · '.$lessonCount.' درس ثبت‌شده'" flush>
-      @forelse($course->sections as $section)
-        <div class="adm-chapter">
-          <div class="adm-chapter-head">
-            <span class="adm-chapter-no adm-num">{{ $loop->iteration }}</span>
-            <div class="adm-grow">
-              <h3>{{ $section->title }}</h3>
-              <small class="adm-muted">{{ $section->lessons->count() }} درس · {{ $section->status === 'published' ? 'منتشرشده' : ($section->status === 'draft' ? 'پیش‌نویس' : 'بایگانی') }}</small>
-              @if($section->description)<p class="adm-muted">{{ $section->description }}</p>@endif
-            </div>
-            <x-admin.btn size="sm" variant="line" icon="plus" data-modal-open="lesson-modal" :data-action="route('admin.courses.lessons.store', $section)">افزودن درس</x-admin.btn>
-            <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="section-modal" data-title="ویرایش فصل" :data-fill="json_encode(['title' => $section->title, 'description' => $section->description, 'sort_order' => $section->sort_order, 'status' => $section->status], JSON_UNESCAPED_UNICODE)" :data-action="route('admin.courses.sections.update', $section)" data-method="PATCH" aria-label="ویرایش فصل"/>
-            <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="section-delete" :data-name="$section->title" :data-action="route('admin.courses.sections.destroy', $section)" aria-label="حذف فصل"/>
-          </div>
+    @include('admin.courses.partials.curriculum')
 
-          <div class="adm-chapter-body">
-            @forelse($section->lessons as $lesson)
-              <div class="adm-lesson">
-                <span class="adm-lesson-ico"><x-admin.icon name="file"/></span>
-                <div class="adm-grow">
-                  <b>{{ $lesson->title }}</b>
-                  <small class="adm-muted">{{ $lesson->duration_minutes }} دقیقه · {{ $lesson->status === 'published' ? 'منتشرشده' : ($lesson->status === 'draft' ? 'پیش‌نویس' : 'بایگانی') }}</small>
-                </div>
-                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="lesson-modal" data-title="ویرایش درس" :data-fill="json_encode(['title' => $lesson->title, 'body' => $lesson->body, 'duration_minutes' => $lesson->duration_minutes, 'sort_order' => $lesson->sort_order, 'status' => $lesson->status], JSON_UNESCAPED_UNICODE)" :data-action="route('admin.courses.lessons.update', $lesson)" data-method="PATCH" aria-label="ویرایش درس"/>
-                <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="lesson-delete" :data-name="$lesson->title" :data-action="route('admin.courses.lessons.destroy', $lesson)" aria-label="حذف درس"/>
-              </div>
-            @empty
-              <x-admin.empty text="هنوز درسی در این فصل ثبت نشده است."/>
-            @endforelse
-          </div>
-        </div>
-      @empty
-        <x-admin.empty text="ساختار آموزشی این دوره هنوز ایجاد نشده است. از «فصل جدید» شروع کنید."/>
-      @endforelse
-    </x-admin.panel>
   </section>
 
   <aside class="adm-stack">
@@ -136,22 +103,3 @@
 </div>
 @endsection
 
-@push('modals')
-<x-admin.modal :demo="false" id="section-modal" title="فصل جدید" size="md" :action="route('admin.courses.sections.store', $course)">
-  <x-admin.input label="عنوان فصل" name="title" wide required/>
-  <x-admin.textarea label="توضیحات فصل" name="description" wide/>
-  <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
-  <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" required/>
-</x-admin.modal>
-
-<x-admin.modal :demo="false" id="lesson-modal" title="درس جدید" size="md" :action="url('admin/course-sections/0/lessons')">
-  <x-admin.input label="عنوان درس" name="title" wide required/>
-  <x-admin.textarea label="متن / توضیحات درس" name="body" wide/>
-  <x-admin.input label="مدت (دقیقه)" name="duration_minutes" type="number" min="0" max="600"/>
-  <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
-  <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" required/>
-</x-admin.modal>
-
-<x-admin.confirm :demo="false" id="section-delete" title="حذف فصل" text="اگر برای درس‌های این فصل سابقه پیشرفت وجود داشته باشد، حذف انجام نمی‌شود و باید فصل را بایگانی کنید."/>
-<x-admin.confirm :demo="false" id="lesson-delete" title="حذف درس" text="اگر برای این درس سابقه پیشرفت ثبت شده باشد، حذف انجام نمی‌شود و باید درس را بایگانی کنید."/>
-@endpush
