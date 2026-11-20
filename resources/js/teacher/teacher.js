@@ -87,7 +87,7 @@ import '../shared/iranian-locale.js';
   var sr = $('#globalSearch');
   if (sr) sr.addEventListener('input', function () {
     var q = sr.value.trim().toLowerCase();
-    $('main .row, main .teacher-list-card, main .teacher-review-row, main .teacher-live-session-card').forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1; });
+    $('.row, .teacher-list-card, .teacher-review-row, .teacher-live-session-card').forEach(function (el) { el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1; });
   });
 
   /* ---------- Modal افزودن/ویرایش ---------- */
