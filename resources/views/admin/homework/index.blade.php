@@ -14,8 +14,8 @@
 
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="file" label="کل تکالیف" :value="number_format($homeworks->total())" hint="در کلاس‌های مجاز"/>
-  <x-admin.stat tone="warn" icon="clock" label="در انتظار بررسی" :value="number_format($submissions->getCollection()->where('status', 'submitted')->count())" hint="در این صفحه از پاسخ‌ها"/>
-  <x-admin.stat tone="ok" icon="check" label="بررسی‌شده" :value="number_format($submissions->getCollection()->where('status', 'reviewed')->count())" hint="در این صفحه از پاسخ‌ها"/>
+  <x-admin.stat tone="track" icon="clock" label="در انتظار بررسی" :value="number_format($submissions->getCollection()->where('status', 'submitted')->count())" hint="در این صفحه از پاسخ‌ها"/>
+  <x-admin.stat tone="edu" icon="check" label="بررسی‌شده" :value="number_format($submissions->getCollection()->where('status', 'reviewed')->count())" hint="در این صفحه از پاسخ‌ها"/>
   <x-admin.stat tone="users" icon="users" label="کلاس‌های در دسترس" :value="number_format($classrooms->count())" hint="امکان ساخت تکلیف"/>
 </div>
 
