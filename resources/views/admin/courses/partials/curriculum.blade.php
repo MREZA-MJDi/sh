@@ -1,4 +1,4 @@
-<x-admin.panel title="۶. فصل‌ها و درس‌های دوره" desc="ترتیب این بخش‌ها همان ترتیبی است که دانش‌آموز در صفحه دوره می‌بیند." flush data-tone="edu">
+<x-admin.panel title="۶. مدیریت فصل‌ها و متن درس‌ها" desc="ترتیب این بخش‌ها همان ترتیبی است که دانش‌آموز در صفحه دوره می‌بیند." flush data-tone="edu">
   <div class="adm-curriculum">
     @forelse($course->sections as $section)
       <section class="adm-chapter">
