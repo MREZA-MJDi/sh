@@ -70,6 +70,7 @@
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
+        @if($courseResources->isNotEmpty())<a href="#course-resources">جزوه‌ها و فایل‌ها</a>@endif
         @if(($features['live_class'] ?? false) || $upcomingSessions->isNotEmpty())<a href="#live-sessions">برنامه جلسات</a>@endif
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
