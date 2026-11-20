@@ -1,7 +1,7 @@
 @extends('parent.layouts.app')
 @section('title', 'پیام جدید')
 @section('content')
-<h2>ارسال پیام به مدرس</h2>
+<div class="parent-page-heading"><div><span class="parent-eyebrow">ارتباط با مدرس</span><h1>ارسال پیام جدید</h1><p>گفت‌وگویی تازه درباره وضعیت آموزشی فرزندتان آغاز کنید.</p></div></div>
 @include('parent.partials.kid-picker')
 
 <section class="c parent-message-card">
