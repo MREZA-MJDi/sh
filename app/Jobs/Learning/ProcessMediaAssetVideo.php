@@ -3,6 +3,7 @@
 namespace App\Jobs\Learning;
 
 use App\Models\MediaAsset;
+use RuntimeException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,6 +21,11 @@ final class ProcessMediaAssetVideo implements ShouldQueue
     public int $tries = 3;
     public int $timeout = 3600;
 
+    public function backoff(): array
+    {
+        return [30, 120, 300];
+    }
+
     public function __construct(public readonly int $mediaAssetId)
     {
         $this->onConnection('video')->onQueue('video');
@@ -35,8 +41,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
 
         $disk = Storage::disk($asset->source_disk ?: 'local');
         if (blank($asset->source_path) || ! $disk->exists($asset->source_path)) {
-            $asset->update(['status' => 'failed', 'processing_error' => 'فایل مبدأ در فضای ذخیره‌سازی پیدا نشد.']);
-            return;
+            throw new RuntimeException('فایل مبدأ در فضای ذخیره‌سازی پیدا نشد.');
         }
 
         $outputDisk = Storage::disk('local');
@@ -99,11 +104,12 @@ final class ProcessMediaAssetVideo implements ShouldQueue
         } catch (Throwable $exception) {
             $outputDisk->delete($outputRelative);
             $diagnostic = trim((string) $process?->getErrorOutput());
-            $asset->update([
-                'status' => 'failed',
-                'processing_error' => mb_substr($diagnostic !== '' ? $diagnostic : $exception->getMessage(), 0, 2000),
-            ]);
-            return;
+
+            throw new RuntimeException(
+                $diagnostic !== '' ? $diagnostic : $exception->getMessage(),
+                0,
+                $exception
+            );
         }
     }
 
