@@ -1,9 +1,9 @@
 @extends('teacher.layouts.app')
 @section('title', 'حضور و غیاب')
 @section('content')
-<h2>حضور و غیاب کلاس‌های من</h2>
-<section class="c">
- <form method="GET" action="{{ route('teacher.attendance') }}">
+<div class="teacher-page-head"><div><span class="teacher-eyebrow">مدیریت کلاس</span><h1>حضور و غیاب</h1><p>ثبت وضعیت حضور دانش‌آموزان و مرور سوابق کلاس‌های تخصیص‌یافته.</p></div></div>
+<section class="c teacher-attendance-filter">
+ <form method="GET" action="{{ route('teacher.attendance') }}" class="teacher-list-filters">
   <label>کلاس</label><select name="classroom_id" onchange="this.form.submit()">
    @foreach ($classrooms as $item)<option value="{{ $item->id }}" @selected($classroom?->id === $item->id)>{{ $item->name }}</option>@endforeach
   </select>
@@ -19,7 +19,7 @@
   <input type="hidden" name="classroom_id" value="{{ $classroom->id }}">
   <input type="hidden" name="class_session_id" value="{{ $session->id }}">
   <section class="c">
-   <h3>{{ $classroom->name }} · {{ $session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</h3>
+   <div class="teacher-section-head"><div><h3>{{ $classroom->name }}</h3><p>{{ $session->title ?: 'جلسه آموزشی' }} · {{ $session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</p></div><span class="teacher-result-count">{{ $students->count() }} دانش‌آموز</span></div>
    @forelse ($students as $student)
     <div class="row"><div>{{ $student['name'] }}</div>
      <select name="attendance[{{ $student['id'] }}][status]" required @disabled(!auth()->user()->hasPermissionTo('attendance.manage.assigned'))>
