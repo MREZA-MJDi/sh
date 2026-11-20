@@ -4,16 +4,6 @@
 <h2>ارسال پیام به مدرس</h2>
 @include('parent.partials.kid-picker')
 
-@if (session('status'))
-    <div class="parent-alert success" role="status">{{ session('status') }}</div>
-@endif
-@if ($errors->any())
-    <div class="parent-alert error" role="alert">
-        <strong>لطفاً خطاهای فرم را برطرف کنید.</strong>
-        <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-    </div>
-@endif
-
 <section class="c parent-message-card">
     <div class="parent-form-heading">
         <h3>گفت‌وگوی تازه</h3>
