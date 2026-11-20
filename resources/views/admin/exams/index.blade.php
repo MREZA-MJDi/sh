@@ -67,7 +67,7 @@
             <x-admin.badge :tone="$statusTones[$exam->status] ?? 'warn'">{{ $statusLabels[$exam->status] ?? $exam->status }}</x-admin.badge>
           </div>
           <div class="adm-meta">
-            <span><x-admin.icon name="calendar"/>{{ $exam->starts_at ? \\App\\Support\\PersianDate::format($exam->starts_at, 'Y/m/d H:i') : 'بدون زمان‌بندی' }}</span>
+            <span><x-admin.icon name="calendar"/>{{ $exam->starts_at ? \App\Support\PersianDate::format($exam->starts_at, 'Y/m/d H:i') : 'بدون زمان‌بندی' }}</span>
             <span><x-admin.icon name="clock"/>{{ number_format($exam->duration_minutes) }} دقیقه</span>
             <span><x-admin.icon name="file"/>{{ number_format($exam->questions_count) }} سؤال</span>
             <span><x-admin.icon name="chart"/>{{ number_format($exam->results_count) }} نتیجه</span>
