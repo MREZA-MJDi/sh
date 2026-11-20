@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <div class="adm-panel-body" style="padding-bottom:12px">
+    <div class="adm-panel-body adm-attendance-counts">
       <div class="adm-attendance-summary" aria-live="polite">
         @foreach (['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'] as $k => $t)
           <div data-t="{{ $k }}">{{ $t }} <b class="adm-num">0</b></div>
