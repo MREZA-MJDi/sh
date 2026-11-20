@@ -103,7 +103,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
                 'status' => 'failed',
                 'processing_error' => mb_substr($diagnostic !== '' ? $diagnostic : $exception->getMessage(), 0, 2000),
             ]);
-            throw $exception;
+            return;
         }
     }
 

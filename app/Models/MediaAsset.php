@@ -42,12 +42,4 @@ final class MediaAsset extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function getPlaybackUrlAttribute(): ?string
-    {
-        if ($this->provider !== 'local' || $this->status !== 'ready' || blank($this->processed_path)) {
-            return null;
-        }
-
-        return Storage::disk('local')->url($this->processed_path);
-    }
 }
