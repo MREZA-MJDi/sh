@@ -1,16 +1,17 @@
 <?php
 
-namespace App\\Jobs\\Learning;
+namespace App\Jobs\Learning;
 
-use App\\Models\\Course;
-use Illuminate\\Foundation\\Queue\\Queueable;
-use Illuminate\\Contracts\\Queue\\ShouldBeUnique;\nuse Illuminate\\Contracts\\Queue\\ShouldQueue;
-use Illuminate\\Queue\\Middleware\\WithoutOverlapping;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Storage;
-use Illuminate\\Support\\Str;
+use App\Models\Course;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
-use Symfony\\Component\\Process\\Process;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 /**
@@ -25,7 +26,9 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
 
     public int $tries = 3;
 
-    public int $timeout = 3600;\n\n    public int $uniqueFor = 86400;
+    public int $timeout = 3600;
+
+    public int $uniqueFor = 86400;
 
     public function __construct(
         public int $courseId,
@@ -34,14 +37,14 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
         $this->onConnection('video')->onQueue('video');
     }
 
-    public function backoff(): array
-    {
-        return [30, 120, 300];
-    }
-
     public function uniqueId(): string
     {
         return 'course-teaser:'.$this->courseId.':'.($this->sourcePath ?? 'current');
+    }
+
+    public function backoff(): array
+    {
+        return [30, 120, 300];
     }
 
     public function middleware(): array
@@ -49,7 +52,7 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
         return [
             (new WithoutOverlapping('course-teaser:'.$this->courseId))
                 ->releaseAfter(30)
-                ->expireAfter(3600),
+                ->expireAfter(3900),
         ];
     }
 
@@ -94,7 +97,7 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
                 '-i', $input,
                 '-map', '0:v:0',
                 '-map', '0:a:0?',
-                '-vf', 'scale=-2:min(720\\,ih)',
+                '-vf', 'scale=-2:min(720\,ih)',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26',
                 '-pix_fmt', 'yuv420p',
                 '-c:a', 'aac', '-b:a', '96k',
