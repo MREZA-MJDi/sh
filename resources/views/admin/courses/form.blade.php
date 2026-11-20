@@ -92,7 +92,7 @@
         @endif
         <div data-course-upload data-target="teaser" data-course-id="{{ $course->id }}"
           data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
-          data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.courses.teaser.status', $course) }}"
+          data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.uploads.status') }}"
           data-max-mb="{{ config('learning.max_teaser_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
           <label class="adm-field">
             <span class="adm-label">انتخاب فایل تریلر</span>
