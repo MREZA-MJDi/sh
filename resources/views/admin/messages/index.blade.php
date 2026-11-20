@@ -19,7 +19,7 @@
    @forelse($messages as $message)
     @php($person=$personFor($message))
     @php($role=$person?->roles?->first()?->name??'user')
-    <a class="ib-item {{ $selected?->id===$message->id?'on':'' }}" data-inbox-item data-role="{{ $role }}" data-status="{{ $message->status==='read'?'open':$message->status }}" href="{{ route('admin.messages.index',['message'=>$message->id]+request()->except('message')) }}">
+    <a class="ib-item {{ $selected?->id===$message->id?'on':'' }}" data-inbox-item data-role="{{ $role }}" data-status="{{ $message->closed_at?'closed':($message->status==='read'?'open':$message->status) }}" href="{{ route('admin.messages.index',['message'=>$message->id]+request()->except('message')) }}">
      <div class="ib-av">@if($avatar($person))<img src="{{ $avatar($person) }}" alt="">@else{{ mb_substr($person?->name??'؟',0,1) }}@endif</div>
      <div class="m"><div class="r"><b>{{ $person?->name??'کاربر' }}</b><small>{{ ($message->replies->last()?->created_at??$message->created_at)?->format('H:i') }}</small></div>
       <p>{{ $message->replies->last()?->body??$message->body }}</p><span class="ib-tag">{{ $labels[$role]??'کاربر' }} · {{ $message->subject?:'گفت‌وگوی بدون موضوع' }}</span>
@@ -31,16 +31,16 @@
  <section class="ib-card ib-cc">
  @if($selected && $partner)
   <div class="ib-hd"><button class="ib-btn" id="ib-back" type="button">بازگشت</button><div class="ib-av ib-head-av">@if($avatar($partner))<img src="{{ $avatar($partner) }}" alt="">@else{{ mb_substr($partner->name,0,1) }}@endif</div>
-   <h2>{{ $partner->name }}<br><small>{{ $labels[$selectedRole]??'کاربر' }} · {{ $selected->status }}</small></h2>
-   @if($selected->status==='closed')<form method="POST" action="{{ route('admin.messages.reopen',$selected) }}">@csrf<button class="ib-btn" type="submit">بازکردن مجدد</button></form>
+   <h2>{{ $partner->name }}<br><small>{{ $labels[$selectedRole]??'کاربر' }} · {{ $selected->closed_at ? 'بسته‌شده' : ($selected->status === 'answered' ? 'در انتظار پاسخ' : 'باز') }}</small></h2>
+   @if($selected->closed_at)<form method="POST" action="{{ route('admin.messages.reopen',$selected) }}">@csrf<button class="ib-btn" type="submit">بازکردن مجدد</button></form>
    @else<form method="POST" action="{{ route('admin.messages.close',$selected) }}">@csrf<button class="ib-btn d" type="submit">بستن گفتگو</button></form>@endif
   </div>
   <div class="ib-msgs" id="ib-msgs"><div class="ib-sys">{{ $selected->subject?:'شروع گفت‌وگو' }}</div>
    <div class="ib-b {{ $selected->sender?->hasRole('admin')?'admin':'' }}">{{ $selected->body }}<time>{{ $selected->created_at?->format('Y/m/d H:i') }}</time></div>
    @foreach($selected->replies as $reply)<div class="ib-b {{ $reply->sender?->hasRole('admin')?'admin':'' }}">{{ $reply->body }}<time>{{ $reply->sender?->name }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</time></div>@endforeach
-   @if($selected->status==='closed')<div class="ib-sys">این گفتگو بسته شده است</div>@endif
+   @if($selected->closed_at)<div class="ib-sys">این گفتگو بسته شده است</div>@endif
   </div>
-  @if($selected->status!=='closed' && auth()->user()->hasPermissionTo('messages.reply'))
+  @if(!$selected->closed_at && auth()->user()->hasPermissionTo('messages.reply'))
    <form method="POST" action="{{ route('admin.messages.reply',$selected) }}" class="ib-compose">@csrf<textarea name="body" placeholder="پاسخ خود را بنویسید…" maxlength="30000" required></textarea><button class="ib-btn p" type="submit">ارسال</button></form>
   @endif
  @else<div class="ib-empty">یک گفتگو را از فهرست انتخاب کنید</div>@endif
