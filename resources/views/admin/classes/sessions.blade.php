@@ -160,6 +160,7 @@
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" :selected="'scheduled'" required/>
   <x-admin.input label="روز و ساعت شروع" name="starts_at" type="datetime-local" :value="$selectedDate->format('Y-m-d').'T09:00'" required/>
   <x-admin.input label="زمان پایان" name="ends_at" type="datetime-local"/>
+  <p class="adm-muted" style="grid-column:1/-1">برای جلسه آنلاین، زمان پایان را هم وارد کن. برای جلسه حضوری نیازی به لینک ورود نیست.</p>
   <x-admin.select label="ارائه‌دهنده کلاس آنلاین" name="meeting_provider" :options="['skyroom' => 'اتاق کلاس', 'jitsi' => 'سرویس ویدیویی دیگر', 'bbb' => 'سرویس ویدیویی دیگر (گزینه دوم)', 'link' => 'لینک دستی']"/>
   <x-admin.input label="لینک جلسه (در صورت نیاز)" name="meeting_url" placeholder="https://..." wide/>
   <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
