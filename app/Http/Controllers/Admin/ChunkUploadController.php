@@ -81,7 +81,9 @@ final class ChunkUploadController extends Controller
                 $activeUpload = VideoUploadSession::query()
                     ->where('target', 'teaser')
                     ->where('target_id', $lockedCourse->id)
-                    ->where('status', 'uploading')
+                    // A completion request temporarily changes the session to
+                    // processing before it commits the course's processing state.
+                    ->whereIn('status', ['uploading', 'processing'])
                     ->where('expires_at', '>', now())
                     ->exists();
 
