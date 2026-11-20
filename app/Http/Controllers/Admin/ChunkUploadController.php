@@ -242,18 +242,33 @@ final class ChunkUploadController extends Controller
         $disk = Storage::disk('local');
         $chunkDirectory = "chunks/{$session->upload_id}";
 
+        $expectedTotalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
+        $verifiedChunkBytes = 0;
+
         for ($index = 0; $index < $data['total']; $index++) {
-            if (! $disk->exists("{$chunkDirectory}/{$index}.part")) {
+            $chunkPath = "{$chunkDirectory}/{$index}.part";
+            $expectedChunkBytes = min(
+                (int) $session->metadata['chunk_size_bytes'],
+                $expectedTotalBytes - ($index * (int) $session->metadata['chunk_size_bytes'])
+            );
+
+            if (! $disk->exists($chunkPath) || $expectedChunkBytes < 1 || $disk->size($chunkPath) !== $expectedChunkBytes) {
                 $session->update(['status' => 'uploading']);
-                return $this->fail("تکه {$index} ناقص است؛ دوباره آپلود کن.");
+                return $this->fail("تکه {$index} ناقص یا خراب است؛ نشست و تکه‌های سالم حفظ شدند.");
             }
+
+            $verifiedChunkBytes += $expectedChunkBytes;
+        }
+
+        if ($verifiedChunkBytes !== $expectedTotalBytes || (int) $session->bytes_uploaded !== $expectedTotalBytes) {
+            $session->update(['status' => 'uploading']);
+            return $this->fail('مجموع اندازه تکه‌ها معتبر نیست؛ تکه‌های موجود حفظ شدند.', 422);
         }
 
         $extension = strtolower(pathinfo($data['filename'], PATHINFO_EXTENSION));
         if (! in_array($extension, self::EXTENSIONS, true)) {
-            $session->update(['status' => 'failed']);
-            $disk->deleteDirectory($chunkDirectory);
-            return $this->fail('فرمت فایل مجاز نیست (mp4, mov, mkv, webm).');
+            $session->update(['status' => 'uploading']);
+            return $this->fail('فرمت فایل مجاز نیست (mp4, mov, mkv, webm, m4v).', 422);
         }
 
         $destination = $session->target === 'teaser'
@@ -297,21 +312,17 @@ final class ChunkUploadController extends Controller
 
             if ($session->target === 'teaser') {
                 $course = Course::query()->findOrFail($session->target_id);
-                $oldOriginalPath = $course->teaser_original_path;
-
                 DB::transaction(function () use ($course, $session, $destination): void {
-                    $course->update([
+                    $lockedCourse = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+
+                    $lockedCourse->update([
                         'teaser_original_path' => $destination,
                         'teaser_status' => 'processing',
                         'teaser_error' => null,
                     ]);
                     $session->update(['status' => 'completed', 'completed_at' => now()]);
-                    ProcessTeaserVideo::dispatch($course->id)->afterCommit();
+                    ProcessTeaserVideo::dispatch($lockedCourse->id, $destination)->afterCommit();
                 });
-
-                if ($oldOriginalPath) {
-                    $disk->delete($oldOriginalPath);
-                }
 
                 $disk->deleteDirectory($chunkDirectory);
 
@@ -344,15 +355,14 @@ final class ChunkUploadController extends Controller
                 'video_id' => $video->id,
             ]);
         } catch (Throwable $exception) {
-            $disk->delete($destination);
-            $disk->deleteDirectory($chunkDirectory);
-            $session->update(['status' => 'failed']);
+            // A committed completion is authoritative even if cleanup/response handling fails.
+            $latestSession = $session->fresh();
 
-            if ($session->target === 'teaser') {
-                Course::query()->whereKey($session->target_id)->update([
-                    'teaser_status' => 'failed',
-                    'teaser_error' => mb_substr($exception->getMessage(), 0, 500),
-                ]);
+            if ($latestSession && $latestSession->status !== 'completed') {
+                $disk->delete($destination);
+
+                // Keep all uploaded chunks so transient storage/DB errors are recoverable.
+                $latestSession->update(['status' => 'uploading']);
             }
 
             throw $exception;
@@ -384,14 +394,27 @@ final class ChunkUploadController extends Controller
 
         $disk = Storage::disk('local');
         $received = [];
+        $verifiedBytes = 0;
+        $chunkSize = (int) ($session->metadata['chunk_size_bytes'] ?? 0);
+        $totalBytes = (int) ($session->metadata['total_bytes'] ?? 0);
 
         for ($index = 0; $index < $total; $index++) {
-            if ($disk->exists("chunks/{$session->upload_id}/{$index}.part")) {
+            $path = "chunks/{$session->upload_id}/{$index}.part";
+            $expectedBytes = min($chunkSize, $totalBytes - ($index * $chunkSize));
+
+            if ($expectedBytes > 0 && $disk->exists($path) && $disk->size($path) === $expectedBytes) {
                 $received[] = $index;
+                $verifiedBytes += $expectedBytes;
+            } elseif ($disk->exists($path)) {
+                // A truncated/partial chunk must be uploaded again, not skipped by the browser.
+                $disk->delete($path);
             }
         }
 
-        $session->update(['expires_at' => now()->addHours(2)]);
+        $session->update([
+            'bytes_uploaded' => $verifiedBytes,
+            'expires_at' => now()->addHours(2),
+        ]);
 
         return response()->json([
             'ok' => true,
