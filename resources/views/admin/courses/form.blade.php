@@ -287,10 +287,11 @@
         <b>فایل را اینجا رها کن یا انتخاب کن</b>
         <small data-upload-name>PDF، Word، تصویر یا ZIP · حداکثر ۳۰ مگابایت</small>
       </label>
-      <x-admin.select label="مخصوص کدام کلاس؟" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="برای همه کلاس‌های دوره"/>
+      <x-admin.select label="مخصوص کدام کلاس؟" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="برای همه کلاس‌های دوره" data-resource-classroom/>
       <x-admin.switch label="این فایل رایگان است" name="is_free" :checked="true"/>
       <x-admin.input label="قیمت (تومان)" name="price" type="number" min="0" :value="0"/>
-      <x-admin.select label="چه کسانی ببینند؟" name="visibility" :options="['enrolled' => 'دانش‌آموزان ثبت‌نام‌شده', 'authenticated' => 'کاربران واردشده', 'public' => 'همه بازدیدکنندگان']" :selected="'enrolled'" required/>
+      <x-admin.select label="چه کسانی ببینند؟" name="visibility" :options="['enrolled' => 'دانش‌آموزان ثبت‌نام‌شده', 'authenticated' => 'کاربران واردشده', 'public' => 'همه بازدیدکنندگان']" :selected="'enrolled'" data-resource-visibility required/>
+      <p class="adm-muted" style="grid-column:1/-1">فایلی که به یک کلاس مشخص وصل شود فقط برای اعضای مجاز همان کلاس نمایش داده می‌شود.</p>
       <x-admin.input label="زمان نمایش (اختیاری)" name="release_at" type="datetime-local"/>
       <x-admin.switch label="امکان دریافت فایل" name="downloadable" :checked="true"/>
       <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'published'" required/>
