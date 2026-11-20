@@ -242,8 +242,12 @@ class SpotPlayerController extends Controller
         abort_unless($workspace->coursesQueryFor($request->user())->whereKey($video->course_id)->exists(), 404);
 
         $video->forceFill(['approval_status' => 'pending', 'reviewed_by' => null, 'reviewed_at' => null])->save();
-        $admins = User::query()->whereHas('roles', fn ($roles) => $roles->where('name', 'admin'))->where('is_active', true)->get();
-        Notification::send($admins, new CourseVideoSubmittedForReview($video->loadMissing('creator')));
+        $notification = new CourseVideoSubmittedForReview($video->loadMissing('creator'));
+        User::query()
+            ->whereHas('roles', fn ($roles) => $roles->where('name', 'admin'))
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->chunkById(100, fn ($admins) => Notification::send($admins, $notification));
 
         return back()->with('success', 'ویدیو دوباره برای بررسی مدیر ارسال شد.');
     }
