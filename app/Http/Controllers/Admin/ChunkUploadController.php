@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Learning\FinalizeChunkUpload;
 use App\Jobs\Learning\ProcessTeaserVideo;
 use App\Models\Course;
 use App\Models\ClassSession;
@@ -297,7 +298,7 @@ final class ChunkUploadController extends Controller
 
         return response()->json([
             'ok' => true,
-            'status' => $session->status === 'completed' ? 'processing' : 'processing',
+            'status' => 'processing',
             'video_id' => $session->metadata['result_video_id'] ?? null,
         ]);
     }
