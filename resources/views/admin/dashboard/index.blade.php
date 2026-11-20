@@ -93,6 +93,7 @@
       @endcan
       @can('announcements.manage')
         @if(($publishedAnnouncementCount ?? 0) > 0)
+          @php $hasWork = true; @endphp
           <a class="adm-work-item" data-tone="edu" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
         @endif
       @endcan
