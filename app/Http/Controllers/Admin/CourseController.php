@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\AcademicGrade;
 use App\Models\CourseEnrollment;
 use App\Models\Lesson;
+use App\Models\LearningResource;
 use App\Models\User;
 use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
