@@ -8,7 +8,56 @@
 
 <x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت کن."/>
 
-<form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}"></form>
+<form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}">
+  <input type="hidden" name="date" value="{{ $dateIso }}">
+</form>
+
+<x-admin.panel title="تقویم کلاس" desc="روز موردنظر را انتخاب کن تا جلسه‌های همان روز را ببینی." data-tone="track">
+  <div class="adm-attendance-calendar-head">
+    <label class="adm-label">کلاس موردنظر
+      <select class="adm-select" name="class_id" form="attendance-filter" aria-label="انتخاب کلاس">
+        @foreach ($classes as $v => $t)
+          <option value="{{ $v }}" @selected((int) $classroom?->id === (int) $v)>{{ $t }}</option>
+        @endforeach
+      </select>
+    </label>
+    <div class="adm-calendar-month">
+      <a href="{{ route('admin.attendance.index', ['class_id' => $classroom?->id, 'date' => $calendar['previous_date']]) }}" aria-label="ماه قبل">‹</a>
+      <strong>{{ $calendar['label'] }}</strong>
+      <a href="{{ route('admin.attendance.index', ['class_id' => $classroom?->id, 'date' => $calendar['next_date']]) }}" aria-label="ماه بعد">›</a>
+    </div>
+  </div>
+  <div class="adm-calendar-grid" role="group" aria-label="روزهای ماه">
+    @foreach($calendar['weekdays'] as $weekday)
+      <span class="adm-calendar-weekday">{{ $weekday }}</span>
+    @endforeach
+    @for($blank = 0; $blank < $calendar['leading_blanks']; $blank++)
+      <span class="adm-calendar-blank" aria-hidden="true"></span>
+    @endfor
+    @foreach($calendar['days'] as $day)
+      <a class="adm-calendar-day {{ $day['selected'] ? 'is-selected' : '' }} {{ $day['today'] ? 'is-today' : '' }} {{ $day['sessions'] ? 'has-sessions' : '' }}"
+         href="{{ route('admin.attendance.index', ['class_id' => $classroom?->id, 'date' => $day['date']]) }}"
+         @if($day['selected']) aria-current="date" @endif>
+        <b>{{ $day['day'] }}</b>
+        @if($day['sessions'])
+          <small>{{ $day['sessions'] }} جلسه</small>
+          <span class="adm-calendar-dots" aria-hidden="true">
+            @if($day['completed'])<i data-state="completed"></i>@endif
+            @if($day['scheduled'])<i data-state="scheduled"></i>@endif
+          </span>
+        @else
+          <small class="is-empty">—</small>
+        @endif
+      </a>
+    @endforeach
+  </div>
+  <div class="adm-calendar-legend">
+    <span><i data-state="completed"></i> برگزارشده</span>
+    <span><i data-state="scheduled"></i> برنامه‌ریزی‌شده</span>
+    <span><i data-state="none"></i> بدون جلسه</span>
+  </div>
+</x-admin.panel>
+
 <x-admin.panel flush>
   <form method="POST" action="{{ route('admin.attendance.store') }}" data-roster>
     @csrf
@@ -18,16 +67,10 @@
 
     <div class="adm-attendance-toolbar">
       <div class="adm-attendance-filters">
-        <label class="adm-label">کلاس
-          <select class="adm-select" name="class_id" form="attendance-filter" aria-label="انتخاب کلاس">
-            @foreach ($classes as $v => $t)
-              <option value="{{ $v }}" @selected((int) $classroom?->id === (int) $v)>{{ $t }}</option>
-            @endforeach
-          </select>
-        </label>
-        <label class="adm-label">تاریخ جلسه
-          <input class="adm-input" type="date" form="attendance-filter" name="date" value="{{ $dateIso }}" aria-label="تاریخ جلسه">
-        </label>
+        <div class="adm-attendance-selected-date">
+          <b>{{ $date }}</b>
+          <small>جلسه‌های این روز</small>
+        </div>
         <label class="adm-label">جلسه
           <select class="adm-select" name="session" form="attendance-filter" aria-label="انتخاب جلسه">
             @forelse ($sessions as $item)
