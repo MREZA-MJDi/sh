@@ -11,6 +11,7 @@
 @endif
 @php
     $teacher = $course->teacher;
+    $seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
     $learningBenefits = [];
     if ($features['recorded_video'] ?? false) $learningBenefits[] = 'آموزش ویدیویی فصل‌به‌فصل با دسترسی کنترل‌شده';
     if ($features['live_class'] ?? false) $learningBenefits[] = 'جلسات آنلاین زمان‌بندی‌شده و پیگیری حضور در کلاس';
@@ -47,6 +48,9 @@
             @if($course->grade)
                 <span class="bd">پایه {{ $course->grade }}</span>
             @endif
+            @if($course->season)
+                <span class="bd">ترم {{ $seasonLabels[$course->season] ?? $course->season }}</span>
+            @endif
         </div>
         <div class="mt" aria-label="امکانات و شیوه ارائه دوره">
             @if($features['recorded_video'] ?? false)<span>آموزش ویدیویی</span>@endif
@@ -66,7 +70,7 @@
     <div class="c">
         @if($course->description)<a href="#c1">معرفی دوره</a>@endif
         <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
-        @if($features['live_class'] ?? false)<a href="#live-sessions">برنامه کلاس‌ها</a>@endif
+        @if(($features['live_class'] ?? false) || $upcomingSessions->isNotEmpty())<a href="#live-sessions">برنامه جلسات</a>@endif
         @if($teacher)<a href="#c3">مدرس دوره</a>@endif
         @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
