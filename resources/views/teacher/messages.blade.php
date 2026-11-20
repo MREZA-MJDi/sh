@@ -8,6 +8,12 @@
 <div class="teacher-inbox">
     <aside class="teacher-inbox-list c">
         <div class="teacher-inbox-heading"><h2>گفت‌وگوها</h2><span>{{ $conversations->total() }} مورد</span></div>
+        <form method="GET" action="{{ route('teacher.messages.index') }}" class="teacher-inbox-filters">
+            <input type="hidden" name="message" value="">
+            <label><span class="sr-only">جست‌وجوی گفت‌وگو</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="جست‌وجو در پیام‌ها"></label>
+            <label><span class="sr-only">وضعیت</span><select name="status"><option value="">همه وضعیت‌ها</option><option value="open" @selected(($filters['status'] ?? '') === 'open')>باز</option><option value="answered" @selected(($filters['status'] ?? '') === 'answered')>پاسخ‌داده‌شده</option><option value="closed" @selected(($filters['status'] ?? '') === 'closed')>بسته</option></select></label>
+            <button class="b s" type="submit">فیلتر</button>
+        </form>
         @forelse ($conversations as $conversation)
             <a class="teacher-inbox-item {{ $selectedMessage?->id === $conversation->id ? 'is-active' : '' }}" href="{{ route('teacher.messages.index', ['message' => $conversation->id]) }}">
                 <span class="teacher-inbox-avatar">{{ mb_substr($conversation->student?->name ?? $conversation->sender?->name ?? 'م', 0, 1) }}</span>
