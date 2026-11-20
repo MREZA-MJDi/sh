@@ -13,7 +13,7 @@
         <div class="row"><div>{{ $reply->sender?->name }}<small>{{ $reply->body }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</small></div></div>
     @endforeach
     @if (($consultation->replies_count ?? 0) > $consultation->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
-    @if (!in_array($consultation->status, ['done', 'cancelled'], true))
+    @if (auth()->user()->hasPermissionTo('consultations.create') && !in_array($consultation->status, ['done', 'cancelled'], true))
         <form method="POST" action="{{ route('guardian.consultations.reply', $consultation) }}">
             @csrf
             <label>پیام جدید</label>
