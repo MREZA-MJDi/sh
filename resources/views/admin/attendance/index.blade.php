@@ -6,85 +6,108 @@
   $marks = ['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'];
 @endphp
 
-<x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="ثبت حضور هر جلسه و بررسی غیبت دانش‌آموزان در همه دوره‌ها"/>
-<p class="adm-muted">تاریخ انتخاب‌شده: {{ $date }} (شمسی)</p>
+<x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت کن."/>
 
 <form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}"></form>
-<x-admin.panel flush data-tone="track">
+<x-admin.panel flush>
   <form method="POST" action="{{ route('admin.attendance.store') }}" data-roster>
     @csrf
     <input type="hidden" name="class_id" value="{{ $classroom?->id }}">
     <input type="hidden" name="date" value="{{ $date }}">
     <input type="hidden" name="session" value="{{ $session?->id }}">
-    <div class="adm-toolbar">
-      <select class="adm-select" name="class_id" form="attendance-filter" aria-label="کلاس">
-        @foreach ($classes as $v => $t)
-          <option value="{{ $v }}" @selected((int) $classroom?->id === (int) $v)>{{ $t }}</option>
-        @endforeach
-      </select>
-      <label class="adm-label">تاریخ جلسه <input class="adm-input" type="date" form="attendance-filter" name="date" value="{{ $dateIso }}" aria-label="تاریخ جلسه"></label>
-      <select class="adm-select" name="session" form="attendance-filter" aria-label="جلسه">
-        @forelse ($sessions as $item)
-          <option value="{{ $item->id }}" @selected($session?->id === $item->id)>
-            {{ $item->title ?: 'جلسه' }} — {{ $item->starts_at?->format('H:i') }}
-          </option>
-        @empty
-          <option value="">جلسه‌ای برای این تاریخ وجود ندارد</option>
-        @endforelse
-      </select>
-      <div class="adm-toolbar-end">
+
+    <div class="adm-attendance-toolbar">
+      <div class="adm-attendance-filters">
+        <label class="adm-label">کلاس
+          <select class="adm-select" name="class_id" form="attendance-filter" aria-label="انتخاب کلاس">
+            @foreach ($classes as $v => $t)
+              <option value="{{ $v }}" @selected((int) $classroom?->id === (int) $v)>{{ $t }}</option>
+            @endforeach
+          </select>
+        </label>
+        <label class="adm-label">تاریخ جلسه
+          <input class="adm-input" type="date" form="attendance-filter" name="date" value="{{ $dateIso }}" aria-label="تاریخ جلسه">
+        </label>
+        <label class="adm-label">جلسه
+          <select class="adm-select" name="session" form="attendance-filter" aria-label="انتخاب جلسه">
+            @forelse ($sessions as $item)
+              <option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} — {{ $item->starts_at?->format('H:i') }}</option>
+            @empty
+              <option value="">جلسه‌ای برای این تاریخ وجود ندارد</option>
+            @endforelse
+          </select>
+        </label>
+      </div>
+      <div class="adm-actions">
         <x-admin.btn type="button" variant="line" size="sm" icon="check" data-mark-all="present">همه حاضر</x-admin.btn>
-        <x-admin.btn type="submit" size="sm" icon="check" :disabled="!$session || $roster->isEmpty()">ذخیره حضور و غیاب</x-admin.btn>
+        <x-admin.btn type="submit" size="sm" icon="check" :disabled="!$session || $roster->isEmpty()">ذخیره وضعیت‌ها</x-admin.btn>
       </div>
     </div>
-    <div class="adm-toolbar">
-      <div class="adm-tally">
-        @foreach (['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'] as $k => $t)<div data-t="{{ $k }}">{{ $t }} <b class="adm-num">0</b></div>@endforeach
+
+    <div class="adm-panel-body" style="padding-bottom:12px">
+      <div class="adm-attendance-summary" aria-live="polite">
+        @foreach (['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'] as $k => $t)
+          <div data-t="{{ $k }}">{{ $t }} <b class="adm-num">0</b></div>
+        @endforeach
       </div>
     </div>
-    <div class="adm-table-wrap"><table class="adm-table">
-      <thead><tr><th>دانش‌آموز</th><th>وضعیت</th><th>توضیح</th></tr></thead>
-      <tbody>
-        @forelse ($roster as $s)
-          <tr>
-            <td><x-admin.person :name="$s['name']"/></td>
-            <td>
-              <div class="adm-marks" role="radiogroup" aria-label="وضعیت {{ $s['name'] }}">
-                @foreach ($marks as $v => $t)<label data-m="{{ $v }}"><input type="radio" name="status[{{ $s['id'] }}]" value="{{ $v }}" @checked($s['status'] === $v) @if($loop->first) required @endif><span>{{ $t }}</span></label>@endforeach
-              </div>
-            </td>
-            <td><input class="adm-input" name="note[{{ $s['id'] }}]" value="{{ $s['note'] }}" placeholder="اختیاری" aria-label="توضیح" style="max-width:260px"></td>
-          </tr>
-        @empty
-          <tr><td colspan="3">برای کلاس و جلسه انتخاب‌شده دانش‌آموزی جهت ثبت حضور وجود ندارد.</td></tr>
-        @endforelse
-      </tbody>
-    </table></div>
+
+    @if($roster->isNotEmpty())
+      <div class="adm-roster-grid">
+        @foreach ($roster as $student)
+          <article class="adm-roster-card">
+            <div class="adm-roster-person">
+              <span class="adm-roster-avatar" aria-hidden="true">{{ mb_substr($student['name'], 0, 1) }}</span>
+              <div><b>{{ $student['name'] }}</b><small>وضعیت این جلسه را انتخاب کن</small></div>
+            </div>
+            <div class="adm-marks" role="radiogroup" aria-label="وضعیت حضور {{ $student['name'] }}">
+              @foreach ($marks as $value => $label)
+                <label data-m="{{ $value }}">
+                  <input type="radio" name="status[{{ $student['id'] }}]" value="{{ $value }}" @checked($student['status'] === $value) @if($loop->first) required @endif>
+                  <span>{{ $label }}</span>
+                </label>
+              @endforeach
+            </div>
+            <label class="adm-sr" for="attendance-note-{{ $student['id'] }}">توضیح برای {{ $student['name'] }}</label>
+            <input id="attendance-note-{{ $student['id'] }}" class="adm-input" name="note[{{ $student['id'] }}]" value="{{ $student['note'] }}" placeholder="توضیح اختیاری">
+          </article>
+        @endforeach
+      </div>
+    @else
+      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>دانش‌آموزی برای ثبت حضور پیدا نشد</b><span>یک کلاس و جلسه‌ی معتبر انتخاب کن یا ابتدا برای این تاریخ جلسه بساز.</span></div>
+    @endif
   </form>
 </x-admin.panel>
 
-<x-admin.panel title="گزارش غیبت دانش‌آموزان" desc="دانش‌آموزی که ۳ جلسه یا بیشتر غایب باشد، علامت‌گذاری می‌شود" flush data-tone="track">
-  <div class="adm-table-wrap"><table class="adm-table">
-    <thead><tr><th>دانش‌آموز</th><th>کلاس</th><th>جلسات برگزارشده</th><th>غیبت</th><th></th></tr></thead>
-    <tbody>
-      @forelse ($report as [$studentId, $classroomId, $name, $cls, $total, $abs])
-        <tr>
-          <td><x-admin.person :name="$name"/></td><td>{{ $cls }}</td>
-          <td class="adm-num">{{ $total }}</td>
-          <td style="min-width:180px"><div class="adm-kv" style="justify-content:space-between"><b class="adm-num">{{ $abs }} جلسه</b>@if ($abs >= 3)<x-admin.badge tone="bad">غیبت زیاد</x-admin.badge>@endif</div><div class="adm-progress" data-tone="track"><i style="width:{{ $total > 0 ? round($abs / $total * 100) : 0 }}%"></i></div></td>
-          <td class="is-end">
-            @if ($abs >= 3)
-              <form method="POST" action="{{ route('admin.attendance.notify', [$classroomId, $studentId]) }}">
-                @csrf
-                <x-admin.btn type="submit" variant="soft" size="sm" icon="send">اطلاع به ولی</x-admin.btn>
-              </form>
+<x-admin.panel title="نیازمند پیگیری" desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
+  @if(count($report))
+    <div class="adm-attendance-report">
+      @foreach ($report as [$studentId, $classroomId, $name, $className, $total, $absent])
+        <article class="adm-attendance-risk">
+          <div class="adm-attendance-risk-head">
+            <div class="adm-roster-person">
+              <span class="adm-roster-avatar" aria-hidden="true">{{ mb_substr($name, 0, 1) }}</span>
+              <div><b>{{ $name }}</b><small>{{ $className }}</small></div>
+            </div>
+            @if ($absent >= 3)
+              <x-admin.badge tone="bad">نیازمند پیگیری</x-admin.badge>
+            @else
+              <x-admin.badge tone="warn">در حال پایش</x-admin.badge>
             @endif
-          </td>
-        </tr>
-      @empty
-        <tr><td colspan="5">هنوز گزارشی از غیبت دانش‌آموزان ثبت نشده است.</td></tr>
-      @endforelse
-    </tbody>
-  </table></div>
+          </div>
+          <p>{{ number_format($absent) }} غیبت از {{ number_format($total) }} جلسه برگزارشده</p>
+          <div class="adm-progress" data-tone="track"><i style="width:{{ $total > 0 ? min(100, round($absent / $total * 100)) : 0 }}%"></i></div>
+          @if ($absent >= 3)
+            <form method="POST" action="{{ route('admin.attendance.notify', [$classroomId, $studentId]) }}" style="margin-top:12px">
+              @csrf
+              <x-admin.btn type="submit" variant="soft" size="sm" icon="send">اطلاع به ولی</x-admin.btn>
+            </form>
+          @endif
+        </article>
+      @endforeach
+    </div>
+  @else
+    <div class="adm-queue-empty"><x-admin.icon name="check"/><b>موردی برای پیگیری ثبت نشده</b><span>در حال حاضر گزارشی از غیبت‌های متوالی وجود ندارد.</span></div>
+  @endif
 </x-admin.panel>
 @endsection
