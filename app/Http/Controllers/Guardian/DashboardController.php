@@ -139,7 +139,7 @@ final class DashboardController extends Controller
             'calendar' => $days, 'monthOffset' => ($start->dayOfWeek + 1) % 7,
             'monthTitle' => JalaliDate::monthLabel($year, $month),
             'monthKey' => $monthKey, 'monthOptions' => $monthOptions,
-            'absencePattern' => $data['attendance_breakdown']->get('absent', 0).' غیبت ثبت‌شده',
+            'absencePattern' => (int) $monthBreakdown->get('absent', 0).' غیبت در این ماه',
             'lastLate' => $data['last_late_attendance']?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
         ]);
     }
