@@ -21,7 +21,7 @@
             <button class="b" type="submit">ارسال پیام</button>
         </form>
     @endif
-    @if ($consultation->status === 'pending')
+    @if (auth()->user()->hasPermissionTo('consultations.create') && $consultation->status === 'pending')
         <form method="POST" action="{{ route('guardian.consultations.destroy', $consultation) }}">
             @csrf @method('DELETE')
             <button class="b s" type="submit">حذف درخواست</button>
