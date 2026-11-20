@@ -53,11 +53,13 @@
             <span class="parent-profile-name">{{ $parentUser?->name }}</span><span aria-hidden="true">⌄</span>
         </summary>
         <div class="parent-menu-pop parent-profile-pop">
+            @if($parentUser?->hasPermissionTo('profile.update'))
             <form method="POST" action="{{ route('profile.avatar.update') }}" enctype="multipart/form-data">
                 @csrf
                 <label class="parent-avatar-upload">تغییر تصویر پروفایل<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required></label>
                 <button type="submit" class="parent-avatar-submit">بارگذاری تصویر</button>
             </form>
+            @endif
             <form method="POST" action="{{ route('logout') }}" class="parent-profile-logout">@csrf<button type="submit">خروج از حساب</button></form>
         </div>
     </details>
