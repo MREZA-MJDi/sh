@@ -41,7 +41,7 @@
  </form>
 @endif
 <section class="c">
- <h3>سوابق حضور و غیاب کلاس‌های من</h3>
+ <div class="teacher-section-head"><div><h3>سوابق حضور و غیاب کلاس‌های من</h3><p>آخرین سوابق ثبت‌شده در کلاس‌های تخصیص‌یافته</p></div><span class="teacher-result-count">{{ $history->total() }} رکورد</span></div>
  @forelse ($history as $record)
   <div class="row"><div>{{ $record->student?->name }}<small>{{ $record->classroom?->name }} · {{ $record->session_date ? \App\Support\PersianDate::format($record->session_date, 'Y/m/d') : '—' }}</small></div>
    @php $status = ['present'=>['حاضر','gn'],'absent'=>['غایب','rd'],'late'=>['تأخیر','am'],'excused'=>['موجه','bl']][$record->status] ?? ['ثبت‌شده','bl']; @endphp
@@ -50,5 +50,6 @@
  @empty
   <p>رکوردی ثبت نشده است.</p>
  @endforelse
+ {{ $history->links() }}
 </section>
 @endsection
