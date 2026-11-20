@@ -13,6 +13,22 @@ final class DashboardController extends Controller
     public function index(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
+        $guardian = $request->user();
+        if (! $guardian->hasPermissionTo('exams.view.children')) {
+            $data['results'] = collect();
+            $data['result_trend'] = collect();
+            $data['average_exam_score'] = null;
+        }
+        if (! $guardian->hasPermissionTo('homework.view.children')) {
+            $data['homework_trend'] = collect();
+            $data['reviewed_homework'] = collect();
+            $data['pending_homework_count'] = 0;
+        }
+        if (! $guardian->hasPermissionTo('attendance.view.children')) {
+            $data['attendance_breakdown'] = collect();
+            $data['attendance_rate'] = null;
+            $data['attendance_count'] = 0;
+        }
         $data['kids'] = $data['children'];
         $data['kid'] = $data['selected_child'];
 
