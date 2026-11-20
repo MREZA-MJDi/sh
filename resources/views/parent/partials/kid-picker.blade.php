@@ -1,5 +1,6 @@
 @if (($kids ?? collect())->isNotEmpty())
     <nav class="parent-child-picker" aria-label="انتخاب فرزند">
+        @if ($kid)<input type="hidden" value="{{ $kid->id }}" data-selected-child>@endif
         <span class="parent-child-picker-label">نمایش اطلاعات:</span>
         @foreach (($kids ?? []) as $k)
             @php($isSelected = (int) data_get($k, 'id') === (int) data_get($kid ?? null, 'id'))
