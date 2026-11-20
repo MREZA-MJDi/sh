@@ -91,9 +91,13 @@
         </div>
       </article>
     @empty
-      <x-admin.empty text="حسابی در این نقش ثبت نشده است."/>
     @endforelse
   </div>
+  @if($users->isEmpty())
+    <x-admin.empty text="حسابی در این نقش ثبت نشده است."/>
+  @else
+    <x-admin.empty data-empty class="adm-hide" text="کاربری با این مشخصات پیدا نشد."/>
+  @endif
   <x-slot:footer>{{ $users->links() }}</x-slot:footer>
 </x-admin.panel>
 @endsection
