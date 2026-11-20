@@ -353,6 +353,14 @@ final class ChunkUploadController extends Controller
             $disk->delete($destination);
             $disk->deleteDirectory($chunkDirectory);
             $session->update(['status' => 'failed']);
+
+            if ($session->target === 'teaser') {
+                Course::query()->whereKey($session->target_id)->update([
+                    'teaser_status' => 'failed',
+                    'teaser_error' => mb_substr($exception->getMessage(), 0, 500),
+                ]);
+            }
+
             throw $exception;
         }
     }
@@ -474,12 +482,16 @@ final class ChunkUploadController extends Controller
         }
 
         abort_unless($target === 'spotplayer_video', 404);
-        abort_unless($request->user()->hasAnyPermission(['integrations.manage', 'videos.manage.assigned']), 403);
+        $isExternalSpotPlayerAsset = filled($metadata['external_id'] ?? null);
+        abort_unless($request->user()->hasAnyPermission(['courses.manage', 'videos.manage.assigned', 'integrations.manage']), 403);
+        if ($isExternalSpotPlayerAsset) {
+            abort_unless($request->user()->hasAnyPermission(['integrations.manage', 'courses.manage']), 403);
+        }
 
         $course = $workspace->coursesQueryFor($request->user())
             ->where(function ($query): void {
                 $query->where(function ($legacy): void {
-                    $legacy->whereNull('learning_features')->where('delivery_type', 'spotplayer');
+                    $legacy->whereNull('learning_features->recorded_video')->where('delivery_type', 'spotplayer');
                 })->orWhere('learning_features->recorded_video', true);
             })
             ->findOrFail($courseId);

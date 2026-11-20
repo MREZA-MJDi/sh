@@ -24,7 +24,7 @@ const jsonRequest = async (url, payload) => {
 };
 
 const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-const targetIsSessionUpload = (widget) => widget.dataset.target === 'spotplayer_video';
+const targetRequiresSession = (widget) => widget.dataset.requireSession === 'true';
 
 document.querySelectorAll('[data-course-upload]').forEach((widget) => {
   const fileInput = widget.querySelector('[data-upload-file]');
@@ -78,6 +78,13 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     progress.hidden = false;
     bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
   };
+  const setControlsDisabled = (disabled, courseSelect, classroomSelect, sessionSelect) => {
+    startButton.disabled = disabled;
+    fileInput.disabled = disabled;
+    if (courseSelect) courseSelect.disabled = disabled;
+    if (classroomSelect) classroomSelect.disabled = disabled;
+    if (sessionSelect) sessionSelect.disabled = disabled;
+  };
 
   const classroomField = widget.querySelector('[data-upload-classroom]');
   const sessionField = widget.querySelector('[data-upload-session]');
@@ -121,7 +128,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     const classroomSelect = widget.querySelector('[data-upload-classroom]');
     const sessionSelect = widget.querySelector('[data-upload-session]');
     const classSessionId = Number(sessionSelect?.value || 0);
-    if (targetIsSessionUpload(widget) && !classSessionId) {
+    if (targetRequiresSession(widget) && !classSessionId) {
       setStatus('ابتدا کلاس و سپس جلسه موردنظر را انتخاب کنید.', true);
       sessionSelect?.focus();
       return;
@@ -143,11 +150,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     }
 
     const resumeKey = ['sh-video-upload', target, courseId, classSessionId || 0, file.name, file.size, file.lastModified].join(':');
-    startButton.disabled = true;
-    fileInput.disabled = true;
-    if (courseSelect) courseSelect.disabled = true;
-    if (classroomSelect) classroomSelect.disabled = true;
-    if (sessionSelect) sessionSelect.disabled = true;
+    setControlsDisabled(true, courseSelect, classroomSelect, sessionSelect);
     let started = null;
     let completedUpload = false;
     const receivedChunks = new Set();
@@ -253,12 +256,13 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         if (statusUrl) {
           for (let attempt = 0; attempt < 90; attempt++) {
             await sleep(2000);
-            const response = await fetch(statusUrl, {
-              credentials: 'same-origin',
-              headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-            });
-            if (!response.ok) break;
-            const state = await response.json();
+            let state;
+            try {
+              state = await jsonRequest(statusUrl, {upload_id: started.upload_id});
+            } catch (pollError) {
+              if (pollError.status && pollError.status < 500) throw pollError;
+              continue;
+            }
             if (state.status === 'ready') {
               if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
               setStatus('تریلر آماده نمایش است. صفحه در حال به‌روزرسانی است.');
@@ -271,6 +275,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             }
           }
           setStatus('پردازش تریلر هنوز ادامه دارد؛ وضعیت را کمی بعد دوباره بررسی کنید.');
+          setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
         } else {
           if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
           setStatus('تریلر بارگذاری شد و در صف پردازش قرار گرفت.');
@@ -280,7 +285,13 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
           setStatus('آپلود کامل شد؛ فایل در فضای خصوصی در حال پردازش و آماده‌سازی پخش است…');
           for (let attempt = 0; attempt < 90; attempt++) {
             await sleep(2000);
-            const state = await jsonRequest(widget.dataset.statusUrl, {upload_id: started.upload_id});
+            let state;
+            try {
+              state = await jsonRequest(widget.dataset.statusUrl, {upload_id: started.upload_id});
+            } catch (pollError) {
+              if (pollError.status && pollError.status < 500) throw pollError;
+              continue;
+            }
             if (state.status === 'ready') {
               if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
               setStatus('ویدیو پردازش شد و آماده پخش است. صفحه در حال به‌روزرسانی است.');
@@ -299,11 +310,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             }
           }
           setStatus('پردازش ویدیو هنوز ادامه دارد؛ با انتخاب همین فایل و تلاش دوباره، وضعیت پردازش را ادامه می‌دهید.');
-          startButton.disabled = false;
-          fileInput.disabled = false;
-          if (courseSelect) courseSelect.disabled = false;
-    if (classroomSelect) classroomSelect.disabled = false;
-    if (sessionSelect) sessionSelect.disabled = false;
+          setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
         } else {
           if (widget.dataset.resumeUrl) localStorage.removeItem(resumeKey);
           setStatus(completed.status === 'ready'
@@ -318,9 +325,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         ? ' نشست آپلود حفظ شد؛ با انتخاب همین فایل و زدن دوباره دکمه، از بخش‌های دریافت‌شده ادامه می‌دهید.'
         : '';
       setStatus((error.message || 'بارگذاری فایل ناموفق بود.') + suffix, true);
-      startButton.disabled = false;
-      fileInput.disabled = false;
-      if (courseSelect) courseSelect.disabled = false;
+      setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
     }
   });
 });

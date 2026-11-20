@@ -31,10 +31,10 @@ final class LearningAccessService
                                     ->whereNull('learning_features')
                                     ->orWhereNull('learning_features->'.$feature));
 
-                                if ($feature === 'recorded_video') {
-                                    $legacy->where('delivery_type', 'spotplayer');
-                                } elseif ($feature === 'live_class') {
+                                if ($feature === 'live_class') {
                                     $legacy->where('delivery_type', 'skyroom');
+                                } elseif ($feature === 'recorded_video') {
+                                    $legacy->where('delivery_type', 'spotplayer');
                                 } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
                                     $legacy->whereRaw('1 = 0');
                                 }
@@ -66,10 +66,10 @@ final class LearningAccessService
                                     ->whereNull('learning_features')
                                     ->orWhereNull('learning_features->'.$feature));
 
-                                if ($feature === 'recorded_video') {
-                                    $legacy->where('delivery_type', 'spotplayer');
-                                } elseif ($feature === 'live_class') {
+                                if ($feature === 'live_class') {
                                     $legacy->where('delivery_type', 'skyroom');
+                                } elseif ($feature === 'recorded_video') {
+                                    $legacy->where('delivery_type', 'spotplayer');
                                 } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
                                     $legacy->whereRaw('1 = 0');
                                 }

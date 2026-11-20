@@ -123,7 +123,7 @@
               <x-admin.select label="گروه آموزشی (اختیاری)" name="classroom_id" :options="$classrooms->pluck('name', 'id')->all()" placeholder="کلاس را انتخاب کنید" data-upload-classroom/>
               <label class="adm-field">
                 <span class="adm-label">جلسه مشخص</span>
-                <select class="adm-select" name="class_session_id" data-upload-session required>
+                <select class="adm-select" name="class_session_id" data-upload-session>
                   <option value="">ابتدا جلسه را انتخاب کنید</option>
                   @foreach($classrooms as $classroom)
                     @foreach($classroom->sessions as $session)

@@ -52,6 +52,20 @@
    @foreach($selected->replies as $reply)<div class="ib-b {{ $reply->sender?->hasRole('admin')?'admin':'' }}">{{ $reply->body }}<time>{{ $reply->sender?->name }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</time></div>@endforeach
    @if($selected->closed_at)<div class="ib-sys">این گفتگو بسته شده است</div>@endif
   </div>
+  <section class="ib-internal-notes" aria-label="یادداشت‌های داخلی">
+   <div class="ib-hd"><h3>یادداشت‌های داخلی</h3><span class="ib-total">{{ number_format($notes->count()) }}</span></div>
+   @forelse($notes as $note)
+    <article class="ib-note"><p>{{ $note->body }}</p><small>{{ $note->author?->name ?? 'مدیریت' }} · {{ $note->created_at?->format('Y/m/d H:i') }}</small></article>
+   @empty
+    <p class="ib-empty">هنوز یادداشت داخلی ثبت نشده است.</p>
+   @endforelse
+   @if(auth()->user()->hasRole('admin'))
+    <form method="POST" action="{{ route('admin.messages.notes.store',$selected) }}" class="ib-compose">@csrf
+     <textarea name="body" placeholder="یادداشت داخلی برای پیگیری…" maxlength="5000" required></textarea>
+     <button class="ib-btn" type="submit">ثبت یادداشت داخلی</button>
+    </form>
+   @endif
+  </section>
   @if(!$selected->closed_at && auth()->user()->hasPermissionTo('messages.reply'))
    <form method="POST" action="{{ route('admin.messages.reply',$selected) }}" class="ib-compose">@csrf<textarea name="body" placeholder="پاسخ خود را بنویسید…" maxlength="30000" required></textarea><button class="ib-btn p" type="submit">ارسال</button></form>
   @endif

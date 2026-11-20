@@ -26,13 +26,23 @@ class ProcessTeaserVideo implements ShouldQueue
     public function handle(): void
     {
         $course = Course::find($this->courseId);
-        if (! $course || ! $course->teaser_original_path) {
+        if (! $course) {
+            return;
+        }
+        if (! $course->teaser_original_path) {
+            if ($course->teaser_status === 'processing') {
+                $course->update(['teaser_status' => 'failed', 'teaser_error' => 'فایل مبدأ تیزر برای پردازش پیدا نشد.']);
+            }
             return;
         }
 
         $local = Storage::disk('local');
         $public = Storage::disk('public');
         $input = $local->path($course->teaser_original_path);
+        if (! $local->exists($course->teaser_original_path) || ! is_file($input)) {
+            $course->update(['teaser_status' => 'failed', 'teaser_error' => 'فایل مبدأ تیزر در فضای ذخیره‌سازی وجود ندارد.']);
+            return;
+        }
 
         $dir = "courses/{$course->id}/teaser";
         $public->makeDirectory($dir);
@@ -40,24 +50,33 @@ class ProcessTeaserVideo implements ShouldQueue
         $video = "{$dir}/{$name}.mp4";
         $poster = "{$dir}/{$name}.jpg";
 
+        $process = null;
         try {
-            (new Process([
-                'ffmpeg', '-y', '-i', $input,
-                '-vf', 'scale=-2:min(720\,ih)',
+            $process = new Process([
+                'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', $input,
+                '-vf', 'scale=-2:min(720\\,ih)',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26',
                 '-c:a', 'aac', '-b:a', '96k',
                 '-movflags', '+faststart',
                 $public->path($video),
-            ]))->setTimeout(3300)->mustRun();
+            ]);
+            $process->setTimeout(3300)->mustRun();
+
+            clearstatcache(true, $public->path($video));
+            if (! is_file($public->path($video)) || filesize($public->path($video)) < 1) {
+                throw new \RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+            }
         } catch (Throwable $e) {
             $public->delete($video);
-            $course->update(['teaser_status' => 'failed', 'teaser_error' => mb_substr($e->getMessage(), 0, 500)]);
+            $diagnostic = trim((string) $process?->getErrorOutput());
+            $error = $diagnostic !== '' ? $diagnostic : $e->getMessage();
+            $course->update(['teaser_status' => 'failed', 'teaser_error' => mb_substr($error, 0, 500)]);
             return;
         }
 
         $hasPoster = false;
         foreach (['1', '0'] as $second) {
-            $p = new Process(['ffmpeg', '-y', '-ss', $second, '-i', $input, '-frames:v', '1', '-q:v', '4', $public->path($poster)]);
+            $p = new Process(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-ss', $second, '-i', $input, '-frames:v', '1', '-q:v', '4', $public->path($poster)]);
             $p->setTimeout(120)->run();
             if ($p->isSuccessful() && $public->exists($poster)) {
                 $hasPoster = true;

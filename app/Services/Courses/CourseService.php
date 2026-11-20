@@ -24,8 +24,7 @@ class CourseService
     {
         return DB::transaction(function () use ($data): Course {
             $deliveryType = $data['delivery_type'];
-            $features = $data['learning_features'] ?? [];
-            $usesSpotPlayer = (bool) ($features['recorded_video'] ?? ($deliveryType === 'spotplayer'));
+            $usesSpotPlayer = $deliveryType === 'spotplayer';
             $externalId = $usesSpotPlayer ? ($data['spotplayer_course_id'] ?? null) : null;
 
             $academicGradeId = $this->resolveAcademicGradeId($data);
@@ -59,8 +58,7 @@ class CourseService
     {
         return DB::transaction(function () use ($course, $data): Course {
             $deliveryType = $data['delivery_type'];
-            $features = $data['learning_features'] ?? [];
-            $usesSpotPlayer = (bool) ($features['recorded_video'] ?? ($deliveryType === 'spotplayer'));
+            $usesSpotPlayer = $deliveryType === 'spotplayer';
             $externalId = $usesSpotPlayer ? ($data['spotplayer_course_id'] ?? null) : null;
 
             $academicGradeId = $this->resolveAcademicGradeId($data);

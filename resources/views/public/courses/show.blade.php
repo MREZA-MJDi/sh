@@ -382,7 +382,7 @@
                 @endif
             </ul>
             @if(($features['recorded_video'] ?? false) && $hasCourseAccess && ! $canWatchCourseVideos)
-                <p class="lesson-empty" style="margin-top:14px">ثبت‌نام شما فعال است؛ پخش ویدیو پس از صدور یا تأیید لایسنس SpotPlayer در همین صفحه فعال می‌شود.</p>
+                <p class="lesson-empty" style="margin-top:14px">ثبت‌نام شما فعال است؛ ویدیوهای داخلی پس از آماده‌سازی و ویدیوهای SpotPlayer پس از تأیید لایسنس در همین صفحه نمایش داده می‌شوند.</p>
             @endif
         </aside>
     </div>
@@ -441,7 +441,7 @@
                             sandbox="allow-scripts allow-same-origin allow-presentation"
                         ></iframe>
                     </div>
-                    <p class="mu" style="font-size:12px;margin:10px 0 0">پخش فقط با ثبت‌نام فعال و لایسنس معتبر ارائه‌دهنده فعال می‌شود.</p>
+                    <p class="mu" style="font-size:12px;margin:10px 0 0">ویدیوهای داخلی با ثبت‌نام فعال پخش می‌شوند؛ ویدیوهای SpotPlayer علاوه بر ثبت‌نام به لایسنس معتبر ارائه‌دهنده نیاز دارند.</p>
                 </div>
                 <nav aria-label="فهرست ویدیوهای دوره" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow:auto">
                     @foreach ($playableVideos as $video)

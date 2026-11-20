@@ -53,6 +53,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         $disk->makeDirectory(dirname($outputRelativePath));
         $outputPath = $disk->path($outputRelativePath);
 
+        $process = null;
         try {
             $process = new Process([
                 'ffmpeg',
@@ -107,10 +108,12 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
             $disk->delete($sourceRelativePath);
         } catch (Throwable $exception) {
             $disk->delete($outputRelativePath);
+            $diagnostic = trim((string) $process?->getErrorOutput());
+            $error = $diagnostic !== '' ? $diagnostic : $exception->getMessage();
 
             $video->update([
                 'status' => 'failed',
-                'processing_error' => mb_substr($exception->getMessage(), 0, 1000),
+                'processing_error' => mb_substr($error, 0, 1000),
             ]);
         }
     }

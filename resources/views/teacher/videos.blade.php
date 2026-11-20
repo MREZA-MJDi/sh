@@ -16,7 +16,7 @@
 </form>
 <hr>
 <h2>بارگذاری امن فایل جلسه</h2>
-<div data-course-upload data-learning-scope data-target="spotplayer_video" data-course-id="0"
+<div data-course-upload data-learning-scope data-require-session="true" data-target="spotplayer_video" data-course-id="0"
   data-start-url="{{ route('teacher.uploads.start') }}" data-chunk-url="{{ route('teacher.uploads.chunk') }}"
   data-complete-url="{{ route('teacher.uploads.complete') }}" data-cancel-url="{{ route('teacher.uploads.cancel') }}"
   data-resume-url="{{ route('teacher.uploads.resume') }}" data-status-url="{{ route('teacher.uploads.status') }}"
