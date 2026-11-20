@@ -30,7 +30,7 @@ final class FinalizeChunkUpload implements ShouldQueue
 
     public function __construct(public readonly int $uploadSessionId)
     {
-        $this->onConnection('video')->onQueue('video');
+        $this->onConnection('upload-finalization')->onQueue('upload-finalize');
     }
 
     public function backoff(): array
