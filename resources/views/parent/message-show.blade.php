@@ -12,7 +12,7 @@
  </div>
  @if (($message->replies_count ?? 0) > $message->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
  @if (auth()->user()->hasPermissionTo('messages.send.own') && !in_array($message->status, ['closed','deleted'], true))
-  <form method="POST" action="{{ route('guardian.messages.reply', $message) }}" class="send">@csrf<textarea name="body" required maxlength="30000" placeholder="پاسخ شما"></textarea><button class="b" type="submit">ارسال پاسخ</button></form>
+  <form method="POST" action="{{ route('guardian.messages.reply', $message) }}" class="send">@csrf<textarea name="body" required maxlength="30000" placeholder="پاسخ شما">{{ old('body') }}</textarea><button class="b" type="submit">ارسال پاسخ</button></form>
  @endif
  <a class="ic" href="{{ route('guardian.messages.index', ['child' => $selected_child?->id]) }}">بازگشت به پیام‌ها</a>
 </section>
