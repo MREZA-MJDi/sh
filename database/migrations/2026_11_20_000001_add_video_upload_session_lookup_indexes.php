@@ -10,11 +10,11 @@ return new class extends Migration {
         Schema::table('video_upload_sessions', function (Blueprint $table): void {
             $table->index(
                 ['target', 'target_id', 'status', 'expires_at'],
-                'video_upload_sessions_target_state_expiry_index'
+                'video_upload_sessions_target_status_expiry_idx'
             );
             $table->index(
-                ['status', 'expires_at'],
-                'video_upload_sessions_state_expiry_index'
+                ['status', 'completed_at'],
+                'video_upload_sessions_status_completed_idx'
             );
         });
     }
@@ -22,8 +22,8 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('video_upload_sessions', function (Blueprint $table): void {
-            $table->dropIndex('video_upload_sessions_target_state_expiry_index');
-            $table->dropIndex('video_upload_sessions_state_expiry_index');
+            $table->dropIndex('video_upload_sessions_target_status_expiry_idx');
+            $table->dropIndex('video_upload_sessions_status_completed_idx');
         });
     }
 };
