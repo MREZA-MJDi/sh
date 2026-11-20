@@ -45,10 +45,7 @@ final class DashboardController extends Controller
                 'class_avg' => null,
             ])->values();
 
-        $trend = $data['result_trend']->groupBy(function ($result): string {
-            $date = JalaliDate::fromGregorian($result->created_at);
-            return JalaliDate::monthKey($date['year'], $date['month']);
-        });
+        $trend = $data['result_trend'];
         $currentJalali = JalaliDate::fromGregorian(now());
         $periods = collect(range(5, 0))->map(
             fn ($offset) => JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], $offset)
@@ -58,8 +55,7 @@ final class DashboardController extends Controller
             return JalaliDate::monthLabel($year, $monthNumber);
         })->values();
         $data['scores'] = $periods->map(function ($month) use ($trend) {
-            $items = $trend->get($month, collect());
-            return $items->isEmpty() ? null : round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1);
+            return $trend->get($month);
         })->values();
         $data['classAvg'] = [];
         $homeworkTrend = $data['homework_trend'];
@@ -122,7 +118,8 @@ final class DashboardController extends Controller
     public function exams(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
-        $subjects = $data['results']->filter(fn ($result) => $result->exam?->course)
+        $results = $data['exam_results'];
+        $subjects = $results->getCollection()->filter(fn ($result) => $result->exam?->course)
             ->groupBy(fn ($result) => $result->exam->course->title)
             ->map(fn ($items, $name) => [
                 'name' => $name,
@@ -132,14 +129,15 @@ final class DashboardController extends Controller
 
         return view('parent.exams', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'subjects' => $subjects, 'results' => $data['results'],
+            'subjects' => $subjects, 'results' => $results,
         ]);
     }
 
     public function homework(Request $request, GuardianDashboardService $dashboard): View
     {
         $data = $this->build($request, $dashboard);
-        $homework = $data['homeworks']->map(function ($item): array {
+        $homeworkPaginator = $data['homeworks'];
+        $homework = $homeworkPaginator->getCollection()->map(function ($item): array {
             $submission = $item->submissions->first();
             $late = $submission && $item->due_at && $submission->submitted_at && $submission->submitted_at->gt($item->due_at);
             $missing = ! $submission && $item->due_at && $item->due_at->isPast();
@@ -159,7 +157,7 @@ final class DashboardController extends Controller
 
         return view('parent.homework', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'homework' => $homework, 'hwTotals' => $totals,
+            'homework' => $homework, 'homeworkPaginator' => $homeworkPaginator, 'hwTotals' => $totals,
         ]);
     }
 
