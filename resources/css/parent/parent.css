@@ -970,3 +970,10 @@ button.b,a.b,.sel a{cursor:pointer}.b:disabled{opacity:.5;cursor:not-allowed}
 .parent-alert{line-height:1.9}
 .parent-alert ul{margin:6px 0 0;padding-inline-start:22px}
 @media(max-width:650px){.parent-inbox-filters{grid-template-columns:1fr}.parent-inbox-filters .b{grid-column:auto}.parent-pagination nav{justify-content:center}}
+
+.teacher-page-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 16px}
+.teacher-page-head h1{margin:2px 0 4px;font-size:clamp(21px,2.4vw,28px);line-height:1.45}
+.teacher-page-head p{margin:0;color:var(--mu);font-size:13px}
+.teacher-eyebrow{display:inline-block;color:var(--pri);font-size:11px;font-weight:800}
+.teacher-page-head .b{text-decoration:none}
+@media(max-width:760px){.teacher-page-head{align-items:flex-start}}
