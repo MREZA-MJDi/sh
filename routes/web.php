@@ -186,12 +186,12 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/courses/{course}/teaser', [LearningAdminController::class, 'teaser'])->middleware('permission:courses.manage')->name('courses.teaser');
     Route::get('/courses/{course}/teaser/status', [LearningAdminController::class, 'teaserStatus'])->middleware('permission:courses.manage')->name('courses.teaser.status');
     Route::delete('/courses/{course}/teaser', [LearningAdminController::class, 'destroyTeaser'])->middleware('permission:courses.manage')->name('courses.teaser.destroy');
-    Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
-    Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:60,1'])->name('uploads.resume');
-    Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:60,1'])->name('uploads.status');
-    Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
-    Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
-    Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
+    Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:upload-start'])->name('uploads.start');
+    Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:upload-resume'])->name('uploads.resume');
+    Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:upload-status'])->name('uploads.status');
+    Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:upload-chunk'])->name('uploads.chunk');
+    Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:upload-complete'])->name('uploads.complete');
+    Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:courses.manage,integrations.manage,videos.manage.assigned', 'throttle:upload-cancel'])->name('uploads.cancel');
 
     Route::patch('/courses/{course}', [CourseController::class, 'update'])->middleware('permission:courses.manage')->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->middleware('permission:courses.manage')->name('courses.destroy');
@@ -348,12 +348,12 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::get('/videos/{video}/download', [SpotPlayerController::class, 'downloadStagedVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.download');
         Route::post('/videos/{video}/retry-processing', [SpotPlayerController::class, 'retryProcessing'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.retry-processing');
         Route::post('/videos/{video}/resubmit', [SpotPlayerController::class, 'resubmitVideo'])->middleware('permission:videos.manage.assigned')->name('spotplayer.videos.resubmit');
-        Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.start');
-        Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:videos.manage.assigned', 'throttle:60,1'])->name('uploads.resume');
-        Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:videos.manage.assigned', 'throttle:60,1'])->name('uploads.status');
-        Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:videos.manage.assigned', 'throttle:1800,1'])->name('uploads.chunk');
-        Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:videos.manage.assigned', 'throttle:10,1'])->name('uploads.complete');
-        Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:videos.manage.assigned', 'throttle:20,1'])->name('uploads.cancel');
+        Route::post('/uploads/start', [ChunkUploadController::class, 'start'])->middleware(['permission:videos.manage.assigned', 'throttle:upload-start'])->name('uploads.start');
+        Route::post('/uploads/resume', [ChunkUploadController::class, 'resume'])->middleware(['permission:videos.manage.assigned', 'throttle:upload-resume'])->name('uploads.resume');
+        Route::post('/uploads/status', [ChunkUploadController::class, 'status'])->middleware(['permission:videos.manage.assigned', 'throttle:upload-status'])->name('uploads.status');
+        Route::post('/uploads/chunk', [ChunkUploadController::class, 'chunk'])->middleware(['permission:videos.manage.assigned', 'throttle:upload-chunk'])->name('uploads.chunk');
+        Route::post('/uploads/complete', [ChunkUploadController::class, 'complete'])->middleware(['permission:videos.manage.assigned', 'throttle:upload-complete'])->name('uploads.complete');
+        Route::post('/uploads/cancel', [ChunkUploadController::class, 'cancel'])->middleware(['permission:videos.manage.assigned', 'throttle:upload-cancel'])->name('uploads.cancel');
         Route::get('/resources', [TeacherPortalController::class, 'resources'])->middleware('permission:resources.manage.assigned')->name('resources');
         Route::post('/resources', [LearningResourceController::class, 'store'])->middleware('permission:resources.manage.assigned')->name('resources.store');
         Route::get('/resources/{resource}/download', [LearningResourceController::class, 'download'])->middleware('permission:resources.manage.assigned')->name('resources.download');
