@@ -111,6 +111,31 @@ class PublicExamFeatureTest extends TestCase
         $this->get('/free-exams')->assertNotFound();
     }
 
+    public function test_direct_submission_preserves_question_ids_without_autosave(): void
+    {
+        config(['public_exams.enabled' => true]);
+        $exam = $this->createExam();
+        $question = $exam->questions()->first();
+        $correctOption = $question->options()->where('is_correct', true)->first();
+
+        $this->post(route('public.exams.start', $exam), [
+            'name' => 'کاربر آزمایشی',
+            'phone' => '09123456789',
+        ])->assertRedirect();
+
+        $attempt = PublicExamAttempt::query()->sole();
+
+        $this->post(route('public.exams.submit', $attempt), [
+            'answers' => [$question->id => $correctOption->id],
+        ])->assertRedirect(route('public.exams.result', $attempt));
+
+        $attempt->refresh();
+        $this->assertSame([$question->id => $correctOption->id], $attempt->answers);
+        $this->assertSame(1, $attempt->correct_count);
+        $this->assertSame(0, $attempt->wrong_count);
+        $this->assertSame(100.0, (float) $attempt->score_percent);
+    }
+
     public function test_negative_marking_uses_one_over_the_number_of_distractors(): void
     {
         config(['public_exams.enabled' => true]);
