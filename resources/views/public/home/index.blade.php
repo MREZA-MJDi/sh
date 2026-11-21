@@ -1739,6 +1739,9 @@
         </div>
     </section>
 
+
+@include('public.partials.registration-ticket')
+
 @endsection
 
 
@@ -2371,5 +2374,3 @@ document.addEventListener('DOMContentLoaded', function () {
     </script>
 
 @endpush
-
-@include('public.partials.registration-ticket')
