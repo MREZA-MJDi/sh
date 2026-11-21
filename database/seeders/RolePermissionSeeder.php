@@ -57,6 +57,7 @@ class RolePermissionSeeder extends Seeder
             'exams.attempt' => ['شرکت در آزمون‌های مجاز', 'exams'],
             'exams.view.children' => ['مشاهده نتایج آزمون فرزندان', 'exams'],
             'exams.manage' => ['مدیریت آزمون‌ها', 'exams'],
+            'public-exams.manage' => ['مدیریت آزمون‌های عمومی', 'public-exams'],
             'exams.manage.assigned' => ['مدیریت آزمون‌های کلاس‌های خود', 'exams'],
             'resources.view.all' => ['مشاهده همه منابع', 'resources'],
             'resources.view.enrolled' => ['مشاهده منابع مجاز', 'resources'],
