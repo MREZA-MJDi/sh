@@ -991,3 +991,19 @@ button.b,a.b,.sel a{cursor:pointer}.b:disabled{opacity:.5;cursor:not-allowed}
 .parent-simple-form input,.parent-simple-form select,.parent-simple-form textarea{width:100%;min-width:0;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
 .parent-simple-form textarea{min-height:110px;resize:vertical}
 .parent-simple-form input:focus,.parent-simple-form select:focus,.parent-simple-form textarea:focus{outline:0;border-color:var(--pri);box-shadow:0 0 0 3px var(--ps)}
+
+
+/* Parent dashboard: explicit responsive grid and stable chart/card sizing. */
+.parent-dashboard{display:grid;gap:18px;min-width:0;align-content:start}
+.parent-dashboard-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.parent-dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
+.parent-dashboard-card{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:180px;overflow:hidden}
+.parent-dashboard-card>h3{margin:0 0 2px;line-height:1.7}
+.parent-dashboard-card [data-chart]{width:100%;min-width:0;min-height:150px;display:flex;flex-direction:column;justify-content:center}
+.parent-dashboard-card svg.chart{display:block;width:100%;max-width:100%;height:auto;min-height:150px}
+.parent-dashboard-card .row{min-width:0;align-items:flex-start;flex-wrap:wrap}
+.parent-dashboard-card .row>div{overflow-wrap:anywhere}
+.parent-dashboard-card .pr{flex:0 1 140px;align-self:center}
+@media(max-width:1050px){.parent-dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.parent-dashboard-grid{grid-template-columns:minmax(0,1fr)}.parent-dashboard{gap:14px}.parent-dashboard-card{min-height:0}}
+@media(max-width:420px){.parent-dashboard-stats{gap:9px}.parent-dashboard-stats .st{padding:11px}.parent-dashboard-card{padding:13px}}
