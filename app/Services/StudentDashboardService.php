@@ -73,6 +73,7 @@ final class StudentDashboardService
                 $query->whereNull('attendances.class_session_id')
                     ->orWhereHas('session', function (Builder $session): void {
                         $session->where('status', '!=', 'cancelled')
+                            ->where('starts_at', '<=', now())
                             ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
                     });
             });
@@ -337,6 +338,7 @@ final class StudentDashboardService
                 $query->whereNull('attendances.class_session_id')
                     ->orWhereHas('session', function (Builder $session): void {
                         $session->where('status', '!=', 'cancelled')
+                            ->where('starts_at', '<=', now())
                             ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
                     });
             });
