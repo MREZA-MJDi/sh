@@ -28,6 +28,7 @@
                             'priority' => $announcement->priority ?? 'normal',
                             'action_url' => $announcement->action_url,
                             'action_label' => $announcement->action_label,
+                            'display_as_ticket' => (bool) $announcement->display_as_ticket,
                         ];
                         $status = $statuses[$announcement->status] ?? ['mute', $announcement->status];
                     @endphp
@@ -75,6 +76,9 @@
     <label class="adm-field"><span>پایان نمایش (اختیاری)</span><input type="datetime-local" name="ends_at"></label>
     <label class="adm-field wide"><span>آدرس دکمه (اختیاری) — فقط HTTPS</span><input type="url" name="action_url" placeholder="https://example.com"></label>
     <x-admin.input label="متن دکمه" name="action_label" wide/>
+    <input type="hidden" name="display_as_ticket" value="0">
+    <label class="adm-field wide" style="display:flex;align-items:center;gap:10px"><input type="checkbox" name="display_as_ticket" value="1" style="width:18px;height:18px"> نمایش به‌شکل کارت پذیرش هولوگرافیک در صفحه اصلی سایت (فقط مخاطب همه کاربران)</label>
+    <p class="adm-muted wide">این نمایش فقط برای یک اطلاعیه عمومی فعال است؛ در صورت وجود چند کارت فعال، مورد دارای اولویت بالاتر و جدیدتر نمایش داده می‌شود. تخفیف یا ظرفیت ثبت‌نام در این نسخه به‌صورت ساختگی نمایش داده نمی‌شود.</p>
     <p class="adm-muted wide">اعلان «همه کاربران» در صفحات عمومی و همه داشبوردها نمایش داده می‌شود؛ سایر مخاطبان فقط در داشبورد نقش مربوطه. تاریخ پایان اختیاری است. پیامک ارسال نمی‌شود.</p>
 </x-admin.modal>
 @endpush
