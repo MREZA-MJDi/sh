@@ -12,6 +12,23 @@
   $averageCoursePurchase = (int) ($averageCoursePurchase ?? 0);
   $paidCoursePurchases = (int) ($paidCoursePurchases ?? 0);
   $revenueLast30Days = (int) ($revenueLast30Days ?? 0);
+  $weeklyTotals = collect($weeklyAttendance);
+  $weeklyPresent = (int) $weeklyTotals->sum('present');
+  $weeklyLate = (int) $weeklyTotals->sum('late');
+  $weeklyAbsent = (int) $weeklyTotals->sum('absent');
+  $weeklyExcused = (int) $weeklyTotals->sum('excused');
+  $weeklyTotal = $weeklyPresent + $weeklyLate + $weeklyAbsent + $weeklyExcused;
+  $weeklyShares = collect([$weeklyPresent, $weeklyLate, $weeklyAbsent, $weeklyExcused])
+    ->map(fn ($count) => $weeklyTotal > 0 ? round(($count / $weeklyTotal) * 100, 2) : 0);
+  $weeklyStops = [];
+  $weeklyCursor = 0;
+  foreach ($weeklyShares as $share) {
+    $weeklyStops[] = number_format($weeklyCursor, 2, '.', '') . '% ' . number_format($weeklyCursor + $share, 2, '.', '') . '%';
+    $weeklyCursor += $share;
+  }
+  $weeklyDonut = $weeklyTotal > 0
+    ? 'conic-gradient(#22c55e ' . $weeklyStops[0] . ', #f59e0b ' . $weeklyStops[1] . ', #ef4444 ' . $weeklyStops[2] . ', #64748b ' . $weeklyStops[3] . ')'
+    : 'conic-gradient(var(--line-strong) 0 100%)';
 @endphp
 
 <section class="adm-welcome" aria-labelledby="dashboard-title">
@@ -28,15 +45,26 @@
       @endcan
     </div>
   </div>
-  <aside class="adm-welcome-aside adm-sales-overview" aria-label="خلاصه فروش دوره‌ها">
-    <div class="adm-sales-heading">
-      <span class="adm-sales-icon"><x-admin.icon name="chart"/></span>
-      <div><small>فروش واقعی دوره‌ها</small><b>میانگین خرید تأییدشده</b></div>
+  <aside class="adm-welcome-aside adm-sales-overview" aria-label="ترکیب واقعی حضور و غیاب و خلاصه فروش">
+    <div class="adm-dash-donut-wrap">
+      <div class="adm-dash-donut" style="--donut-chart:{{ $weeklyDonut }}" role="img" aria-label="از مجموع {{ number_format($weeklyTotal) }} ثبت حضور هفته، {{ number_format($weeklyPresent) }} حاضر، {{ number_format($weeklyLate) }} تأخیر، {{ number_format($weeklyAbsent) }} غایب و {{ number_format($weeklyExcused) }} موجه">
+        <div><strong>{{ number_format($weeklyTotal) }}</strong><small>ثبت این هفته</small></div>
+      </div>
+      <div class="adm-dash-donut-copy">
+        <b>ترکیب حضور هفته</b>
+        <small>بر اساس رکوردهای معتبر هفت روز اخیر</small>
+        <div class="adm-dash-donut-legend">
+          <span><i class="is-present"></i>حاضر <b>{{ number_format($weeklyPresent) }}</b></span>
+          <span><i class="is-late"></i>تأخیر <b>{{ number_format($weeklyLate) }}</b></span>
+          <span><i class="is-absent"></i>غایب <b>{{ number_format($weeklyAbsent) }}</b></span>
+          <span><i class="is-excused"></i>موجه <b>{{ number_format($weeklyExcused) }}</b></span>
+        </div>
+      </div>
     </div>
-    <strong class="adm-sales-average">{{ number_format($averageCoursePurchase) }} <small>تومان</small></strong>
     <div class="adm-sales-foot">
-      <span><b>{{ number_format($paidCoursePurchases) }}</b> خرید تأییدشده</span>
-      <span><b>{{ number_format($revenueLast30Days) }}</b> تومان فروش ۳۰ روز اخیر</span>
+      <span>میانگین خرید تأییدشده <b>{{ number_format($averageCoursePurchase) }} تومان</b></span>
+      <span>تعداد خرید موفق <b>{{ number_format($paidCoursePurchases) }}</b></span>
+      <span>فروش ۳۰ روز اخیر <b>{{ number_format($revenueLast30Days) }} تومان</b></span>
     </div>
     @if($paidCoursePurchases === 0)
       <p class="adm-sales-empty">هنوز خرید دوره‌ای با پرداخت تأییدشده ثبت نشده است.</p>
@@ -45,11 +73,11 @@
 </section>
 
 <div class="adm-stats">
-  <x-admin.stat tone="users" icon="user" label="دانش‌آموزان فعال" :value="number_format($stats['students'] ?? 0)" hint="در محدوده دسترسی"/>
-  <x-admin.stat tone="edu" icon="book" label="دوره‌های منتشرشده" :value="number_format($stats['courses'] ?? 0)" hint="قابل مشاهده برای دانش‌آموزان"/>
-  <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری"/>
-  <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس"/>
-  <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال"/>
+  <x-admin.stat tone="users" icon="user" label="دانش‌آموزان فعال" :value="number_format($stats['students'] ?? 0)" hint="در محدوده دسترسی" :href="route('admin.students.index')"/>
+  <x-admin.stat tone="edu" icon="book" label="دوره‌های منتشرشده" :value="number_format($stats['courses'] ?? 0)" hint="قابل مشاهده برای دانش‌آموزان" :href="route('admin.courses.index')"/>
+  <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری" :href="route('admin.classes.index')"/>
+  <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس" :href="route('admin.homework.index')"/>
+  <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال" :href="route('admin.teachers.index')"/>
   <x-admin.stat tone="shop" icon="chart" label="درآمد تأییدشده ۳۰ روز اخیر" :value="number_format($revenueLast30Days)" hint="تومان · پرداخت‌های موفق دوره"/>
 </div>
 
