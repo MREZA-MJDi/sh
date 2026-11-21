@@ -204,6 +204,49 @@ class PublicExamFeatureTest extends TestCase
         $this->withoutVite()->get('/free-exams')->assertOk()->assertSee('آزمون منتشرشده از پنل');
     }
 
+    public function test_admin_can_update_and_soft_delete_a_public_exam_without_attempts(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+        $exam = $this->createExam();
+        $question = $exam->questions()->first();
+
+        $this->actingAs($admin)->patch(route('admin.public-exams.update', $exam), [
+            'title' => 'عنوان ویرایش‌شده',
+            'subject' => 'منطق',
+            'level' => 3,
+            'duration_minutes' => 15,
+            'pass_percent' => 60,
+            'questions' => [[
+                'id' => $question->id,
+                'body' => 'متن به‌روزشده سؤال',
+                'explanation' => 'توضیح به‌روزشده',
+                'points' => 2,
+                'options' => $question->options->map(fn ($option) => [
+                    'id' => $option->id,
+                    'body' => $option->body,
+                    'is_correct' => $option->is_correct ? '1' : '0',
+                ])->all(),
+            ]],
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('public_exams', [
+            'id' => $exam->id,
+            'title' => 'عنوان ویرایش‌شده',
+            'level' => 3,
+            'duration_minutes' => 15,
+        ]);
+        $this->assertDatabaseHas('public_exam_questions', [
+            'id' => $question->id,
+            'body' => 'متن به‌روزشده سؤال',
+            'points' => 2,
+        ]);
+
+        $this->delete(route('admin.public-exams.destroy', $exam))->assertRedirect();
+        $this->assertSoftDeleted('public_exams', ['id' => $exam->id]);
+    }
+
     public function test_public_exam_content_management_uses_the_existing_admin_authentication(): void
     {
         $this->get('/admin/public-exams')
