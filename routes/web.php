@@ -31,6 +31,8 @@ use App\Http\Controllers\SeoPublicController;
 use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\PublicHomeQuizController;
 use App\Http\Controllers\PublicLearningResourceController;
+use App\Http\Controllers\PublicExamController;
+use App\Http\Controllers\Admin\PublicExamController as AdminPublicExamController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\DashboardRedirectController;
