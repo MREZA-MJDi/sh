@@ -83,6 +83,11 @@ Route::middleware('guest')->group(function (): void {
         ->middleware('throttle:6,1')
         ->name('login.store');
 
+    // Production demo credentials require a separate session unlock secret.
+    Route::post('/login/demo-access', [SessionController::class, 'unlockDemoAccounts'])
+        ->middleware('throttle:3,1')
+        ->name('login.demo.unlock');
+
     Route::get('/register', [SessionController::class, 'register'])->name('register');
     Route::post('/register', [SessionController::class, 'storeRegistration'])
         ->middleware('throttle:3,1')
