@@ -50,7 +50,7 @@
   <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری"/>
   <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس"/>
   <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال"/>
-  <x-admin.stat tone="shop" icon="card" label="خریدهای تأییدشده" :value="number_format($paidCoursePurchases)" hint="پرداخت‌های موفق دوره"/>
+  <x-admin.stat tone="shop" icon="chart" label="درآمد تأییدشده ۳۰ روز اخیر" :value="number_format($revenueLast30Days)" hint="تومان · پرداخت‌های موفق دوره"/>
 </div>
 
 <section class="adm-stack" aria-label="دسترسی سریع">
