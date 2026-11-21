@@ -358,6 +358,7 @@ class RoleAuthenticationAndDashboardTest extends TestCase
 
         foreach ([
             'admin@sh.local' => 'admin',
+            'seo@sh.local' => 'seo',
             'teacher@sh.local' => 'teacher',
             'student@sh.local' => 'student',
             'parent@sh.local' => 'parent',
