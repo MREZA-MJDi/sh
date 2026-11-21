@@ -18,7 +18,7 @@ return [
         ['label' => 'پیگیری و ارزیابی', 'tone' => 'track', 'items' => [
             ['label' => 'حضور و غیاب', 'url' => 'admin/attendance', 'icon' => 'check'],
             ['label' => 'تکالیف', 'url' => 'admin/homework', 'icon' => 'file'],
-            ['label' => 'آزمون‌ها', 'url' => 'admin/exams', 'icon' => 'exam'],
+            ['label' => 'آزمون‌ها', 'url' => 'admin/exams', 'icon' => 'exam'],\n            ['label' => 'آزمون عمومی', 'url' => 'admin/public-exams', 'icon' => 'exam'],
             ['label' => 'یکپارچه‌سازی Quiz24', 'url' => 'admin/quiz24', 'icon' => 'exam'],
         ]],
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
