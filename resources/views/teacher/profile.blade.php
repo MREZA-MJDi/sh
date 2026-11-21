@@ -30,7 +30,7 @@
                 <div>
                     <label style="display:block;margin-bottom:6px;font-weight:700">عکس پرسنلی / آواتار مدرس</label>
                     <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" style="padding:6px;font-size:13px" onchange="previewTeacherAvatar(this)">
-                    <small style="display:block;color:var(--mu);margin-top:4px">فرمت‌های مجاز: JPG، PNG یا WebP (حداکثر ۴ مگابایت)</small>
+                    <small style="display:block;color:var(--mu);margin-top:4px">فرمت‌های مجاز: JPG، PNG یا WebP (حداکثر ۸ مگابایت)</small>
                     @if($teacher->avatarUrl())
                         <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:#ef4444;cursor:pointer">
                             <input type="checkbox" name="remove_avatar" value="1"> حذف عکس فعلی
