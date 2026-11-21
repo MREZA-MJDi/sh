@@ -48,10 +48,6 @@ class PublicExamController extends Controller
         $questions = $data['questions'] ?? [];
         unset($data['questions']);
 
-        if ($data['is_published'] && count($questions) === 0 && ! $publicExam->questions()->exists()) {
-            throw ValidationException::withMessages(['questions' => 'برای انتشار، حداقل یک سؤال ثبت کنید.']);
-        }
-
         DB::transaction(function () use ($publicExam, $data, $questions): void {
             $lockedExam = PublicExam::query()->lockForUpdate()->findOrFail($publicExam->id);
             $lockedExam->update($data);
@@ -64,11 +60,20 @@ class PublicExamController extends Controller
     public function destroy(PublicExam $publicExam): RedirectResponse
     {
         abort_unless(auth()->user()?->hasRole('admin'), 403);
-        if ($publicExam->attempts()->exists()) {
+        $deleted = DB::transaction(function () use ($publicExam): bool {
+            $lockedExam = PublicExam::query()->lockForUpdate()->findOrFail($publicExam->id);
+            if ($lockedExam->attempts()->exists()) {
+                return false;
+            }
+
+            $lockedExam->delete();
+
+            return true;
+        });
+
+        if (! $deleted) {
             return back()->withErrors(['exam' => 'این آزمون سابقه شرکت دارد و برای حفظ نتایج قابل حذف نیست.']);
         }
-
-        $publicExam->delete();
 
         return back()->with('success', 'آزمون حذف شد.');
     }
