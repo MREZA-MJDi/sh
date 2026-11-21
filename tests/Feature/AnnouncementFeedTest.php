@@ -71,4 +71,37 @@ class AnnouncementFeedTest extends TestCase
         $this->assertTrue((bool) $firstFeed->first()->is_read);
         $this->assertFalse((bool) $secondFeed->first()->is_read);
     }
+
+    public function test_public_ticket_only_returns_the_highest_priority_active_public_ticket(): void
+    {
+        Announcement::query()->create([
+            'title' => 'Regular notice', 'body' => 'Body', 'audience' => 'all',
+            'status' => 'published', 'published_at' => now()->subMinute(),
+        ]);
+        Announcement::query()->create([
+            'title' => 'Student ticket', 'body' => 'Private', 'audience' => 'students',
+            'status' => 'published', 'published_at' => now()->subMinute(),
+            'display_as_ticket' => true, 'priority' => 'urgent',
+        ]);
+        Announcement::query()->create([
+            'title' => 'Expired ticket', 'body' => 'Expired', 'audience' => 'all',
+            'status' => 'published', 'published_at' => now()->subDay(),
+            'ends_at' => now()->subMinute(), 'display_as_ticket' => true,
+        ]);
+        Announcement::query()->create([
+            'title' => 'Normal ticket', 'body' => 'Body', 'audience' => 'all',
+            'status' => 'published', 'published_at' => now()->subMinute(),
+            'display_as_ticket' => true, 'priority' => 'normal',
+        ]);
+        Announcement::query()->create([
+            'title' => 'Urgent ticket', 'body' => 'Body', 'audience' => 'all',
+            'status' => 'published', 'published_at' => now()->subMinute(),
+            'display_as_ticket' => true, 'priority' => 'urgent',
+        ]);
+
+        $feed = app(AnnouncementFeed::class);
+
+        $this->assertSame('Urgent ticket', $feed->publicTicket()?->title);
+        $this->assertSame(['Regular notice'], $feed->forAudience('public')->pluck('title')->all());
+    }
 }
