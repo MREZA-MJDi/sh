@@ -36,9 +36,9 @@
           <td><b>{{ $message->name }}</b><small>{{ $message->contact }}</small></td>
           <td>{{ $message->topic ?: 'عمومی' }}</td>
           <td><p>{{ \Illuminate\Support\Str::limit($message->body, 180) }}</p></td>
-          <td>{{ $message->created_at?->format('Y/m/d H:i') }}</td>
+          <td>{{ \App\Support\PersianDate::format($message->created_at, 'Y/m/d H:i') }}</td>
           <td><x-admin.badge :tone="$statusTones[$message->status] ?? 'warn'">{{ $statusLabels[$message->status] ?? $message->status }}</x-admin.badge>
-            @if($message->handler)<small>{{ $message->handler->name }} · {{ $message->handled_at?->format('Y/m/d H:i') }}</small>@endif
+            @if($message->handler)<small>{{ $message->handler->name }} · {{ \App\Support\PersianDate::format($message->handled_at, 'Y/m/d H:i') }}</small>@endif
           </td>
           <td>
             <form method="POST" action="{{ route('admin.contact-messages.status', $message) }}" class="adm-actions">
