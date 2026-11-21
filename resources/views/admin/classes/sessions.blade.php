@@ -83,8 +83,8 @@
         @endphp
         <article class="adm-session-card" data-state="{{ $session->status }}">
           <div class="adm-session-time">
-            <strong>{{ $session->starts_at?->format('H:i') }}</strong>
-            <small>{{ $session->ends_at?->format('H:i') ?? 'بدون پایان' }}</small>
+            <strong>{{ \App\Support\PersianDate::format($session->starts_at, 'H:i') }}</strong>
+            <small>{{ ($session->ends_at ? \App\Support\PersianDate::format($session->ends_at, 'H:i') : 'بدون پایان') }}</small>
           </div>
           <div class="adm-session-copy">
             <div class="adm-card-title">
