@@ -45,15 +45,17 @@ final class ProcessMediaAssetVideo implements ShouldQueue
         }
 
         $outputDisk = Storage::disk('local');
-        $outputRelative = 'private/media/'.Str::uuid().'.mp4';
+        $processingRelative = 'private/media/'.Str::uuid().'.processing.mp4';
+        $outputRelative = str_replace('.processing.mp4', '.mp4', $processingRelative);
         $outputDisk->makeDirectory(dirname($outputRelative));
+        $processingPath = $outputDisk->path($processingRelative);
         $outputPath = $outputDisk->path($outputRelative);
         $process = null;
         $published = false;
 
         try {
             $process = new Process([
-                'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
+                'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
                 '-i', $disk->path($asset->source_path),
                 '-map', '0:v:0', '-map', '0:a?',
                 '-sn', '-dn',
@@ -61,25 +63,38 @@ final class ProcessMediaAssetVideo implements ShouldQueue
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24',
                 '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k',
                 '-movflags', '+faststart', '-map_metadata', '-1',
-                $outputPath,
+                $processingPath,
             ]);
             $process->setTimeout(3300);
             $process->mustRun();
 
-            clearstatcache(true, $outputPath);
-            if (! is_file($outputPath) || filesize($outputPath) < 1) {
-                throw new \RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+            clearstatcache(true, $processingPath);
+            if (! is_file($processingPath) || filesize($processingPath) < 1024) {
+                throw new RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
             }
 
             $probe = new Process([
                 'ffprobe', '-v', 'error', '-show_entries',
-                'format=duration:stream=width,height', '-of', 'json', $outputPath,
+                'format=duration:stream=codec_type,width,height', '-of', 'json', $processingPath,
             ]);
-            $probe->setTimeout(30);
+            $probe->setTimeout(60);
             $probe->mustRun();
             $info = json_decode($probe->getOutput(), true, 512, JSON_THROW_ON_ERROR);
-            $videoStream = collect($info['streams'] ?? [])->first(fn (array $stream): bool => isset($stream['width'], $stream['height']));
+            $videoStream = collect($info['streams'] ?? [])->first(
+                fn (array $stream): bool => ($stream['codec_type'] ?? null) === 'video'
+                    && (int) ($stream['width'] ?? 0) > 0
+                    && (int) ($stream['height'] ?? 0) > 0
+            );
             $duration = isset($info['format']['duration']) ? (int) round((float) $info['format']['duration']) : null;
+
+            if (! $videoStream || $duration === null || $duration < 1) {
+                throw new RuntimeException('اعتبارسنجی ویدیوی خروجی با FFprobe ناموفق بود.');
+            }
+
+            if (! rename($processingPath, $outputPath)) {
+                throw new RuntimeException('انتشار اتمیک ویدیوی پردازش‌شده ناموفق بود.');
+            }
+
             $sha256 = hash_file('sha256', $outputPath);
 
             if (! is_string($sha256)) {
@@ -106,7 +121,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
             }
         } catch (Throwable $exception) {
             if (! $published) {
-                $outputDisk->delete($outputRelative);
+                $outputDisk->delete([$processingRelative, $outputRelative]);
             }
             $diagnostic = trim((string) $process?->getErrorOutput());
 
