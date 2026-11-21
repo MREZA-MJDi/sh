@@ -21,9 +21,9 @@
         <div class="st bl"><b>{{ $stats['open_homework'] ?? 0 }}</b><span>تکلیف بدون ارسال</span><small>{{ $stats['open_homework_note'] ?? '' }}</small></div>
         <div class="st am"><b>{{ $stats['next_meeting'] ?? '—' }}</b><span>جلسه بعدی</span><small>{{ $stats['next_meeting_note'] ?? '' }}</small></div>
     </div>
-    <div class="g g2">
+    <div class="g g2 parent-dashboard-grid">
 
-    <section class="c">
+    <section class="c parent-dashboard-card">
         <h3>پیشرفت دوره‌ها و درس‌ها</h3>
         @forelse (($course_progress ?? collect()) as $course)
             <div class="row">
