@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Consultation;
 use App\Models\Course;
 use App\Models\Message;
@@ -65,7 +66,40 @@ final class AdminDashboardDataBindingTest extends TestCase
             'session_date' => today()->toDateString(),
             'status' => 'excused',
         ]);
-        $this->assertDatabaseCount('attendances', 4);
+
+        $cancelledSession = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه لغوشده',
+            'session_type' => 'onsite',
+            'starts_at' => now()->subHour(),
+            'status' => 'cancelled',
+            'created_by' => $admin->id,
+        ]);
+        Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $cancelledSession->id,
+            'student_id' => User::factory()->create()->id,
+            'session_date' => today()->toDateString(),
+            'status' => 'present',
+        ]);
+
+        $futureSession = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه آینده',
+            'session_type' => 'onsite',
+            'starts_at' => now()->addHour(),
+            'status' => 'scheduled',
+            'created_by' => $admin->id,
+        ]);
+        Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'class_session_id' => $futureSession->id,
+            'student_id' => User::factory()->create()->id,
+            'session_date' => today()->toDateString(),
+            'status' => 'present',
+        ]);
+
+        $this->assertDatabaseCount('attendances', 6);
         $this->assertTrue($admin->hasRole('admin'));
         $this->assertTrue($admin->hasPermissionTo('attendance.view.all'));
         $this->assertSame(4, Attendance::query()
