@@ -61,7 +61,7 @@
           <div class="adm-meta">
             <span><x-admin.icon name="book"/>{{ $video->course?->title ?? 'دوره نامشخص' }}</span>
             <span><x-admin.icon name="users"/>{{ $video->classroom?->name ?? 'مشترک در سطح دوره' }}</span>
-            <span><x-admin.icon name="clock"/>{{ $video->staged_at?->format('Y/m/d H:i') ?? 'زمان ثبت نامشخص' }}</span>
+            <span><x-admin.icon name="clock"/>{{ ($video->staged_at ? \App\Support\PersianDate::format($video->staged_at, 'Y/m/d H:i') : 'زمان ثبت نامشخص') }}</span>
           </div>
           <div class="adm-card-foot">
             @if($video->approval_status === 'pending')
@@ -136,7 +136,7 @@
               <div><h3>{{ $license->student?->name ?? 'دانش‌آموز نامشخص' }}</h3><p>{{ $license->course?->title ?? 'دوره نامشخص' }}</p></div>
               <x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge>
             </div>
-            <div class="adm-meta"><span>تاریخ صدور: {{ $license->issued_at?->format('Y/m/d H:i') ?? 'هنوز صادر نشده' }}</span></div>
+            <div class="adm-meta"><span>تاریخ صدور: {{ ($license->issued_at ? \App\Support\PersianDate::format($license->issued_at, 'Y/m/d H:i') : 'هنوز صادر نشده') }}</span></div>
             @if($license->error_message)<p class="adm-panel-kicker">{{ $license->error_message }}</p>@endif
             @if($license->status === 'active' && $license->external_license_id)
               <form method="POST" action="{{ route('admin.spotplayer.licenses.revoke', $license) }}" class="adm-integration-revoke">
@@ -165,7 +165,7 @@
             <td>{{ $operation->action }}</td>
             <td class="adm-num">{{ $operation->correlation_id }}</td>
             <td><x-admin.badge tone="{{ $operation->status === 'completed' ? 'ok' : 'warn' }}">{{ $operation->status }}</x-admin.badge></td>
-            <td>{{ $operation->created_at?->format('Y/m/d H:i') }}</td>
+            <td>{{ \App\Support\PersianDate::format($operation->created_at, 'Y/m/d H:i') }}</td>
           </tr>
         @empty
           <tr><td colspan="4">عملیاتی ثبت نشده است.</td></tr>
