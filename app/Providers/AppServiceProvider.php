@@ -44,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
+        Blade::directive('phone', static fn (string $expression): string => "<?php echo \\App\\Support\\PhoneNumber::html({$expression}); ?>");
 
         Gate::before(function ($user, string $ability): ?bool {
             return $user->hasPermissionTo($ability) ? true : null;
