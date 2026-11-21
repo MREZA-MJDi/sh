@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feat/free-exams-integration
       - chore/resource-role-directories
       - feat/student-dashboard-frontend
       - feat/admin-ui-laravel-reference-20261110
