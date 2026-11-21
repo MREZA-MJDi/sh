@@ -7,6 +7,7 @@
 <title>@yield('title', 'پنل دانش‌آموز') · شیخان</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="{{ asset('css/student.css') }}">
+<link rel="stylesheet" href="{{ asset('css/announcements.css') }}">
 <script>try{var t=localStorage.getItem('sh-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
