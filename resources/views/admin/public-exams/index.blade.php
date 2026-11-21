@@ -125,8 +125,8 @@ function edit(button){
  (data.questions||[]).forEach(addQuestion);title.textContent='ویرایش آزمون عمومی';
 }
 document.querySelector('[data-public-exam-new]')?.addEventListener('click',()=>{reset();modal.showModal();});
-document.querySelectorAll('[data-public-exam-edit]').forEach(button=>button.addEventListener('click',()=>{edit(button);modal.hidden=false;}));
-modal.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>modal.hidden=true));
+document.querySelectorAll('[data-public-exam-edit]').forEach(button=>button.addEventListener('click',()=>{edit(button);modal.showModal();}));
+modal.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>modal.close()));
 modal.querySelector('[data-add-question]').addEventListener('click',()=>addQuestion());
 form.addEventListener('submit',event=>{
  reindex();
