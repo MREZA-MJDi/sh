@@ -37,6 +37,7 @@ final class AnnouncementFeed
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->latest('published_at')
+            ->latest('id')
             ->first();
     }
 }
