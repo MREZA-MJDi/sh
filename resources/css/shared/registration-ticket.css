@@ -1,11 +1,11 @@
 /* Holographic registration announcement — scoped, in-flow homepage component. */
 .sh-ticket-section{position:relative;isolation:isolate;padding:clamp(28px,4vw,54px) 0;overflow:hidden}
 .sh-ticket-shell{position:relative;width:min(1120px,calc(100% - 32px));margin-inline:auto;perspective:1200px}
-.sh-ticket-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.45}
+.sh-ticket-canvas{position:absolute;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;opacity:.5}
 .sh-ticket{--ticket-x:50%;--ticket-y:50%;position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.78fr);overflow:hidden;color:#eef1ff;border:1px solid #ffffff28;border-radius:28px;background:linear-gradient(155deg,#191b42 0%,#0b0c20 74%);box-shadow:0 28px 75px #7a5cff30,inset 0 1px #ffffff20;transform-style:preserve-3d;transition:transform .22s ease,opacity .25s ease}
 .sh-ticket[hidden]{display:none!important}
-.sh-ticket-foil{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.55;mix-blend-mode:screen;background:radial-gradient(420px circle at var(--ticket-x) var(--ticket-y),#ffffff32,transparent 65%),linear-gradient(115deg,transparent 16%,#22e1ff24 38%,#ff3d8126 52%,#ffc83d24 68%,transparent 88%)}
-.sh-ticket-main,.sh-ticket-stub{position:relative;z-index:1}
+.sh-ticket-foil{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.55;mix-blend-mode:screen;background:radial-gradient(420px circle at var(--ticket-x) var(--ticket-y),#ffffff32,transparent 65%),linear-gradient(115deg,transparent 16%,#22e1ff24 38%,#ff3d8126 52%,#ffc83d24 68%,transparent 88%)}
+.sh-ticket-main,.sh-ticket-stub{position:relative;z-index:2}
 .sh-ticket-main{padding:clamp(28px,4vw,48px)}
 .sh-ticket-close{position:absolute;z-index:4;top:14px;left:14px;width:38px;height:38px;border:1px solid #ffffff35;border-radius:50%;color:#fff;background:#ffffff12;font-size:22px;cursor:pointer;transition:transform .2s,background .2s}
 .sh-ticket-close:hover{transform:rotate(90deg);background:#ffffff28}
