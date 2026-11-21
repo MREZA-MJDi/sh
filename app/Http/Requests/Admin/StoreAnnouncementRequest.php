@@ -19,7 +19,7 @@ class StoreAnnouncementRequest extends FormRequest
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'priority' => ['required', Rule::in(['normal', 'important', 'urgent'])],
-            'action_url' => ['nullable', 'url', 'max:2048', 'regex:/^https:\\/\\//i'],
+            'action_url' => ['nullable', 'url', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {\n                if ($value !== null && ! str_starts_with(strtolower((string) $value), 'https://')) {\n                    $fail('لینک دکمه باید با HTTPS شروع شود.');\n                }\n            }],
             'action_label' => ['nullable', 'string', 'max:80', 'required_with:action_url'],
         ];
     }
