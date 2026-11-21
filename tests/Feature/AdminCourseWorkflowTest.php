@@ -9,6 +9,8 @@ use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class AdminCourseWorkflowTest extends TestCase
@@ -44,6 +46,41 @@ final class AdminCourseWorkflowTest extends TestCase
             ->assertSee('ویدیوهای آموزشی دوره')
             ->assertSee('مدیریت فصل‌ها و متن درس‌ها')
             ->assertSee(route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]));
+    }
+
+
+    public function test_admin_course_cover_upload_is_stored_and_rendered_on_public_course_pages(): void
+    {
+        Storage::fake('public');
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)
+            ->post(route('admin.courses.store'), [
+                'title' => 'دوره دارای تصویر',
+                'description' => 'معرفی دوره',
+                'subject' => 'ریاضی',
+                'grade' => 'دهم',
+                'teacher_id' => null,
+                'type' => 'free',
+                'price' => 0,
+                'delivery_type' => 'onsite',
+                'status' => 'published',
+                'cover_image' => UploadedFile::fake()->image('cover.jpg', 1600, 900),
+            ])
+            ->assertRedirect();
+
+        $course = Course::query()->where('title', 'دوره دارای تصویر')->firstOrFail();
+
+        $this->assertNotEmpty($course->cover_image_path);
+        Storage::disk('public')->assertExists($course->cover_image_path);
+
+        $this->get(route('public.courses.index'))
+            ->assertOk()
+            ->assertSee($course->coverImageUrl, false);
+
+        $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee($course->coverImageUrl, false);
     }
 
     public function test_admin_can_create_update_and_delete_an_empty_course(): void
