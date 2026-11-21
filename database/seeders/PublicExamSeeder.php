@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\PublicExam;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class PublicExamSeeder extends Seeder
 {
