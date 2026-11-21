@@ -68,7 +68,7 @@
                   {{ mb_substr($user->name, 0, 1) }}
                 @endif
               </span>
-              <div><b>{{ $user->name }}</b><small>شناسه {{ $user->id }} · عضویت {{ \\App\\Support\\PersianDate::format($user->created_at, 'Y/m/d') }}</small></div>
+              <div><b>{{ $user->name }}</b><small>شناسه {{ $user->id }} · عضویت {{ \App\Support\PersianDate::format($user->created_at, 'Y/m/d') }}</small></div>
             </div>
             <x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge>
           </div>
