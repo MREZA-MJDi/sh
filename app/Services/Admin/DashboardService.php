@@ -126,12 +126,16 @@ final class DashboardService
                 $present = (int) ($attendance->present ?? 0);
 
                 $jalali = JalaliDate::fromGregorian($date);
-                $dateLabel = sprintf('%04d/%02d/%02d', $jalali['year'], $jalali['month'], $jalali['day']);
-                $dateLabel = strtr($dateLabel, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
+                $dateLabel = sprintf('%02d/%02d', $jalali['month'], $jalali['day']);
+                $dateFullLabel = sprintf('%04d/%02d/%02d', $jalali['year'], $jalali['month'], $jalali['day']);
+                $digits = ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹'];
+                $dateLabel = strtr($dateLabel, $digits);
+                $dateFullLabel = strtr($dateFullLabel, $digits);
 
                 return [
                     'label' => $date->translatedFormat('l'),
                     'date_label' => $dateLabel,
+                    'date_full_label' => $dateFullLabel,
                     'date_iso' => $date->toDateString(),
                     'total' => $total,
                     'present' => (int) ($attendance->present ?? 0),
