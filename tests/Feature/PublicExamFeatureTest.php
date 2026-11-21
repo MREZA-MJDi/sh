@@ -171,6 +171,39 @@ class PublicExamFeatureTest extends TestCase
             ->assertOk();
     }
 
+    public function test_admin_can_publish_an_exam_but_global_gate_controls_public_visibility(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        config(['public_exams.enabled' => false]);
+
+        $this->actingAs($admin)->post(route('admin.public-exams.store'), [
+            'title' => 'آزمون منتشرشده از پنل',
+            'subject' => 'هوش',
+            'level' => 2,
+            'duration_minutes' => 10,
+            'pass_percent' => 50,
+            'is_published' => '1',
+            'questions' => [[
+                'body' => 'یک سؤال آزمایشی؟',
+                'points' => 1,
+                'options' => [
+                    ['body' => 'گزینه صحیح', 'is_correct' => '1'],
+                    ['body' => 'گزینه غلط', 'is_correct' => '0'],
+                ],
+            ]],
+        ])->assertRedirect(route('admin.public-exams.index'));
+
+        $exam = PublicExam::query()->where('title', 'آزمون منتشرشده از پنل')->firstOrFail();
+        $this->assertTrue($exam->is_published);
+        $this->get('/free-exams')->assertNotFound();
+
+        config(['public_exams.enabled' => true]);
+        $this->withoutVite()->get('/free-exams')->assertOk()->assertSee('آزمون منتشرشده از پنل');
+    }
+
     public function test_public_exam_content_management_uses_the_existing_admin_authentication(): void
     {
         $this->get('/admin/public-exams')
