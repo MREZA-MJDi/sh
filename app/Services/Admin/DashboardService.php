@@ -60,6 +60,7 @@ final class DashboardService
                     SUM(CASE WHEN attendances.status = 'excused' THEN 1 ELSE 0 END) as excused"
                 )
                 ->whereBetween('attendances.session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->whereIn('attendances.status', ['present', 'late', 'absent', 'excused'])
                 ->where(function ($query): void {
                     $query->whereNull('attendances.class_session_id')->orWhereNotNull('sessions.id');
                 })
