@@ -2371,4 +2371,5 @@ document.addEventListener('DOMContentLoaded', function () {
     </script>
 
 @endpush
-\n@include('public.partials.registration-ticket')\n
+
+@include('public.partials.registration-ticket')
