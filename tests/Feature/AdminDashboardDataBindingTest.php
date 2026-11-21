@@ -83,7 +83,7 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->assertSame(1, $today['late']);
         $this->assertSame(1, $today['absent']);
         $this->assertSame(1, $today['excused']);
-        $jalali = \\App\\Support\\JalaliDate::fromGregorian(today());
+        $jalali = \App\Support\JalaliDate::fromGregorian(today());
         $jalaliLabel = sprintf('%04d/%02d/%02d', $jalali['year'], $jalali['month'], $jalali['day']);
         $jalaliLabel = strtr($jalaliLabel, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
         $this->assertSame($jalaliLabel, $today['date_label']);
