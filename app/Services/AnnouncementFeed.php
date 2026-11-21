@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services;
+namespace App\\Services;
 
-use App\Models\Announcement;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use App\\Models\\Announcement;
+use App\\Models\\User;
+use Illuminate\\Database\\Eloquent\\Collection;
 
 final class AnnouncementFeed
 {
@@ -23,7 +23,6 @@ final class AnnouncementFeed
             ->when($user, fn ($query) => $query->withExists([
                 'readers as is_read' => fn ($readers) => $readers->where('users.id', $user->id),
             ]))
-            ->orderByRaw("CASE priority WHEN 'urgent' THEN 0 WHEN 'important' THEN 1 ELSE 2 END")
             ->orderByDesc('published_at')
             ->limit($limit)
             ->get();
@@ -39,8 +38,7 @@ final class AnnouncementFeed
             ->where('published_at', '<=', now())
             ->where(fn ($query) => $query->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
             ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
-            ->orderByRaw("CASE priority WHEN 'urgent' THEN 0 WHEN 'important' THEN 1 ELSE 2 END")
-            ->orderByDesc('published_at')
+            ->latest('published_at')
             ->first();
     }
 }
