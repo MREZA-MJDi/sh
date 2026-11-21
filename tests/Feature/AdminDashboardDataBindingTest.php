@@ -188,7 +188,8 @@ final class AdminDashboardDataBindingTest extends TestCase
             ->assertOk()
             ->assertSee('میانگین خرید تأییدشده')
             ->assertSee('درآمد تأییدشده ۳۰ روز اخیر')
-            ->assertSee('فروش واقعی دوره‌ها')
+            ->assertSee('تعداد خرید موفق')
+            ->assertSee('فروش ۳۰ روز اخیر')
             ->assertDontSee('حضور هفتگی');
     }
 
