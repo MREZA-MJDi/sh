@@ -102,6 +102,9 @@ class PublicExamController extends Controller
         $data['negative_marking'] = $request->boolean('negative_marking');
         $data['shuffle'] = $request->boolean('shuffle');
         $data['is_published'] = $request->boolean('is_published');
+        if ($data['is_published'] && count($data['questions'] ?? []) === 0) {
+            throw ValidationException::withMessages(['questions' => 'برای انتشار، حداقل یک سؤال ثبت کنید.']);
+        }
 
         return $data;
     }
@@ -111,22 +114,39 @@ class PublicExamController extends Controller
         $keptQuestions = [];
 
         foreach (array_values($questions) as $position => $data) {
-            $question = $exam->questions()->updateOrCreate(
-                ['id' => $data['id'] ?? null],
-                Arr::only($data, ['body', 'explanation', 'points']) + ['position' => $position]
-            );
+            $question = null;
+            if (! empty($data['id'])) {
+                $question = $exam->questions()->whereKey($data['id'])->first();
+                if (! $question) {
+                    throw ValidationException::withMessages(["questions.$position.id" => 'سؤال انتخاب‌شده متعلق به این آزمون نیست.']);
+                }
+                $question->update(Arr::only($data, ['body', 'explanation', 'points']) + ['position' => $position]);
+            } else {
+                $question = $exam->questions()->create(Arr::only($data, ['body', 'explanation', 'points']) + ['position' => $position]);
+            }
+
             $keptQuestions[] = $question->id;
             $keptOptions = [];
 
             foreach (array_values($data['options']) as $optionPosition => $optionData) {
-                $option = $question->options()->updateOrCreate(
-                    ['id' => $optionData['id'] ?? null],
-                    [
+                $option = null;
+                if (! empty($optionData['id'])) {
+                    $option = $question->options()->whereKey($optionData['id'])->first();
+                    if (! $option) {
+                        throw ValidationException::withMessages(["questions.$position.options.$optionPosition.id" => 'گزینه انتخاب‌شده متعلق به این سؤال نیست.']);
+                    }
+                    $option->update([
                         'body' => $optionData['body'],
                         'is_correct' => (bool) ($optionData['is_correct'] ?? false),
                         'position' => $optionPosition,
-                    ]
-                );
+                    ]);
+                } else {
+                    $option = $question->options()->create([
+                        'body' => $optionData['body'],
+                        'is_correct' => (bool) ($optionData['is_correct'] ?? false),
+                        'position' => $optionPosition,
+                    ]);
+                }
                 $keptOptions[] = $option->id;
             }
 
@@ -135,4 +155,3 @@ class PublicExamController extends Controller
 
         $exam->questions()->whereNotIn('id', $keptQuestions)->delete();
     }
-}
