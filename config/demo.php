@@ -14,6 +14,8 @@ return [
     */
     'enabled' => (bool) env('SHIKHAN_DEMO_ACCOUNTS', false),
     'login_cards_enabled' => (bool) env('SHIKHAN_DEMO_LOGIN_CARDS', false),
+    // Required in production before demo credentials can be shown to a browser session.
+    'login_cards_key' => env('SHIKHAN_DEMO_LOGIN_CARDS_KEY'),
     'password' => env('SHIKHAN_DEMO_PASSWORD'),
     'seed_academic_content' => (bool) env('SHIKHAN_SEED_ACADEMY_CONTENT', false),
     'accounts' => [
