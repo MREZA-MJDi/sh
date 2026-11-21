@@ -30,12 +30,13 @@ class PublicExamController extends Controller
         $questions = $data['questions'] ?? [];
         unset($data['questions']);
 
-        $exam = PublicExam::create([
-            ...$data,
-            'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(6)),
-        ]);
-
-        $this->syncQuestions($exam, $questions);
+        DB::transaction(function () use ($data, $questions): void {
+            $exam = PublicExam::create([
+                ...$data,
+                'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(6)),
+            ]);
+            $this->syncQuestions($exam, $questions);
+        });
 
         return redirect()->route('admin.public-exams.index')->with('success', 'آزمون عمومی ذخیره شد.');
     }
@@ -50,8 +51,10 @@ class PublicExamController extends Controller
             throw ValidationException::withMessages(['questions' => 'برای انتشار، حداقل یک سؤال ثبت کنید.']);
         }
 
-        $publicExam->update($data);
-        $this->syncQuestions($publicExam, $questions);
+        DB::transaction(function () use ($publicExam, $data, $questions): void {
+            $publicExam->update($data);
+            $this->syncQuestions($publicExam, $questions);
+        });
 
         return back()->with('success', 'آزمون عمومی به‌روزرسانی شد.');
     }
