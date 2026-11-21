@@ -19,11 +19,11 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded',function(){
- document.querySelectorAll('[data-announcement-dismiss]').forEach(function(button){
+ const dismissed=window.sessionStorage.getItem('sh-public-announcement-dismissed')==='1';\n document.querySelectorAll('[data-public-announcement]').forEach(function(bar){if(dismissed)bar.remove();});\n document.querySelectorAll('[data-announcement-dismiss]').forEach(function(button){
   button.addEventListener('click',function(){
    const bar=button.closest('[data-public-announcement]');
    if(!bar)return;
-   bar.classList.add('is-leaving');
+   window.sessionStorage.setItem('sh-public-announcement-dismissed','1');\n   bar.classList.add('is-leaving');
    window.setTimeout(function(){bar.remove();},220);
   });
  });
