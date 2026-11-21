@@ -74,8 +74,8 @@
     }
     function resizeCanvas() {
         if (!canvas || !context) return;
-        const rect = root.getBoundingClientRect();
-        width = rect.width; height = Math.max(260, rect.height);
+        const rect = canvas.getBoundingClientRect();
+        width = rect.width; height = rect.height;
         const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
         canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
         context.setTransform(ratio, 0, 0, ratio, 0, 0);
