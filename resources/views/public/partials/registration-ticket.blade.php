@@ -6,8 +6,8 @@
 @endphp
 <section class="sh-ticket-section" aria-labelledby="sh-ticket-title" data-sh-ticket data-ends-at="{{ $ticketEndsAt }}">
     <div class="sh-ticket-shell">
-        <canvas class="sh-ticket-canvas" data-ticket-canvas aria-hidden="true"></canvas>
         <article class="sh-ticket" data-ticket-card>
+            <canvas class="sh-ticket-canvas" data-ticket-canvas aria-hidden="true"></canvas>
             <div class="sh-ticket-foil" aria-hidden="true"></div>
             <button class="sh-ticket-close" type="button" data-ticket-close aria-label="بستن اطلاعیه">×</button>
             <div class="sh-ticket-main">
