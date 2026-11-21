@@ -24,7 +24,7 @@ final class SessionController extends Controller
 
     /**
      * Use one centered screen for both sign-in and student registration.
-     * Demo credentials are restricted to local and testing environments; never expose them on production login pages.
+     * Demo credentials are direct in local/testing and require a private session unlock in production.
      */
     private function loginViewData(string $activeTab): array
     {
