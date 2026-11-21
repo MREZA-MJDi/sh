@@ -33,7 +33,8 @@
       
       'admin/attendance' => ['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'],
       'admin/homework' => ['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'],
-      'admin/exams' => ['exams.manage', 'exams.manage.assigned'],\n      'admin/public-exams' => ['exams.manage'],
+      'admin/exams' => ['exams.manage', 'exams.manage.assigned'],
+      'admin/public-exams' => ['exams.manage'],
       'admin/online-classes' => ['classes.manage', 'classes.view.assigned', 'classes.manage.assigned'],
       'admin/quiz24' => ['integrations.manage'],
       'admin/contact-messages' => ['messages.view.all'],
