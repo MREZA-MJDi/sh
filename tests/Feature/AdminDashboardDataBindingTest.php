@@ -81,6 +81,25 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->assertSame(1, $today['late']);
         $this->assertSame(1, $today['absent']);
         $this->assertSame(1, $today['excused']);
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('ترکیب حضور و غیاب در هفته')
+            ->assertSee('is-present')
+            ->assertSee('is-late')
+            ->assertSee('is-absent')
+            ->assertSee('is-excused');
+    }
+
+    public function test_dashboard_shows_an_explicit_empty_state_when_no_attendance_is_recorded(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('هنوز داده واقعی برای نمودار نداریم')
+            ->assertDontSee('adm-week-segment');
     }
 
     public function test_dashboard_action_counters_use_total_records_not_the_limited_preview_collections(): void
