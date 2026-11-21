@@ -103,6 +103,8 @@ class AttendanceController extends Controller
                 ->join('users as students', 'students.id', '=', 'attendance.student_id')
                 ->whereIn('attendance.classroom_id', $classroomIds)
                 ->where('sessions.status', '!=', 'cancelled')
+                ->where('sessions.starts_at', '<=', now())
+                ->whereColumn('sessions.classroom_id', 'attendance.classroom_id')
                 ->select([
                     'students.id as student_id',
                     'classrooms.id as classroom_id',
@@ -171,9 +173,15 @@ class AttendanceController extends Controller
         $studentModel = $class->students()->whereKey($student)->firstOrFail();
 
         $absenceCount = Attendance::query()
-            ->where('classroom_id', $class->id)
-            ->where('student_id', $studentModel->id)
-            ->where('status', 'absent')
+            ->join('class_sessions as sessions', function ($join) use ($class): void {
+                $join->on('sessions.id', '=', 'attendances.class_session_id')
+                    ->on('sessions.classroom_id', '=', 'attendances.classroom_id');
+            })
+            ->where('attendances.classroom_id', $class->id)
+            ->where('attendances.student_id', $studentModel->id)
+            ->where('attendances.status', 'absent')
+            ->where('sessions.status', '!=', 'cancelled')
+            ->where('sessions.starts_at', '<=', now())
             ->count();
 
         abort_unless($absenceCount >= 3, 404);
