@@ -366,3 +366,43 @@
 [data-theme=dark] .adm-sales-empty{color:#e7c69b}
 @media(max-width:860px){.adm-sales-overview{width:100%;max-width:480px}}
 @media(max-width:520px){.adm-sales-overview{padding:15px}.adm-week-day .adm-week-date{font-size:8.5px}}
+
+
+/* Dashboard banner: balanced, fully legible attendance donut and real linked KPI cards. */
+.adm-welcome-aside.adm-sales-overview{display:grid;gap:12px;min-width:0;padding:16px;background:linear-gradient(145deg,#f0fbf6 0%,#e7f4f0 55%,#edf2ff 100%);border-color:#cce6dc}
+.adm-dash-donut-wrap{display:flex;align-items:center;justify-content:center;gap:16px;min-width:0}
+.adm-dash-donut{width:116px;height:116px;display:grid;place-items:center;flex:none;border-radius:50%;background:var(--donut-chart);position:relative;filter:drop-shadow(0 5px 10px rgba(15,70,55,.12))}
+.adm-dash-donut::before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}
+.adm-dash-donut>div{position:relative;display:grid;justify-items:center;line-height:1.35}
+.adm-dash-donut strong{font-size:23px;font-weight:900;color:#183d35;font-variant-numeric:tabular-nums}
+.adm-dash-donut small{font-size:9px;color:#58736b}
+.adm-dash-donut-copy{display:grid;gap:5px;min-width:0;flex:1}
+.adm-dash-donut-copy>b{font-size:13px;color:#25483f}
+.adm-dash-donut-copy>small{font-size:10px;color:#58736b;line-height:1.6}
+.adm-dash-donut-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 10px;margin-top:3px}
+.adm-dash-donut-legend span{display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:10px;color:#58736b}
+.adm-dash-donut-legend i{width:8px;height:8px;flex:none;border-radius:50%}
+.adm-dash-donut-legend i.is-present{background:#22c55e}
+.adm-dash-donut-legend i.is-late{background:#f59e0b}
+.adm-dash-donut-legend i.is-absent{background:#ef4444}
+.adm-dash-donut-legend i.is-excused{background:#64748b}
+.adm-dash-donut-legend b{color:#25483f;font-variant-numeric:tabular-nums}
+.adm-sales-overview .adm-sales-foot{gap:5px;padding-top:9px}
+.adm-sales-overview .adm-sales-foot span{font-size:10px;color:#58736b}
+.adm-sales-overview .adm-sales-foot b{color:#245b4b}
+.adm-stat.is-link{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s}
+.adm-stat.is-link:hover{transform:translateY(-2px);border-color:var(--tone);box-shadow:0 10px 24px -18px var(--tone)}
+.adm-stat.is-link:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.adm-stat-ico{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:14px;background:var(--tone-soft);color:var(--tone);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tone) 18%,transparent)}
+.adm-stat-ico .adm-icon{width:22px;height:22px;display:block}
+.adm-stat-copy{display:grid;gap:3px;min-width:0}
+.adm-stat-copy>span{font-size:12px;color:var(--muted)}
+.adm-stat-copy>strong{font-size:25px;line-height:1.2;color:var(--ink)}
+.adm-stat-copy>small{font-size:10px;color:var(--muted)}
+[data-theme=dark] .adm-welcome-aside.adm-sales-overview{background:linear-gradient(145deg,#132e2a 0%,#172b38 55%,#1d2947 100%);border-color:#285247}
+[data-theme=dark] .adm-dash-donut::before{background:#131d31}
+[data-theme=dark] .adm-dash-donut strong{color:#e5f7ef}
+[data-theme=dark] .adm-dash-donut small,[data-theme=dark] .adm-dash-donut-copy>small,[data-theme=dark] .adm-dash-donut-legend span,[data-theme=dark] .adm-sales-overview .adm-sales-foot span{color:#a8c7bc}
+[data-theme=dark] .adm-dash-donut-copy>b,[data-theme=dark] .adm-dash-donut-legend b,[data-theme=dark] .adm-sales-overview .adm-sales-foot b{color:#d3eee4}
+@media(max-width:860px){.adm-dash-donut{width:104px;height:104px}.adm-dash-donut-wrap{justify-content:flex-start}}
+@media(max-width:520px){.adm-dash-donut{width:94px;height:94px}.adm-dash-donut-wrap{gap:11px}.adm-dash-donut-legend{gap:4px 7px}.adm-stat-ico{width:40px;height:40px}}
