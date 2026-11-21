@@ -66,7 +66,7 @@ final class TeacherProfileWorkflowTest extends TestCase
         ]);
         $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
 
-        $avatarFile = UploadedFile::fake()->create('teacher-photo.png', 200, 'image/png');
+        $avatarFile = UploadedFile::fake()->create('teacher-photo.png', 5 * 1024, 'image/png');
 
         $this->actingAs($teacher)
             ->put(route('teacher.profile.update'), [
@@ -99,6 +99,17 @@ final class TeacherProfileWorkflowTest extends TestCase
         $this->get(route('public.teachers.show', $teacher))
             ->assertOk()
             ->assertSee($teacher->avatarUrl(), false);
+
+        // The compact upload action in the teacher topbar uses the shared endpoint.
+        $this->actingAs($teacher)
+            ->post(route('profile.avatar.update'), [
+                'avatar' => UploadedFile::fake()->create('teacher-topbar.webp', 5 * 1024, 'image/webp'),
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $teacher->refresh();
+        Storage::disk('public')->assertExists($teacher->avatar_path);
 
         // Remove avatar
         $this->actingAs($teacher)
