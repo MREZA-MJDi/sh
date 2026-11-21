@@ -47,7 +47,7 @@ final class UpdateProfileRequest extends FormRequest
             ],
             'subject' => ['nullable', 'string', 'max:100'],
             'profile_note' => ['nullable', 'string', 'max:5000'],
-            'avatar' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:4096'],
+            'avatar' => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp', 'max:8192],
             'remove_avatar' => ['nullable', 'boolean'],
         ];
     }
