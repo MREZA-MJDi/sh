@@ -119,8 +119,8 @@ Route::middleware('auth')->group(function (): void {
 });
 
 Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('admin.')->group(function (): void {
-    // Keep the legacy admin endpoint without shadowing the global logout route.
-    Route::post('/logout', [SessionController::class, 'destroy'])->name('admin.logout');
+    // The admin route group prefixes this as admin.logout; the global logout route remains role-neutral.
+    Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
 
