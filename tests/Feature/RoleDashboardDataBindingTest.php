@@ -88,6 +88,23 @@ final class RoleDashboardDataBindingTest extends TestCase
             ->assertDontSee('جلسه حضوری نباید در صفحه آنلاین باشد');
     }
 
+    public function test_parent_dashboard_renders_responsive_layout_hooks_and_chart_mount_points(): void
+    {
+        $parent = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $parent->children()->attach($student);
+
+        $this->actingAs($parent)
+            ->get(route('guardian.dashboard'))
+            ->assertOk()
+            ->assertSee('class="parent-dashboard"', false)
+            ->assertSee('parent-dashboard-stats', false)
+            ->assertSee('parent-dashboard-grid', false)
+            ->assertSee('parent-dashboard-card', false)
+            ->assertSee('data-chart="line"', false)
+            ->assertSee('data-chart="donut"', false);
+    }
+
     public function test_student_and_parent_dashboards_hide_homework_when_course_feature_is_disabled(): void
     {
         $admin = $this->userWithRole('admin');
