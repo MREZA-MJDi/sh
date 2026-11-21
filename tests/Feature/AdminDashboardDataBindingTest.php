@@ -51,7 +51,19 @@ final class AdminDashboardDataBindingTest extends TestCase
             'session_date' => today()->toDateString(),
             'status' => 'absent',
         ]);
-        $this->assertDatabaseCount('attendances', 2);
+        Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => User::factory()->create()->id,
+            'session_date' => today()->toDateString(),
+            'status' => 'late',
+        ]);
+        Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => User::factory()->create()->id,
+            'session_date' => today()->toDateString(),
+            'status' => 'excused',
+        ]);
+        $this->assertDatabaseCount('attendances', 4);
         $this->assertTrue($admin->hasRole('admin'));
         $this->assertTrue($admin->hasPermissionTo('attendance.view.all'));
         $this->assertSame(2, Attendance::query()
@@ -62,7 +74,13 @@ final class AdminDashboardDataBindingTest extends TestCase
         $dashboard = app(DashboardService::class)->build($admin);
 
         $this->assertSame(50, $dashboard['stats']['attendance_rate']);
+        $this->assertSame(4, $dashboard['attendanceTotal']);
         $this->assertCount(7, $dashboard['weeklyAttendance']);
+        $today = $dashboard['weeklyAttendance']->firstWhere('label', today()->translatedFormat('D'));
+        $this->assertSame(1, $today['present']);
+        $this->assertSame(1, $today['late']);
+        $this->assertSame(1, $today['absent']);
+        $this->assertSame(1, $today['excused']);
     }
 
     public function test_dashboard_action_counters_use_total_records_not_the_limited_preview_collections(): void
