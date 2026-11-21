@@ -56,7 +56,7 @@
 <body class="academy">
 @include('public.partials.sprite')
 
-@include('public.partials.header')
+@include('public.partials.announcement-bar')\n@include('public.partials.header')
 
 @if(session('status'))
     <div class="c" style="margin-top:16px"><div class="ac-alert" role="status">{{ session('status') }}</div></div>
