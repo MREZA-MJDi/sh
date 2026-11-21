@@ -49,3 +49,18 @@
 @media(max-width:760px){.sh-ticket-shell{width:min(100% - 24px,580px)}.sh-ticket{grid-template-columns:1fr;min-height:0;border-radius:23px}.sh-ticket-main{padding:54px 22px 27px}.sh-ticket-stub{gap:11px;padding:23px 22px;border-right:0;border-top:2px dashed #ffffff3d}.sh-ticket-seal{width:54px;height:54px}.sh-ticket-seal span{font-size:27px}.sh-ticket-stub strong{max-width:none;font-size:18px}.sh-ticket-stub p{max-width:none}.sh-ticket-barcode{height:30px}.sh-ticket-mark{margin-top:16px}.sh-ticket h2{max-width:none;font-size:23px}.sh-ticket-main>p{font-size:13px}.sh-ticket-actions{display:grid;grid-template-columns:1fr}.sh-ticket-cta,.sh-ticket-secondary{width:100%}.sh-ticket-reopen{left:12px;bottom:max(12px,env(safe-area-inset-bottom))}}
 @media(max-width:380px){.sh-ticket-main{padding-inline:18px}.sh-ticket-mark{gap:8px}.sh-ticket-mark small{font-size:8px}.sh-ticket h2{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.sh-ticket-glow,.sh-ticket-tag i,.sh-ticket-reopen i{animation:none!important}.sh-ticket,.sh-ticket-close,.sh-ticket-cta,.sh-ticket-secondary{transition:none!important}.sh-ticket.is-entering,.sh-ticket.is-leaving,.sh-ticket-reopen{animation:none!important}}
+
+
+/* Performance: keep the ticket's holographic identity without per-frame canvas or pointer-driven transforms. */
+.sh-ticket-shell{perspective:none}
+.sh-ticket{transform:none!important;transform-style:flat;transition:opacity .18s ease,filter .18s ease}
+.sh-ticket-foil{opacity:.48;background:linear-gradient(112deg,transparent 12%,#22e1ff20 34%,#ff3d8124 49%,#ffc83d20 64%,#7a5cff22 78%,transparent 92%),radial-gradient(420px circle at 82% 18%,#ffffff16,transparent 68%)}
+.sh-ticket-glow{display:none}
+.sh-ticket-tag i{animation:none;box-shadow:0 0 0 4px #b6ff3c18}
+.sh-ticket-cta{will-change:auto;transform:none}
+.sh-ticket-cta:hover{transform:translateY(-1px)}
+.sh-ticket.is-entering{animation:sh-ticket-enter-light .38s ease-out both}
+.sh-ticket.is-leaving{animation:sh-ticket-exit-light .18s ease-in both}
+@keyframes sh-ticket-enter-light{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sh-ticket-exit-light{to{opacity:0;transform:translateY(5px)}}
+@media(prefers-reduced-motion:reduce){.sh-ticket.is-entering,.sh-ticket.is-leaving{animation:none!important}}
