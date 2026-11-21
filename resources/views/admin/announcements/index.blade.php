@@ -74,7 +74,7 @@
     <x-admin.select label="اولویت نمایش" name="priority" :options="['normal' => 'عادی', 'important' => 'مهم', 'urgent' => 'فوری']" required/>
     <label class="adm-field"><span>شروع نمایش (اختیاری)</span><input type="datetime-local" name="starts_at"></label>
     <label class="adm-field"><span>پایان نمایش (اختیاری)</span><input type="datetime-local" name="ends_at"></label>
-    <label class="adm-field wide"><span>آدرس دکمه (اختیاری) — فقط HTTPS</span><input type="url" name="action_url" placeholder="https://example.com"></label>
+    <label class="adm-field wide"><span>آدرس دکمه (اختیاری) — فقط HTTPS</span><input type="url" name="action_url" placeholder="/courses یا https://example.com"></label>
     <x-admin.input label="متن دکمه" name="action_label" wide/>
     <input type="hidden" name="display_as_ticket" value="0">
     <label class="adm-field wide" style="display:flex;align-items:center;gap:10px"><input type="checkbox" name="display_as_ticket" value="1" style="width:18px;height:18px"> نمایش به‌شکل کارت پذیرش هولوگرافیک در صفحه اصلی سایت (فقط مخاطب همه کاربران)</label>
