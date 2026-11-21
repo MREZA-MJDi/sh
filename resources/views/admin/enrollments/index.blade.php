@@ -38,7 +38,7 @@
           <td><b>{{ $enrollment->course?->title ?? 'دوره حذف‌شده' }}</b><small>{{ number_format((int) ($enrollment->course?->price ?? 0)) }} تومان</small></td>
           <td>{{ $enabled->isNotEmpty() ? $enabled->join('، ') : 'طبق تنظیمات دوره' }}</td>
           <td>{{ $sources[$enrollment->source] ?? $enrollment->source }}<small>#{{ $enrollment->id }}</small></td>
-          <td class="adm-num is-nowrap">{{ \App\Support\PersianDate::format($enrollment->expires_at, 'Y/m/d H:i') ?? 'بدون انقضا' }}</td>
+          <td class="adm-num is-nowrap">{{ ($enrollment->expires_at ? \App\Support\PersianDate::format($enrollment->expires_at, 'Y/m/d H:i') : 'بدون انقضا') }}</td>
           <td><x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge></td>
           <td>
             @if($enrollment->status !== 'revoked')
