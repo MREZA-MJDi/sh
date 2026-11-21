@@ -262,6 +262,7 @@ final class PortalController extends Controller
                 $query->whereNull('attendances.class_session_id')
                     ->orWhereHas('session', function ($session): void {
                         $session->where('status', '!=', 'cancelled')
+                            ->where('starts_at', '<=', now())
                             ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
                     });
             })
