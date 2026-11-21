@@ -53,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
             'student.dashboard' => 'students',
             'parent.dashboard' => 'parents',
             'teacher.dashboard' => 'teachers',
+            'admin.dashboard.index' => 'public',
         ] as $dashboardView => $audience) {
             View::composer($dashboardView, function ($view) use ($audience): void {
                 $user = auth()->user();
