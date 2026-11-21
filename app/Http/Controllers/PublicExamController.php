@@ -161,7 +161,7 @@ class PublicExamController extends Controller
 
             $answers = $locked->isExpired()
                 ? ($locked->answers ?? [])
-                : array_merge($locked->answers ?? [], $locked->sanitize($data['answers'] ?? []));
+                : array_replace($locked->answers ?? [], $locked->sanitize($data['answers'] ?? []));
             $locked->grade($answers);
         });
 
