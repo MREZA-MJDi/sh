@@ -72,7 +72,7 @@ class AnnouncementFeedTest extends TestCase
         $this->assertFalse((bool) $secondFeed->first()->is_read);
     }
 
-    public function test_public_ticket_only_returns_the_highest_priority_active_public_ticket(): void
+    public function test_public_ticket_returns_the_latest_published_homepage_ticket_and_excludes_it_from_feeds(): void
     {
         Announcement::query()->create([
             'title' => 'Regular notice', 'body' => 'Body', 'audience' => 'all',
