@@ -78,7 +78,7 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->assertSame(50, $dashboard['stats']['attendance_rate']);
         $this->assertSame(4, $dashboard['attendanceTotal']);
         $this->assertCount(7, $dashboard['weeklyAttendance']);
-        $today = $dashboard['weeklyAttendance']->firstWhere('label', today()->translatedFormat('D'));
+        $today = $dashboard['weeklyAttendance']->firstWhere('label', today()->translatedFormat('l'));
         $this->assertSame(1, $today['present']);
         $this->assertSame(1, $today['late']);
         $this->assertSame(1, $today['absent']);
