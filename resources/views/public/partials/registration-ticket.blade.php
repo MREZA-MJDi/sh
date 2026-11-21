@@ -137,6 +137,7 @@
     function showTicket({ restoreFocus = false } = {}) {
         safeStorage.clear();
         root.hidden = false;
+        root.classList.remove('is-dismissed');
         card.hidden = false;
         reopenButton.hidden = true;
         card.classList.remove('is-leaving');
@@ -154,6 +155,7 @@
         card.classList.add('is-leaving');
         window.setTimeout(() => {
             card.hidden = true;
+            root.classList.add('is-dismissed');
             card.classList.remove('is-leaving');
             reopenButton.hidden = false;
             safeStorage.set();
