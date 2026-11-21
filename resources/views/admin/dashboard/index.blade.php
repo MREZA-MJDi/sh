@@ -5,6 +5,7 @@
 @php
   $stats = $stats ?? [];
   $weeklyAttendance = $weeklyAttendance ?? collect();
+  $attendanceTotal = (int) ($attendanceTotal ?? 0);
   $attendanceRate = max(0, min(100, (int) ($stats['attendance_rate'] ?? 0)));
   $pendingHomework = (int) ($stats['pending_homework'] ?? 0);
   $openMessages = (int) ($openMessageCount ?? 0);
@@ -99,20 +100,35 @@
     </div>
   </x-admin.panel>
 
-  <x-admin.panel title="روند حضور در هفته" desc="درصد حضور ثبت‌شده در هر روز">
-    @if($weeklyAttendance->isNotEmpty())
-      <div class="adm-week-chart" role="img" aria-label="نمودار نرخ حضور هفتگی">
+  <x-admin.panel title="ترکیب حضور و غیاب در هفته" desc="تعداد واقعی وضعیت‌های ثبت‌شده در هر روز؛ جلسات لغوشده محاسبه نمی‌شوند.">
+    @if($attendanceTotal > 0)
+      <div class="adm-week-chart" role="group" aria-label="نمودار هفتگی تفکیک وضعیت حضور و غیاب">
         @foreach($weeklyAttendance as $day)
-          @php $rate = max(0, min(100, (int) $day['rate'])); @endphp
-          <div class="adm-week-day">
-            <div class="adm-week-track"><span class="adm-week-fill" style="--bar-height:{{ $rate }}%"></span></div>
+          <div class="adm-week-day" aria-label="{{ $day['label'] }}: {{ $day['total'] }} ثبت">
+            <div class="adm-week-track" title="{{ $day['label'] }} · {{ number_format($day['total']) }} ثبت">
+              @foreach(['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'] as $key => $label)
+                @php
+                  $count = (int) $day[$key];
+                  $share = $day['total'] > 0 ? round(($count / $day['total']) * 100, 2) : 0;
+                @endphp
+                @if($count > 0)
+                  <span class="adm-week-segment is-{{ $key }}" style="--segment-size:{{ $share }}%" title="{{ $label }}: {{ number_format($count) }}"></span>
+                @endif
+              @endforeach
+            </div>
             <b>{{ $day['label'] }}</b>
-            <small>{{ $rate }}٪</small>
+            <small>{{ number_format($day['total']) }} ثبت</small>
           </div>
         @endforeach
       </div>
+      <div class="adm-week-legend" aria-label="راهنمای نمودار">
+        <span><i class="is-present"></i>حاضر</span>
+        <span><i class="is-late"></i>تأخیر</span>
+        <span><i class="is-absent"></i>غایب</span>
+        <span><i class="is-excused"></i>موجه</span>
+      </div>
     @else
-      <div class="adm-queue-empty"><x-admin.icon name="chart"/><b>هنوز داده‌ای برای نمودار نداریم</b><span>بعد از ثبت حضور جلسات، روند هفتگی اینجا نمایش داده می‌شود.</span></div>
+      <div class="adm-queue-empty"><x-admin.icon name="chart"/><b>هنوز داده واقعی برای نمودار نداریم</b><span>پس از ثبت حضور یا غیاب در جلسات، تفکیک روزانه اینجا نمایش داده می‌شود.</span></div>
     @endif
   </x-admin.panel>
 </div>
