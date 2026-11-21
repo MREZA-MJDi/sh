@@ -21,7 +21,7 @@ class StoreAnnouncementRequest extends FormRequest
             'status' => ['required', Rule::in(['draft', 'published'])],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
-            'priority' => ['required', Rule::in(['normal', 'important', 'urgent'])],
+            'priority' => ['nullable', Rule::in(['normal', 'important', 'urgent'])],
             'action_url' => ['nullable', 'string', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
                 if ($value === null || trim((string) $value) === '') {
                     return;
