@@ -35,8 +35,7 @@
     <x-slot:footer>{{ $exams->links() }}</x-slot:footer>
 </x-admin.panel>
 
-<div class="adm-modal-backdrop" data-public-exam-modal hidden>
-<section class="adm-modal" role="dialog" aria-modal="true" style="max-width:980px">
+<dialog class="adm-modal adm-modal-lg" data-public-exam-modal style="max-width:980px">
 <header class="adm-modal-head"><div><h2 data-editor-title>ساخت آزمون عمومی</h2><p class="adm-muted">این آزمون مستقل از آزمون‌های آموزشی و کلاسی است.</p></div><button type="button" class="adm-btn adm-btn-line" data-close>×</button></header>
 <form method="POST" action="{{ route('admin.public-exams.store') }}" data-editor-form>
 @csrf
@@ -62,8 +61,7 @@
 </div>
 <footer class="adm-modal-foot"><button type="button" class="adm-btn adm-btn-line" data-close>انصراف</button><button type="submit" class="adm-btn adm-btn-primary">ذخیره آزمون</button></footer>
 </form>
-</section>
-</div>
+</dialog>
 @endsection
 @push('scripts')
 <script>
@@ -126,7 +124,7 @@ function edit(button){
  Object.keys(data).forEach(key=>{if(key==='questions')return;const input=form.elements.namedItem(key);if(input){if(input.type==='checkbox')input.checked=!!data[key];else input.value=data[key]??'';}});
  (data.questions||[]).forEach(addQuestion);title.textContent='ویرایش آزمون عمومی';
 }
-document.querySelector('[data-public-exam-new]')?.addEventListener('click',()=>{reset();modal.hidden=false;});
+document.querySelector('[data-public-exam-new]')?.addEventListener('click',()=>{reset();modal.showModal();});
 document.querySelectorAll('[data-public-exam-edit]').forEach(button=>button.addEventListener('click',()=>{edit(button);modal.hidden=false;}));
 modal.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',()=>modal.hidden=true));
 modal.querySelector('[data-add-question]').addEventListener('click',()=>addQuestion());
@@ -139,7 +137,7 @@ form.addEventListener('submit',event=>{
   }
  }
 });
-window.addEventListener('keydown',event=>{if(event.key==='Escape')modal.hidden=true;});
+window.addEventListener('keydown',event=>{if(event.key==='Escape')modal.close();});
 })();
 </script>
 @endpush
