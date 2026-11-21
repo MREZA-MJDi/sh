@@ -45,21 +45,23 @@ class PublicExamController extends Controller
 
         try {
             $attempt = DB::transaction(function () use ($publicExam, $data, $request) {
-                $existing = $publicExam->attempts()->where('phone', $data['phone'])->lockForUpdate()->first();
+                $lockedExam = PublicExam::query()->lockForUpdate()->findOrFail($publicExam->id);
+                abort_unless(PublicExam::open()->whereKey($lockedExam->id)->exists(), 404);
+                $existing = $lockedExam->attempts()->where('phone', $data['phone'])->lockForUpdate()->first();
                 if ($existing) {
                     return $existing;
                 }
 
-                $questions = $publicExam->questions()->with('options')->get();
+                $questions = $lockedExam->questions()->with('options')->get();
                 abort_if($questions->isEmpty(), 404);
 
-                $snapshotQuestions = $questions->map(function ($question) use ($publicExam) {
+                $snapshotQuestions = $questions->map(function ($question) use ($lockedExam) {
                     $options = $question->options->map(fn ($option) => [
                         'id' => $option->id,
                         'body' => $option->body,
                         'is_correct' => (bool) $option->is_correct,
                     ]);
-                    if ($publicExam->shuffle) {
+                    if ($lockedExam->shuffle) {
                         $options = $options->shuffle()->values();
                     }
 
@@ -75,15 +77,15 @@ class PublicExamController extends Controller
                     $snapshotQuestions = $snapshotQuestions->shuffle()->values();
                 }
 
-                return $publicExam->attempts()->create([
+                return $lockedExam->attempts()->create([
                     'name' => trim($data['name']),
                     'phone' => $data['phone'],
                     'started_at' => now(),
-                    'expires_at' => now()->addMinutes($publicExam->duration_minutes),
+                    'expires_at' => now()->addMinutes($lockedExam->duration_minutes),
                     'snapshot' => [
                         'title' => $publicExam->title,
-                        'pass_percent' => $publicExam->pass_percent,
-                        'settings' => ['negative_marking' => $publicExam->negative_marking],
+                        'pass_percent' => $lockedExam->pass_percent,
+                        'settings' => ['negative_marking' => $lockedExam->negative_marking],
                         'questions' => $snapshotQuestions->all(),
                     ],
                     'ip' => $request->ip(),
@@ -106,7 +108,10 @@ class PublicExamController extends Controller
             return redirect()->route('public.exams.result', $attempt);
         }
         if ($attempt->isExpired()) {
-            $attempt->grade($attempt->answers ?? []);
+            DB::transaction(function () use ($attempt): void {
+                $locked = PublicExamAttempt::query()->lockForUpdate()->findOrFail($attempt->id);
+                $locked->grade($locked->answers ?? []);
+            });
 
             return redirect()->route('public.exams.result', $attempt);
         }
