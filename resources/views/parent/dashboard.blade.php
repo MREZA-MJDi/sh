@@ -37,7 +37,7 @@
     </div>
 </div>
 @include('parent.partials.kid-picker')
-<div class="parent-dashboard">
+<div class="parent-dashboard">\n    @include("components.announcement-feed", ["announcements" => $announcements ?? collect()])
     <div class="g g4 parent-dashboard-stats">
         <div class="st"><b>{{ $stats['avg'] ?? '—' }}</b><span>میانگین نمرات ثبت‌شده</span><small>{{ $stats['avg_note'] ?? '' }}</small></div>
         <div class="st gn"><b>{{ $att['percent'] ?? 0 }}٪</b><span>حضور</span><small>{{ $att['absent'] ?? 0 }} غیبت · {{ $att['late'] ?? 0 }} تأخیر</small></div>
