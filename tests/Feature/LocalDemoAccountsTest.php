@@ -33,6 +33,7 @@ class LocalDemoAccountsTest extends TestCase
 
         $accounts = [
             'admin@sh.local' => 'admin',
+            'seo@sh.local' => 'seo',
             'teacher@sh.local' => 'teacher',
             'student@sh.local' => 'student',
             'parent@sh.local' => 'parent',
@@ -63,6 +64,7 @@ class LocalDemoAccountsTest extends TestCase
 
         $accounts = [
             'admin@sh.local' => 'admin.dashboard',
+            'seo@sh.local' => 'admin.seo.index',
             'teacher@sh.local' => 'teacher.dashboard',
             'student@sh.local' => 'student.dashboard',
             'parent@sh.local' => 'guardian.dashboard',
@@ -94,7 +96,7 @@ class LocalDemoAccountsTest extends TestCase
 
         app(LocalDemoAccountsSeeder::class)->run();
 
-        foreach (['admin@sh.local', 'teacher@sh.local', 'student@sh.local', 'parent@sh.local'] as $email) {
+        foreach (['admin@sh.local', 'seo@sh.local', 'teacher@sh.local', 'student@sh.local', 'parent@sh.local'] as $email) {
             $this->assertDatabaseMissing('users', ['email' => $email]);
         }
     }
@@ -114,6 +116,7 @@ class LocalDemoAccountsTest extends TestCase
         $response->assertOk()
             ->assertSee('ورود سریع برای بررسی پنل‌ها')
             ->assertSee('admin@sh.local')
+            ->assertSee('seo@sh.local')
             ->assertSee('teacher@sh.local')
             ->assertSee('student@sh.local')
             ->assertSee('parent@sh.local')
@@ -135,6 +138,7 @@ class LocalDemoAccountsTest extends TestCase
 
         $response->assertOk()
             ->assertDontSee('admin@sh.local')
+            ->assertDontSee('seo@sh.local')
             ->assertDontSee('teacher@sh.local')
             ->assertDontSee('student@sh.local')
             ->assertDontSee('parent@sh.local')
@@ -174,7 +178,7 @@ class LocalDemoAccountsTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'teacher@sh.local', 'is_active' => true]);
         $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
         $this->assertDatabaseHas('users', ['email' => 'parent@sh.local', 'is_active' => true]);
-        $this->assertDatabaseMissing('users', ['email' => 'seo@sh.local']);
+        $this->assertDatabaseHas('users', ['email' => 'seo@sh.local', 'is_active' => true]);
     }
 
 }
