@@ -104,4 +104,16 @@
     <div class="wide" style="padding:14px;border-radius:12px;background:var(--adm-soft, #f5f6fb)"><b>رفتار کارت صفحه اصلی</b><p class="adm-muted" style="margin:6px 0 0">در هر زمان فقط یک کارت هولوگرافیک فعال است. با انتخاب این گزینه، مخاطب به «همه کاربران» تنظیم می‌شود و زمان‌بندی روی کارت اعمال نمی‌شود. تخفیف، ظرفیت و شمارنده‌ای نمایش داده نخواهد شد.</p></div>
     <p class="adm-muted wide">اعلان‌های عادی بر اساس مخاطب و زمان‌بندی نمایش داده می‌شوند. کارت هولوگرافیک صفحه اصلی فقط یک مورد فعال دارد و برای همه کاربران قابل مشاهده است. پیامک ارسال نمی‌شود.</p>
 </x-admin.modal>
+@if ($errors->any())
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dialog = document.getElementById('announcement-modal');
+    if (dialog && typeof dialog.showModal === 'function' && !dialog.open) {
+        dialog.showModal();
+    }
+});
+</script>
+@endpush
+@endif
 @endpush
