@@ -157,6 +157,7 @@ class LocalDemoAccountsTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertDontSee('admin@sh.local')
+            ->assertDontSee('seo@sh.local')
             ->assertDontSee('teacher@sh.local')
             ->assertDontSee('student@sh.local')
             ->assertDontSee('parent@sh.local')
