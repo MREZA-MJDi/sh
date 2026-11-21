@@ -44,7 +44,7 @@
           <td><b>{{ $article->title }}</b><small>{{ \Illuminate\Support\Str::limit($article->excerpt, 90) }}</small></td>
           <td>{{ $article->author?->name ?? '—' }}</td>
           <td><x-admin.badge :tone="$statusTones[$article->status] ?? 'mute'">{{ $statusLabels[$article->status] ?? $article->status }}</x-admin.badge></td>
-          <td>{{ $article->published_at?->format('Y/m/d H:i') ?? '—' }}</td>
+          <td>{{ ($article->published_at ? \App\Support\PersianDate::format($article->published_at, 'Y/m/d H:i') : '—') }}</td>
           <td><a href="{{ route('seo.articles.show', $article->slug) }}" target="_blank" rel="noopener">مشاهده</a><small>/articles/{{ $article->slug }}</small></td>
           <td><div class="adm-actions">
             <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="article-modal" data-title="ویرایش مقاله" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.seo.articles.update', $article)" data-method="PATCH">ویرایش</x-admin.btn>
