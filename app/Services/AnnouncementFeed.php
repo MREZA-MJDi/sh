@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Models\\Announcement;
-use App\\Models\\User;
-use Illuminate\\Database\\Eloquent\\Collection;
+use App\Models\Announcement;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 
 final class AnnouncementFeed
 {
