@@ -1,9 +1,9 @@
 <?php
 
-namespace Database\\Seeders;
+namespace Database\Seeders;
 
-use App\\Models\\Announcement;
-use Illuminate\\Database\\Seeder;
+use App\Models\Announcement;
+use Illuminate\Database\Seeder;
 
 class RegistrationTicketAnnouncementSeeder extends Seeder
 {
