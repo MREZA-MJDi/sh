@@ -1,0 +1,21 @@
+/* Keep phone numbers isolated from surrounding Persian RTL text. */
+.phone-number {
+    display: inline-block;
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
+    white-space: nowrap;
+    font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .015em;
+}
+
+input[name="phone"],
+input[name="contact_phone"],
+input[type="tel"],
+[data-phone-input] {
+    direction: ltr;
+    unicode-bidi: plaintext;
+    text-align: left;
+    font-variant-numeric: tabular-nums;
+}
