@@ -1,0 +1,66 @@
+/* Holographic admission ticket. All selectors are component-scoped. */
+.sh-ticket-section{position:relative;isolation:isolate;overflow:hidden;padding:clamp(30px,4.5vw,58px) 0}.sh-ticket-section.is-dismissed{padding-block:0}
+.sh-ticket-shell{position:relative;width:min(1160px,calc(100% - 36px));margin-inline:auto;perspective:1400px}
+.sh-ticket-canvas{position:absolute;inset:0;z-index:1;width:100%;height:100%;pointer-events:none;opacity:.62}
+.sh-ticket{--ticket-x:50%;--ticket-y:50%;position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.28fr) minmax(260px,.72fr);min-height:360px;overflow:hidden;border:1px solid #ffffff35;border-radius:30px;color:#eef1ff;background:linear-gradient(145deg,#1c1d49 0%,#101126 62%,#211a48 100%);box-shadow:0 26px 74px #17133d30,inset 0 1px #ffffff25;transform-style:preserve-3d;transition:transform .24s ease,opacity .28s ease,filter .28s ease}
+.sh-ticket[hidden]{display:none!important}
+.sh-ticket.is-entering{animation:sh-ticket-enter .68s cubic-bezier(.2,.8,.2,1) both}
+.sh-ticket.is-leaving{pointer-events:none;animation:sh-ticket-exit .28s ease-in both}
+.sh-ticket-foil{position:absolute;z-index:2;inset:0;pointer-events:none;opacity:.62;mix-blend-mode:screen;background:radial-gradient(440px circle at var(--ticket-x) var(--ticket-y),#ffffff38,transparent 66%),linear-gradient(112deg,transparent 12%,#22e1ff25 34%,#ff3d8129 49%,#ffc83d26 64%,#7a5cff28 78%,transparent 92%)}
+.sh-ticket-glow{position:absolute;z-index:0;inset:-45%;pointer-events:none;opacity:.34;background:conic-gradient(from 25deg at 50% 50%,transparent 0 22%,#22e1ff25 28%,transparent 35% 48%,#ff3d8125 54%,transparent 61% 76%,#ffc83d22 82%,transparent 90%);filter:blur(36px);animation:sh-ticket-glow 16s linear infinite}
+.sh-ticket-main,.sh-ticket-stub{position:relative;z-index:3}
+.sh-ticket-main{align-self:center;padding:clamp(30px,4.2vw,52px)}
+.sh-ticket-close{position:absolute;z-index:5;top:16px;left:16px;display:grid;place-items:center;width:38px;height:38px;border:1px solid #ffffff3d;border-radius:50%;color:#fff;background:#ffffff12;font:inherit;font-size:24px;line-height:1;cursor:pointer;transition:transform .22s ease,background .22s ease,border-color .22s ease}
+.sh-ticket-close:hover{transform:rotate(90deg);border-color:#ffffff70;background:#ffffff25}
+.sh-ticket-tag{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border:1px solid #ffffff30;border-radius:999px;color:#f0efff;background:#ffffff0e;font-size:12px;font-weight:800;letter-spacing:.01em}
+.sh-ticket-tag i,.sh-ticket-reopen i{width:8px;height:8px;flex:none;border-radius:50%;background:#b6ff3c;box-shadow:0 0 0 0 #b6ff3c80;animation:sh-ticket-ping 1.8s ease-out infinite}
+.sh-ticket-mark{display:flex;align-items:center;gap:12px;margin:23px 0 10px;color:#d8dcff;font-size:11px;font-weight:900;letter-spacing:.2em}
+.sh-ticket-mark b{color:#ffc83d;font-size:31px;line-height:1;text-shadow:0 0 24px #ffc83d90}
+.sh-ticket-mark small{color:#9ca5d8;font-size:9px;letter-spacing:.16em}
+.sh-ticket h2{max-width:26ch;margin:0 0 12px;color:#fff;font-size:clamp(24px,3vw,36px);font-weight:900;line-height:1.65;text-wrap:balance}
+.sh-ticket-main>p{max-width:64ch;margin:0 0 25px;color:#b8bedc;font-size:14px;line-height:2.15;white-space:pre-line}
+.sh-ticket-actions{display:flex;flex-wrap:wrap;align-items:center;gap:11px}
+.sh-ticket-cta,.sh-ticket-secondary{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:49px;padding:11px 21px;border-radius:14px;text-decoration:none;font-size:14px;font-weight:900;transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+.sh-ticket-cta{--magnetic-x:0px;--magnetic-y:0px;overflow:hidden;color:#261900;background:linear-gradient(118deg,#fff0a5 0%,#ffc83d 48%,#ff984b 100%);box-shadow:0 12px 30px #ffc83d40,inset 0 1px #ffffffb5;transform:translate(var(--magnetic-x),var(--magnetic-y));will-change:transform}
+.sh-ticket-cta:hover{box-shadow:0 16px 38px #ffc83d65,inset 0 1px #ffffffc9}
+.sh-ticket-cta-arrow{font-size:19px;transition:transform .2s ease}
+.sh-ticket-cta:hover .sh-ticket-cta-arrow{transform:translateX(-4px)}
+.sh-ticket-secondary{border:1px solid #ffffff35;color:#f2f2ff;background:#ffffff0c}
+.sh-ticket-secondary:hover{background:#ffffff1c}
+.sh-ticket-stub{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:15px;padding:38px 30px;border-right:2px dashed #ffffff3d;background:linear-gradient(180deg,#ffffff0c,#ffffff03)}
+.sh-ticket-seal{display:grid;place-items:center;width:72px;height:72px;margin-bottom:4px;border:1px solid #ffc83d70;border-radius:50%;color:#ffc83d;background:radial-gradient(circle,#ffc83d25,transparent 68%);box-shadow:0 0 35px #ffc83d20,inset 0 0 20px #ffc83d12}
+.sh-ticket-seal span{font-size:36px;text-shadow:0 0 20px #ffc83d80}
+.sh-ticket-stub-kicker{color:#9ea7d8;font-size:10px;font-weight:900;letter-spacing:.22em;direction:ltr}
+.sh-ticket-stub strong{max-width:18ch;color:#fff;font-size:21px;font-weight:900;line-height:1.9}
+.sh-ticket-stub p{max-width:30ch;margin:0;color:#aeb5d6;font-size:12px;line-height:2}
+.sh-ticket-barcode{width:100%;height:42px;margin-top:8px;opacity:.66;background:repeating-linear-gradient(90deg,#eef1ff 0 2px,transparent 2px 4px,#eef1ff 4px 5px,transparent 5px 8px,#eef1ff 8px 12px,transparent 12px 14px);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.sh-ticket-id{align-self:center;margin-top:-8px;color:#aab1d4;direction:ltr;font-size:9px;letter-spacing:.24em}
+.sh-ticket-spark{position:absolute;z-index:4;width:8px;height:8px;pointer-events:none;border:2px solid #fff;border-radius:50%;animation:sh-ticket-spark .55s ease-out forwards}
+.sh-ticket-reopen{position:fixed;z-index:1190;left:18px;bottom:max(18px,env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border:1px solid #ffffff40;border-radius:999px;color:#fff;background:linear-gradient(120deg,#1b1250,#3a1470);box-shadow:0 12px 34px #7a5cff55;font:inherit;font-size:13px;font-weight:850;cursor:pointer;animation:sh-ticket-reopen .35s ease-out both}
+.sh-ticket-reopen[hidden]{display:none!important}
+.sh-ticket-live-region{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.sh-ticket-section a:focus-visible,.sh-ticket-section button:focus-visible{outline:3px solid #22e1ff;outline-offset:4px}
+@keyframes sh-ticket-ping{to{box-shadow:0 0 0 10px #b6ff3c00}}
+@keyframes sh-ticket-enter{from{opacity:0;transform:translateY(24px) scale(.975);filter:blur(7px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes sh-ticket-exit{to{opacity:0;transform:translateY(10px) scale(.985);filter:blur(5px)}}
+@keyframes sh-ticket-glow{to{transform:rotate(360deg)}}
+@keyframes sh-ticket-spark{0%{opacity:.95;transform:translate(-50%,-50%) scale(.4);box-shadow:0 0 0 0 #fff8}100%{opacity:0;transform:translate(-50%,-50%) scale(5);box-shadow:0 0 0 12px #ffffff00}}
+@keyframes sh-ticket-reopen{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.sh-ticket-shell{width:min(100% - 24px,580px)}.sh-ticket{grid-template-columns:1fr;min-height:0;border-radius:23px}.sh-ticket-main{padding:54px 22px 27px}.sh-ticket-stub{gap:11px;padding:23px 22px;border-right:0;border-top:2px dashed #ffffff3d}.sh-ticket-seal{width:54px;height:54px}.sh-ticket-seal span{font-size:27px}.sh-ticket-stub strong{max-width:none;font-size:18px}.sh-ticket-stub p{max-width:none}.sh-ticket-barcode{height:30px}.sh-ticket-mark{margin-top:16px}.sh-ticket h2{max-width:none;font-size:23px}.sh-ticket-main>p{font-size:13px}.sh-ticket-actions{display:grid;grid-template-columns:1fr}.sh-ticket-cta,.sh-ticket-secondary{width:100%}.sh-ticket-reopen{left:12px;bottom:max(12px,env(safe-area-inset-bottom))}}
+@media(max-width:380px){.sh-ticket-main{padding-inline:18px}.sh-ticket-mark{gap:8px}.sh-ticket-mark small{font-size:8px}.sh-ticket h2{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.sh-ticket-glow,.sh-ticket-tag i,.sh-ticket-reopen i{animation:none!important}.sh-ticket,.sh-ticket-close,.sh-ticket-cta,.sh-ticket-secondary{transition:none!important}.sh-ticket.is-entering,.sh-ticket.is-leaving,.sh-ticket-reopen{animation:none!important}}
+
+
+/* Performance: keep the ticket's holographic identity without per-frame canvas or pointer-driven transforms. */
+.sh-ticket-shell{perspective:none}
+.sh-ticket{transform:none!important;transform-style:flat;transition:opacity .18s ease,filter .18s ease}
+.sh-ticket-foil{opacity:.48;background:linear-gradient(112deg,transparent 12%,#22e1ff20 34%,#ff3d8124 49%,#ffc83d20 64%,#7a5cff22 78%,transparent 92%),radial-gradient(420px circle at 82% 18%,#ffffff16,transparent 68%)}
+.sh-ticket-glow{display:none}
+.sh-ticket-tag i{animation:none;box-shadow:0 0 0 4px #b6ff3c18}
+.sh-ticket-cta{will-change:auto;transform:none}
+.sh-ticket-cta:hover{transform:translateY(-1px)}
+.sh-ticket.is-entering{animation:sh-ticket-enter-light .38s ease-out both}
+.sh-ticket.is-leaving{animation:sh-ticket-exit-light .18s ease-in both}
+@keyframes sh-ticket-enter-light{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sh-ticket-exit-light{to{opacity:0;transform:translateY(5px)}}
+@media(prefers-reduced-motion:reduce){.sh-ticket.is-entering,.sh-ticket.is-leaving{animation:none!important}}

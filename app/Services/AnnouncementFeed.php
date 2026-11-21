@@ -5,14 +5,23 @@ namespace App\Services;
 use App\Models\Announcement;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Schema;
 
 final class AnnouncementFeed
 {
+    private ?bool $supportsHomepageTicket = null;
+
+    private function supportsHomepageTicket(): bool
+    {
+        return $this->supportsHomepageTicket ??= Schema::hasColumn('announcements', 'display_as_ticket');
+    }
+
     public function forAudience(string $audience, ?User $user = null, int $limit = 5): Collection
     {
         $allowed = $audience === 'public' ? ['all'] : ['all', $audience];
 
         return Announcement::query()
+            ->when($this->supportsHomepageTicket(), fn ($query) => $query->where('display_as_ticket', false))
             ->where('status', 'published')
             ->whereIn('audience', $allowed)
             ->whereNotNull('published_at')
@@ -22,9 +31,25 @@ final class AnnouncementFeed
             ->when($user, fn ($query) => $query->withExists([
                 'readers as is_read' => fn ($readers) => $readers->where('users.id', $user->id),
             ]))
-            ->orderByRaw("CASE priority WHEN 'urgent' THEN 0 WHEN 'important' THEN 1 ELSE 2 END")
             ->orderByDesc('published_at')
             ->limit($limit)
             ->get();
+    }
+
+    public function publicTicket(): ?Announcement
+    {
+        if (! $this->supportsHomepageTicket()) {
+            return null;
+        }
+
+        return Announcement::query()
+            ->where('display_as_ticket', true)
+            ->where('audience', 'all')
+            ->where('status', 'published')
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->latest('published_at')
+            ->latest('id')
+            ->first();
     }
 }

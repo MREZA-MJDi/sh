@@ -3,7 +3,7 @@
 @section('title', 'مرکز یادگیری')
 
 @section('content')
-<section class="page" id="overview">\n @include("components.announcement-feed", ["announcements" => $announcements ?? collect()])
+<section class="page" id="overview">
  <div class="hero">
   @if($student->avatarUrl())
    <img class="av" src="{{ $student->avatarUrl() }}" alt="{{ $student->name }}" style="border-radius:24px;object-fit:cover">
