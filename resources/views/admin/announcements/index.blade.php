@@ -13,6 +13,20 @@
     @endif
 </x-admin.page-head>
 
+@if ($errors->any())
+    <div class="adm-alert adm-alert-danger" role="alert" aria-live="assertive" style="margin-bottom:16px">
+        <b>اطلاعیه ذخیره نشد. لطفاً موارد زیر را اصلاح کن:</b>
+        <ul style="margin:8px 0 0;padding-inline-start:22px">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+@if (session('success'))
+    <div class="adm-alert adm-alert-success" role="status" style="margin-bottom:16px">{{ session('success') }}</div>
+@endif
+
 <x-admin.panel title="اطلاعیه‌های ثبت‌شده" flush data-tone="comm">
     <div class="adm-table-wrap">
         <table class="adm-table">
