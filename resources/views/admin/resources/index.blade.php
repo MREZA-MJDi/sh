@@ -80,7 +80,7 @@
             </div>
             <div class="adm-meta">
               <span>مبلغ: <b class="adm-num">{{ number_format($purchase->amount) }} تومان</b></span>
-              <span>زمان درخواست: {{ $purchase->created_at?->format('Y/m/d H:i') }}</span>
+              <span>زمان درخواست: {{ \App\Support\PersianDate::format($purchase->created_at, 'Y/m/d H:i') }}</span>
             </div>
             <div class="adm-kv"><span>شناسه رسید: <b class="adm-ltr">{{ $purchase->provider_reference }}</b></span></div>
             @if(auth()->user()->hasRole('admin'))
