@@ -86,7 +86,7 @@
                         <div class="auth-demo-grid">
                             @foreach ($demoAccounts as $account)
                                 <button type="button" class="auth-demo-card" data-demo-account data-demo-email="{{ $account['email'] }}" data-demo-password="{{ $demoPassword }}">
-                                    <span class="auth-demo-icon" aria-hidden="true">{{ ['admin'=>'⚙','teacher'=>'✎','student'=>'▣','parent'=>'⌂'][$account['role']] ?? '•' }}</span>
+                                    <span class="auth-demo-icon" aria-hidden="true">{{ ['admin'=>'⚙','seo'=>'✦','teacher'=>'✎','student'=>'▣','parent'=>'⌂'][$account['role']] ?? '•' }}</span>
                                     <span class="auth-demo-copy"><strong>{{ $account['label'] }}</strong><small dir="ltr">{{ $account['email'] }}</small></span>
                                     <span class="auth-demo-action">انتخاب</span>
                                 </button>
