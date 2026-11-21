@@ -98,8 +98,8 @@ class StoreAttendanceRequest extends FormRequest
             $allowed = array_fill_keys($allowedStudentIds, true);
 
             foreach ($submittedAttendance as $studentId => $entry) {
-                if (! isset($allowed[(int) $studentId])) {
-                    $validator->errors()->add('attendance', 'همه افراد انتخاب‌شده عضو این کلاس نیستند.');
+                if (! preg_match('/^[1-9]\\d*$/', (string) $studentId) || ! isset($allowed[(int) $studentId])) {
+                    $validator->errors()->add('attendance', 'شناسه دانش‌آموز معتبر نیست یا به این کلاس تعلق ندارد.');
                     continue;
                 }
 
