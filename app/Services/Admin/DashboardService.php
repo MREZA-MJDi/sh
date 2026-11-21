@@ -93,6 +93,7 @@ final class DashboardService
                 : 0,
             'classes' => $canSeeClasses ? (clone $classroomQuery)->count() : 0,
             'courses' => $canSeeCourses ? (clone $courseQuery)->where('status', 'published')->count() : 0,
+            'attendance_rate' => $attendanceTotal > 0 ? (int) round(($attendancePresent / $attendanceTotal) * 100) : 0,
             'pending_homework' => $canSeeHomework
                 ? HomeworkSubmission::query()
                     ->where('status', 'submitted')
