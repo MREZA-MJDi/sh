@@ -64,6 +64,14 @@ class PublicExamFeatureTest extends TestCase
             'option_id' => 999999,
         ])->assertUnprocessable();
 
+        $this->patchJson(route('public.exams.save', $attempt), [
+            'question_id' => $question->id,
+            'option_id' => $correctOption->id,
+        ])->assertOk();
+
+        $attempt->refresh();
+        $this->assertSame($correctOption->id, $attempt->answers[$question->id]);
+
         $this->post(route('public.exams.submit', $attempt), [
             'answers' => [$question->id => $wrongOption->id],
         ])->assertRedirect(route('public.exams.result', $attempt));
@@ -101,6 +109,46 @@ class PublicExamFeatureTest extends TestCase
         $this->assertSame(100.0, (float) $attempt->score_percent);
         $this->get(route('public.exams.result', $attempt))->assertOk();
         $this->get('/free-exams')->assertNotFound();
+    }
+
+    public function test_negative_marking_uses_one_over_the_number_of_distractors(): void
+    {
+        config(['public_exams.enabled' => true]);
+        $exam = $this->createExam(['negative_marking' => true]);
+        $firstQuestion = $exam->questions()->first();
+        $secondQuestion = $exam->questions()->create([
+            'body' => 'پایتخت فرانسه کدام است؟',
+            'explanation' => 'پاریس پایتخت فرانسه است.',
+            'points' => 1,
+            'position' => 1,
+        ]);
+
+        foreach ([
+            ['body' => 'پاریس', 'is_correct' => true, 'position' => 0],
+            ['body' => 'رم', 'is_correct' => false, 'position' => 1],
+            ['body' => 'برلین', 'is_correct' => false, 'position' => 2],
+            ['body' => 'مادرید', 'is_correct' => false, 'position' => 3],
+        ] as $option) {
+            $secondQuestion->options()->create($option);
+        }
+
+        $firstCorrect = $firstQuestion->options()->where('is_correct', true)->first();
+        $secondWrong = $secondQuestion->options()->where('is_correct', false)->first();
+
+        $this->post(route('public.exams.start', $exam), [
+            'name' => 'کاربر آزمایشی',
+            'phone' => '09123456789',
+        ])->assertRedirect();
+
+        $attempt = PublicExamAttempt::query()->sole();
+        $this->post(route('public.exams.submit', $attempt), [
+            'answers' => [
+                $firstQuestion->id => $firstCorrect->id,
+                $secondQuestion->id => $secondWrong->id,
+            ],
+        ])->assertRedirect(route('public.exams.result', $attempt));
+
+        $this->assertSame(33.33, (float) $attempt->fresh()->score_percent);
     }
 
     public function test_public_exam_management_requires_its_own_admin_permission(): void
