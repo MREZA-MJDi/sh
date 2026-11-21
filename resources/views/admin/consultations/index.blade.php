@@ -31,7 +31,7 @@
           <td><b>{{ $consultation->requester?->name ?? 'حساب حذف‌شده' }}</b><small>@if($consultation->contact_phone || $consultation->requester?->phone) @phone($consultation->contact_phone ?: $consultation->requester?->phone) @else بدون شماره تماس @endif</small></td>
           <td>{{ $consultation->student?->name ?? '—' }}<small>{{ $consultation->teacher?->name ?? 'مدرس تعیین نشده' }}</small></td>
           <td>{{ $consultation->topic }}<small>{{ $consultation->type }}</small></td>
-          <td>{{ $consultation->desired_at?->format('Y/m/d H:i') ?? 'زمانی ثبت نشده' }}</td>
+          <td>{{ ($consultation->desired_at ? \App\Support\PersianDate::format($consultation->desired_at, 'Y/m/d H:i') : 'زمانی ثبت نشده') }}</td>
           <td><x-admin.badge :tone="$statusTones[$consultation->status] ?? 'warn'">{{ $statusLabels[$consultation->status] ?? $consultation->status }}</x-admin.badge></td>
           <td>
             <form method="POST" action="{{ route('admin.consultations.update', $consultation) }}" class="adm-stack">
