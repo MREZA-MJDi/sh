@@ -47,7 +47,7 @@ final class DashboardService
                 ->leftJoin('class_sessions as sessions', 'sessions.id', '=', 'attendances.class_session_id')
                 ->when($teacherView, fn ($query) => $query->whereIn('attendances.classroom_id', $classroomIds))
                 ->selectRaw(
-                    "attendances.session_date as attendance_day,
+                    "DATE(attendances.session_date) as attendance_day,
                     COUNT(*) as total,
                     SUM(CASE WHEN attendances.status = 'present' THEN 1 ELSE 0 END) as present,
                     SUM(CASE WHEN attendances.status = 'late' THEN 1 ELSE 0 END) as late,
@@ -56,7 +56,7 @@ final class DashboardService
                 )
                 ->whereBetween('attendances.session_date', [$weekStart->toDateString(), today()->endOfDay()->toDateTimeString()])
                 ->where(fn ($query) => $query->whereNull('sessions.id')->orWhere('sessions.status', '!=', 'cancelled'))
-                ->groupBy('attendances.session_date')
+                ->groupByRaw('DATE(attendances.session_date)')
                 ->get()
                 ->keyBy('attendance_day')
             : collect();
