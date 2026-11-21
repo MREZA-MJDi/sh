@@ -92,6 +92,25 @@ final class ClassSessionAttendanceTest extends TestCase
         ], $teacher->id);
     }
 
+    public function test_attendance_service_rejects_sessions_that_have_not_started(): void
+    {
+        [$teacher, $student, $classroom] = $this->classroomFixture();
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه آینده',
+            'session_type' => 'onsite',
+            'starts_at' => now()->addHour(),
+            'status' => 'scheduled',
+            'created_by' => $teacher->id,
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AttendanceService::class)->record($classroom, $session, [
+            $student->id => ['status' => 'present'],
+        ], $teacher->id);
+    }
+
     public function test_attendance_service_rejects_cancelled_sessions(): void
     {
         [$teacher, $student, $classroom] = $this->classroomFixture();
