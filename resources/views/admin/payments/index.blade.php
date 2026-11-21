@@ -34,7 +34,7 @@
       @forelse($payments as $payment)
         @php $status = $statusLabels[$payment->status] ?? ['mute', $payment->status]; @endphp
         <tr>
-          <td class="adm-num"><b dir="ltr">{{ $payment->reference }}</b><small>{{ \\App\\Support\\PersianDate::format($payment->created_at, 'Y/m/d H:i') }}</small></td>
+          <td class="adm-num"><b dir="ltr">{{ $payment->reference }}</b><small>{{ \App\Support\PersianDate::format($payment->created_at, 'Y/m/d H:i') }}</small></td>
           <td>{{ $payment->student?->name ?? 'حساب حذف‌شده' }}</td>
           <td>{{ $payment->course?->title ?? 'دوره حذف‌شده' }}</td>
           <td class="adm-num"><b>{{ number_format($payment->amount) }}</b></td>
