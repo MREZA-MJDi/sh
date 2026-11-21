@@ -48,7 +48,7 @@
       <a class="adm-communication-item" href="{{ $item['url'] }}">
         <span class="adm-communication-icon" data-type="{{ $item['type'] }}"><x-admin.icon :name="$typeIcons[$item['type']] ?? 'msg'"/></span>
         <span class="adm-communication-main">
-          <span class="adm-communication-topline"><strong>{{ $item['title'] }}</strong><small>{{ $item['created_at']?->format('Y/m/d H:i') }}</small></span>
+          <span class="adm-communication-topline"><strong>{{ $item['title'] }}</strong><small>{{ \\App\\Support\\PersianDate::format($item['created_at'], 'Y/m/d H:i') }}</small></span>
           <span class="adm-communication-meta">{{ $item['label'] }} · {{ $item['sender'] }} @if($item['context']) · {{ $item['context'] }} @endif</span>
           <span class="adm-communication-direction" data-direction="{{ $item['direction'] }}">
             <x-admin.icon :name="$item['direction'] === 'outgoing' ? 'msg' : 'inbox'"/>
