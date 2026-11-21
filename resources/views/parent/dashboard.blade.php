@@ -12,7 +12,30 @@
     ];
     $subj = collect($subjects ?? []);
 @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">داشبورد خانواده</span><h1>وضعیت آموزشی {{ data_get($kid ?? null, 'name') }}</h1><p>خلاصه‌ای از پیشرفت، حضور و نتایج آموزشی فرزند شما</p></div></div>
+<div class="parent-page-heading parent-dashboard-hero">
+    <div class="parent-hero-identity">
+        <div class="parent-hero-avatar">
+            @if(($kid ?? null)?->avatarUrl())
+                <img src="{{ $kid->avatarUrl() }}" alt="{{ data_get($kid, 'name') }}">
+            @else
+                <span class="avatar-letter">{{ mb_substr((string) data_get($kid, 'name', 'ف'), 0, 1) }}</span>
+            @endif
+        </div>
+        <div class="parent-hero-copy">
+            <div class="parent-hero-badges">
+                <span class="parent-eyebrow">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.2" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    داشبورد خانواده
+                </span>
+                @if($kid)
+                    <span class="parent-active-child-tag">دانش‌آموز: {{ data_get($kid, 'name') }}</span>
+                @endif
+            </div>
+            <h1>وضعیت آموزشی {{ data_get($kid ?? null, 'name') }}</h1>
+            <p>خلاصه‌ای از پیشرفت، حضور و نتایج آموزشی فرزند شما</p>
+        </div>
+    </div>
+</div>
 @include('parent.partials.kid-picker')
 <div class="g">
     <div class="g g4">
