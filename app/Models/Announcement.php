@@ -16,7 +16,12 @@ class Announcement extends Model
         return ['published_at' => 'datetime', 'starts_at' => 'datetime', 'ends_at' => 'datetime'];
     }
 
-    public function readers(): BelongsToMany\n    {\n        return $this->belongsToMany(User::class, 'announcement_user_reads')->withPivot('read_at');\n    }\n\n    public function creator(): BelongsTo
+    public function readers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'announcement_user_reads')->withPivot('read_at');
+    }
+
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
