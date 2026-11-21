@@ -1,6 +1,6 @@
 @php
   $sidebarUser = auth()->user();
-  $sidebarRole = $sidebarUser?->hasRole('admin') ? 'مدیر سامانه' : ($sidebarUser?->hasRole('teacher') ? 'مدرس' : ($sidebarUser?->hasRole('seo') ? 'کارشناس سئو' : 'کاربر'));
+  $sidebarRole = $sidebarUser?->hasRole('admin') ? 'مدیر سامانه' : ($sidebarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر');
   $sidebarInitial = mb_substr($sidebarUser?->name ?? 'م', 0, 1);
 @endphp
 <aside class="adm-sidebar" id="adm-sidebar" aria-label="منوی اصلی">
