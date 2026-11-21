@@ -29,7 +29,7 @@
           <td><b>{{ $meeting->title }}</b><small>{{ \Illuminate\Support\Str::limit($meeting->message, 100) }}</small></td>
           <td>{{ $meeting->student?->name ?? '—' }}<small>ولی: {{ $meeting->guardian?->name ?? '—' }}</small></td>
           <td>{{ $meeting->classroom?->name ?? 'بدون کلاس' }}<small>{{ $meeting->course?->title ?? '—' }}</small></td>
-          <td>{{ $meeting->starts_at?->format('Y/m/d H:i') ?? 'زمان تعیین نشده' }}<small>{{ $meeting->ends_at?->format('H:i') ?? '' }}</small></td>
+          <td>{{ \\App\\Support\\PersianDate::format($meeting->starts_at, 'Y/m/d H:i') ?? 'زمان تعیین نشده' }}<small>{{ \\App\\Support\\PersianDate::format($meeting->ends_at, 'H:i') ?? '' }}</small></td>
           <td><x-admin.badge :tone="in_array($meeting->status, ['completed', 'scheduled'], true) ? 'ok' : 'warn'">{{ $statusLabels[$meeting->status] ?? $meeting->status }}</x-admin.badge></td>
           <td>
             @if(!$isTeacher && in_array($meeting->status, ['requested', 'proposed', 'scheduled'], true))
