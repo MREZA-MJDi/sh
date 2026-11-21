@@ -18,6 +18,39 @@ final class AttendanceService
     {
         abort_unless((int) $session->classroom_id === (int) $classroom->id, 404);
 
+        if ($session->status === 'cancelled' || $session->starts_at->isFuture()) {
+            throw ValidationException::withMessages([
+                'class_session_id' => 'برای جلسه لغوشده یا جلسه‌ای که هنوز شروع نشده حضور و غیاب ثبت نمی‌شود.',
+            ]);
+        }
+
+        if ($entries === []) {
+            throw ValidationException::withMessages([
+                'attendance' => 'حداقل وضعیت یک دانش‌آموز باید ارسال شود.',
+            ]);
+        }
+
+        $studentIds = array_values(array_unique(array_map('intval', array_keys($entries))));
+        $allowedStudentIds = $classroom->students()
+            ->whereKey($studentIds)
+            ->pluck('users.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (count($allowedStudentIds) !== count($studentIds)) {
+            throw ValidationException::withMessages([
+                'attendance' => 'فقط برای دانش‌آموزان عضو همین کلاس می‌توان حضور و غیاب ثبت کرد.',
+            ]);
+        }
+
+        foreach ($entries as $studentId => $entry) {
+            if (! in_array($entry['status'] ?? null, ['present', 'late', 'absent', 'excused'], true)) {
+                throw ValidationException::withMessages([
+                    "attendance.{$studentId}.status" => 'وضعیت حضور و غیاب معتبر نیست.',
+                ]);
+            }
+        }
+
         $scheduledMinutes = null;
         if ($session->starts_at && $session->ends_at) {
             $seconds = $session->ends_at->getTimestamp() - $session->starts_at->getTimestamp();
