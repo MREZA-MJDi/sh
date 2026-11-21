@@ -12,14 +12,13 @@ final class AnnouncementReadController extends Controller
     {
         abort_unless($request->user(), 403);
 
-        $audiences = [
-            'student' => ['all', 'students'],
-            'parent' => ['all', 'parents'],
-            'teacher' => ['all', 'teachers'],
-            'admin' => ['all'],
-        ];
-        $role = $request->user()->roles()->value('name');
-        abort_unless(in_array($announcement->audience, $audiences[$role] ?? [], true), 404);
+        $allowedAudiences = ['all'];
+        foreach (['student' => 'students', 'parent' => 'parents', 'teacher' => 'teachers'] as $role => $audience) {
+            if ($request->user()->hasRole($role)) {
+                $allowedAudiences[] = $audience;
+            }
+        }
+        abort_unless(in_array($announcement->audience, $allowedAudiences, true), 404);
         abort_unless(
             $announcement->status === 'published'
             && $announcement->published_at && $announcement->published_at->lte(now())
