@@ -6,10 +6,12 @@
   $stats = $stats ?? [];
   $weeklyAttendance = $weeklyAttendance ?? collect();
   $attendanceTotal = (int) ($attendanceTotal ?? 0);
-  $attendanceRate = max(0, min(100, (int) ($stats['attendance_rate'] ?? 0)));
   $pendingHomework = (int) ($stats['pending_homework'] ?? 0);
   $openMessages = (int) ($openMessageCount ?? 0);
   $pendingConsultations = (int) ($pendingConsultationCount ?? 0);
+  $averageCoursePurchase = (int) ($averageCoursePurchase ?? 0);
+  $paidCoursePurchases = (int) ($paidCoursePurchases ?? 0);
+  $revenueLast30Days = (int) ($revenueLast30Days ?? 0);
 @endphp
 
 <section class="adm-welcome" aria-labelledby="dashboard-title">
@@ -26,12 +28,20 @@
       @endcan
     </div>
   </div>
-  <div class="adm-welcome-aside" aria-label="نرخ حضور هفتگی">
-    <div class="adm-rate-ring" style="--rate:{{ $attendanceRate }}" role="img" aria-label="نرخ حضور هفتگی {{ $attendanceRate }} درصد">
-      <div><strong>{{ number_format($attendanceRate) }}٪</strong><small>حضور هفتگی</small></div>
+  <aside class="adm-welcome-aside adm-sales-overview" aria-label="خلاصه فروش دوره‌ها">
+    <div class="adm-sales-heading">
+      <span class="adm-sales-icon"><x-admin.icon name="chart"/></span>
+      <div><small>فروش واقعی دوره‌ها</small><b>میانگین خرید تأییدشده</b></div>
     </div>
-    <p class="adm-rate-caption">میانگین حضور دانش‌آموزان در جلسات ثبت‌شده</p>
-  </div>
+    <strong class="adm-sales-average">{{ number_format($averageCoursePurchase) }} <small>تومان</small></strong>
+    <div class="adm-sales-foot">
+      <span><b>{{ number_format($paidCoursePurchases) }}</b> خرید تأییدشده</span>
+      <span><b>{{ number_format($revenueLast30Days) }}</b> تومان فروش ۳۰ روز اخیر</span>
+    </div>
+    @if($paidCoursePurchases === 0)
+      <p class="adm-sales-empty">هنوز خرید دوره‌ای با پرداخت تأییدشده ثبت نشده است.</p>
+    @endif
+  </aside>
 </section>
 
 <div class="adm-stats">
@@ -40,7 +50,7 @@
   <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری"/>
   <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس"/>
   <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال"/>
-  <x-admin.stat tone="shop" icon="chart" label="نرخ حضور هفتگی" :value="number_format($attendanceRate).'٪'" hint="بر اساس حضور ثبت‌شده"/>
+  <x-admin.stat tone="shop" icon="card" label="خریدهای تأییدشده" :value="number_format($paidCoursePurchases)" hint="پرداخت‌های موفق دوره"/>
 </div>
 
 <section class="adm-stack" aria-label="دسترسی سریع">
@@ -101,11 +111,10 @@
   </x-admin.panel>
 
   <x-admin.panel title="ترکیب حضور و غیاب در هفته" desc="تعداد واقعی وضعیت‌های ثبت‌شده در هر روز؛ جلسات لغوشده محاسبه نمی‌شوند.">
-    @if($attendanceTotal > 0)
-      <div class="adm-week-chart" role="group" aria-label="نمودار هفتگی تفکیک وضعیت حضور و غیاب">
+    <div class="adm-week-chart" role="group" aria-label="نمودار هفتگی تفکیک وضعیت حضور و غیاب">
         @foreach($weeklyAttendance as $day)
-          <div class="adm-week-day" aria-label="{{ $day['label'] }}: {{ $day['total'] }} ثبت">
-            <div class="adm-week-track" title="{{ $day['label'] }} · {{ number_format($day['total']) }} ثبت">
+          <div class="adm-week-day" aria-label="{{ $day['label'] }} {{ $day['date_label'] }}: {{ $day['total'] }} ثبت">
+            <div class="adm-week-track" title="{{ $day['label'] }} {{ $day['date_label'] }} · {{ number_format($day['total']) }} ثبت">
               @foreach(['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'] as $key => $label)
                 @php
                   $count = (int) $day[$key];
@@ -117,6 +126,7 @@
               @endforeach
             </div>
             <b>{{ $day['label'] }}</b>
+            <small class="adm-week-date">{{ $day['date_label'] }}</small>
             <small>{{ number_format($day['total']) }} ثبت</small>
           </div>
         @endforeach
@@ -127,8 +137,8 @@
         <span><i class="is-absent"></i>غایب</span>
         <span><i class="is-excused"></i>موجه</span>
       </div>
-    @else
-      <div class="adm-queue-empty"><x-admin.icon name="chart"/><b>هنوز داده واقعی برای نمودار نداریم</b><span>پس از ثبت حضور یا غیاب در جلسات، تفکیک روزانه اینجا نمایش داده می‌شود.</span></div>
+    @if($attendanceTotal === 0)
+      <p class="adm-muted" style="padding:0 4px 12px">در بازه هفت روز اخیر هنوز رکورد حضور و غیاب ثبت نشده است؛ روزها و تاریخ‌ها برای حفظ مقیاس زمانی نمایش داده می‌شوند.</p>
     @endif
   </x-admin.panel>
 </div>
