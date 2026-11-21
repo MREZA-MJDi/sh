@@ -110,11 +110,11 @@
     </div>
   </x-admin.panel>
 
-  <x-admin.panel title="ترکیب حضور و غیاب در هفته" desc="تعداد واقعی وضعیت‌های ثبت‌شده در هر روز؛ جلسات لغوشده محاسبه نمی‌شوند.">
+  <x-admin.panel title="ترکیب حضور و غیاب در هفته" desc="تعداد واقعی وضعیت‌های ثبت‌شده در هر روز؛ جلسات لغوشده یا هنوز برگزارنشده و وضعیت‌های نامعتبر محاسبه نمی‌شوند.">
     <div class="adm-week-chart" role="group" aria-label="نمودار هفتگی تفکیک وضعیت حضور و غیاب">
         @foreach($weeklyAttendance as $day)
-          <div class="adm-week-day" aria-label="{{ $day['label'] }} {{ $day['date_label'] }}: {{ $day['total'] }} ثبت">
-            <div class="adm-week-track" title="{{ $day['label'] }} {{ $day['date_label'] }} · {{ number_format($day['total']) }} ثبت">
+          <div class="adm-week-day" aria-label="{{ $day['label'] }} {{ $day['date_full_label'] }}: {{ $day['total'] }} ثبت">
+            <div class="adm-week-track" title="{{ $day['label'] }} {{ $day['date_full_label'] }} · {{ number_format($day['total']) }} ثبت">
               @foreach(['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'] as $key => $label)
                 @php
                   $count = (int) $day[$key];
