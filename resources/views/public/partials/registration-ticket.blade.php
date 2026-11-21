@@ -73,7 +73,10 @@
         });
         if (remaining === 0) {
             clearInterval(interval);
-            root.querySelector('[data-ticket-countdown]')?.setAttribute('aria-label', 'مهلت این اطلاعیه به پایان رسیده است');
+            root.hidden = true;
+            reopenButton.hidden = true;
+            document.body.classList.remove('sh-ticket-open');
+            stopCanvas();
         }
     }
 
@@ -152,7 +155,15 @@
     reopenButton?.addEventListener('click', openTicket);
     root.addEventListener('click', event => { if (event.target === root) closeTicket(); });
     document.addEventListener('keydown', event => {
-        if (!root.hidden && event.key === 'Escape') closeTicket();
+        if (root.hidden) return;
+        if (event.key === 'Escape') closeTicket();
+        if (event.key === 'Tab') {
+            const focusable = Array.from(root.querySelectorAll('a[href], button:not([disabled])'));
+            if (!focusable.length) return;
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
     });
     window.addEventListener('pagehide', () => { clearInterval(interval); stopCanvas(); });
 
