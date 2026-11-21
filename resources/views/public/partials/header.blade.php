@@ -18,7 +18,7 @@
         </a>
 
         <nav class="links" id="lk" aria-label="ناوبری اصلی">
-            <a class="{{ request()->routeIs('home') ? 'on' : '' }}" href="{{ route('home') }}">خانه</a>
+            <a class="{{ request()->routeIs('home') ? 'on' : '' }}" href="{{ route('home') }}">خانه</a>\n            @if(config('public_exams.enabled', false))\n                <a class="pe-nav-cta {{ request()->routeIs('public.exams.*') ? 'on' : '' }}" href="{{ route('public.exams.index') }}">✨ آزمون رایگان</a>\n            @endif
 
             <div class="mg">
                 <a class="{{ request()->routeIs('public.courses.*') ? 'on' : '' }}" href="{{ route('public.courses.index') }}">
