@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PublicExamController extends Controller
@@ -42,62 +41,67 @@ class PublicExamController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:60'],
             'phone' => ['required', 'regex:/^09\d{9}$/'],
-        ], [
-            'phone.regex' => 'شماره موبایل معتبر نیست؛ نمونه: 09123456789',
-        ]);
+        ], ['phone.regex' => 'شماره موبایل معتبر نیست؛ نمونه: 09123456789']);
 
-        $attempt = DB::transaction(function () use ($publicExam, $data, $request) {
-            $existing = $publicExam->attempts()->where('phone', $data['phone'])->lockForUpdate()->first();
-            if ($existing) {
-                return $existing;
-            }
-
-            $questions = $publicExam->questions()->with('options')->get();
-            abort_if($questions->isEmpty(), 404);
-
-            $snapshotQuestions = $questions->map(function ($question) use ($publicExam) {
-                $options = $question->options->map(fn ($option) => [
-                    'id' => $option->id,
-                    'body' => $option->body,
-                    'is_correct' => (bool) $option->is_correct,
-                ]);
-                if ($publicExam->shuffle) {
-                    $options = $options->shuffle()->values();
+        try {
+            $attempt = DB::transaction(function () use ($publicExam, $data, $request) {
+                $existing = $publicExam->attempts()->where('phone', $data['phone'])->lockForUpdate()->first();
+                if ($existing) {
+                    return $existing;
                 }
 
-                return [
-                    'id' => $question->id,
-                    'body' => $question->body,
-                    'explanation' => $question->explanation,
-                    'points' => $question->points,
-                    'options' => $options->all(),
-                ];
-            });
-            if ($publicExam->shuffle) {
-                $snapshotQuestions = $snapshotQuestions->shuffle()->values();
-            }
+                $questions = $publicExam->questions()->with('options')->get();
+                abort_if($questions->isEmpty(), 404);
 
-            return $publicExam->attempts()->create([
-                'name' => trim($data['name']),
-                'phone' => $data['phone'],
-                'started_at' => now(),
-                'expires_at' => now()->addMinutes($publicExam->duration_minutes),
-                'snapshot' => [
-                    'title' => $publicExam->title,
-                    'pass_percent' => $publicExam->pass_percent,
-                    'settings' => ['negative_marking' => $publicExam->negative_marking],
-                    'questions' => $snapshotQuestions->all(),
-                ],
-                'ip' => $request->ip(),
-            ]);
-        });
+                $snapshotQuestions = $questions->map(function ($question) use ($publicExam) {
+                    $options = $question->options->map(fn ($option) => [
+                        'id' => $option->id,
+                        'body' => $option->body,
+                        'is_correct' => (bool) $option->is_correct,
+                    ]);
+                    if ($publicExam->shuffle) {
+                        $options = $options->shuffle()->values();
+                    }
+
+                    return [
+                        'id' => $question->id,
+                        'body' => $question->body,
+                        'explanation' => $question->explanation,
+                        'points' => $question->points,
+                        'options' => $options->all(),
+                    ];
+                });
+                if ($publicExam->shuffle) {
+                    $snapshotQuestions = $snapshotQuestions->shuffle()->values();
+                }
+
+                return $publicExam->attempts()->create([
+                    'name' => trim($data['name']),
+                    'phone' => $data['phone'],
+                    'started_at' => now(),
+                    'expires_at' => now()->addMinutes($publicExam->duration_minutes),
+                    'snapshot' => [
+                        'title' => $publicExam->title,
+                        'pass_percent' => $publicExam->pass_percent,
+                        'settings' => ['negative_marking' => $publicExam->negative_marking],
+                        'questions' => $snapshotQuestions->all(),
+                    ],
+                    'ip' => $request->ip(),
+                ]);
+            });
+        } catch (QueryException $exception) {
+            // The unique exam/phone index resolves concurrent first-attempt requests.
+            $attempt = $publicExam->attempts()->where('phone', $data['phone'])->first();
+            if (! $attempt) {
+                throw $exception;
+            }
+        }
 
         return redirect()->route($attempt->isFinished() ? 'public.exams.result' : 'public.exams.take', $attempt);
     }
 
     public function take(PublicExamAttempt $attempt): View|RedirectResponse
     {
-        $this->ensureEnabled();
         if ($attempt->isFinished()) {
             return redirect()->route('public.exams.result', $attempt);
         }
@@ -112,46 +116,52 @@ class PublicExamController extends Controller
 
     public function save(Request $request, PublicExamAttempt $attempt): JsonResponse
     {
-        $this->ensureEnabled();
-        abort_if($attempt->isFinished() || $attempt->isExpired(), 409);
         $data = $request->validate([
             'question_id' => ['required', 'integer'],
-            'option_id' => ['nullable', 'integer'],
+            'option_id' => ['required', 'integer'],
         ]);
 
-        $allowed = collect($attempt->snapshot['questions'] ?? [])->firstWhere('id', (int) $data['question_id']);
-        abort_unless($allowed, 422);
-        $optionIds = collect($allowed['options'])->pluck('id')->all();
-        abort_if($data['option_id'] !== null && ! in_array((int) $data['option_id'], $optionIds, true), 422);
+        DB::transaction(function () use ($attempt, $data): void {
+            $locked = PublicExamAttempt::query()->lockForUpdate()->findOrFail($attempt->id);
+            abort_if($locked->isFinished() || $locked->isExpired(), 409);
 
-        $answers = $attempt->answers ?? [];
-        if ($data['option_id'] === null) {
-            unset($answers[$data['question_id']]);
-        } else {
+            $question = collect($locked->snapshot['questions'] ?? [])->firstWhere('id', (int) $data['question_id']);
+            abort_unless($question, 422);
+            $optionIds = collect($question['options'])->pluck('id')->all();
+            abort_unless(in_array((int) $data['option_id'], $optionIds, true), 422);
+
+            $answers = $locked->answers ?? [];
             $answers[$data['question_id']] = (int) $data['option_id'];
-        }
-        $attempt->update(['answers' => $answers]);
+            $locked->update(['answers' => $answers]);
+        });
 
         return response()->json(['ok' => true]);
     }
 
     public function submit(Request $request, PublicExamAttempt $attempt): RedirectResponse
     {
-        $this->ensureEnabled();
-        if (! $attempt->isFinished()) {
-            $data = $request->validate(['answers' => ['sometimes', 'array', 'max:100'], 'answers.*' => ['nullable', 'integer']]);
-            $answers = $attempt->isExpired()
-                ? ($attempt->answers ?? [])
-                : array_merge($attempt->answers ?? [], $attempt->sanitize($data['answers'] ?? []));
-            $attempt->grade($answers);
-        }
+        $data = $request->validate([
+            'answers' => ['sometimes', 'array', 'max:100'],
+            'answers.*' => ['nullable', 'integer'],
+        ]);
+
+        DB::transaction(function () use ($attempt, $data): void {
+            $locked = PublicExamAttempt::query()->lockForUpdate()->findOrFail($attempt->id);
+            if ($locked->isFinished()) {
+                return;
+            }
+
+            $answers = $locked->isExpired()
+                ? ($locked->answers ?? [])
+                : array_merge($locked->answers ?? [], $locked->sanitize($data['answers'] ?? []));
+            $locked->grade($answers);
+        });
 
         return redirect()->route('public.exams.result', $attempt);
     }
 
     public function result(PublicExamAttempt $attempt): View|RedirectResponse
     {
-        $this->ensureEnabled();
         if (! $attempt->isFinished()) {
             return redirect()->route('public.exams.take', $attempt);
         }
