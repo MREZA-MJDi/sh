@@ -29,7 +29,7 @@
                     <tr>
                         <td><b>{{ $announcement->title }}</b><small>{{ \Illuminate\Support\Str::limit(strip_tags($announcement->body), 140) }}</small></td>
                         <td>{{ $audiences[$announcement->audience] ?? $announcement->audience }}</td>
-                        <td>{{ $announcement->published_at?->format('Y/m/d H:i') ?? '—' }}</td>
+                        <td>{{ ($announcement->published_at ? \App\Support\PersianDate::format($announcement->published_at, 'Y/m/d H:i') : '—') }}</td>
                         <td><x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge></td>
                         <td>
                             <div class="adm-actions">
