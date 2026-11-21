@@ -50,8 +50,10 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         }
 
         $sourcePath = $disk->path($video->file_path);
-        $outputRelativePath = 'private/course-videos/'.Str::uuid().'.mp4';
+        $processingRelativePath = 'private/course-videos/'.Str::uuid().'.processing.mp4';
+        $outputRelativePath = str_replace('.processing.mp4', '.mp4', $processingRelativePath);
         $disk->makeDirectory(dirname($outputRelativePath));
+        $processingPath = $disk->path($processingRelativePath);
         $outputPath = $disk->path($outputRelativePath);
 
         $process = null;
@@ -59,6 +61,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
         try {
             $process = new Process([
                 'ffmpeg',
+                '-nostdin',
                 '-hide_banner',
                 '-loglevel', 'error',
                 '-y',
@@ -77,14 +80,37 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
                 '-ac', '2',
                 '-movflags', '+faststart',
                 '-map_metadata', '-1',
-                $outputPath,
+                $processingPath,
             ]);
             $process->setTimeout(3300);
             $process->mustRun();
 
-            clearstatcache(true, $outputPath);
-            if (! is_file($outputPath) || filesize($outputPath) < 1) {
-                throw new \RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+            clearstatcache(true, $processingPath);
+            if (! is_file($processingPath) || filesize($processingPath) < 1024) {
+                throw new RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
+            }
+
+            $probe = new Process([
+                'ffprobe', '-v', 'error',
+                '-show_entries', 'format=duration:stream=codec_type,width,height',
+                '-of', 'json', $processingPath,
+            ]);
+            $probe->setTimeout(60);
+            $probe->mustRun();
+            $probeData = json_decode($probe->getOutput(), true, 512, JSON_THROW_ON_ERROR);
+            $videoStream = collect($probeData['streams'] ?? [])->first(
+                fn (array $stream): bool => ($stream['codec_type'] ?? null) === 'video'
+                    && (int) ($stream['width'] ?? 0) > 0
+                    && (int) ($stream['height'] ?? 0) > 0
+            );
+            $duration = (float) ($probeData['format']['duration'] ?? 0);
+
+            if (! $videoStream || $duration <= 0) {
+                throw new RuntimeException('اعتبارسنجی ویدیوی خروجی با FFprobe ناموفق بود.');
+            }
+
+            if (! rename($processingPath, $outputPath)) {
+                throw new RuntimeException('انتشار اتمیک ویدیوی پردازش‌شده ناموفق بود.');
             }
 
             $sha256 = hash_file('sha256', $outputPath);
@@ -111,7 +137,7 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
             $disk->delete($sourceRelativePath);
         } catch (Throwable $exception) {
             if (! $published) {
-                $disk->delete($outputRelativePath);
+                $disk->delete([$processingRelativePath, $outputRelativePath]);
             }
             $diagnostic = trim((string) $process?->getErrorOutput());
             $error = $diagnostic !== '' ? $diagnostic : $exception->getMessage();
