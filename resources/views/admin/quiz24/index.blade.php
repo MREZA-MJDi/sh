@@ -112,7 +112,7 @@
           <td class="adm-num">{{ $operation->correlation_id }}</td>
           <td><x-admin.badge :tone="$operation->status === 'completed' ? 'ok' : 'warn'">{{ $operation->status }}</x-admin.badge></td>
           <td>{{ $operation->error_message ?: '—' }}</td>
-          <td>{{ $operation->created_at?->format('Y/m/d H:i') }}</td>
+          <td>{{ \App\Support\PersianDate::format($operation->created_at, 'Y/m/d H:i') }}</td>
         </tr>
       @empty
         <tr><td colspan="5">عملیاتی ثبت نشده است.</td></tr>
