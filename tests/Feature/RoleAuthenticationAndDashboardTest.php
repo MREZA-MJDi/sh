@@ -85,6 +85,12 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         ]);
     }
 
+    public function test_logout_route_name_resolves_to_the_role_neutral_endpoint(): void
+    {
+        $this->assertSame('/logout', parse_url(route('logout'), PHP_URL_PATH));
+        $this->assertSame('/admin/logout', parse_url(route('admin.logout'), PHP_URL_PATH));
+    }
+
     public function test_login_redirects_each_role_to_its_own_dashboard(): void
     {
         $accounts = [
