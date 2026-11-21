@@ -30,6 +30,14 @@ final class AttendanceService
             ]);
         }
 
+        foreach (array_keys($entries) as $studentId) {
+            if (! preg_match('/^[1-9]\\d*$/', (string) $studentId)) {
+                throw ValidationException::withMessages([
+                    'attendance' => 'شناسه دانش‌آموز معتبر نیست.',
+                ]);
+            }
+        }
+
         $studentIds = array_values(array_unique(array_map('intval', array_keys($entries))));
         $allowedStudentIds = $classroom->students()
             ->whereKey($studentIds)
