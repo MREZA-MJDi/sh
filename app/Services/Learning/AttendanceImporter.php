@@ -23,8 +23,16 @@ class AttendanceImporter
             throw new RuntimeException('کلاس این جلسه پیدا نشد.');
         }
 
+        if ($session->status === 'cancelled') {
+            throw new RuntimeException('برای جلسه لغوشده نمی‌توان گزارش حضور و غیاب وارد کرد.');
+        }
+
         if (! $session->ends_at || $session->ends_at->lessThanOrEqualTo($session->starts_at)) {
             throw new RuntimeException('برای وارد کردن گزارش، زمان شروع و پایان معتبر جلسه لازم است.');
+        }
+
+        if ($session->ends_at->isFuture()) {
+            throw new RuntimeException('گزارش حضور فقط پس از پایان جلسه قابل وارد کردن است.');
         }
 
         $handle = fopen($path, 'r');
