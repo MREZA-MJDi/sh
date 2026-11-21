@@ -7,12 +7,31 @@
             @if(($teacher ?? auth()->user())->avatarUrl())
                 <img src="{{ ($teacher ?? auth()->user())->avatarUrl() }}" alt="{{ data_get($teacher ?? auth()->user(), 'name') }}">
             @else
-                {{ mb_substr((string) data_get($teacher ?? auth()->user(), 'name', 'م'), 0, 1) }}
+                <span class="avatar-letter">{{ mb_substr((string) data_get($teacher ?? auth()->user(), 'name', 'م'), 0, 1) }}</span>
             @endif
         </div>
-        <div><span class="teacher-eyebrow">فضای کاری مدرس</span><h1>سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h1><p>کلاس‌ها، محتوا و ارتباط با خانواده‌ها را از یک محیط مدیریت کنید.</p></div>
+        <div class="teacher-dashboard-copy">
+            <div class="teacher-dashboard-badges">
+                <span class="teacher-eyebrow">
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.2" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    فضای کاری مدرس
+                </span>
+                @if(data_get($teacher ?? auth()->user(), 'subject'))
+                    <span class="teacher-subject-tag">{{ data_get($teacher ?? auth()->user(), 'subject') }}</span>
+                @endif
+            </div>
+            <h1>سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h1>
+            <p>کلاس‌ها، محتوا و ارتباط با خانواده‌ها را از یک محیط مدیریت کنید.</p>
+        </div>
     </div>
-    @if(auth()->user()->hasPermissionTo('consultations.create'))<a class="b" href="{{ route('teacher.consultations.index') }}">درخواست هماهنگی با مدیریت</a>@endif
+    @if(auth()->user()->hasPermissionTo('consultations.create'))
+        <div class="teacher-dashboard-actions">
+            <a class="b teacher-cta-btn" href="{{ route('teacher.consultations.index') }}">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>درخواست هماهنگی با مدیریت</span>
+            </a>
+        </div>
+    @endif
 </div>
 <section class="teacher-dashboard-focus" aria-label="اولویت‌های کاری امروز"><div class="teacher-section-head"><div><h2>اولویت‌های کاری</h2><p>برای شروع سریع، موارد نیازمند پیگیری را باز کنید.</p></div></div><div class="teacher-focus-items">@if(auth()->user()->hasPermissionTo('homework.view.assigned'))<a href="{{ route('teacher.homework') }}" class="teacher-focus-item"><span class="teacher-focus-symbol">✎</span><span><strong>بررسی پاسخ تکالیف</strong><small>{{ $stats['homework_review'] }} پاسخ منتظر بررسی</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif @if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a href="{{ route('teacher.messages.index') }}" class="teacher-focus-item"><span class="teacher-focus-symbol">✉</span><span><strong>پیام‌های تازه</strong><small>{{ $stats['new_messages'] }} گفت‌وگوی باز</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif @if(auth()->user()->hasPermissionTo('attendance.view.assigned'))<a href="{{ route('teacher.attendance') }}" class="teacher-focus-item"><span class="teacher-focus-symbol">✓</span><span><strong>حضور و غیاب</strong><small>{{ $stats['absent_today'] }} غیبت امروز</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif</div></section>
 <div class="g g4 teacher-stat-grid">
