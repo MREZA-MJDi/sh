@@ -320,3 +320,15 @@
 .adm-grid-note{grid-column:1/-1;margin:0}
 
 .adm-calendar-today{font-size:11px;font-weight:700;color:var(--primary);white-space:nowrap}
+
+
+/* Weekly attendance chart: each day is a real status distribution, not a synthetic rate bar. */
+.adm-week-track{display:flex;flex-direction:column-reverse;align-items:stretch;justify-content:flex-start}
+.adm-week-segment{display:block;flex:0 0 auto;width:100%;height:var(--segment-size);min-height:0}
+.adm-week-segment.is-present,.adm-week-legend .is-present{background:#16a34a}
+.adm-week-segment.is-late,.adm-week-legend .is-late{background:#eab308}
+.adm-week-segment.is-absent,.adm-week-legend .is-absent{background:#ef4444}
+.adm-week-segment.is-excused,.adm-week-legend .is-excused{background:#64748b}
+.adm-week-legend{display:flex;flex-wrap:wrap;gap:10px 16px;padding:0 4px 12px;color:var(--muted);font-size:11px}
+.adm-week-legend>span{display:inline-flex;align-items:center;gap:6px}
+.adm-week-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
