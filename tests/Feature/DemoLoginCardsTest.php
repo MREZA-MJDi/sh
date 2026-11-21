@@ -63,7 +63,12 @@ final class DemoLoginCardsTest extends TestCase
                 ->assertDontSee('seo@sh.local')
                 ->assertDontSee('Shikhan-Demo-2026!');
 
-            $this->post(route('login.demo.unlock'), ['access_key' => $accessKey])
+            $csrfToken = str_repeat('t', 40);
+            $this->withSession(['_token' => $csrfToken])
+                ->post(route('login.demo.unlock'), [
+                    '_token' => $csrfToken,
+                    'access_key' => $accessKey,
+                ])
                 ->assertRedirect(route('login'));
 
             $this->get(route('login'))
@@ -90,8 +95,13 @@ final class DemoLoginCardsTest extends TestCase
         $this->app['env'] = 'production';
 
         try {
+            $csrfToken = str_repeat('v', 40);
             $this->from(route('login'))
-                ->post(route('login.demo.unlock'), ['access_key' => str_repeat('x', 48)])
+                ->withSession(['_token' => $csrfToken])
+                ->post(route('login.demo.unlock'), [
+                    '_token' => $csrfToken,
+                    'access_key' => str_repeat('x', 48),
+                ])
                 ->assertRedirect(route('login'))
                 ->assertSessionHasErrors('access_key');
 
