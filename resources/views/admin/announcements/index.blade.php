@@ -74,12 +74,11 @@
 <x-admin.modal :demo="false" id="announcement-modal" title="اعلان جدید" size="lg"
     :action="route('admin.announcements.store')">
     <x-admin.legend title="محتوای اطلاعیه"/>
-    <p class="adm-muted wide">اطلاعات این فرم در سایت و داشبورد مخاطبان نمایش داده می‌شود. برای کارت صفحه اصلی، گزینه نمایش هولوگرافیک را فعال کن.</p>
+    <p class="adm-muted wide">عنوان، متن و دکمه‌ی اقدام از همین فرم مدیریت می‌شوند. برای نمایش یک اطلاعیه در صفحه اصلی، گزینه کارت هولوگرافیک را فعال کن.</p>
     <x-admin.input label="عنوان" name="title" wide required/>
     <x-admin.textarea label="متن اعلان" name="body" rows="5" wide required/>
     <x-admin.select label="مخاطب" name="audience" :options="$audiences" required/>
     <x-admin.select label="وضعیت انتشار" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'انتشار / زمان‌بندی']" required/>
-    <x-admin.select label="اولویت نمایش" name="priority" :options="['normal' => 'عادی', 'important' => 'مهم', 'urgent' => 'فوری']" required/>
     <x-admin.legend title="زمان‌بندی و دکمه اقدام"/>
     <label class="adm-field"><span>شروع نمایش (اختیاری)</span><input type="datetime-local" name="starts_at"></label>
     <label class="adm-field"><span>پایان نمایش (اختیاری)</span><input type="datetime-local" name="ends_at"></label>
@@ -88,7 +87,7 @@
     <x-admin.legend title="نحوه نمایش در صفحه اصلی"/>
     <input type="hidden" name="display_as_ticket" value="0">
     <label class="adm-field wide" style="display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid var(--adm-border);border-radius:12px"><input type="checkbox" name="display_as_ticket" value="1" style="width:18px;height:18px;margin-top:3px"><span><b>نمایش به‌شکل کارت پذیرش هولوگرافیک</b><small class="adm-muted" style="display:block">این اعلان به‌جای سکشن مراحل یادگیری در صفحه اصلی قرار می‌گیرد و فقط برای مخاطب «همه کاربران» قابل انتخاب است.</small></span></label>
-    <div class="wide" style="padding:14px;border-radius:12px;background:var(--adm-soft, #f5f6fb)"><b>پیش‌نمایش رفتار کارت</b><p class="adm-muted" style="margin:6px 0 0">عنوان و متن از همین فرم خوانده می‌شود. تاریخ پایان، شمارش معکوس را فعال می‌کند. بدون تاریخ پایان، کارت بدون شمارنده نمایش داده می‌شود. تخفیف و ظرفیت ساختگی نمایش داده نمی‌شود.</p></div>
-    <p class="adm-muted wide">اعلان «همه کاربران» در صفحات عمومی و همه داشبوردها نمایش داده می‌شود؛ سایر مخاطبان فقط در داشبورد نقش مربوطه. تاریخ پایان اختیاری است. پیامک ارسال نمی‌شود.</p>
+    <div class="wide" style="padding:14px;border-radius:12px;background:var(--adm-soft, #f5f6fb)"><b>رفتار کارت صفحه اصلی</b><p class="adm-muted" style="margin:6px 0 0">در هر زمان فقط یک کارت هولوگرافیک فعال است. با انتخاب این گزینه، مخاطب به «همه کاربران» تنظیم می‌شود و زمان‌بندی روی کارت اعمال نمی‌شود. تخفیف، ظرفیت و شمارنده‌ای نمایش داده نخواهد شد.</p></div>
+    <p class="adm-muted wide">اعلان‌های عادی بر اساس مخاطب و زمان‌بندی نمایش داده می‌شوند. کارت هولوگرافیک صفحه اصلی فقط یک مورد فعال دارد و برای همه کاربران قابل مشاهده است. پیامک ارسال نمی‌شود.</p>
 </x-admin.modal>
 @endpush
