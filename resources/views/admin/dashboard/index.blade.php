@@ -2,6 +2,7 @@
 @section('title', 'داشبورد مدیریت')
 
 @section('content')
+@include('components.announcement-feed', ['announcements' => $announcements ?? collect()])
 @php
   $stats = $stats ?? [];
   $weeklyAttendance = $weeklyAttendance ?? collect();
