@@ -30,7 +30,7 @@
     @php($role=$person?->roles?->first()?->name??'user')
     <a class="ib-item {{ $selected?->id===$message->id?'on':'' }}" data-inbox-item data-role="{{ $role }}" data-status="{{ $message->closed_at?'closed':($message->status==='read'?'open':$message->status) }}" href="{{ route('admin.messages.index',['message'=>$message->id]+request()->except('message')) }}">
      <div class="ib-av">@if($avatar($person))<img src="{{ $avatar($person) }}" alt="">@else{{ mb_substr($person?->name??'؟',0,1) }}@endif</div>
-     <div class="m"><div class="r"><b>{{ $person?->name??'کاربر' }}</b><small>{{ ($message->replies->last()?->created_at??$message->created_at)?->format('H:i') }}</small></div>
+     <div class="m"><div class="r"><b>{{ $person?->name??'کاربر' }}</b><small>{{ \App\Support\PersianDate::format(($message->replies->last()?->created_at??$message->created_at), 'H:i') }}</small></div>
       <p>{{ $message->replies->last()?->body??$message->body }}</p><span class="ib-tag">{{ $labels[$role]??'کاربر' }} · {{ $message->subject?:'گفت‌وگوی بدون موضوع' }}</span>
      </div>@if($message->status==='open')<span class="ib-cnt">جدید</span>@endif
     </a>
@@ -48,14 +48,14 @@
    @else<form method="POST" action="{{ route('admin.messages.close',$selected) }}">@csrf<button class="ib-btn d" type="submit">بستن گفتگو</button></form>@endif
   </div>
   <div class="ib-msgs" id="ib-msgs"><div class="ib-sys">{{ $selected->subject?:'شروع گفت‌وگو' }}</div>
-   <div class="ib-b {{ $selected->sender?->hasRole('admin')?'admin':'' }}">{{ $selected->body }}<time>{{ $selected->created_at?->format('Y/m/d H:i') }}</time></div>
-   @foreach($selected->replies as $reply)<div class="ib-b {{ $reply->sender?->hasRole('admin')?'admin':'' }}">{{ $reply->body }}<time>{{ $reply->sender?->name }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</time></div>@endforeach
+   <div class="ib-b {{ $selected->sender?->hasRole('admin')?'admin':'' }}">{{ $selected->body }}<time>{{ \App\Support\PersianDate::format($selected->created_at, 'Y/m/d H:i') }}</time></div>
+   @foreach($selected->replies as $reply)<div class="ib-b {{ $reply->sender?->hasRole('admin')?'admin':'' }}">{{ $reply->body }}<time>{{ $reply->sender?->name }} · {{ \App\Support\PersianDate::format($reply->created_at, 'Y/m/d H:i') }}</time></div>@endforeach
    @if($selected->closed_at)<div class="ib-sys">این گفتگو بسته شده است</div>@endif
   </div>
   <section class="ib-internal-notes" aria-label="یادداشت‌های داخلی">
    <div class="ib-hd"><h3>یادداشت‌های داخلی</h3><span class="ib-total">{{ number_format($notes->count()) }}</span></div>
    @forelse($notes as $note)
-    <article class="ib-note"><p>{{ $note->body }}</p><small>{{ $note->author?->name ?? 'مدیریت' }} · {{ $note->created_at?->format('Y/m/d H:i') }}</small></article>
+    <article class="ib-note"><p>{{ $note->body }}</p><small>{{ $note->author?->name ?? 'مدیریت' }} · {{ \App\Support\PersianDate::format($note->created_at, 'Y/m/d H:i') }}</small></article>
    @empty
     <p class="ib-empty">هنوز یادداشت داخلی ثبت نشده است.</p>
    @endforelse
@@ -77,12 +77,12 @@
    @forelse($consultations as $consultation)
     @php($consultationStatus=['pending'=>'در انتظار بررسی','scheduled'=>'زمان‌بندی‌شده','done'=>'انجام‌شده','cancelled'=>'لغوشده','approved'=>'تأییدشده','completed'=>'تکمیل‌شده'][$consultation->status]??$consultation->status)
     <a class="ib-consult-item" href="{{ route('admin.consultations.index',['consultation'=>$consultation->id]) }}">
-     <span class="ib-consult-top"><b>{{ $consultation->topic ?: 'درخواست مشاوره' }}</b><small>{{ $consultation->created_at?->format('Y/m/d') }}</small></span>
+     <span class="ib-consult-top"><b>{{ $consultation->topic ?: 'درخواست مشاوره' }}</b><small>{{ \App\Support\PersianDate::format($consultation->created_at, 'Y/m/d') }}</small></span>
      <span class="ib-consult-meta">{{ $consultation->requester?->name ?? 'درخواست‌کننده' }} · {{ $consultation->student?->name ?? 'بدون دانش‌آموز مرتبط' }}</span>
      <span class="ib-consult-meta">مدرس: {{ $consultation->teacher?->name ?? 'تعیین‌نشده' }} · {{ $consultationStatus }}</span>
      @if($consultation->notes)<p>{{ $consultation->notes }}</p>@endif
      @foreach($consultation->replies->take(2) as $consultationReply)
-      <p class="ib-consult-reply"><b>{{ $consultationReply->sender?->name ?? 'پاسخ' }}:</b> {{ $consultationReply->body }}<small>{{ $consultationReply->created_at?->format('Y/m/d H:i') }}</small></p>
+      <p class="ib-consult-reply"><b>{{ $consultationReply->sender?->name ?? 'پاسخ' }}:</b> {{ $consultationReply->body }}<small>{{ \App\Support\PersianDate::format($consultationReply->created_at, 'Y/m/d H:i') }}</small></p>
      @endforeach
     </a>
    @empty
