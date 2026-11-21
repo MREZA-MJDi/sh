@@ -53,8 +53,9 @@ class PublicExamController extends Controller
         }
 
         DB::transaction(function () use ($publicExam, $data, $questions): void {
-            $publicExam->update($data);
-            $this->syncQuestions($publicExam, $questions);
+            $lockedExam = PublicExam::query()->lockForUpdate()->findOrFail($publicExam->id);
+            $lockedExam->update($data);
+            $this->syncQuestions($lockedExam, $questions);
         });
 
         return back()->with('success', 'آزمون عمومی به‌روزرسانی شد.');
