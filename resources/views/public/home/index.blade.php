@@ -1147,52 +1147,8 @@
     </section>
 
 
-    {{-- =========================================================
-         LEARNING STEPS
-    ========================================================= --}}
-
-    <section style="padding:64px 0">
-        <div class="c">
-
-            <div class="sh">
-                <div>
-                    <span class="eyebrow">{{ $contentValue('steps_eyebrow') }}</span>
-                    <h2>{{ $contentValue('steps_title') }}</h2>
-                    <p>{{ $contentValue('steps_description') }}</p>
-                </div>
-            </div>
-
-            <div class="g4">
-
-                @if($steps->isNotEmpty())
-                    @foreach($steps as $index => $step)
-
-                    <div class="card stp">
-
-                        <div class="n">
-                            {{ ['۱', '۲', '۳', '۴'][$index] ?? ($index + 1) }}
-                        </div>
-
-                        <h3>{{ data_get($step, 'title', '') }}</h3>
-
-                        <p>{{ data_get($step, 'body', '') }}</p>
-
-                    </div>
-
-                @endforeach
-                @else
-
-                    <div class="card" style="grid-column:1/-1;padding:20px">
-                        <p style="margin:0;color:var(--mute)">
-                            اطلاعات مراحل یادگیری هنوز تنظیم نشده است.
-                        </p>
-                    </div>
-
-                @endif
-
-            </div>
-        </div>
-    </section>
+    {{-- Registration announcement replaces the static learning-steps section. --}}
+    @include('public.partials.registration-ticket')
 
 
     {{-- =========================================================
@@ -1739,8 +1695,6 @@
         </div>
     </section>
 
-
-@include('public.partials.registration-ticket')
 
 @endsection
 
