@@ -8,7 +8,9 @@
 @endphp
 
 <x-admin.page-head tone="comm" icon="bell" title="اعلان‌ها" desc="انتشار اطلاعیه واقعی در پنل عمومی گروه‌های کاربری">
+    @if(auth()->user()?->hasPermissionTo('announcements.manage'))
     <x-admin.btn icon="plus" data-modal-open="announcement-modal">اعلان جدید</x-admin.btn>
+    @endif
 </x-admin.page-head>
 
 <x-admin.panel title="اطلاعیه‌های ثبت‌شده" flush data-tone="comm">
@@ -39,19 +41,23 @@
                         <td>@if($announcement->display_as_ticket)<x-admin.badge tone="comm">کارت هولوگرافیک</x-admin.badge>@else<x-admin.badge tone="mute">اعلان عادی</x-admin.badge>@endif</td>
                         <td><x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge></td>
                         <td>
-                            <div class="adm-actions">
-                                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="announcement-modal"
-                                    data-title="ویرایش اعلان"
-                                    :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)"
-                                    :data-action="route('admin.announcements.update', $announcement)"
-                                    data-method="PATCH">ویرایش</x-admin.btn>
-                                <form method="POST" action="{{ route('admin.announcements.destroy', $announcement) }}"
-                                      onsubmit="return confirm('این اعلان حذف شود؟')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="adm-btn adm-btn-line adm-btn-sm" type="submit">حذف</button>
-                                </form>
-                            </div>
+                            @if(auth()->user()?->hasPermissionTo('announcements.manage'))
+                                <div class="adm-actions">
+                                    <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="announcement-modal"
+                                        data-title="ویرایش اعلان"
+                                        :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)"
+                                        :data-action="route('admin.announcements.update', $announcement)"
+                                        data-method="PATCH">ویرایش</x-admin.btn>
+                                    <form method="POST" action="{{ route('admin.announcements.destroy', $announcement) }}"
+                                          onsubmit="return confirm('این اعلان حذف شود؟')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="adm-btn adm-btn-line adm-btn-sm" type="submit">حذف</button>
+                                    </form>
+                                </div>
+                            @else
+                                <span class="adm-muted">فقط مشاهده</span>
+                            @endif
                         </td>
                     </tr>
                 @empty
