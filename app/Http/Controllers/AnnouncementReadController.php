@@ -18,7 +18,7 @@ final class AnnouncementReadController extends Controller
             'teacher' => ['all', 'teachers'],
             'admin' => ['all'],
         ];
-        $role = $request->user()->getRoleNames()->first();
+        $role = $request->user()->roles()->value('name');
         abort_unless(in_array($announcement->audience, $audiences[$role] ?? [], true), 404);
         abort_unless(
             $announcement->status === 'published'
