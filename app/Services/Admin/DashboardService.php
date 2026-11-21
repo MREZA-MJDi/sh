@@ -54,7 +54,7 @@ final class DashboardService
                     SUM(CASE WHEN attendances.status = 'absent' THEN 1 ELSE 0 END) as absent,
                     SUM(CASE WHEN attendances.status = 'excused' THEN 1 ELSE 0 END) as excused"
                 )
-                ->whereBetween('attendances.session_date', [$weekStart->startOfDay()->toDateTimeString(), today()->endOfDay()->toDateTimeString()])
+                ->whereBetween('attendances.session_date', [$weekStart->toDateString(), today()->endOfDay()->toDateTimeString()])
                 ->where(fn ($query) => $query->whereNull('sessions.id')->orWhere('sessions.status', '!=', 'cancelled'))
                 ->groupBy('attendances.session_date')
                 ->get()
@@ -62,7 +62,7 @@ final class DashboardService
             : collect();
 
         $attendanceTotal = (int) $attendanceByDay->sum('total');
-        $attendancePresent = (int) $attendanceByDay->sum('present');
+        $attendancePresent = (int) ($attendanceByDay->sum('present') + $attendanceByDay->sum('late'));
 
         $stats = [
             'students' => $canSeeStudents ? $studentQuery->count() : 0,
