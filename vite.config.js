@@ -15,6 +15,8 @@ export default defineConfig({
                 'resources/css/student/app.css',
                 'resources/css/parent/parent.css',
                 'resources/css/teacher/teacher.css',
+                'resources/css/teacher/workspace.css',
+                'resources/css/teacher/workspace-polish.css',
                 'resources/js/student/student.js',
                 'resources/js/parent/parent.js',
                 'resources/js/teacher/teacher.js',
