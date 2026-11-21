@@ -44,13 +44,19 @@ final class DashboardService
         $weekStart = today()->copy()->subDays(6);
         $attendanceByDay = $canSeeAttendance
             ? Attendance::query()
-                ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds))
+                ->leftJoin('class_sessions as sessions', 'sessions.id', '=', 'attendances.class_session_id')
+                ->when($teacherView, fn ($query) => $query->whereIn('attendances.classroom_id', $classroomIds))
                 ->selectRaw(
-                    'session_date as attendance_day, COUNT(*) as total, SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as present',
-                    ['present', 'late']
+                    "attendances.session_date as attendance_day,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN attendances.status = 'present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN attendances.status = 'late' THEN 1 ELSE 0 END) as late,
+                    SUM(CASE WHEN attendances.status = 'absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN attendances.status = 'excused' THEN 1 ELSE 0 END) as excused"
                 )
-                ->whereBetween('session_date', [$weekStart->toDateString(), today()->endOfDay()->toDateTimeString()])
-                ->groupBy('session_date')
+                ->whereBetween('attendances.session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->where(fn ($query) => $query->whereNull('sessions.id')->orWhere('sessions.status', '!=', 'cancelled'))
+                ->groupBy('attendances.session_date')
                 ->get()
                 ->keyBy('attendance_day')
             : collect();
@@ -98,6 +104,11 @@ final class DashboardService
 
                 return [
                     'label' => $date->translatedFormat('D'),
+                    'total' => $total,
+                    'present' => (int) ($attendance->present ?? 0),
+                    'late' => (int) ($attendance->late ?? 0),
+                    'absent' => (int) ($attendance->absent ?? 0),
+                    'excused' => (int) ($attendance->excused ?? 0),
                     'rate' => $total > 0 ? (int) round(($present / $total) * 100) : 0,
                 ];
             })
@@ -106,6 +117,7 @@ final class DashboardService
         return compact(
             'stats',
             'weeklyAttendance',
+            'attendanceTotal',
             'openMessageCount',
             'pendingConsultationCount',
             'publishedAnnouncementCount',
