@@ -49,6 +49,10 @@ class AppServiceProvider extends ServiceProvider
             $view->with('publicAnnouncements', app(AnnouncementFeed::class)->forAudience('public', null, 3));
         });
 
+        View::composer('public.home.index', function ($view): void {
+            $view->with('registrationTicket', app(AnnouncementFeed::class)->publicTicket());
+        });
+
         foreach ([
             'student.dashboard' => 'students',
             'parent.dashboard' => 'parents',
