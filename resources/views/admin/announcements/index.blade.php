@@ -14,7 +14,7 @@
 <x-admin.panel title="اطلاعیه‌های ثبت‌شده" flush data-tone="comm">
     <div class="adm-table-wrap">
         <table class="adm-table">
-            <thead><tr><th>عنوان و متن</th><th>مخاطب</th><th>زمان انتشار</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <thead><tr><th>عنوان و متن</th><th>مخاطب</th><th>زمان انتشار / اعتبار</th><th>وضعیت</th><th>عملیات</th></tr></thead>
             <tbody>
                 @forelse($announcements as $announcement)
                     @php
@@ -23,6 +23,11 @@
                             'body' => $announcement->body,
                             'audience' => $announcement->audience,
                             'status' => $announcement->status,
+                            'starts_at' => $announcement->starts_at?->format('Y-m-d\\TH:i'),
+                            'ends_at' => $announcement->ends_at?->format('Y-m-d\\TH:i'),
+                            'priority' => $announcement->priority ?? 'normal',
+                            'action_url' => $announcement->action_url,
+                            'action_label' => $announcement->action_label,
                         ];
                         $status = $statuses[$announcement->status] ?? ['mute', $announcement->status];
                     @endphp
@@ -64,7 +69,12 @@
     <x-admin.input label="عنوان" name="title" wide required/>
     <x-admin.textarea label="متن اعلان" name="body" rows="5" wide required/>
     <x-admin.select label="مخاطب" name="audience" :options="$audiences" required/>
-    <x-admin.select label="وضعیت انتشار" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'انتشار فوری']" required/>
-    <p class="adm-muted wide">اعلان منتشرشده در داشبورد گروه انتخاب‌شده نمایش داده می‌شود. ارسال پیامک از این فرم انجام نمی‌شود.</p>
+    <x-admin.select label="وضعیت انتشار" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'انتشار / زمان‌بندی']" required/>
+    <x-admin.select label="اولویت نمایش" name="priority" :options="['normal' => 'عادی', 'important' => 'مهم', 'urgent' => 'فوری']" required/>
+    <label class="adm-field"><span>شروع نمایش (اختیاری)</span><input type="datetime-local" name="starts_at"></label>
+    <label class="adm-field"><span>پایان نمایش (اختیاری)</span><input type="datetime-local" name="ends_at"></label>
+    <x-admin.input label="آدرس دکمه (اختیاری) — فقط HTTPS" name="action_url" type="url" wide/>
+    <x-admin.input label="متن دکمه" name="action_label" wide/>
+    <p class="adm-muted wide">اعلان «همه کاربران» در صفحات عمومی و همه داشبوردها نمایش داده می‌شود؛ سایر مخاطبان فقط در داشبورد نقش مربوطه. تاریخ پایان اختیاری است. پیامک ارسال نمی‌شود.</p>
 </x-admin.modal>
 @endpush
