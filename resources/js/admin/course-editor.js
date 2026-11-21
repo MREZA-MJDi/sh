@@ -1,3 +1,187 @@
+
+// Native 16:9 course-cover cropper. No external CDN or dependency required.
+const initCourseCoverCropper = () => {
+  const input = document.querySelector('[data-course-cover-input]');
+  if (!input) return;
+
+  const style = document.createElement('style');
+  style.textContent = [
+    '.course-cover-cropper{width:min(920px,calc(100% - 24px));max-width:920px;border:0;border-radius:18px;padding:0;box-shadow:0 24px 80px rgba(15,23,42,.32)}',
+    '.course-cover-cropper::backdrop{background:rgba(15,23,42,.68);backdrop-filter:blur(3px)}',
+    '.course-cover-cropper__inner{padding:20px;display:grid;gap:16px}',
+    '.course-cover-cropper__stage{width:100%;aspect-ratio:16/9;background:#101827;border-radius:12px;overflow:hidden;touch-action:none;cursor:grab}',
+    '.course-cover-cropper__stage:active{cursor:grabbing}',
+    '.course-cover-cropper__stage canvas{width:100%;height:100%;display:block}',
+    '.course-cover-cropper__controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}',
+    '.course-cover-cropper__controls input{flex:1;min-width:160px;accent-color:var(--admin-primary,#3156c9)}',
+    '.course-cover-cropper__actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}',
+    '@media(max-width:600px){.course-cover-cropper__inner{padding:13px}.course-cover-cropper__actions>*{flex:1}}'
+  ].join('');
+  document.head.append(style);
+
+  const dialog = document.createElement('dialog');
+  dialog.className = 'course-cover-cropper';
+  dialog.setAttribute('aria-labelledby', 'course-cover-cropper-title');
+  dialog.innerHTML =
+    '<div class="course-cover-cropper__inner" dir="rtl">' +
+      '<div><h2 id="course-cover-cropper-title" style="margin:0 0 5px;font-size:18px">تنظیم تصویر دوره</h2>' +
+      '<p style="margin:0;color:var(--admin-muted,#64748b);font-size:13px">کادر تصویر ۱۶:۹ است؛ تصویر را بکش یا بزرگ‌نمایی کن تا بهترین بخش داخل کادر قرار بگیرد.</p></div>' +
+      '<div class="course-cover-cropper__stage"><canvas width="960" height="540" aria-label="پیش‌نمایش برش تصویر"></canvas></div>' +
+      '<label class="course-cover-cropper__controls"><span>بزرگ‌نمایی</span><input type="range" min="1" max="3" step="0.01" value="1" data-cover-zoom><output data-cover-zoom-value>۱×</output></label>' +
+      '<div class="course-cover-cropper__actions"><button type="button" class="adm-btn adm-btn-line" data-cover-cancel>انصراف</button>' +
+      '<button type="button" class="adm-btn adm-btn-primary" data-cover-apply>تأیید برش و استفاده از تصویر</button></div>' +
+    '</div>';
+  document.body.append(dialog);
+
+  const canvas = dialog.querySelector('canvas');
+  const context = canvas.getContext('2d');
+  const zoomInput = dialog.querySelector('[data-cover-zoom]');
+  const zoomValue = dialog.querySelector('[data-cover-zoom-value]');
+  const applyButton = dialog.querySelector('[data-cover-apply]');
+  const cancelButton = dialog.querySelector('[data-cover-cancel]');
+  const stage = dialog.querySelector('.course-cover-cropper__stage');
+  let image = null;
+  let objectUrl = null;
+  let zoom = 1;
+  let offsetX = 0;
+  let offsetY = 0;
+  let drag = null;
+
+  const dimensions = () => {
+    const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight) * zoom;
+    return { width: image.naturalWidth * scale, height: image.naturalHeight * scale };
+  };
+  const clampOffset = () => {
+    const size = dimensions();
+    offsetX = Math.min(0, Math.max(canvas.width - size.width, offsetX));
+    offsetY = Math.min(0, Math.max(canvas.height - size.height, offsetY));
+  };
+  const draw = () => {
+    if (!image) return;
+    clampOffset();
+    const size = dimensions();
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, offsetX, offsetY, size.width, size.height);
+  };
+  const releaseSource = () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = null;
+    image = null;
+  };
+  const closeCropper = () => {
+    if (dialog.open) dialog.close();
+    releaseSource();
+  };
+  const openCropper = (file) => {
+    releaseSource();
+    objectUrl = URL.createObjectURL(file);
+    image = new Image();
+    image.onload = () => {
+      zoom = 1;
+      zoomInput.value = '1';
+      zoomValue.textContent = '۱×';
+      const size = dimensions();
+      offsetX = (canvas.width - size.width) / 2;
+      offsetY = (canvas.height - size.height) / 2;
+      draw();
+      if (!dialog.open) dialog.showModal();
+    };
+    image.onerror = () => {
+      input.value = '';
+      releaseSource();
+      window.alert('خواندن تصویر انتخاب‌شده ممکن نشد؛ لطفاً فایل JPG، PNG یا WebP معتبر انتخاب کن.');
+    };
+    image.src = objectUrl;
+  };
+
+  input.addEventListener('change', (event) => {
+    if (input.dataset.cropperApplying === '1') {
+      delete input.dataset.cropperApplying;
+      return;
+    }
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      event.stopImmediatePropagation();
+      input.value = '';
+      window.alert('فرمت تصویر باید JPG، PNG یا WebP باشد.');
+      return;
+    }
+    event.stopImmediatePropagation();
+    openCropper(file);
+  }, true);
+
+  zoomInput.addEventListener('input', () => {
+    if (!image) return;
+    const previousZoom = zoom;
+    const centerX = (canvas.width / 2 - offsetX) / previousZoom;
+    const centerY = (canvas.height / 2 - offsetY) / previousZoom;
+    zoom = Number(zoomInput.value);
+    offsetX = canvas.width / 2 - centerX * (zoom / previousZoom);
+    offsetY = canvas.height / 2 - centerY * (zoom / previousZoom);
+    zoomValue.textContent = zoom.toFixed(1) + '×';
+    draw();
+  });
+
+  stage.addEventListener('pointerdown', (event) => {
+    if (!image) return;
+    drag = { x: event.clientX, y: event.clientY, offsetX, offsetY };
+    stage.setPointerCapture(event.pointerId);
+  });
+  stage.addEventListener('pointermove', (event) => {
+    if (!drag) return;
+    const rect = canvas.getBoundingClientRect();
+    offsetX = drag.offsetX + (event.clientX - drag.x) * (canvas.width / rect.width);
+    offsetY = drag.offsetY + (event.clientY - drag.y) * (canvas.height / rect.height);
+    draw();
+  });
+  const endDrag = () => { drag = null; };
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+  cancelButton.addEventListener('click', () => {
+    input.value = '';
+    closeCropper();
+  });
+
+  applyButton.addEventListener('click', () => {
+    if (!image) return;
+    applyButton.disabled = true;
+    const output = document.createElement('canvas');
+    output.width = 1600;
+    output.height = 900;
+    const outputContext = output.getContext('2d');
+    const scaleRatio = output.width / canvas.width;
+    const size = dimensions();
+    const outputScale = Math.max(output.width / image.naturalWidth, output.height / image.naturalHeight) * zoom;
+    outputContext.drawImage(image, offsetX * scaleRatio, offsetY * scaleRatio,
+      image.naturalWidth * outputScale, image.naturalHeight * outputScale);
+    output.toBlob((blob) => {
+      applyButton.disabled = false;
+      if (!blob) {
+        window.alert('ساخت تصویر برش‌خورده ناموفق بود؛ دوباره تلاش کن.');
+        return;
+      }
+      const cropped = new File([blob], 'course-cover.webp', { type: blob.type || 'image/webp', lastModified: Date.now() });
+      const transfer = new DataTransfer();
+      transfer.items.add(cropped);
+      input.files = transfer.files;
+      const name = input.closest('.adm-field')?.querySelector('[data-upload-name]');
+      if (name) name.textContent = cropped.name + ' · برش ۱۶:۹ آماده شد';
+      input.dataset.cropperApplying = '1';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      closeCropper();
+    }, 'image/webp', 0.9);
+  });
+
+  dialog.addEventListener('cancel', () => {
+    input.value = '';
+    releaseSource();
+  });
+};
+
+initCourseCoverCropper();
+
+
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 const jsonRequest = async (url, payload) => {
