@@ -48,7 +48,7 @@
 
       <div class="pf">
         <div><label>نام و نام خانوادگی</label><input class="fld" name="name" value="{{ old('name', $student->name ?? '') }}" required></div>
-        <div><label>شماره‌ی موبایل</label><input class="fld" name="phone" value="{{ old('phone', $student->phone ?? '') }}"></div>
+        <div><label>شماره‌ی موبایل</label><input class="fld" type="tel" name="phone" inputmode="tel" dir="ltr" data-phone-input value="{{ old('phone', $student->phone ?? '') }}"></div>
         <div><label>ایمیل</label><input class="fld" name="email" value="{{ $student->email ?? '' }}" readonly></div>
         <div><label>پایه</label><input class="fld" name="grade" value="{{ $student->grade ?? '' }}" readonly></div>
       </div>

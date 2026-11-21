@@ -28,7 +28,7 @@
     <tbody data-filter-list>
       @forelse($consultations as $consultation)
         <tr id="consultation-{{ $consultation->id }}" data-name="{{ ($consultation->requester?->name ?? '').' '.($consultation->student?->name ?? '').' '.$consultation->topic }}" data-state="{{ $consultation->status }}">
-          <td><b>{{ $consultation->requester?->name ?? 'حساب حذف‌شده' }}</b><small>{{ $consultation->contact_phone ?: $consultation->requester?->phone ?: 'بدون شماره تماس' }}</small></td>
+          <td><b>{{ $consultation->requester?->name ?? 'حساب حذف‌شده' }}</b><small>@if($consultation->contact_phone || $consultation->requester?->phone) @phone($consultation->contact_phone ?: $consultation->requester?->phone) @else بدون شماره تماس @endif</small></td>
           <td>{{ $consultation->student?->name ?? '—' }}<small>{{ $consultation->teacher?->name ?? 'مدرس تعیین نشده' }}</small></td>
           <td>{{ $consultation->topic }}<small>{{ $consultation->type }}</small></td>
           <td>{{ $consultation->desired_at?->format('Y/m/d H:i') ?? 'زمانی ثبت نشده' }}</td>

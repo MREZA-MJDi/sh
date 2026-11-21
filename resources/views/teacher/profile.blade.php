@@ -51,7 +51,7 @@
 
             <div>
                 <label style="display:block;margin-bottom:6px;font-weight:700">شماره موبایل</label>
-                <input type="text" name="phone" value="{{ old('phone', $teacher->phone) }}" style="width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit">
+                <input type="tel" name="phone" inputmode="tel" dir="ltr" data-phone-input value="{{ old('phone', $teacher->phone) }}" style="width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit">
             </div>
 
             <div>
