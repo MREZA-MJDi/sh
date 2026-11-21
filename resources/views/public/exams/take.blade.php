@@ -19,7 +19,7 @@
 @endsection
 @push('head')
 <style>
-.pe-wrap{max-width:840px;padding:26px 16px 70px}.pe-top{position:sticky;top:8px;z-index:5;display:flex;align-items:center;flex-wrap:wrap;gap:14px;padding:14px 18px;border:1px solid var(--ac-line);border-radius:16px;background:var(--ac-surface);box-shadow:0 8px 24px #102b4a12;margin-bottom:16px}.pe-save-status{font-size:12px;color:var(--ac-muted);min-width:72px}.pe-progress{height:6px;border-radius:8px;background:#dbe5f0;overflow:hidden;flex:1}.pe-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#06b6d4);transition:width .2s}.pe-time{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}.pe-time.low{color:#dc2626}
+.pe-wrap{max-width:840px;padding:26px 16px 70px}.pe-top{position:sticky;top:8px;z-index:5;display:flex;align-items:center;flex-wrap:wrap;gap:14px;padding:14px 18px;border:1px solid var(--ac-line);border-radius:16px;background:var(--ac-surface);box-shadow:0 8px 24px #102b4a12;margin-bottom:16px}.pe-save-status{font-size:12px;color:var(--ac-muted);min-width:72px}.pe-save-status.low{color:#dc2626}.pe-progress{height:6px;border-radius:8px;background:#dbe5f0;overflow:hidden;flex:1}.pe-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#06b6d4);transition:width .2s}.pe-time{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}.pe-time.low{color:#dc2626}
 .pe-panel{padding:24px;border:1px solid var(--ac-line);border-radius:22px;background:var(--ac-surface)}.pe-question h2{font-size:21px;line-height:2;margin:10px 0 20px}.pe-muted{color:var(--ac-muted);line-height:2}.pe-option{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--ac-line);border-radius:13px;margin:9px 0;cursor:pointer}.pe-option:has(input:checked){border-color:var(--ac-primary);background:#2563eb0c}.pe-palette{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0}.pe-palette button{width:38px;height:38px;border:1px solid var(--ac-line);border-radius:10px;background:var(--ac-surface);color:var(--ac-ink);cursor:pointer}.pe-palette button.done{background:#dbeafe;border-color:#60a5fa}.pe-palette button.current{outline:2px solid var(--ac-primary)}.pe-actions{display:flex;gap:8px;flex-wrap:wrap}.pe-button{border:0;padding:11px 18px;border-radius:12px;background:linear-gradient(120deg,#ffd76a,#ff9d42);color:#432500;font:inherit;font-weight:900;cursor:pointer}.pe-secondary{background:var(--ac-surface);border:1px solid var(--ac-line);color:var(--ac-ink)}
 </style>
 @endpush
@@ -44,6 +44,7 @@
  let left={{ $attempt->remainingSeconds() }};
  let saving=Promise.resolve();
  let submitting=false;
+ let saveVersion=0;
 
  const buttons=questions.map((question,index)=>{
   const button=document.createElement('button');
@@ -79,6 +80,7 @@
  }
 
  function queueSave(questionId,optionId){
+  const version=++saveVersion;
   saveStatus.textContent='در حال ذخیره…';
   saveStatus.classList.remove('low');
 
@@ -97,11 +99,15 @@
      signal:controller.signal
     });
     if(!response.ok)throw new Error('save failed');
-    saveStatus.textContent='ذخیره شد';
-    saveStatus.classList.remove('low');
+    if(version===saveVersion){
+     saveStatus.textContent='ذخیره شد';
+     saveStatus.classList.remove('low');
+    }
    }catch(error){
-    saveStatus.textContent='ذخیره نشد؛ پاسخ هنگام ارسال نهایی هم فرستاده می‌شود';
-    saveStatus.classList.add('low');
+    if(version===saveVersion){
+     saveStatus.textContent='ذخیره نشد؛ پاسخ هنگام ارسال نهایی هم فرستاده می‌شود';
+     saveStatus.classList.add('low');
+    }
    }finally{
     clearTimeout(timeout);
    }
