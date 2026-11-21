@@ -36,19 +36,19 @@
 </x-admin.panel>
 
 <dialog class="adm-modal adm-modal-lg" data-public-exam-modal style="max-width:980px">
-<header class="adm-modal-head"><div><h2 data-editor-title>ساخت آزمون عمومی</h2><p class="adm-muted">این آزمون مستقل از آزمون‌های آموزشی و کلاسی است.</p></div><button type="button" class="adm-btn adm-btn-line" data-close>×</button></header>
+<header class="adm-modal-head"><div><h3 data-editor-title>ساخت آزمون عمومی</h3><p class="adm-muted">این آزمون مستقل از آزمون‌های آموزشی و کلاسی است.</p></div><button type="button" class="adm-btn adm-btn-line" data-close>×</button></header>
 <form method="POST" action="{{ route('admin.public-exams.store') }}" data-editor-form>
 @csrf
 <div class="adm-modal-body">
-<div class="adm-form-grid">
-<label class="adm-label">عنوان<input class="adm-input" name="title" required maxlength="180"></label>
-<label class="adm-label">موضوع<input class="adm-input" name="subject" maxlength="80"></label>
-<label class="adm-label">سطح<select class="adm-input" name="level"><option value="1">آسان</option><option value="2" selected>متوسط</option><option value="3">چالشی</option></select></label>
-<label class="adm-label">مدت (دقیقه)<input class="adm-input" name="duration_minutes" type="number" min="1" max="240" value="10" required></label>
-<label class="adm-label">حداقل درصد قبولی<input class="adm-input" name="pass_percent" type="number" min="0" max="100" value="50" required></label>
-<label class="adm-label">شروع انتشار<input class="adm-input" name="starts_at" type="datetime-local"></label>
-<label class="adm-label">پایان انتشار<input class="adm-input" name="ends_at" type="datetime-local"></label>
-<label class="adm-label" style="grid-column:1/-1">توضیحات<textarea class="adm-input" name="description" rows="3"></textarea></label>
+<div class="adm-form">
+<label class="adm-field">عنوان<input class="adm-input" name="title" required maxlength="180"></label>
+<label class="adm-field">موضوع<input class="adm-input" name="subject" maxlength="80"></label>
+<label class="adm-field">سطح<select class="adm-input" name="level"><option value="1">آسان</option><option value="2" selected>متوسط</option><option value="3">چالشی</option></select></label>
+<label class="adm-field">مدت (دقیقه)<input class="adm-input" name="duration_minutes" type="number" min="1" max="240" value="10" required></label>
+<label class="adm-field">حداقل درصد قبولی<input class="adm-input" name="pass_percent" type="number" min="0" max="100" value="50" required></label>
+<label class="adm-field">شروع انتشار<input class="adm-input" name="starts_at" type="datetime-local"></label>
+<label class="adm-field">پایان انتشار<input class="adm-input" name="ends_at" type="datetime-local"></label>
+<label class="adm-field" style="grid-column:1/-1">توضیحات<textarea class="adm-input" name="description" rows="3"></textarea></label>
 </div>
 <div style="display:flex;gap:18px;flex-wrap:wrap;margin:16px 0">
 <label><input type="checkbox" name="negative_marking" value="1" checked> نمره منفی</label>
@@ -71,7 +71,7 @@ if(!modal||!form||!list)return;
 const empty=modal.querySelector('[data-empty-questions]'), title=modal.querySelector('[data-editor-title]');
 const baseAction=@json(route('admin.public-exams.store'));
 function makeField(label,name,value,type='text'){
- const wrap=document.createElement('label');wrap.className='adm-label';wrap.append(document.createTextNode(label));
+ const wrap=document.createElement('label');wrap.className='adm-field';wrap.append(document.createTextNode(label));
  const input=document.createElement(type==='textarea'?'textarea':'input');input.className='adm-input';input.name=name;input.value=value??'';
  if(type==='textarea')input.rows=2;else input.type=type;
  wrap.append(input);return wrap;
