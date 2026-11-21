@@ -241,6 +241,7 @@ final class PortalController extends Controller
         $records = $session && $studentIds
             ? Attendance::query()
                 ->where('class_session_id', $session->id)
+                ->where('classroom_id', $classroom->id)
                 ->whereIn('student_id', $studentIds)
                 ->get()
                 ->keyBy('student_id')
@@ -257,6 +258,13 @@ final class PortalController extends Controller
 
         $history = Attendance::query()
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
+            ->where(function ($query): void {
+                $query->whereNull('attendances.class_session_id')
+                    ->orWhereHas('session', function ($session): void {
+                        $session->where('status', '!=', 'cancelled')
+                            ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
+                    });
+            })
             ->with(['student:id,name', 'classroom:id,name', 'session:id,starts_at'])
             ->latest('session_date')->latest('id')->paginate(20, ['*'], 'history')->withQueryString();
 
