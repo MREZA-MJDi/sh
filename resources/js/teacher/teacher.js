@@ -84,7 +84,7 @@ import '../shared/iranian-locale.js';
     try { localStorage.setItem('th-theme', next); } catch (e) {}
     syncThemeButton();
   });
-  var paletteButtons = $('[data-pal]');
+  var paletteButtons = $$('[data-pal]');
   var syncPaletteButtons = function () {
     var active = root.dataset.pal || '';
     paletteButtons.forEach(function (button) {
@@ -143,7 +143,7 @@ import '../shared/iranian-locale.js';
   });
 
   /* Only one topbar popover may stay open at a time. */
-  var topbarMenus = $('.teacher-menu');
+  var topbarMenus = $$('.teacher-menu');
   topbarMenus.forEach(function (menu) {
     menu.addEventListener('toggle', function () {
       if (!menu.open) return;
@@ -162,7 +162,7 @@ import '../shared/iranian-locale.js';
   var searchStatus = $('#teacherSearchResults');
   var searchLinks = $('#teacherSearchLinks');
   var searchableSelector = '.row, .teacher-list-card, .teacher-review-row, .teacher-live-session-card, .teacher-inbox-item, .teacher-week-event';
-  var searchableItems = $(searchableSelector).filter(function (el) { return !el.parentElement.closest(searchableSelector); });
+  var searchableItems = $$(searchableSelector).filter(function (el) { return !el.parentElement.closest(searchableSelector); });
   var updatePageSearch = function () {
     if (!sr) return;
     var q = sr.value.trim().toLocaleLowerCase();
@@ -176,7 +176,7 @@ import '../shared/iranian-locale.js';
     if (searchStatus) searchStatus.textContent = q ? (visible ? visible + ' نتیجه در محتوای صفحه پیدا شد.' : 'نتیجه‌ای در محتوای صفحه پیدا نشد؛ بخش‌های پنل نیز بررسی شدند.') : '';
     if (searchLinks) {
       searchLinks.hidden = !q;
-      $('[data-search-route]', searchLinks).forEach(function (link) { link.hidden = !!q && link.textContent.toLocaleLowerCase().indexOf(q) === -1; });
+      $$('[data-search-route]', searchLinks).forEach(function (link) { link.hidden = !!q && link.textContent.toLocaleLowerCase().indexOf(q) === -1; });
     }
   };
   if (sr) sr.addEventListener('input', updatePageSearch);
@@ -232,7 +232,7 @@ import '../shared/iranian-locale.js';
       return;
     }
     if (e.key === 'Tab' && navToggle && navSidebar && navToggle.getAttribute('aria-expanded') === 'true') {
-      var focusable = $('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', navSidebar)
+      var focusable = $$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', navSidebar)
         .filter(function (el) { return el.offsetWidth || el.offsetHeight || el.getClientRects().length; });
       if (!focusable.length) { e.preventDefault(); navSidebar.focus(); return; }
       var first = focusable[0], last = focusable[focusable.length - 1];
