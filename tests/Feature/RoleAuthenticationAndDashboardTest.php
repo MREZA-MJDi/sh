@@ -33,6 +33,36 @@ class RoleAuthenticationAndDashboardTest extends TestCase
         $this->get(route('register'))->assertOk()->assertSee('ثبت‌نام دانش‌آموز');
     }
 
+    public function test_invalid_login_and_registration_inputs_return_validation_errors_instead_of_server_errors(): void
+    {
+        $this->from(route('login'))
+            ->post(route('login.store'), [
+                'email' => '',
+                'password' => '',
+            ])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors(['email', 'password']);
+
+        $this->from(route('login'))
+            ->post(route('login.store'), [
+                'email' => 'missing.user@example.test',
+                'password' => 'WrongPassword!2026',
+            ])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email');
+
+        $this->from(route('register'))
+            ->post(route('register.store'), [
+                'name' => '',
+                'email' => 'not-an-email',
+                'phone' => str_repeat('x', 40),
+                'password' => 'short',
+                'password_confirmation' => 'different',
+            ])
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors(['name', 'email', 'phone', 'password']);
+    }
+
     public function test_public_registration_creates_only_a_student_account_even_when_role_is_tampered(): void
     {
         $this->post(route('register.store'), [
