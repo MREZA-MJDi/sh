@@ -43,7 +43,7 @@
           <td><div style="display:flex;align-items:center;gap:10px"><img src="{{ Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->alt_text }}" loading="lazy" style="width:76px;height:48px;object-fit:cover;border-radius:8px"><div><b>{{ $banner->title }}</b><small>{{ $banner->alt_text }}</small></div></div></td>
           <td>{{ $placementLabels[$banner->placement] ?? $banner->placement }}</td>
           <td>{{ $banner->target_url ?: '—' }}</td>
-          <td>{{ $banner->starts_at?->format('Y/m/d') ?? 'بدون شروع' }} تا {{ $banner->ends_at?->format('Y/m/d') ?? 'بدون پایان' }}</td>
+          <td>{{ ($banner->starts_at ? \App\Support\PersianDate::format($banner->starts_at, 'Y/m/d') : 'بدون شروع') }} تا {{ ($banner->ends_at ? \App\Support\PersianDate::format($banner->ends_at, 'Y/m/d') : 'بدون پایان') }}</td>
           <td><x-admin.badge :tone="$banner->status === 'active' ? 'ok' : 'mute'">{{ $statusLabels[$banner->status] ?? $banner->status }}</x-admin.badge></td>
           <td><div class="adm-actions">
             <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="banner-modal" data-title="ویرایش بنر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.seo.banners.update', $banner)" data-method="PATCH">ویرایش</x-admin.btn>
