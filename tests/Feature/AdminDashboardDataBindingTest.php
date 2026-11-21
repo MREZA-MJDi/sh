@@ -6,7 +6,9 @@ use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Consultation;
+use App\Models\Course;
 use App\Models\Message;
+use App\Models\Payment;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\DashboardService;
@@ -81,6 +83,11 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->assertSame(1, $today['late']);
         $this->assertSame(1, $today['absent']);
         $this->assertSame(1, $today['excused']);
+        $jalali = \\App\\Support\\JalaliDate::fromGregorian(today());
+        $jalaliLabel = sprintf('%04d/%02d/%02d', $jalali['year'], $jalali['month'], $jalali['day']);
+        $jalaliLabel = strtr($jalaliLabel, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹']);
+        $this->assertSame($jalaliLabel, $today['date_label']);
+        $this->assertSame(today()->toDateString(), $today['date_iso']);
 
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
@@ -89,6 +96,60 @@ final class AdminDashboardDataBindingTest extends TestCase
             ->assertSee('is-late')
             ->assertSee('is-absent')
             ->assertSee('is-excused');
+    }
+
+
+    public function test_admin_dashboard_sales_kpis_only_include_confirmed_paid_course_payments(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+        $student = User::factory()->create();
+
+        $course = Course::query()->create([
+            'title' => 'دوره فروش واقعی',
+            'slug' => 'verified-course-sales-dashboard',
+            'teacher_id' => $admin->id,
+            'type' => 'paid',
+            'price' => 2000,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        foreach ([1000, 2000] as $index => $amount) {
+            Payment::query()->create([
+                'reference' => 'DASH-PAID-'.$index,
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+                'amount' => $amount,
+                'method' => 'bank_transfer',
+                'provider' => 'manual',
+                'status' => 'paid',
+                'paid_at' => now()->subDays($index),
+            ]);
+        }
+
+        Payment::query()->create([
+            'reference' => 'DASH-PENDING-1',
+            'student_id' => $student->id,
+            'course_id' => $course->id,
+            'amount' => 9000,
+            'method' => 'bank_transfer',
+            'provider' => 'manual',
+            'status' => 'pending_review',
+        ]);
+
+        $dashboard = app(DashboardService::class)->build($admin);
+
+        $this->assertSame(2, $dashboard['paidCoursePurchases']);
+        $this->assertSame(1500, $dashboard['averageCoursePurchase']);
+        $this->assertSame(3000, $dashboard['revenueLast30Days']);
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('میانگین خرید تأییدشده')
+            ->assertSee('خریدهای تأییدشده')
+            ->assertSee('فروش واقعی دوره‌ها')
+            ->assertDontSee('حضور هفتگی');
     }
 
     public function test_dashboard_shows_an_explicit_empty_state_when_no_attendance_is_recorded(): void
