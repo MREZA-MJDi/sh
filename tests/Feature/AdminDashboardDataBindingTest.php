@@ -187,7 +187,7 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('میانگین خرید تأییدشده')
-            ->assertSee('خریدهای تأییدشده')
+            ->assertSee('درآمد تأییدشده ۳۰ روز اخیر')
             ->assertSee('فروش واقعی دوره‌ها')
             ->assertDontSee('حضور هفتگی');
     }
