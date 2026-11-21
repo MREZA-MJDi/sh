@@ -20,7 +20,7 @@
         <nav class="links" id="lk" aria-label="ناوبری اصلی">
             <a class="{{ request()->routeIs('home') ? 'on' : '' }}" href="{{ route('home') }}">خانه</a>
             @if(config('public_exams.enabled', false))
-                <a class="pe-nav-cta {{ request()->routeIs('public.exams.*') ? 'on' : '' }}" href="{{ route('public.exams.index') }} style="display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;background:linear-gradient(120deg,#ffe27a,#ff9d42);color:#482700;font-weight:800">✨ آزمون رایگان</a>
+                <a class="pe-nav-cta {{ request()->routeIs('public.exams.*') ? 'on' : '' }}" href="{{ route('public.exams.index') }}" style="display:inline-flex;align-items:center;padding:7px 13px;border-radius:999px;background:linear-gradient(120deg,#ffe27a,#ff9d42);color:#482700;font-weight:800">✨ آزمون رایگان</a>
             @endif
 
             <div class="mg">
