@@ -46,7 +46,7 @@
           <div class="adm-field wide">
             <span class="adm-label">تصویر روی کارت و صفحه دوره</span>
             <label class="adm-upload adm-upload-wide">
-              <input id="course-cover-image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16/9" data-preview-fit="cover">
+              <input id="course-cover-image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" data-course-cover-input data-preview-ratio="16/9" data-preview-fit="cover">
               <span class="adm-upload-icon"><x-admin.icon name="image"/></span>
               <b>تصویر دوره را اینجا رها کن یا انتخاب کن</b>
               <small data-upload-name>JPG، PNG یا WebP · حداکثر ۵ مگابایت</small>
