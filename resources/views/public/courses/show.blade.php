@@ -11,6 +11,7 @@
 @endif
 @php
     $teacher = $course->teacher;
+    $canViewLessonContent = (bool) $hasCourseAccess || !empty($isAdminPreview);
     $seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
     $learningBenefits = [];
     if ($features['recorded_video'] ?? false) $learningBenefits[] = 'آموزش ویدیویی فصل‌به‌فصل با دسترسی کنترل‌شده';
@@ -223,8 +224,9 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    // Free course curriculum is public; provider licenses only gate protected video playback.
-                                                    $isUnlocked = $course->type === 'free' || (bool) $hasCourseAccess;
+                                                    // Free and paid course lessons are available only after an active enrollment.
+                                                    // Free enrollment is immediate and does not start a payment flow.
+                                                    $isUnlocked = (bool) $hasCourseAccess;
                                                 @endphp
                                                 <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
                                                     <div class="lesson-main">
@@ -244,8 +246,10 @@
                                                                     <span class="lesson-badge-locked" aria-label="این درس قفل است"><svg class="i" aria-hidden="true" style="width:15px;height:15px;vertical-align:-3px;margin-inline-end:5px"><use href="#lock"/></svg>ویژه دانش‌آموزان ثبت‌نام‌شده</span>
                                                                 @endif
                                                             </div>
-                                                            @if(filled($lesson->body))
+                                                            @if($canViewLessonContent && filled($lesson->body))
                                                                 <p class="lesson-description">{{ $lesson->body }}</p>
+                                                            @elseif(! $canViewLessonContent && filled($lesson->body))
+                                                                <p class="lesson-description lesson-description-locked">محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.</p>
                                                             @endif
                                                         </div>
                                                     </div>

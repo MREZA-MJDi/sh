@@ -71,7 +71,7 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             ->exists());
     }
 
-    public function test_free_course_curriculum_is_visible_without_a_spotplayer_license_or_prior_enrollment(): void
+    public function test_free_course_curriculum_preview_hides_lesson_content_until_enrollment(): void
     {
         $teacher = $this->userWithRole('teacher');
         $course = $this->course($teacher, [
@@ -99,8 +99,9 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
         $this->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSeeText('درس آزاد بدون قفل')
-            ->assertSeeText('محتوای دوره در دسترس است')
-            ->assertDontSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده');
+            ->assertSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده')
+            ->assertSeeText('محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.')
+            ->assertDontSeeText('متن آموزشی عمومی دوره رایگان');
     }
 
     private function course(User $teacher, array $overrides = []): Course
