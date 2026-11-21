@@ -26,7 +26,7 @@
           <td><b>{{ $session->title }}</b><small>#{{ $session->id }}</small></td>
           <td>{{ $classroom?->name ?? 'کلاس حذف‌شده' }}<small>{{ $classroom?->course?->title ?? 'بدون دوره' }}</small></td>
           <td>{{ $classroom?->teacher?->name ?? '—' }}</td>
-          <td class="adm-num is-nowrap">{{ $session->starts_at?->format('Y/m/d H:i') }}<small>{{ $session->ends_at?->format('H:i') }}</small></td>
+          <td class="adm-num is-nowrap">{{ \\App\\Support\\PersianDate::format($session->starts_at, 'Y/m/d H:i') }}<small>{{ \\App\\Support\\PersianDate::format($session->ends_at, 'H:i') }}</small></td>
           <td class="adm-num">{{ number_format($session->attendances_count) }}</td>
           <td>@if(filled($meetingLink))<a href="{{ $meetingLink }}" target="_blank" rel="noopener noreferrer">لینک ثبت‌شده</a>@else<x-admin.badge tone="warn">در انتظار فعال‌سازی</x-admin.badge><small>اتصال Skyroom هنوز آماده نیست</small>@endif</td>
           <td><x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge></td>
