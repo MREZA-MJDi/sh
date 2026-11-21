@@ -253,7 +253,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::get('/homework-submission-files/{file}/download', [HomeworkController::class, 'downloadSubmissionFile'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework-submission-files.download');
     Route::get('/homework/{homework}/attachment', [HomeworkController::class, 'downloadAttachment'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework.attachment');
 
-    Route::prefix('public-exams')->name('public-exams.')->middleware('permission:exams.manage')->group(function (): void {
+    Route::prefix('public-exams')->name('public-exams.')->middleware('permission:public-exams.manage')->group(function (): void {
         Route::get('/', [AdminPublicExamController::class, 'index'])->name('index');
         Route::post('/', [AdminPublicExamController::class, 'store'])->name('store');
         Route::patch('/{publicExam}', [AdminPublicExamController::class, 'update'])->name('update');
