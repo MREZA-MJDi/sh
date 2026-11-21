@@ -159,7 +159,7 @@ final class AdminDashboardDataBindingTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('هنوز داده واقعی برای نمودار نداریم')
+            ->assertSee('در بازه هفت روز اخیر هنوز رکورد حضور و غیاب ثبت نشده است')
             ->assertDontSee('adm-week-segment');
     }
 
