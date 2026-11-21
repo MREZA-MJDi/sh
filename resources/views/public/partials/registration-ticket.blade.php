@@ -42,7 +42,6 @@
     <button class="sh-ticket-reopen" type="button" data-ticket-reopen hidden>
         <i aria-hidden="true"></i><span>مشاهده اطلاعیه ویژه</span>
     </button>
-    <span class="sh-ticket-live-region" data-ticket-status role="status" aria-live="polite"></span>
 </section>
 
 @push('scripts')
@@ -64,7 +63,6 @@
     let points = [];
     let animationFrame = 0;
     let resizeObserver = null;
-    let previousFocus = null;
     let isDestroyed = false;
 
     const safeStorage = {
@@ -151,7 +149,6 @@
 
     function hideTicket() {
         if (card.hidden || card.classList.contains('is-leaving')) return;
-        previousFocus = document.activeElement;
         stopParticles();
         card.classList.remove('is-entering');
         card.classList.add('is-leaving');
@@ -208,6 +205,12 @@
     }
 
     closeButton.addEventListener('click', hideTicket);
+    root.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !card.hidden) {
+            event.preventDefault();
+            hideTicket();
+        }
+    });
     reopenButton.addEventListener('click', () => showTicket({ restoreFocus: true }));
     card.addEventListener('pointermove', handlePointerMove);
     card.addEventListener('pointerleave', resetTilt);
@@ -222,6 +225,7 @@
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', () => {
         stopParticles();
+        resizeObserver?.disconnect();
         isDestroyed = true;
     }, { once: true });
 
