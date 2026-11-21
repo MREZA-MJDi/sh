@@ -2,7 +2,7 @@
   $topbarUser = auth()->user();
   $topbarNotifications = $topbarUser?->unreadNotifications()->latest()->limit(6)->get() ?? collect();
   $unreadNotificationCount = $topbarUser?->unreadNotifications()->count() ?? 0;
-  $topbarRoleLabel = $topbarUser?->hasRole('admin') ? 'مدیر سامانه' : ($topbarUser?->hasRole('seo') ? 'کارشناس سئو' : ($topbarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر'));
+  $topbarRoleLabel = $topbarUser?->hasRole('admin') ? 'مدیر سامانه' : ($topbarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر');
   $topbarInitial = mb_substr((string) ($topbarUser?->name ?? '؟'), 0, 1);
 @endphp
 <header class="adm-topbar">
