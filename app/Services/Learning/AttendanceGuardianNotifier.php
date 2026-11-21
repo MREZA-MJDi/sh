@@ -32,7 +32,11 @@ final class AttendanceGuardianNotifier
                 ->where('classroom_id', $classroom->id)
                 ->where('student_id', $student->id)
                 ->where('status', 'absent')
-                ->whereHas('session', fn ($sessions) => $sessions->where('status', '!=', 'cancelled'))
+                ->whereHas('session', function ($sessions): void {
+                    $sessions->where('status', '!=', 'cancelled')
+                        ->where('starts_at', '<=', now())
+                        ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
+                })
                 ->count();
 
             if ($absenceCount < 3) {
