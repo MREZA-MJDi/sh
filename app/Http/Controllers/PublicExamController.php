@@ -73,7 +73,7 @@ class PublicExamController extends Controller
                         'options' => $options->all(),
                     ];
                 });
-                if ($publicExam->shuffle) {
+                if ($lockedExam->shuffle) {
                     $snapshotQuestions = $snapshotQuestions->shuffle()->values();
                 }
 
@@ -83,7 +83,7 @@ class PublicExamController extends Controller
                     'started_at' => now(),
                     'expires_at' => now()->addMinutes($lockedExam->duration_minutes),
                     'snapshot' => [
-                        'title' => $publicExam->title,
+                        'title' => $lockedExam->title,
                         'pass_percent' => $lockedExam->pass_percent,
                         'settings' => ['negative_marking' => $lockedExam->negative_marking],
                         'questions' => $snapshotQuestions->all(),
