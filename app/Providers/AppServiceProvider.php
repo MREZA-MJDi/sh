@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
             return new LegacyAwareUserProvider($app['hash'], $config['model']);
         });
 
-        Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
+        View::composer('public.layouts.academy', function ($view): void {\n            $view->with('publicAnnouncements', app(AnnouncementFeed::class)->forAudience('public', null, 3));\n        });\n\n        foreach ([\n            'student.dashboard' => 'students',\n            'parent.dashboard' => 'parents',\n            'teacher.dashboard' => 'teachers',\n        ] as $dashboardView => $audience) {\n            View::composer($dashboardView, function ($view) use ($audience): void {\n                $user = auth()->user();\n                $view->with('announcements', $user ? app(AnnouncementFeed::class)->forAudience($audience, $user, 5) : collect());\n            });\n        }\n\n        Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
         Blade::directive('phone', static fn (string $expression): string => "<?php echo \\App\\Support\\PhoneNumber::html({$expression}); ?>");
 
         Gate::before(function ($user, string $ability): ?bool {
