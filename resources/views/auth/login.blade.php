@@ -52,6 +52,31 @@
                     <button class="ac-btn auth-submit" type="submit">ورود به پنل</button>
                 </form>
 
+                @if ($showDemoAccessForm)
+                    <div class="auth-demo" style="margin-top:1rem">
+                        <div class="auth-demo-heading">
+                            <strong>دسترسی خصوصی به حساب‌های آزمایشی</strong>
+                            <span>برای جلوگیری از نمایش عمومی رمزها، کلید دسترسی خصوصی را وارد کن.</span>
+                        </div>
+                        <form method="POST" action="{{ route('login.demo.unlock') }}">
+                            @csrf
+                            <label for="demo_access_key">کلید دسترسی آزمایشی</label>
+                            <input
+                                class="ac-field"
+                                id="demo_access_key"
+                                name="access_key"
+                                type="password"
+                                minlength="32"
+                                maxlength="255"
+                                autocomplete="off"
+                                required
+                            >
+                            @error('access_key')<div class="ac-error">{{ $message }}</div>@enderror
+                            <button class="ac-btn auth-submit" type="submit">نمایش کارت‌های ورود</button>
+                        </form>
+                    </div>
+                @endif
+
                 @if (config('demo.enabled') && config('demo.login_cards_enabled') && ! empty($demoAccounts) && is_string($demoPassword) && $demoPassword !== '')
                     <div class="auth-demo">
                         <div class="auth-demo-heading">
@@ -61,7 +86,7 @@
                         <div class="auth-demo-grid">
                             @foreach ($demoAccounts as $account)
                                 <button type="button" class="auth-demo-card" data-demo-account data-demo-email="{{ $account['email'] }}" data-demo-password="{{ $demoPassword }}">
-                                    <span class="auth-demo-icon" aria-hidden="true">{{ ['admin'=>'⚙','teacher'=>'✎','student'=>'▣','parent'=>'⌂'][$account['role']] ?? '•' }}</span>
+                                    <span class="auth-demo-icon" aria-hidden="true">{{ ['admin'=>'⚙','seo'=>'✦','teacher'=>'✎','student'=>'▣','parent'=>'⌂'][$account['role']] ?? '•' }}</span>
                                     <span class="auth-demo-copy"><strong>{{ $account['label'] }}</strong><small dir="ltr">{{ $account['email'] }}</small></span>
                                     <span class="auth-demo-action">انتخاب</span>
                                 </button>
@@ -71,7 +96,7 @@
                             <span>گذرواژه مشترک حساب‌های آزمایشی</span>
                             <strong dir="ltr">{{ $demoPassword }}</strong>
                         </div>
-                        <p class="auth-demo-note">این حساب‌ها فقط برای تست محیط محلی فعال شده‌اند.</p>
+                        <p class="auth-demo-note">این حساب‌ها آزمایشی هستند؛ اطلاعات ورود را در اختیار افراد دیگر قرار نده.</p>
                     </div>
                 @endif
             </section>
