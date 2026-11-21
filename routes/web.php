@@ -54,6 +54,16 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::get('/', [PublicSiteController::class, 'home'])->name('home');
+Route::prefix('free-exams')->name('public.exams.')->group(function (): void {
+    Route::get('/', [PublicExamController::class, 'index'])->name('index');
+    Route::get('/attempt/{attempt}', [PublicExamController::class, 'take'])->name('take');
+    Route::patch('/attempt/{attempt}/save', [PublicExamController::class, 'save'])->middleware('throttle:60,1')->name('save');
+    Route::post('/attempt/{attempt}/submit', [PublicExamController::class, 'submit'])->name('submit');
+    Route::get('/attempt/{attempt}/result', [PublicExamController::class, 'result'])->name('result');
+    Route::get('/{publicExam}', [PublicExamController::class, 'show'])->name('show');
+    Route::post('/{publicExam}/start', [PublicExamController::class, 'start'])->middleware('throttle:10,1')->name('start');
+});
+
 Route::get('/home-quiz/question/{step}', [PublicHomeQuizController::class, 'question'])
     ->whereNumber('step')->middleware('throttle:30,1')->name('public.home.quiz.question');
 Route::post('/home-quiz/answer', [PublicHomeQuizController::class, 'answer'])
@@ -240,6 +250,13 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/homework-submissions/{submission}/review', [HomeworkController::class, 'review'])->middleware(['role:admin', 'permission:homework.grade'])->name('homework.review');
     Route::get('/homework-submission-files/{file}/download', [HomeworkController::class, 'downloadSubmissionFile'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework-submission-files.download');
     Route::get('/homework/{homework}/attachment', [HomeworkController::class, 'downloadAttachment'])->middleware('permission:homework.view.all,homework.view.assigned')->name('homework.attachment');
+
+    Route::prefix('public-exams')->name('public-exams.')->middleware('permission:exams.manage')->group(function (): void {
+        Route::get('/', [AdminPublicExamController::class, 'index'])->name('index');
+        Route::post('/', [AdminPublicExamController::class, 'store'])->name('store');
+        Route::patch('/{publicExam}', [AdminPublicExamController::class, 'update'])->name('update');
+        Route::delete('/{publicExam}', [AdminPublicExamController::class, 'destroy'])->name('destroy');
+    });
 
     Route::get('/exams', [ExamController::class, 'index'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.index');
     Route::post('/exams', [ExamController::class, 'store'])->middleware('permission:exams.manage,exams.manage.assigned')->name('exams.store');
