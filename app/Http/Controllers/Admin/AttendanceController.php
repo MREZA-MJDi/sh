@@ -79,7 +79,7 @@ class AttendanceController extends Controller
             : collect();
 
         $records = $session
-            ? Attendance::query()->where('class_session_id', $session->id)->get()->keyBy('student_id')
+            ? Attendance::query()->where('class_session_id', $session->id)->where('classroom_id', $classroom->id)->get()->keyBy('student_id')
             : collect();
 
         $roster = $students->map(function (User $student) use ($records): array {
