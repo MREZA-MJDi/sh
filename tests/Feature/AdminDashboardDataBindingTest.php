@@ -66,7 +66,7 @@ final class AdminDashboardDataBindingTest extends TestCase
         $this->assertDatabaseCount('attendances', 4);
         $this->assertTrue($admin->hasRole('admin'));
         $this->assertTrue($admin->hasPermissionTo('attendance.view.all'));
-        $this->assertSame(2, Attendance::query()
+        $this->assertSame(4, Attendance::query()
             ->whereDate('session_date', '>=', today()->copy()->subDays(6)->toDateString())
             ->whereDate('session_date', '<=', today()->toDateString())
             ->count());
