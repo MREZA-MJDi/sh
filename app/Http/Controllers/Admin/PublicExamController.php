@@ -155,3 +155,4 @@ class PublicExamController extends Controller
 
         $exam->questions()->whereNotIn('id', $keptQuestions)->delete();
     }
+}
