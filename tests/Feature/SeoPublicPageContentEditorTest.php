@@ -109,7 +109,7 @@ final class SeoPublicPageContentEditorTest extends TestCase
         $this->get(route('home'))->assertOk()
             ->assertSee('نشان جدید صفحه خانه')
             ->assertSee('متن معرفی که از پنل SEO کنترل می‌شود.')
-            ->assertSee('گام ویرایش‌شده اول')
+            ->assertDontSee('گام ویرایش‌شده اول')
             ->assertSee('مزیت‌های ویرایش‌شده')
             ->assertSee('پرسش‌های جدید');
 
