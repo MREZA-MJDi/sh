@@ -77,7 +77,7 @@
         <label class="adm-label">جلسه
           <select class="adm-select" name="session" form="attendance-filter" aria-label="انتخاب جلسه">
             @forelse ($sessions as $item)
-              <option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} — {{ $item->starts_at?->format('H:i') }}</option>
+              <option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} — {{ \App\Support\PersianDate::format($item->starts_at, 'H:i') }}</option>
             @empty
               <option value="">جلسه‌ای برای این تاریخ وجود ندارد</option>
             @endforelse
