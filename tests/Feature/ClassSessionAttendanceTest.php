@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\User;
 use App\Services\Admin\AttendanceService;
 use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -69,6 +70,45 @@ final class ClassSessionAttendanceTest extends TestCase
 
         $this->expectException(QueryException::class);
         Attendance::query()->create($attributes);
+    }
+
+    public function test_attendance_service_rejects_students_who_are_not_members_of_the_class(): void
+    {
+        [$teacher, , $classroom] = $this->classroomFixture();
+        $outsider = User::factory()->create();
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه با فرد خارج از کلاس',
+            'session_type' => 'onsite',
+            'starts_at' => now()->subHour(),
+            'status' => 'completed',
+            'created_by' => $teacher->id,
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AttendanceService::class)->record($classroom, $session, [
+            $outsider->id => ['status' => 'present'],
+        ], $teacher->id);
+    }
+
+    public function test_attendance_service_rejects_cancelled_sessions(): void
+    {
+        [$teacher, $student, $classroom] = $this->classroomFixture();
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه لغوشده',
+            'session_type' => 'onsite',
+            'starts_at' => now()->subHour(),
+            'status' => 'cancelled',
+            'created_by' => $teacher->id,
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        app(AttendanceService::class)->record($classroom, $session, [
+            $student->id => ['status' => 'absent'],
+        ], $teacher->id);
     }
 
     public function test_class_session_cannot_be_deleted_while_attendance_is_linked(): void
