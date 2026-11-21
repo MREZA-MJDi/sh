@@ -74,7 +74,7 @@
           </div>
           <div class="adm-meta">
             @if($user->email)<span><x-admin.icon name="msg"/><span class="adm-ltr">{{ $user->email }}</span></span>@endif
-            @if($user->phone)<span><x-admin.icon name="phone"/><span class="adm-ltr">{{ $user->phone }}</span></span>@endif
+            @if($user->phone)<span><x-admin.icon name="phone"/>@phone($user->phone)</span>@endif
           </div>
           <div class="adm-panel-kicker">{{ $role === 'student' ? 'کلاس‌های آموزشی' : ($role === 'teacher' ? 'دوره‌های تخصیص‌یافته' : 'فرزندان مرتبط') }}</div>
           <p>{{ $associations ?: 'هنوز ارتباط آموزشی ثبت نشده است.' }}</p>
