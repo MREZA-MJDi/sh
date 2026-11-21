@@ -6,6 +6,8 @@ use App\Models\Course;
 use App\Models\Classroom;
 use App\Models\ClassSession;
 use App\Models\CourseEnrollment;
+use App\Models\CourseSection;
+use App\Models\Lesson;
 use App\Models\Role;
 use App\Models\SpotPlayerLicense;
 use App\Models\SpotPlayerVideo;
@@ -90,6 +92,52 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertSee('دوره ویدیویی آزمایشی')
             ->assertDontSee('تماشای ویدیوهای دوره')
             ->assertDontSee('course-video-dialog');
+    }
+
+    public function test_free_course_lessons_require_enrollment_but_enrollment_does_not_require_payment(): void
+    {
+        $student = $this->makeStudent();
+        $course = $this->makeCourse();
+        $section = CourseSection::query()->create([
+            'course_id' => $course->id,
+            'title' => 'فصل اول',
+            'status' => 'published',
+            'sort_order' => 1,
+        ]);
+        Lesson::query()->create([
+            'course_section_id' => $section->id,
+            'title' => 'درس مخصوص اعضا',
+            'body' => 'محتوای درس پس از ثبت‌نام نمایش داده می‌شود.',
+            'status' => 'published',
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('ویژه دانش‌آموزان ثبت‌نام‌شده')
+            ->assertDontSee('محتوای دوره در دسترس است')
+            ->assertSee('محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.')
+            ->assertDontSee('محتوای درس پس از ثبت‌نام نمایش داده می‌شود.')
+            ->assertSee('ثبت‌نام رایگان');
+
+        $this->actingAs($student)
+            ->post(route('student.courses.enroll-free', $course))
+            ->assertRedirect(route('public.courses.show', $course->slug));
+
+        $this->assertDatabaseHas('course_enrollments', [
+            'student_id' => $student->id,
+            'course_id' => $course->id,
+            'source' => 'free',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($student)
+            ->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('محتوای دوره در دسترس است')
+            ->assertSee('محتوای درس پس از ثبت‌نام نمایش داده می‌شود.')
+            ->assertDontSee('ویژه دانش‌آموزان ثبت‌نام‌شده');
     }
 
     public function test_active_student_with_current_enrollment_and_provider_license_sees_same_page_player(): void
