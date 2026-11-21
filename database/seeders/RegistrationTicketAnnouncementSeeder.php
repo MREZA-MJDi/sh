@@ -19,7 +19,7 @@ class RegistrationTicketAnnouncementSeeder extends Seeder
             'audience' => 'all',
             'status' => 'published',
             'published_at' => now(),
-            'starts_at' => now(),
+            'starts_at' => null,
             'ends_at' => null,
             'priority' => 'normal',
             'action_url' => '/courses',
