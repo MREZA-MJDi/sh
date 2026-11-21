@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <title>@yield('title', 'پنل مدرس') · پنل مدرس</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
-@vite(['resources/css/teacher/teacher.css', 'resources/css/teacher/workspace.css', 'resources/js/teacher/teacher.js'])
+@vite(['resources/css/teacher/teacher.css', 'resources/css/teacher/workspace.css', 'resources/css/teacher/workspace-polish.css', 'resources/js/teacher/teacher.js'])
 <script>try{var d=document.documentElement,t=localStorage.getItem('th-theme'),p=localStorage.getItem('th-pal');if(t)d.dataset.theme=t;if(p)d.dataset.pal=p}catch(e){}</script>
 @stack('head')
 </head>
