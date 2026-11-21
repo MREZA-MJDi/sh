@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             $this->call([
                 AcademicPortalContentSeeder::class,
                 DemoWorkflowContentSeeder::class,
+                PublicExamSeeder::class,
             ]);
         }
     }
