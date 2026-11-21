@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateAnnouncementStatusRequest;
 use App\Models\Announcement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AnnouncementController extends Controller
@@ -22,7 +23,11 @@ class AnnouncementController extends Controller
     public function store(StoreAnnouncementRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $isHomepageAnnouncement = (bool) ($data['display_as_ticket'] ?? false);
+        $supportsHomepageTicket = Schema::hasColumn('announcements', 'display_as_ticket');
+        $isHomepageAnnouncement = $supportsHomepageTicket && (bool) ($data['display_as_ticket'] ?? false);
+        if (! $supportsHomepageTicket) {
+            unset($data['display_as_ticket']);
+        }
 
         DB::transaction(function () use ($data, $isHomepageAnnouncement): void {
             if ($isHomepageAnnouncement) {
@@ -46,7 +51,11 @@ class AnnouncementController extends Controller
     {
         $data = $request->validated();
         $status = $data['status'];
-        $isHomepageAnnouncement = (bool) ($data['display_as_ticket'] ?? false);
+        $supportsHomepageTicket = Schema::hasColumn('announcements', 'display_as_ticket');
+        $isHomepageAnnouncement = $supportsHomepageTicket && (bool) ($data['display_as_ticket'] ?? false);
+        if (! $supportsHomepageTicket) {
+            unset($data['display_as_ticket']);
+        }
 
         DB::transaction(function () use ($data, $status, $announcement, $isHomepageAnnouncement): void {
             if ($isHomepageAnnouncement) {
