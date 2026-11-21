@@ -88,7 +88,7 @@
 <div class="adm-split">
   <x-admin.panel title="آخرین مقاله‌ها" desc="محتوای تازه و وضعیت انتشار">
     @forelse($recentArticles as $article)
-      <div class="adm-session"><div class="adm-grow"><b>{{ $article->title }}</b><div class="adm-muted">{{ $article->status }} · {{ $article->updated_at?->format('Y/m/d') }}</div></div><x-admin.btn size="sm" variant="line" :href="route('admin.seo.articles.index')">مدیریت</x-admin.btn></div>
+      <div class="adm-session"><div class="adm-grow"><b>{{ $article->title }}</b><div class="adm-muted">{{ $article->status }} · {{ \App\Support\PersianDate::format($article->updated_at, 'Y/m/d') }}</div></div><x-admin.btn size="sm" variant="line" :href="route('admin.seo.articles.index')">مدیریت</x-admin.btn></div>
     @empty
       <p class="adm-muted">مقاله‌ای ثبت نشده است.</p>
     @endforelse
