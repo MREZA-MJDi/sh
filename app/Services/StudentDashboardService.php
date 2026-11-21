@@ -68,7 +68,14 @@ final class StudentDashboardService
 
         $attendanceQuery = Attendance::query()
             ->where('student_id', $student->id)
-            ->whereIn('classroom_id', clone $classroomIds);
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where(function (Builder $query): void {
+                $query->whereNull('attendances.class_session_id')
+                    ->orWhereHas('session', function (Builder $session): void {
+                        $session->where('status', '!=', 'cancelled')
+                            ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
+                    });
+            });
 
         $attendanceTotal = (clone $attendanceQuery)
             ->whereIn('status', ['present', 'late', 'absent'])
@@ -325,7 +332,14 @@ final class StudentDashboardService
 
         $attendance = Attendance::query()
             ->where('student_id', $student->id)
-            ->whereIn('classroom_id', clone $classroomIds);
+            ->whereIn('classroom_id', clone $classroomIds)
+            ->where(function (Builder $query): void {
+                $query->whereNull('attendances.class_session_id')
+                    ->orWhereHas('session', function (Builder $session): void {
+                        $session->where('status', '!=', 'cancelled')
+                            ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
+                    });
+            });
         $attendanceTotal = (clone $attendance)->whereIn('status', ['present', 'late', 'absent'])->count();
         $attendancePresent = (clone $attendance)->whereIn('status', ['present', 'late'])->count();
 
