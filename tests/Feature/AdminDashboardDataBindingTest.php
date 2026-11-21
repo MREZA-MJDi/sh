@@ -98,8 +98,14 @@ final class AdminDashboardDataBindingTest extends TestCase
             'session_date' => today()->toDateString(),
             'status' => 'present',
         ]);
+        Attendance::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => User::factory()->create()->id,
+            'session_date' => today()->toDateString(),
+            'status' => 'unknown',
+        ]);
 
-        $this->assertDatabaseCount('attendances', 6);
+        $this->assertDatabaseCount('attendances', 7);
         $this->assertTrue($admin->hasRole('admin'));
         $this->assertTrue($admin->hasPermissionTo('attendance.view.all'));
         $this->assertSame(4, Attendance::query()
