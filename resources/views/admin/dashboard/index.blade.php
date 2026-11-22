@@ -12,23 +12,6 @@
   $averageCoursePurchase = (int) ($averageCoursePurchase ?? 0);
   $paidCoursePurchases = (int) ($paidCoursePurchases ?? 0);
   $revenueLast30Days = (int) ($revenueLast30Days ?? 0);
-  $weeklyTotals = collect($weeklyAttendance);
-  $weeklyPresent = (int) $weeklyTotals->sum('present');
-  $weeklyLate = (int) $weeklyTotals->sum('late');
-  $weeklyAbsent = (int) $weeklyTotals->sum('absent');
-  $weeklyExcused = (int) $weeklyTotals->sum('excused');
-  $weeklyTotal = $weeklyPresent + $weeklyLate + $weeklyAbsent + $weeklyExcused;
-  $weeklyShares = collect([$weeklyPresent, $weeklyLate, $weeklyAbsent, $weeklyExcused])
-    ->map(fn ($count) => $weeklyTotal > 0 ? round(($count / $weeklyTotal) * 100, 2) : 0);
-  $weeklyStops = [];
-  $weeklyCursor = 0;
-  foreach ($weeklyShares as $share) {
-    $weeklyStops[] = number_format($weeklyCursor, 2, '.', '') . '% ' . number_format($weeklyCursor + $share, 2, '.', '') . '%';
-    $weeklyCursor += $share;
-  }
-  $weeklyDonut = $weeklyTotal > 0
-    ? 'conic-gradient(#22c55e ' . $weeklyStops[0] . ', #f59e0b ' . $weeklyStops[1] . ', #ef4444 ' . $weeklyStops[2] . ', #64748b ' . $weeklyStops[3] . ')'
-    : 'conic-gradient(var(--line-strong) 0 100%)';
 @endphp
 
 <section class="adm-welcome" aria-labelledby="dashboard-title">
@@ -45,22 +28,7 @@
       @endcan
     </div>
   </div>
-  <aside class="adm-welcome-aside adm-sales-overview" aria-label="ترکیب واقعی حضور و غیاب و خلاصه فروش">
-    <div class="adm-dash-donut-wrap">
-      <div class="adm-dash-donut" style="--donut-chart:{{ $weeklyDonut }}" role="img" aria-label="از مجموع {{ number_format($weeklyTotal) }} ثبت حضور هفته، {{ number_format($weeklyPresent) }} حاضر، {{ number_format($weeklyLate) }} تأخیر، {{ number_format($weeklyAbsent) }} غایب و {{ number_format($weeklyExcused) }} موجه">
-        <div><strong>{{ number_format($weeklyTotal) }}</strong><small>ثبت این هفته</small></div>
-      </div>
-      <div class="adm-dash-donut-copy">
-        <b>ترکیب حضور هفته</b>
-        <small>بر اساس رکوردهای معتبر هفت روز اخیر</small>
-        <div class="adm-dash-donut-legend">
-          <span><i class="is-present"></i>حاضر <b>{{ number_format($weeklyPresent) }}</b></span>
-          <span><i class="is-late"></i>تأخیر <b>{{ number_format($weeklyLate) }}</b></span>
-          <span><i class="is-absent"></i>غایب <b>{{ number_format($weeklyAbsent) }}</b></span>
-          <span><i class="is-excused"></i>موجه <b>{{ number_format($weeklyExcused) }}</b></span>
-        </div>
-      </div>
-    </div>
+  <aside class="adm-welcome-aside adm-sales-overview" aria-label="خلاصه فروش دوره‌ها">
     <div class="adm-sales-foot"><b class="adm-sales-title">فروش واقعی دوره‌ها</b>
       <span>میانگین خرید تأییدشده <b>{{ number_format($averageCoursePurchase) }} تومان</b></span>
       <span>تعداد خرید موفق <b>{{ number_format($paidCoursePurchases) }}</b></span>
