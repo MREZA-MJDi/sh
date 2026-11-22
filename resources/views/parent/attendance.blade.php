@@ -42,7 +42,7 @@
     </section>
 
     <section class="c"><h3>خلاصه ماه</h3>
-        @include('parent.partials.chart', ['type' => 'donut', 'parts' => $parts, 'big' => ($att['percent'] ?? 0).'٪', 'small' => 'حضور'])
+        @include('parent.partials.chart', ['type' => 'donut', 'parts' => $parts, 'big' => isset($att['percent']) ? $att['percent'].'٪' : '—', 'small' => 'حضور'])
         <hr class="hr">
         <div class="row"><div>بیشترین غیبت<small>{{ $absencePattern ?? '' }}</small></div><i class="bd bl">الگو</i></div>
         <div class="row"><div>آخرین تأخیر<small>{{ $lastLate ?? '' }}</small></div><i class="bd am">تأخیر</i></div>
