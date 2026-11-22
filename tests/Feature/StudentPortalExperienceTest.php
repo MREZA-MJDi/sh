@@ -78,10 +78,6 @@ final class StudentPortalExperienceTest extends TestCase
             ->assertDontSee('name="recipient_id"', false);
     }
 
-    /**
-     * @param array<string, mixed> $attributes
-     */
-
     public function test_student_can_send_a_message_to_an_available_school_admin(): void
     {
         Notification::fake();
@@ -111,7 +107,7 @@ final class StudentPortalExperienceTest extends TestCase
             'status' => 'open',
         ]);
 
-        Notification::assertSentTo($admin, \\App\\Notifications\\MessageActivityNotification::class);
+        Notification::assertSentTo($admin, \App\Notifications\MessageActivityNotification::class);
     }
 
     public function test_student_cannot_send_a_message_to_an_unrelated_teacher(): void
@@ -135,6 +131,9 @@ final class StudentPortalExperienceTest extends TestCase
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $attributes
+     */
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);
