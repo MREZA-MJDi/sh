@@ -725,3 +725,8 @@
 .adm-user-guide>div{display:grid;gap:3px;min-width:0}
 .adm-user-guide b{font-size:12.5px}
 .adm-user-guide small{font-size:11px;line-height:1.8;color:var(--muted)}
+
+.adm-resource-filters{align-items:end}
+.adm-resource-filters>.adm-label{min-width:140px;flex:1}
+.adm-resource-filters>.adm-label:first-child{min-width:210px;flex:1.4}
+@media(max-width:760px){.adm-resource-filters>.adm-label,.adm-resource-filters>.adm-label:first-child{min-width:100%;flex-basis:100%}}
