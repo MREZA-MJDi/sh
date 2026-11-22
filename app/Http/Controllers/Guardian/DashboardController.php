@@ -22,7 +22,7 @@ final class DashboardController extends Controller
         if (! $guardian->hasPermissionTo('homework.view.children')) {
             $data['homework_trend'] = collect();
             $data['reviewed_homework'] = collect();
-            $data['pending_homework_count'] = 0;
+            $data['pending_homework_count'] = null;
         }
         if (! $guardian->hasPermissionTo('attendance.view.children')) {
             $data['attendance_breakdown'] = collect();
@@ -34,28 +34,43 @@ final class DashboardController extends Controller
 
         $breakdown = $data['attendance_breakdown'];
         $data['attendance'] = [
-            'present' => (int) $breakdown->get('present', 0),
-            'late' => (int) $breakdown->get('late', 0),
-            'absent' => (int) $breakdown->get('absent', 0),
-            'percent' => $data['attendance_rate'] ?? 0,
+            'present' => $breakdown->isNotEmpty() ? (int) $breakdown->get('present', 0) : null,
+            'late' => $breakdown->isNotEmpty() ? (int) $breakdown->get('late', 0) : null,
+            'absent' => $breakdown->isNotEmpty() ? (int) $breakdown->get('absent', 0) : null,
+            'percent' => $data['attendance_rate'],
         ];
 
         $averageExamScore = $data['average_exam_score'];
 
         $data['stats'] = [
             'avg' => $averageExamScore !== null ? round((float) $averageExamScore, 1) : '—',
-            'avg_note' => $averageExamScore !== null ? 'میانگین همه نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
-            'open_homework' => (int) $data['pending_homework_count'],
-            'open_homework_note' => 'تکلیف بدون ارسال',
-            'next_meeting' => optional($data['meetings']->firstWhere('status', 'scheduled')?->starts_at)->format('Y/m/d H:i') ?? '—',
-            'next_meeting_note' => 'جلسه ثبت‌شده',
+            'avg_note' => $averageExamScore !== null
+                ? 'میانگین همه نتایج قابل مشاهده'
+                : (! $data['selected_child']
+                    ? 'دانش‌آموزی به حساب متصل نشده است'
+                    : (! $guardian->hasPermissionTo('exams.view.children')
+                        ? 'مجوز مشاهده نتایج فعال نیست'
+                        : 'هنوز نمره‌ای ثبت نشده')),
+            'open_homework' => $data['pending_homework_count'] !== null ? (int) $data['pending_homework_count'] : '—',
+            'open_homework_note' => $data['pending_homework_count'] !== null
+                ? 'تکلیف بدون ارسال'
+                : (! $data['selected_child']
+                    ? 'دانش‌آموزی به حساب متصل نشده است'
+                    : 'مجوز مشاهده تکالیف فعال نیست'),
+            'next_meeting' => $data['meetings']->firstWhere('status', 'scheduled')?->starts_at
+                ? JalaliDate::format($data['meetings']->firstWhere('status', 'scheduled')->starts_at, true)
+                : '—',
+            'next_meeting_note' => $data['meetings']->firstWhere('status', 'scheduled')
+                ? 'جلسه ثبت‌شده'
+                : 'جلسه‌ای زمان‌بندی نشده است',
         ];
 
-        $data['subjects'] = $data['results']->filter(fn ($result) => $result->exam?->course)
+        $data['subjects'] = $data['results']
+            ->filter(fn ($result) => $result->exam?->course && $result->score !== null && $result->max_score > 0)
             ->groupBy(fn ($result) => $result->exam->course->title)
             ->map(fn ($items, $name) => [
                 'name' => $name,
-                'score' => round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1),
+                'score' => round($items->avg(fn ($item) => $item->score / $item->max_score * 20), 1),
                 'class_avg' => null,
             ])->values();
 
@@ -71,12 +86,22 @@ final class DashboardController extends Controller
         $data['scores'] = $periods->map(function ($month) use ($trend) {
             return $trend->get($month);
         })->values();
+        $data['resultDates'] = $data['results']->mapWithKeys(fn ($result) => [
+            $result->id => $result->created_at ? JalaliDate::format($result->created_at) : '—',
+        ])->all();
+
         $data['classAvg'] = [];
         $homeworkTrend = $data['homework_trend'];
         $data['homeworkMonths'] = $data['months'];
-        $data['hwOnTime'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'on_time', 0))->values();
-        $data['hwLate'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'late', 0))->values();
-        $data['hwMissing'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'missing', 0))->values();
+        $data['hwOnTime'] = $periods->map(fn ($month) => $homeworkTrend->has($month)
+            ? (int) data_get($homeworkTrend->get($month), 'on_time', 0)
+            : null)->values();
+        $data['hwLate'] = $periods->map(fn ($month) => $homeworkTrend->has($month)
+            ? (int) data_get($homeworkTrend->get($month), 'late', 0)
+            : null)->values();
+        $data['hwMissing'] = $periods->map(fn ($month) => $homeworkTrend->has($month)
+            ? (int) data_get($homeworkTrend->get($month), 'missing', 0)
+            : null)->values();
         $data['teacherNotes'] = $data['reviewed_homework']->filter(fn ($submission) => filled($submission->feedback))
             ->map(fn ($submission) => [
                 'teacher' => $submission->reviewer?->name ?? 'مدرس',
@@ -124,7 +149,7 @@ final class DashboardController extends Controller
             'present' => (int) $monthBreakdown->get('present', 0),
             'late' => (int) $monthBreakdown->get('late', 0),
             'absent' => (int) $monthBreakdown->get('absent', 0),
-            'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : 0,
+            'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : null,
         ];
 
         $monthOptions = collect(range(0, 11))->map(function (int $offset) use ($currentJalali): array {
@@ -140,7 +165,9 @@ final class DashboardController extends Controller
             'monthTitle' => JalaliDate::monthLabel($year, $month),
             'monthKey' => $monthKey, 'monthOptions' => $monthOptions,
             'absencePattern' => (int) $monthBreakdown->get('absent', 0).' غیبت در این ماه',
-            'lastLate' => $data['last_late_attendance']?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
+            'lastLate' => $data['last_late_attendance']?->session_date
+                ? JalaliDate::format($data['last_late_attendance']->session_date)
+                : 'موردی ثبت نشده',
         ]);
     }
 
@@ -148,6 +175,9 @@ final class DashboardController extends Controller
     {
         $data = $this->build($request, $dashboard);
         $results = $data['exam_results'];
+        $resultDates = $results->getCollection()->mapWithKeys(fn ($result) => [
+            $result->id => $result->created_at ? JalaliDate::format($result->created_at) : '—',
+        ])->all();
         $subjects = $results->getCollection()->filter(fn ($result) => $result->exam?->course)
             ->groupBy(fn ($result) => $result->exam->course->title)
             ->map(fn ($items, $name) => [
@@ -158,7 +188,7 @@ final class DashboardController extends Controller
 
         return view('parent.exams', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'subjects' => $subjects, 'results' => $results,
+            'subjects' => $subjects, 'results' => $results, 'resultDates' => $resultDates,
         ]);
     }
 
@@ -172,7 +202,7 @@ final class DashboardController extends Controller
             $missing = ! $submission && $item->due_at && $item->due_at->isPast();
             return [
                 'title' => $item->title,
-                'due' => $item->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت',
+                'due' => $item->due_at ? JalaliDate::format($item->due_at, true) : 'بدون مهلت',
                 'status' => $submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار'),
                 'tone' => $submission ? ($late ? 'am' : 'gn') : ($missing ? 'rd' : 'bl'),
             ];
@@ -218,7 +248,7 @@ final class DashboardController extends Controller
             'present' => (int) $breakdown->get('present', 0),
             'late' => (int) $breakdown->get('late', 0),
             'absent' => (int) $breakdown->get('absent', 0),
-            'percent' => $data['attendance_rate'] ?? 0,
+            'percent' => $data['attendance_rate'],
         ];
     }
 }

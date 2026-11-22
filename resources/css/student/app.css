@@ -226,3 +226,27 @@ button:disabled{opacity:.45;cursor:not-allowed}
  .assignment-table td.assignment-action:before{display:block;margin-bottom:8px}
  .assignment-form .btn{width:100%}
 }
+
+
+/* Student message composer: structured, accessible and responsive. */
+.student-message-page{display:grid;gap:16px;max-width:920px;margin-inline:auto}
+.student-message-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.student-message-heading h1{margin:0 0 5px;font-size:clamp(20px,2.4vw,27px);font-weight:700}
+.student-message-heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.9}
+.student-message-card{padding:clamp(16px,3vw,26px)}
+.student-message-form{display:grid;gap:18px}
+.student-message-intro{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--panel-b);border-radius:16px;background:rgba(63,142,156,.1);line-height:1.8}
+.student-message-intro .i{flex:0 0 24px;color:var(--teal)}
+.student-message-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.student-message-field{display:grid;gap:7px;min-width:0}
+.student-message-field.is-wide{grid-column:1/-1}
+.student-message-field label{font-size:13px;font-weight:700;color:var(--text)}
+.student-message-field input,.student-message-field select,.student-message-field textarea{width:100%;min-width:0;padding:12px 14px;border:1px solid var(--panel-b);border-radius:13px;background:var(--panel);color:var(--text);font:inherit;font-size:14px;box-shadow:var(--in);transition:border-color .15s,box-shadow .15s}
+.student-message-field textarea{min-height:190px;resize:vertical;line-height:1.9}
+.student-message-field input:focus,.student-message-field select:focus,.student-message-field textarea:focus{outline:0;border-color:var(--teal);box-shadow:0 0 0 3px rgba(63,142,156,.16)}
+.student-message-field small{font-size:11px;color:var(--muted);line-height:1.7}
+.student-message-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:4px}
+.student-message-actions>div{display:flex;gap:9px;flex-wrap:wrap}
+.student-message-empty{display:grid;gap:8px;padding:20px;border:1px dashed var(--panel-b);border-radius:16px;text-align:center;color:var(--muted);line-height:1.9}
+.student-message-empty strong{color:var(--text)}
+@media(max-width:640px){.student-message-fields{grid-template-columns:1fr}.student-message-field.is-wide{grid-column:auto}.student-message-actions,.student-message-actions>div{width:100%}.student-message-actions .btn{flex:1}}

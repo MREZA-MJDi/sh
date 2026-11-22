@@ -373,7 +373,7 @@ final class GuardianDashboardService
             'homeworks' => $this->emptyPaginator('homework'),
             'homework_trend' => collect(),
             'reviewed_homework' => collect(),
-            'pending_homework_count' => 0,
+            'pending_homework_count' => null,
             'attendance' => collect(),
             'attendance_calendar' => collect(),
             'attendance_breakdown' => collect(),

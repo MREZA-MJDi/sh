@@ -14,13 +14,15 @@
             ['پیام به مدرس‌ها', 'i-msg', 'student/messages'],
             ['جلسات با اولیا', 'i-cal', 'student/meetings'],
         ]],
-        ['عملکرد و حساب', [
+        ['عملکرد و حساب', array_values(array_filter([
             ['نمرات و عملکرد', 'i-chart', 'student/results'],
-            ['حضور و غیاب', 'i-cal', 'student/attendance'],
+            auth()->user()?->hasPermissionTo('attendance.view.own')
+                ? ['حضور و غیاب', 'i-cal', 'student/attendance']
+                : null,
             ['دستاوردها', 'i-trophy', 'student/achievements'],
             ['یادداشت‌ها', 'i-note', 'student/notes'],
             ['حساب کاربری', 'i-user', 'student/profile'],
-        ]],
+        ]))],
     ];
     $nextSession = ($upcoming_sessions ?? collect())->first();
 @endphp

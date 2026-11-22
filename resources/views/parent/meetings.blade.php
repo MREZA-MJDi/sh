@@ -31,7 +31,7 @@
     </section>
     <section class="c"><h3>جلسه‌های من</h3>
         @forelse (($meetings ?? collect()) as $meeting)
-            <div class="row"><div>{{ $meeting->title }}<small>{{ $meeting->student?->name }} · {{ $meeting->classroom?->name }} · {{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y/m/d H:i') }}</small>
+            <div class="row"><div>{{ $meeting->title }}<small>{{ $meeting->student?->name }} · {{ $meeting->classroom?->name }} · {{ ($meeting->starts_at ?? $meeting->preferred_at) ? \App\Support\JalaliDate::format($meeting->starts_at ?? $meeting->preferred_at, true) : 'زمانی ثبت نشده' }}</small>
                 @if ($meeting->message)<small>{{ $meeting->message }}</small>@endif
             </div>
             <i class="bd {{ $meeting->status === 'scheduled' || $meeting->status === 'completed' ? 'gn' : (in_array($meeting->status, ['declined', 'cancelled'], true) ? 'rd' : 'am') }}">{{ ['requested' => 'در انتظار بررسی', 'proposed' => 'زمان پیشنهادی', 'scheduled' => 'هماهنگ‌شده', 'completed' => 'برگزارشده', 'declined' => 'ردشده', 'cancelled' => 'لغوشده'][$meeting->status] ?? 'در حال بررسی' }}</i></div>

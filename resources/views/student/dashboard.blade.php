@@ -97,14 +97,16 @@
  </div>
 
  <div class="row">
-  <div class="card" id="attendance-notice">
-   <div class="chead"><h2>حضور و غیاب</h2><a class="pill" href="{{ url('student/attendance') }}">مشاهده گزارش</a></div>
-   <div class="trk">
-    <div class="th" style="background:linear-gradient(145deg,#9edbd2,#438f88)"></div>
-    <div><b>گزارش حضور و غیابت را بررسی کن</b><span>وضعیت حضور جلسات و سوابق هر ماه در صفحه حضور و غیاب نمایش داده می‌شود.</span></div>
-    <a class="pill" href="{{ url('student/attendance') }}">باز کردن</a>
+  @if (auth()->user()?->hasPermissionTo('attendance.view.own'))
+   <div class="card" id="attendance-notice">
+    <div class="chead"><h2>حضور و غیاب</h2><a class="pill" href="{{ route('student.attendance') }}">مشاهده گزارش</a></div>
+    <div class="trk">
+     <div class="th" style="background:linear-gradient(145deg,#9edbd2,#438f88)"></div>
+     <div><b>گزارش حضور و غیابت را بررسی کن</b><span>وضعیت حضور جلسات و سوابق هر ماه در صفحه حضور و غیاب نمایش داده می‌شود.</span></div>
+     <a class="pill" href="{{ route('student.attendance') }}">باز کردن</a>
+    </div>
    </div>
-  </div>
+  @endif
 
   <div class="card" id="messages-notice">
    <div class="chead"><h2>پیام‌ها و ارتباط با مدرس</h2><a class="pill" href="{{ route('student.messages.index') }}">مشاهده پیام‌ها</a></div>

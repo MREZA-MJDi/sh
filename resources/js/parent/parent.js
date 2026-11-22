@@ -87,8 +87,11 @@ function lineChart(labels, series, options = {}) {
 /** Bar chart, grouped or stacked. series: [{ name, c, data }] */
 function barChart(labels, series, options = {}) {
     const w = options.w || 360, h = options.h || 190, stacked = !!options.stacked;
-    const totals = labels.map((_, i) => series.reduce((sum, item) => sum + (Number(item.data[i]) || 0), 0));
-    const values = series.reduce((all, item) => all.concat(item.data.map(Number)), []);
+    const totals = labels.map((_, i) => series.reduce((sum, item) => {
+        const value = item.data[i];
+        return sum + (Number.isFinite(value) ? value : 0);
+    }, 0));
+    const values = series.reduce((all, item) => all.concat(item.data.filter(Number.isFinite)), []);
     const rawMax = Number.isFinite(options.max) ? options.max : Math.max(1, ...(stacked ? totals : values));
     const max = rawMax * 1.1;
     const iw = w - PAD.l - PAD.r, ih = h - PAD.t - PAD.b, slot = iw / labels.length;
@@ -99,6 +102,7 @@ function barChart(labels, series, options = {}) {
         let acc = 0;
         const rects = series.map((s, k) => {
             const v = s.data[i];
+            if (!Number.isFinite(v)) return '';
             const rect = stacked
                 ? `<rect x="${cx - bw / 2}" y="${y(acc + v)}" width="${bw}" height="${y(acc) - y(acc + v)}"`
                 : `<rect x="${cx - bw * series.length / 2 + k * bw}" y="${y(v)}" width="${bw - 2}" height="${y(0) - y(v)}"`;
@@ -159,15 +163,18 @@ function radar(labels, series) {
       return { name: esc(s.name), c: color(s.c), data: nums(s.data), area: !!s.area, dash: !!s.dash };
     });
     var hasData = series.length && series.every(function (s) { return s.data.length === labels.length; });
+    var hasValues = series.some(function (s) {
+      return s.data.some(function (value) { return value !== null && value !== undefined && Number.isFinite(value); });
+    });
 
     if (type === 'donut') {
       var parts = (cfg.parts || []).map(function (p) { return { l: esc(p.l), v: Number(p.v) || 0, c: color(p.c) }; });
       if (parts.some(function (p) { return p.v > 0; })) html = donut(parts, faStr(esc(cfg.big)), esc(cfg.small));
-    } else if (type === 'line' && hasData && labels.length >= 1) {
+    } else if (type === 'line' && hasData && hasValues && labels.length >= 1) {
       html = lineChart(labels, series, o) + legendHtml(series);
-    } else if (type === 'bar' && hasData && labels.length >= 1) {
+    } else if (type === 'bar' && hasData && hasValues && labels.length >= 1) {
       html = barChart(labels, series, o) + legendHtml(series);
-    } else if (type === 'radar' && hasData && labels.length >= 3) {
+    } else if (type === 'radar' && hasData && hasValues && labels.length >= 3) {
       html = radar(labels, series) + legendHtml(series);
     }
     if (html) {
