@@ -17,7 +17,7 @@ final class ConsultationController extends Controller
     public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
         $teacher = $request->user();
-        $assignedStudentIds = \Illuminate\Support\Facades\DB::table('classroom_student')
+        $assignedStudentIds = DB::table('classroom_student')
             ->select('student_id')
             ->whereIn('classroom_id', $workspace->queryFor($teacher)->select('classrooms.id'));
 
