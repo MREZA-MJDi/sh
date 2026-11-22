@@ -38,7 +38,7 @@
       </div>
     @else
       <h2>جلسه بعدی هنوز برنامه‌ریزی نشده</h2>
-      <p>اگر این کلاس قرار است برگزار شود، زمان جلسه را ثبت کن تا در برنامه امروز و داشبورد دیده شود.</p>
+      <p>{{ $canManage ? 'زمان جلسه را ثبت کن تا در برنامه امروز و داشبورد دیده شود.' : 'برای زمان‌بندی جلسه جدید، با مدیر آکادمی هماهنگ کن.' }}</p>
       @if($canManage)<x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی اولین جلسه</x-admin.btn>@endif
     @endif
   </div>
@@ -147,12 +147,12 @@
       @endforeach
     </div>
   @else
-    <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه‌ای ثبت نشده</b><span>اگر قرار است کلاس برگزار شود، از همین‌جا زمان جلسه را مشخص کن.</span>@if($canManage)<x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>@endif</div>
+    <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه‌ای ثبت نشده</b><span>{{ $canManage ? 'برای برگزاری کلاس، زمان جلسه را از همین‌جا ثبت کن.' : 'برای ثبت جلسه جدید، با مدیر آکادمی هماهنگ کن.' }}</span>@if($canManage)<x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>@endif</div>
   @endif
 </x-admin.panel>
 
 <details class="adm-history-panel">
-  <summary><span><b>همه جلسه‌ها و سوابق</b><small>برای مرور یا ویرایش برنامه‌های قبلی</small></span><span class="adm-history-count">{{ number_format($sessions->total()) }} جلسه</span></summary>
+  <summary><span><b>همه جلسه‌ها و سوابق</b><small>{{ $canManage ? "برای مرور یا ویرایش برنامه‌های قبلی" : "برای مرور جلسه‌های قبلی" }}</small></span><span class="adm-history-count">{{ number_format($sessions->total()) }} جلسه</span></summary>
   <x-admin.panel flush data-filter data-tone="edu">
     <x-admin.toolbar placeholder="جستجوی عنوان جلسه…">
       <x-admin.filter-select key="type" placeholder="همه انواع" :options="$typeLabels"/>
