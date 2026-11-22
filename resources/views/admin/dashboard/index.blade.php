@@ -48,7 +48,7 @@
   <div class="adm-work-queue">
     @can('users.manage')
       @if(($pendingPaymentReviewCount ?? 0) > 0)
-        <a class="adm-work-item" data-tone="shop" href="{{ route('admin.payments.index', ['status' => 'pending_review']) }}"><span><x-admin.icon name="wallet"/></span><div><b>رسیدهای پرداخت نیازمند بررسی</b><small>قبل از تأیید، اطلاعات واریز را بررسی کن</small></div><strong>{{ number_format($pendingPaymentReviewCount) }}</strong></a>
+        <a class="adm-work-item" data-tone="shop" href="{{ route('admin.payments.index', ['status' => 'pending_review']) }}"><span><x-admin.icon name="card"/></span><div><b>رسیدهای پرداخت نیازمند بررسی</b><small>قبل از تأیید، اطلاعات واریز را بررسی کن</small></div><strong>{{ number_format($pendingPaymentReviewCount) }}</strong></a>
       @endif
     @endcan
     @if(($recentEnrollmentCount ?? 0) > 0)
