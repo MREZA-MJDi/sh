@@ -9,15 +9,15 @@
   <x-admin.stat tone="shop" icon="file" label="مقاله‌ها" :value="number_format($articleCount)"/>
   <x-admin.stat tone="shop" icon="check" label="مقاله‌های منتشرشده" :value="number_format($publishedArticleCount)"/>
   <x-admin.stat tone="shop" icon="edit" label="پیش‌نویس / زمان‌بندی" :value="number_format($draftArticleCount)"/>
-  <x-admin.stat tone="shop" icon="image" label="بنرهای فعال" :value="number_format($activeBannerCount).' / '.number_format($bannerCount)"/>
+  <x-admin.stat tone="shop" icon="file" label="بنرهای فعال" :value="number_format($activeBannerCount).' / '.number_format($bannerCount)"/>
 </div>
 
 <p class="adm-muted">محتوای متن‌محور صفحه اصلی، صفحه دوره‌ها، مدرسان، تماس، سبد خرید، وبلاگ و فوتر از فرم تنظیمات همین صفحه کنترل می‌شود. بنرها و مقاله‌های وبلاگ از بخش‌های مستقل مدیریت می‌شوند.</p>
 <div class="adm-actions" style="margin-bottom:18px">
   <x-admin.btn icon="file" :href="route('admin.seo.articles.index')">مدیریت مقاله‌ها</x-admin.btn>
-  <x-admin.btn variant="line" icon="image" :href="route('admin.seo.banners.index')">مدیریت بنرها</x-admin.btn>
+  <x-admin.btn variant="line" icon="file" :href="route('admin.seo.banners.index')">مدیریت بنرها</x-admin.btn>
   <x-admin.btn variant="line" icon="star" :href="route('admin.seo.testimonials.index')">نظرات صفحه اصلی</x-admin.btn>
-  <x-admin.btn variant="line" icon="external-link" :href="route('seo.robots')">مشاهده robots.txt</x-admin.btn>
+  <x-admin.btn variant="line" icon="link" :href="route('seo.robots')">مشاهده robots.txt</x-admin.btn>
 </div>
 
 <x-admin.panel title="پیش‌نمایش نتیجه جست‌وجو" desc="نمونه عنوان و توضیح پیش‌فرض در موتورهای جست‌وجو" data-tone="shop">
