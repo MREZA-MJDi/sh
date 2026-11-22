@@ -18,7 +18,7 @@
 
 <x-admin.page-head tone="edu" icon="book" :title="$course->title" desc="ساختار آموزشی دوره را مدیریت کن؛ فصل و درس اضافه کن و کلاس‌های مرتبط را ببین."
   :back-url="route('admin.courses.index')" back-label="همه دوره‌ها">
-  <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش دانش‌آموز</x-admin.btn>
+  <x-admin.btn variant="line" icon="link" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش دانش‌آموز</x-admin.btn>
   @unless($teacherView)
     <x-admin.btn icon="edit" :href="route('admin.courses.edit', $course)">ویرایش مشخصات دوره</x-admin.btn>
   @endunless
