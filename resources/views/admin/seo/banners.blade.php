@@ -7,16 +7,16 @@
   $placementLabels = ['home_hero' => 'بنر اصلی صفحه خانه', 'sitewide' => 'سراسری در بلاگ', 'articles_top' => 'بالای فهرست مقاله‌ها', 'articles_sidebar' => 'ستون کناری مقاله'];
 @endphp
 @include('admin.seo.partials.workspace-tabs')
-<x-admin.page-head tone="shop" icon="image" title="{{ $selectedPlacement === 'home_hero' ? 'مدیریت اسلایدر Hero صفحه اصلی' : 'بنرها و جایگاه‌های تبلیغاتی' }}" :desc="$selectedPlacement === 'home_hero' ? 'مدیریت حداکثر سه اسلاید صفحه اصلی؛ تصویر، ترتیب و وضعیت انتشار هر اسلاید را کنترل کنید.' : 'مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش'">
+<x-admin.page-head tone="shop" icon="file" title="{{ $selectedPlacement === 'home_hero' ? 'مدیریت اسلایدر Hero صفحه اصلی' : 'بنرها و جایگاه‌های تبلیغاتی' }}" :desc="$selectedPlacement === 'home_hero' ? 'مدیریت حداکثر سه اسلاید صفحه اصلی؛ تصویر، ترتیب و وضعیت انتشار هر اسلاید را کنترل کنید.' : 'مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش'">
   <x-admin.btn icon="plus" data-modal-open="banner-modal">ثبت بنر جدید</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="shop" icon="image" label="کل بنرها" :value="number_format($banners->total())"/>
+  <x-admin.stat tone="shop" icon="file" label="کل بنرها" :value="number_format($banners->total())"/>
   <x-admin.stat tone="shop" icon="check" label="فعال" :value="number_format($activeBannerCount)"/>
   <x-admin.stat tone="shop" icon="edit" label="پیش‌نویس" :value="number_format($draftBannerCount)"/>
-  <x-admin.stat tone="shop" icon="pause" label="غیرفعال" :value="number_format($inactiveBannerCount)"/>
-  <x-admin.stat tone="shop" icon="image" label="اسلایدهای ثبت‌شده Hero" :value="number_format($homeHeroCount).' / 3'"/>
+  <x-admin.stat tone="shop" icon="clock" label="غیرفعال" :value="number_format($inactiveBannerCount)"/>
+  <x-admin.stat tone="shop" icon="file" label="اسلایدهای ثبت‌شده Hero" :value="number_format($homeHeroCount).' / 3'"/>
   <p class="adm-muted wide">اسلایدر Hero صفحه اصلی دقیقاً ۳ جایگاه دارد. برای هر اسلاید یک بنر با جایگاه «بنر اصلی صفحه خانه» ثبت کنید.</p>
 </div>
 
@@ -64,7 +64,7 @@
   <x-admin.legend title="محتوای بنر"/>
   <x-admin.input label="عنوان داخلی" name="title" required/>
   <x-admin.input label="متن جایگزین تصویر" name="alt_text" required/>
-  <x-admin.input label="تصویر بنر" name="image" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 9" data-preview-mobile-ratio="4 / 5" data-preview-fit="cover"/>
+  <x-admin.input label="تصویر بنر" name="file" type="file" accept="image/jpeg,image/png,image/webp" data-preview-ratio="16 / 9" data-preview-mobile-ratio="4 / 5" data-preview-fit="cover"/>
   <x-admin.input label="موقعیت تصویر (افقی و عمودی)" name="image_position" placeholder="50% 50%" hint="پیش‌نمایش دسکتاپ ۱۶:۹ و موبایل ۴:۵ است؛ در هر دو حالت برش نهایی با object-fit: cover شبیه‌سازی می‌شود. برای جابه‌جایی نقطه کانونی درصد افقی و عمودی را تنظیم کنید."/>
   @if($selectedPlacement === 'home_hero')
   <input type="hidden" name="placement" value="home_hero">
