@@ -22,7 +22,7 @@
 <x-admin.page-head tone="edu" icon="book" :title="$isEditing ? 'ویرایش صفحه دوره' : 'ساخت دوره جدید'"
   desc="اول اطلاعات اصلی را ذخیره کن؛ بعد ویدیوها، فصل‌ها و کلاس‌ها را از همین صفحه تکمیل کن.">
   @if($isEditing)
-    <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش صفحه عمومی</x-admin.btn>
+    <x-admin.btn variant="line" icon="link" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش صفحه عمومی</x-admin.btn>
   @endif
   <x-admin.btn variant="line" :href="route('admin.courses.index')">بازگشت به دوره‌ها</x-admin.btn>
 </x-admin.page-head>
@@ -63,7 +63,7 @@
             <span class="adm-label">تصویر روی کارت و صفحه دوره</span>
             <label class="adm-upload adm-upload-wide">
               <input id="course-cover-image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" data-course-cover-input data-preview-ratio="16/9" data-preview-fit="cover">
-              <span class="adm-upload-icon"><x-admin.icon name="image"/></span>
+              <span class="adm-upload-icon"><x-admin.icon name="file"/></span>
               <b>تصویر دوره را اینجا رها کن یا انتخاب کن</b>
               <small data-upload-name>JPG، PNG یا WebP · حداکثر ۵ مگابایت</small>
             </label>
@@ -79,7 +79,7 @@
 
       <x-admin.panel id="course-enrollment" title="۲. ثبت‌نام و قیمت" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
         <div class="adm-form">
-          <x-admin.select label="نوع دوره" name="type" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
+          <x-admin.select label="نوع دوره" name="list" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
           <x-admin.input label="قیمت به تومان" name="price" :value="old('price', $course->price)" inputmode="numeric" type="number" min="0" max="1000000000" placeholder="برای دوره رایگان صفر"/>
           <x-admin.select label="وضعیت نمایش در سایت" name="status" :options="$statuses" :selected="old('status', $course->status ?: 'draft')" required/>
         </div>
@@ -118,7 +118,7 @@
           data-max-mb="{{ config('learning.max_teaser_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
           <label class="adm-upload adm-upload-wide">
             <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v" data-upload-file>
-            <span class="adm-upload-icon"><x-admin.icon name="upload"/></span>
+            <span class="adm-upload-icon"><x-admin.icon name="plus"/></span>
             <b>ویدیوی معرفی را اینجا رها کن یا انتخاب کن</b>
             <small data-upload-name>MP4، MOV یا WebM · حداکثر {{ config('learning.max_teaser_mb') }} مگابایت</small>
           </label>
@@ -260,7 +260,7 @@
               <div class="adm-curriculum-empty">هنوز فایل آموزشی اضافه نشده است.</div>
             @endforelse
           </div>
-          <x-slot:footer><x-admin.btn icon="upload" data-modal-open="course-resource-modal">افزودن جزوه یا فایل</x-admin.btn></x-slot:footer>
+          <x-slot:footer><x-admin.btn icon="plus" data-modal-open="course-resource-modal">افزودن جزوه یا فایل</x-admin.btn></x-slot:footer>
         </x-admin.panel>
       @endif
     @else
@@ -273,16 +273,16 @@
   <aside class="adm-stack">
     <x-admin.panel title="جایگاه اطلاعات در صفحه عمومی" desc="راهنمای ساده برای اینکه بدانید هر ورودی کجا دیده می‌شود." data-tone="edu">
       <div class="adm-side-list">
-        <div><span class="adm-stat-ico"><x-admin.icon name="type"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="list"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="user"/></span><div class="adm-grow"><b>مدرس و موضوع</b><small class="adm-muted">کنار مشخصات دوره و بخش معرفی مدرس</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="video"/></span><div class="adm-grow"><b>تریلر</b><small class="adm-muted">بخش معرفی و پیش‌نمایش ویدیویی دوره</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="list"/></span><div class="adm-grow"><b>فصل‌ها و متن درس‌ها</b><small class="adm-muted">بخش سرفصل‌های آموزشی</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="wallet"/></span><div class="adm-grow"><b>نوع و قیمت</b><small class="adm-muted">کارت ثبت‌نام کنار صفحه دوره</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="card"/></span><div class="adm-grow"><b>نوع و قیمت</b><small class="adm-muted">کارت ثبت‌نام کنار صفحه دوره</small></div></div>
       </div>
     </x-admin.panel>
     @if($isEditing)
       <x-admin.panel title="پیش‌نمایش صفحه دوره" desc="قبل از انتشار، نتیجه را مثل دانش‌آموز ببین.">
-        <x-admin.btn icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
+        <x-admin.btn icon="link" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
       </x-admin.panel>
     @endif
   </aside>
@@ -310,7 +310,7 @@
       <x-admin.select label="نوع فایل" name="kind" :options="['pdf' => 'PDF', 'book' => 'کتاب یا جزوه', 'other' => 'سایر فایل‌ها']" :selected="'pdf'" required/>
       <label class="adm-upload adm-upload-wide">
         <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" required>
-        <span class="adm-upload-icon"><x-admin.icon name="upload"/></span>
+        <span class="adm-upload-icon"><x-admin.icon name="plus"/></span>
         <b>فایل را اینجا رها کن یا انتخاب کن</b>
         <small data-upload-name>PDF، Word، تصویر یا ZIP · حداکثر ۳۰ مگابایت</small>
       </label>
