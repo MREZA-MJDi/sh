@@ -68,13 +68,20 @@ final class ParentMeetingController extends Controller
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
             ->firstOrFail();
 
-        $classroom = null;
-        if (! empty($data['classroom_id'])) {
-            $classroom = Classroom::query()
-                ->whereKey($data['classroom_id'])
-                ->where('status', 'active')
-                ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-                ->firstOrFail();
+        $availableClassrooms = Classroom::query()
+            ->where('status', 'active')
+            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id));
+
+        if (filled($data['classroom_id'] ?? null)) {
+            $classroom = (clone $availableClassrooms)->findOrFail($data['classroom_id']);
+        } else {
+            $classroomOptions = (clone $availableClassrooms)->orderBy('id')->get();
+            abort_if(
+                $classroomOptions->count() > 1,
+                422,
+                'برای ارسال درخواست، کلاس مرتبط با فرزندتان را انتخاب کنید.'
+            );
+            $classroom = $classroomOptions->first();
         }
 
         $meeting = ParentMeeting::query()->create([
