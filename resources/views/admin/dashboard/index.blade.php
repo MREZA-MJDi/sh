@@ -88,7 +88,7 @@
     @endif
     @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
       @if(($upcomingSessions ?? collect())->isNotEmpty())
-        <div class="adm-work-item" data-tone="edu"><span><x-admin.icon name="calendar"/></span><div><b>جلسات پیش‌رو</b><small>جلسات برنامه‌ریزی‌شده تا ۷ روز آینده</small></div><strong>{{ number_format($upcomingSessions->count()) }}</strong></div>
+        <a class="adm-work-item" data-tone="edu" href="{{ route('admin.online-classes.index') }}"><span><x-admin.icon name="calendar"/></span><div><b>جلسات پیش‌رو</b><small>جلسات برنامه‌ریزی‌شده تا ۷ روز آینده؛ زمان و لینک ورود را بررسی کن</small></div><strong>{{ number_format($upcomingSessions->count()) }}</strong></a>
       @endif
     @endcanany
     @can('homework.grade')
@@ -154,12 +154,9 @@
     @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.homework.index') }}"><span><x-admin.icon name="file"/></span><div><b>تکالیف</b><small>ساخت و بررسی تمرین‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcan
-    @canany(['messages.view.all', 'messages.view.assigned'])
-      <a class="adm-action-tile" href="{{ route('admin.communication-center.index') }}"><span><x-admin.icon name="msg"/></span><div><b>مرکز ارتباطات</b><small>پیام‌ها و درخواست‌ها</small></div><x-admin.icon name="chev"/></a>
-    @endcanany
-    @can('integrations.manage')
+    @canany(['integrations.manage', 'videos.manage.assigned', 'videos.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.spotplayer.index') }}"><span><x-admin.icon name="video"/></span><div><b>ویدیوهای ضبط‌شده</b><small>کتابخانه ویدیوهای دوره‌ها</small></div><x-admin.icon name="chev"/></a>
-    @endcan
+    @endcanany
     @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.online-classes.index') }}"><span><x-admin.icon name="live"/></span><div><b>جلسات آنلاین</b><small>برنامه و لینک ورود کلاس‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcanany
