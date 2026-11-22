@@ -75,6 +75,7 @@ class RolePermissionSeeder extends Seeder
             'messages.reply' => ['پاسخ به پیام‌ها', 'messages'],
             'announcements.view' => ['مشاهده اطلاعیه‌ها', 'announcements'],
             'announcements.manage' => ['مدیریت اطلاعیه‌ها', 'announcements'],
+            'notifications.manage' => ['ارسال و مدیریت اعلان‌های درون‌پنلی', 'notifications'],
             'videos.view.enrolled' => ['مشاهده ویدیوهای دوره و کلاس ثبت‌نام‌شده', 'videos'],
             'videos.view.assigned' => ['مشاهده ویدیوهای کلاس‌های خود', 'videos'],
             'videos.manage.assigned' => ['مدیریت ویدیوهای کلاس‌های خود', 'videos'],
