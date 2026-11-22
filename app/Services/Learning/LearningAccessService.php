@@ -106,6 +106,10 @@ final class LearningAccessService
             return false;
         }
 
+        if ($course->type === 'free') {
+            return true;
+        }
+
         return CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
