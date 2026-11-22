@@ -6,6 +6,8 @@ use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Consultation;
 use App\Models\Course;
+use App\Models\ClassSession;
+use App\Models\CourseEnrollment;
 use App\Models\HomeworkSubmission;
 use App\Models\Payment;
 use App\Models\User;
@@ -118,6 +120,34 @@ final class DashboardService
             ? Announcement::query()->where('status', 'published')->count()
             : 0;
 
+        $canSeeRegistrations = $user->hasAnyPermission(['users.manage', 'courses.manage']);
+        $recentEnrollmentQuery = CourseEnrollment::query()
+            ->where('created_at', '>=', now()->subDays(7));
+        if (! $canSeeRegistrations) {
+            $recentEnrollmentQuery->whereRaw('1 = 0');
+        }
+        $recentEnrollmentCount = (clone $recentEnrollmentQuery)->count();
+        $recentEnrollments = $recentEnrollmentQuery
+            ->with(['student:id,name', 'course:id,title'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $pendingPaymentReviewCount = $user->hasPermissionTo('users.manage')
+            ? Payment::query()->where('status', 'pending_review')->count()
+            : 0;
+
+        $upcomingSessions = $canSeeClasses
+            ? ClassSession::query()
+                ->whereIn('classroom_id', $classroomIds)
+                ->where('status', 'scheduled')
+                ->whereBetween('starts_at', [now(), now()->addDays(7)])
+                ->with('classroom:id,name')
+                ->orderBy('starts_at')
+                ->limit(5)
+                ->get()
+            : collect();
+
         $weeklyAttendance = $canSeeAttendance
             ? collect(range(6, 0))->map(function (int $daysAgo) use ($attendanceByDay): array {
                 $date = today()->copy()->subDays($daysAgo);
@@ -153,6 +183,10 @@ final class DashboardService
             'openMessageCount',
             'pendingConsultationCount',
             'publishedAnnouncementCount',
+            'recentEnrollmentCount',
+            'recentEnrollments',
+            'pendingPaymentReviewCount',
+            'upcomingSessions',
             'paidCoursePurchases',
             'averageCoursePurchase',
             'revenueLast30Days',
