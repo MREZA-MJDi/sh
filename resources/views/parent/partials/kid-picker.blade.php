@@ -7,8 +7,16 @@
         </div>
         <div class="parent-child-picker-links">
             @foreach (($kids ?? []) as $k)
-                @php($isSelected = (int) data_get($k, 'id') === (int) data_get($kid ?? null, 'id'))
-                <a href="{{ request()->fullUrlWithQuery(['child' => data_get($k, 'id'), 'page' => 1, 'homework' => 1, 'results' => 1, 'resources' => 1]) }}" class="{{ $isSelected ? 'on' : '' }}" @if($isSelected) aria-current="page" @endif>
+                @php
+                    $isSelected = (int) data_get($k, 'id') === (int) data_get($kid ?? null, 'id');
+                    $childQuery = request()->query();
+                    foreach (['page', 'homework', 'results', 'resources', 'message', 'q', 'status', 'sort'] as $resetKey) {
+                        unset($childQuery[$resetKey]);
+                    }
+                    $childQuery['child'] = data_get($k, 'id');
+                    $childUrl = request()->url().'?'.http_build_query($childQuery);
+                @endphp
+                <a href="{{ $childUrl }}" class="{{ $isSelected ? 'on' : '' }}" @if($isSelected) aria-current="page" @endif>
                     <span class="child-pill-avatar">{{ mb_substr(data_get($k, 'name', 'ف'), 0, 1) }}</span>
                     <span class="child-pill-text">{{ data_get($k, 'name') }}</span>
                     @if($isSelected)
