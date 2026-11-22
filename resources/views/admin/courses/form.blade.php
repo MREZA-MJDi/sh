@@ -35,14 +35,10 @@
   </div>
   <nav class="adm-course-editor-steps" aria-label="بخش‌های تکمیل دوره">
     <a href="#course-basics"><i>۱</i><span>اطلاعات اصلی</span></a>
-    <a href="#course-enrollment"><i>۲</i><span>ثبت‌نام</span></a>
-    <a href="#course-features"><i>۳</i><span>امکانات</span></a>
+    <a href="#course-enrollment"><i>۲</i><span>ثبت‌نام و امکانات</span></a>
     @if($isEditing)
-      @if($course->featureEnabled('recorded_video'))
-        <a href="#course-videos"><i>۴</i><span>ویدیوها</span></a>
-      @endif
-      <a href="#course-curriculum"><i>۵</i><span>فصل و درس</span></a>
-      <a href="#course-classes"><i>۶</i><span>کلاس‌ها</span></a>
+      <a href="{{ $course->featureEnabled('recorded_video') ? '#course-videos' : '#course-curriculum' }}"><i>۳</i><span>محتوا و ویدیو</span></a>
+      <a href="#course-classes"><i>۴</i><span>کلاس‌ها و منابع</span></a>
     @endif
   </nav>
 </section>
