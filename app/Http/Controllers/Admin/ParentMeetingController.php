@@ -152,7 +152,7 @@ final class ParentMeetingController extends Controller
             : 'جلسه با موفقیت برای ولی دانش‌آموز زمان‌بندی شد.');
     }
 
-    public function updateStatus(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
+    public function updateStatus(Request $request, int $meeting): RedirectResponse
     {
         abort_unless($request->user()->hasRole('admin'), 403);
 
