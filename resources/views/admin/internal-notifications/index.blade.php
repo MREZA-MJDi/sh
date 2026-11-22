@@ -65,7 +65,7 @@
         @error('action_label')<small class="adm-err">{{ $message }}</small>@enderror
       </div>
       <div class="adm-notice-submit">
-        <span><x-admin.icon name="shield-check"/> ارسال فقط برای گروه انتخاب‌شده</span>
+        <span><x-admin.icon name="lock"/> ارسال فقط برای گروه انتخاب‌شده</span>
         <x-admin.btn type="submit" icon="send">ارسال اعلان</x-admin.btn>
       </div>
     </form>
