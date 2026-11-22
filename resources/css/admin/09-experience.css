@@ -584,3 +584,21 @@
 @media(max-width:1000px){.adm-course-content-layout{grid-template-columns:minmax(0,1fr)}.adm-course-content-aside{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.adm-course-side-details{grid-column:1/-1}}
 @media(max-width:700px){.adm-course-workspace{align-items:flex-start;flex-direction:column;padding:18px}.adm-course-workspace-stats{width:100%}.adm-course-workspace-stats>div{flex:1}.adm-course-content-aside{grid-template-columns:minmax(0,1fr)}.adm-course-side-details{grid-column:auto}}
 [data-theme=dark] .adm-course-workspace{background:linear-gradient(115deg,var(--surface),var(--surface-2))}
+
+
+.adm-session-focus{display:flex;justify-content:space-between;align-items:center;gap:22px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(115deg,var(--surface),var(--surface-2))}
+.adm-session-focus-copy{min-width:0}
+.adm-session-focus-kicker{display:inline-flex;align-items:center;gap:6px;color:var(--tone);font-size:10.5px;font-weight:850}
+.adm-session-focus-kicker .adm-icon{width:15px;height:15px}
+.adm-session-focus h2{margin-top:7px;font-size:17px;font-weight:850}
+.adm-session-focus p{margin-top:3px;color:var(--muted);font-size:11px}
+.adm-session-focus .adm-actions{margin-top:12px}
+.adm-session-focus-side{min-width:160px;display:grid;gap:3px;padding:13px 15px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.adm-session-focus-side span{color:var(--muted);font-size:10px}
+.adm-session-focus-side b{font-size:13px}
+.adm-session-focus-side small{color:var(--muted);font-size:9.5px}
+.adm-session-no-link{display:inline-flex;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--muted);font-size:10.5px}
+.adm-session-link-ready{display:inline-flex;align-items:center;gap:5px;color:var(--ok);font-size:10.5px;font-weight:750}
+.adm-session-link-ready .adm-icon{width:13px;height:13px}
+[data-theme=dark] .adm-session-focus{background:linear-gradient(115deg,var(--surface),var(--surface-2))}
+@media(max-width:700px){.adm-session-focus{align-items:flex-start;flex-direction:column;padding:17px}.adm-session-focus-side{width:100%}}
