@@ -25,8 +25,9 @@ final class OnlineClassController extends Controller
             ->withCount('attendances');
 
         $stats = [
-            'today' => (clone $visibleSessionsQuery)->whereDate('starts_at', today())->count(),
+            'today' => (clone $visibleSessionsQuery)->where('status', '!=', 'cancelled')->whereDate('starts_at', today())->count(),
             'week' => (clone $visibleSessionsQuery)
+                ->where('status', '!=', 'cancelled')
                 ->whereBetween('starts_at', [now()->startOfWeek(), now()->endOfWeek()])
                 ->count(),
             'upcoming' => (clone $visibleSessionsQuery)
