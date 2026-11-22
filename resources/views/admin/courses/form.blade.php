@@ -53,7 +53,7 @@
       <input type="hidden" name="delivery_type" value="onsite">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
-      <x-admin.panel id="course-basics" title="۱. اطلاعات اصلی دوره" desc="این اطلاعات در صفحه‌ای که دانش‌آموز می‌بیند نمایش داده می‌شوند." data-tone="edu">
+      <x-admin.panel id="course-basics" title="۱. اطلاعات اصلی دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." desc="این اطلاعات در صفحه‌ای که دانش‌آموز می‌بیند نمایش داده می‌شوند." data-tone="edu">
         <div class="adm-form">
           <x-admin.input label="عنوان اصلی دوره" name="title" :value="old('title', $course->title)" placeholder="مثلاً شیمی دوازدهم؛ آموزش مفهومی و مسئله‌محور" wide required/>
           <x-admin.input label="موضوع یا درس" name="subject" :value="old('subject', $course->subject)" placeholder="مثلاً شیمی، زیست‌شناسی، ریاضی"/>
