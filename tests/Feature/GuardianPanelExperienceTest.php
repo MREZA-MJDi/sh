@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Models\User;
+use App\Support\JalaliDate;
+use Carbon\CarbonImmutable;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,6 +90,48 @@ final class GuardianPanelExperienceTest extends TestCase
             ->assertSessionHas('status');
 
         $this->assertGuest();
+    }
+
+
+    public function test_jalali_date_formatter_returns_persian_calendar_date_and_time(): void
+    {
+        $date = CarbonImmutable::parse('2026-11-22 13:30:00', 'Asia/Tehran');
+
+        $this->assertSame('1405/09/01 13:30', JalaliDate::format($date, true));
+        $this->assertSame('1405/09/01', JalaliDate::format($date));
+    }
+
+    public function test_switching_children_clears_stale_message_and_pagination_query_parameters(): void
+    {
+        $guardian = $this->userWithRole('parent');
+        $firstChild = $this->userWithRole('student');
+        $secondChild = $this->userWithRole('student');
+        $guardian->children()->attach([$firstChild->id, $secondChild->id]);
+
+        $this->actingAs($guardian)
+            ->get(route('guardian.dashboard', [
+                'child' => $firstChild->id,
+                'message' => 999,
+                'page' => 4,
+                'homework' => 3,
+            ]))
+            ->assertOk()
+            ->assertSee('child='.$secondChild->id)
+            ->assertDontSee('message=999')
+            ->assertDontSee('homework=3');
+    }
+
+    public function test_parent_dashboard_uses_null_for_months_without_homework_data(): void
+    {
+        $guardian = $this->userWithRole('parent');
+        $child = $this->userWithRole('student');
+        $guardian->children()->attach($child);
+
+        $this->actingAs($guardian)
+            ->get(route('guardian.dashboard'))
+            ->assertOk()
+            ->assertSee('data-chart-config=', false)
+            ->assertSee('null,null,null,null,null,null', false);
     }
 
     private function userWithRole(string $role, array $attributes = []): User
