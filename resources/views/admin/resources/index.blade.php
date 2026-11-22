@@ -16,6 +16,10 @@
   <x-admin.btn icon="plus" data-modal-open="resource-modal">افزودن منبع</x-admin.btn>
 </x-admin.page-head>
 
+<section class="adm-resource-guide" data-tone="shop">
+  <div><span>انتشار و دسترسی فایل</span><b>قبل از انتشار، مخاطب و سطح دسترسی هر منبع را مشخص کن.</b><small>{{ $teacherView ? 'منابع این صفحه فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته شماست.' : 'منبع می‌تواند عمومی، مخصوص کاربران واردشده یا محدود به ثبت‌نام‌شده‌ها باشد؛ رویدادهای دریافت هم ثبت می‌شوند.' }}</small></div>
+</section>
+
 <x-admin.panel flush>
   <div class="adm-grid adm-cols-2">
     @forelse($resources as $resource)
