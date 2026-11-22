@@ -158,6 +158,7 @@
       <a class="adm-action-tile" href="{{ route('admin.spotplayer.index') }}"><span><x-admin.icon name="video"/></span><div><b>ویدیوهای ضبط‌شده</b><small>کتابخانه ویدیوهای دوره‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcanany
     @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
+      <a class="adm-action-tile" href="{{ route('admin.classes.index') }}"><span><x-admin.icon name="cls"/></span><div><b>گروه‌های آموزشی</b><small>مدرس، اعضا و برنامه هر گروه</small></div><x-admin.icon name="chev"/></a>
       <a class="adm-action-tile" href="{{ route('admin.online-classes.index') }}"><span><x-admin.icon name="live"/></span><div><b>جلسات آنلاین</b><small>برنامه و لینک ورود کلاس‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcanany
   </div>
