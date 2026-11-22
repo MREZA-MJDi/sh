@@ -49,7 +49,8 @@ final class DashboardService
         $attendanceByDay = $canSeeAttendance
             ? Attendance::query()
                 ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds))
-                ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->whereDate('session_date', '>=', $weekStart->toDateString())
+                ->whereDate('session_date', '<=', today()->toDateString())
                 ->whereIn('status', ['present', 'late', 'absent', 'excused'])
                 ->where(function ($query): void {
                     $query->whereNull('class_session_id')
