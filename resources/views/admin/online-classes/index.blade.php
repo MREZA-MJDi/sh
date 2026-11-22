@@ -87,7 +87,7 @@
             <span class="adm-muted">لینک ورود هنوز آماده نیست</span>
           @endif
           @if($classroom)
-            <x-admin.btn size="sm" variant="line" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">برنامه کلاس</x-admin.btn>
+            <x-admin.btn size="sm" variant="line" icon="cal" :href="route('admin.classes.sessions.index', $classroom)">برنامه کلاس</x-admin.btn>
           @endif
         </div>
       </article>
