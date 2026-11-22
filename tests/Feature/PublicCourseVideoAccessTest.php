@@ -291,7 +291,7 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertDontSee('course-video-dialog');
     }
 
-    public function test_every_play_request_rechecks_enrollment_and_license_before_redirecting_to_provider(): void
+    public function test_every_play_request_rechecks_enrollment_status_before_redirecting_to_provider(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
@@ -308,7 +308,7 @@ final class PublicCourseVideoAccessTest extends TestCase
         CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
-            ->update(['expires_at' => now()->subSecond()]);
+            ->update(['status' => 'revoked']);
 
         $this->actingAs($student)
             ->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
