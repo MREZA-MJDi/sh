@@ -40,6 +40,8 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             ->assertOk()
             ->assertSeeText($course->title)
             ->assertSeeText('دسترسی فعال برای دانش‌آموزان')
+            ->assertSeeText('شروع یادگیری')
+            ->assertDontSeeText('ثبت‌نام رایگان و شروع')
             ->assertDontSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده');
     }
 
