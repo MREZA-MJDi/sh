@@ -295,6 +295,7 @@ final class PublicCourseVideoAccessTest extends TestCase
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
+        $course->update(['type' => 'paid', 'price' => 100000]);
         $this->grantActiveEnrollment($student, $course);
         $this->attachActiveProviderVideo($student, $course);
         $video = SpotPlayerVideo::query()->where('course_id', $course->id)->firstOrFail();
