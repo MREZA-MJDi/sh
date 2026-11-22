@@ -38,7 +38,9 @@
     <a href="#course-enrollment"><i>۲</i><span>ثبت‌نام</span></a>
     <a href="#course-features"><i>۳</i><span>امکانات</span></a>
     @if($isEditing)
-      <a href="#course-videos"><i>۴</i><span>ویدیوها</span></a>
+      @if($course->featureEnabled('recorded_video'))
+        <a href="#course-videos"><i>۴</i><span>ویدیوها</span></a>
+      @endif
       <a href="#course-curriculum"><i>۵</i><span>فصل و درس</span></a>
       <a href="#course-classes"><i>۶</i><span>کلاس‌ها</span></a>
     @endif
