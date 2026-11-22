@@ -427,6 +427,16 @@ final class PortalController extends Controller
         };
         $record->guardian?->notify(new ParentMeetingNotification($record, $message));
         $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
+        User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+            ->orderBy('id')
+            ->chunkById(100, fn ($admins) => $admins->each(
+                fn (User $admin) => $admin->notify(new ParentMeetingNotification(
+                    $record,
+                    'وضعیت جلسه توسط مدرس به‌روزرسانی شد.'
+                ))
+            ));
 
         return redirect()->route('teacher.meetings')->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }
