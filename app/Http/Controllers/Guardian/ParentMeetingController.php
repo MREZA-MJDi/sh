@@ -94,6 +94,10 @@ final class ParentMeetingController extends Controller
             ->orderBy('id')
             ->chunkById(100, fn ($admins) => Notification::send($admins, $notification));
         $student->notify(new ParentMeetingNotification($meeting, 'ولی شما درخواست جلسه‌ای را برای بررسی آموزشگاه ثبت کرده است.'));
+        $classroom?->teacher?->notify(new ParentMeetingNotification(
+            $meeting,
+            'ولی یکی از دانش‌آموزان کلاس شما درخواست جلسه ثبت کرده است.'
+        ));
 
         return redirect()->route('guardian.meetings.index', ['child' => $student->id])->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
     }
