@@ -624,3 +624,42 @@
   .adm-course-card,.adm-course-cover>img,.adm-course-editor-steps>a,.adm-video-advanced>summary>.adm-icon,.adm-course-side-details>summary>.adm-icon,.adm-online-card{transition:none!important}
   .adm-course-card:hover,.adm-course-card:hover .adm-course-cover>img,.adm-online-card:hover{transform:none!important}
 }
+
+
+/* Independent in-panel notification workspace. */
+.adm-notice-intro{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(110deg,var(--surface),var(--tone-soft));}
+.adm-notice-intro-icon{width:44px;height:44px;display:grid;place-items:center;flex:none;border-radius:13px;background:var(--tone-soft);color:var(--tone);}
+.adm-notice-intro-icon .adm-icon{width:22px;height:22px}
+.adm-notice-intro>div{min-width:0;flex:1}
+.adm-notice-intro b{display:block;font-size:13px;font-weight:850}
+.adm-notice-intro p{margin-top:3px;color:var(--muted);font-size:11.5px;line-height:1.9}
+.adm-notice-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:18px;align-items:start}
+.adm-notice-composer,.adm-notice-history{min-width:0}
+.adm-notice-form{display:grid;gap:16px}
+.adm-notice-optional{display:grid;gap:12px;padding:15px;border:1px dashed var(--line-strong);border-radius:14px;background:var(--surface-2)}
+.adm-notice-optional>b{font-size:12px}
+.adm-notice-optional>p{margin-top:-8px;color:var(--muted);font-size:11px}
+.adm-notice-submit{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--line)}
+.adm-notice-submit>span{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px}
+.adm-notice-submit .adm-icon{width:16px;height:16px;color:var(--tone)}
+.adm-notice-preview-wrap{position:sticky;top:88px;display:grid;gap:10px}
+.adm-notice-preview-label{font-size:11px;font-weight:800;color:var(--muted)}
+.adm-notice-preview{display:grid;gap:12px;padding:18px;border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow);animation:adm-notice-enter .28s ease-out}
+.adm-notice-preview-top{display:flex;align-items:center;gap:9px;color:var(--tone)}
+.adm-notice-preview-top>span{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:var(--tone-soft)}
+.adm-notice-preview-top .adm-icon{width:18px;height:18px}
+.adm-notice-preview-top small{font-size:10px;font-weight:800}
+.adm-notice-preview>b{font-size:14px;line-height:1.8}
+.adm-notice-preview>p{font-size:12px;line-height:2;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere}
+.adm-notice-preview-action{justify-self:start;padding:7px 12px;border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:11px;font-weight:800}
+.adm-notice-preview-action[hidden]{display:none}
+.adm-notice-preview-foot{padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}
+.adm-notice-audience-summary{display:grid;grid-template-columns:1fr auto;gap:3px 12px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.adm-notice-audience-summary>b{font-size:11px}
+.adm-notice-audience-summary>strong{font-size:22px;color:var(--tone);font-variant-numeric:tabular-nums}
+.adm-notice-audience-summary>small{grid-column:1/-1;color:var(--muted);font-size:10px}
+.adm-notice-read-rate{color:var(--tone);font-weight:750;font-size:11px}
+@keyframes adm-notice-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.adm-notice-layout{grid-template-columns:minmax(0,1fr)}.adm-notice-preview-wrap{position:static;grid-template-columns:minmax(0,1fr) minmax(170px,.6fr);align-items:start}}
+@media(max-width:600px){.adm-notice-intro{align-items:flex-start;flex-wrap:wrap}.adm-notice-layout{gap:12px}.adm-notice-preview-wrap{grid-template-columns:minmax(0,1fr)}.adm-notice-submit{align-items:stretch}.adm-notice-submit .adm-btn{width:100%;justify-content:center}}
+@media(prefers-reduced-motion:reduce){.adm-notice-preview{animation:none}}
