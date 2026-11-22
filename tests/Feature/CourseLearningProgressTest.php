@@ -154,6 +154,7 @@ final class CourseLearningProgressTest extends TestCase
         $student = $this->userWithRole('student');
         $teacher = $this->userWithRole('teacher');
         [$course] = $this->courseAndClassroom($teacher);
+        $course->update(['type' => 'paid', 'price' => 100000]);
 
         $section = CourseSection::query()->create([
             'course_id' => $course->id,
