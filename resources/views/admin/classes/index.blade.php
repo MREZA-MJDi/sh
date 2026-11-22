@@ -13,7 +13,7 @@
 <x-admin.page-head tone="edu" icon="cls" title="گروه‌های آموزشی" desc="هر گروه، مدرس، دانش‌آموزان و برنامه خودش را دارد. برای مدیریت جلسه‌ها، گروه را باز کن.">
   <x-admin.btn variant="line" icon="cal" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
   @if($canManage)
-    <x-admin.btn icon="plus" data-modal-open="class-modal">کلاس جدید</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="class-modal">گروه جدید</x-admin.btn>
   @endif
 </x-admin.page-head>
 
@@ -143,7 +143,7 @@
 
 @push('modals')
 @if($canManage)
-<x-admin.modal :demo="false" id="class-modal" title="کلاس جدید" size="lg" :action="route('admin.classes.store')">
+<x-admin.modal :demo="false" id="class-modal" title="گروه آموزشی جدید" size="lg" :action="route('admin.classes.store')">
   @include('admin.classes.partials.class-fields', [
     'teacherOptions' => $teacherOptions,
     'courseOptions' => $courseOptions,
