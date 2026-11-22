@@ -10,6 +10,11 @@
   :back-url="$classroom ? route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso]) : route('admin.classes.index')"
   :back-label="$classroom ? 'بازگشت به برنامه کلاس' : 'کلاس‌ها'"/>
 
+<section class="adm-attendance-guide" data-tone="track">
+  <div><span>راهنمای ثبت حضور</span><b>۱. کلاس و روز را انتخاب کن</b><small>۲. جلسه برگزارشده را مشخص کن · ۳. وضعیت هر دانش‌آموز را ثبت و ذخیره کن</small></div>
+  @if($canManage)<x-admin.badge tone="ok">امکان ثبت و ویرایش</x-admin.badge>@else<x-admin.badge tone="mute">فقط مشاهده</x-admin.badge>@endif
+</section>
+
 <form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}">
   <input type="hidden" name="date" value="{{ $dateIso }}">
 </form>
@@ -62,6 +67,7 @@
 </x-admin.panel>
 
 <x-admin.panel flush>
+  @if($canManage)
   <form method="POST" action="{{ route('admin.attendance.store') }}" data-roster>
     @csrf
     <input type="hidden" name="class_id" value="{{ $classroom?->id }}">
@@ -129,9 +135,27 @@
       </div>
     @endif
   </form>
+  @else
+    @if($roster->isNotEmpty())
+      <div class="adm-roster-grid adm-attendance-readonly">
+        @foreach($roster as $student)
+          @php
+            $status = $student['status'];
+            $tone = match($status) {'present' => 'ok', 'late' => 'warn', 'absent' => 'bad', 'excused' => 'info', default => 'mute'};
+          @endphp
+          <article class="adm-roster-card">
+            <div class="adm-roster-person"><span class="adm-roster-avatar">{{ mb_substr($student['name'], 0, 1) }}</span><div><b>{{ $student['name'] }}</b><small>{{ $student['note'] ?: 'بدون توضیح ثبت‌شده' }}</small></div></div>
+            <x-admin.badge :tone="$tone">{{ $marks[$status] ?? 'ثبت‌نشده' }}</x-admin.badge>
+          </article>
+        @endforeach
+      </div>
+    @else
+      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>برای این روز جلسه یا فهرست دانش‌آموزی وجود ندارد</b><span>روز و کلاس دیگری را انتخاب کن.</span></div>
+    @endif
+  @endif
 </x-admin.panel>
 
-<x-admin.panel title="غیبت زیاد" desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
+<x-admin.panel title="نیازمند پیگیری غیبت" desc="دانش‌آموزانی با سابقه غیبت را بررسی کن و در صورت نیاز به ولی اطلاع بده." flush id="attendance-risk"> desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
   @if(count($report))
     <div class="adm-attendance-report">
       @foreach ($report as [$studentId, $classroomId, $name, $className, $total, $absent])
