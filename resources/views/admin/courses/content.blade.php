@@ -77,7 +77,7 @@
         @endforelse
       </div>
       <div class="adm-course-side-footer">
-        <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.classes.index', ['course_id' => $course->id]) }}">همه کلاس‌ها</a>
+        <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.classes.index') }}">مدیریت همه کلاس‌ها</a>
       </div>
     </section>
 
