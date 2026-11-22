@@ -41,8 +41,8 @@
     @include('components.announcement-feed', ['announcements' => $announcements ?? collect()])
     <div class="g g4 parent-dashboard-stats">
         <div class="st"><b>{{ $stats['avg'] ?? '—' }}</b><span>میانگین نمرات ثبت‌شده</span><small>{{ $stats['avg_note'] ?? '' }}</small></div>
-        <div class="st gn"><b>{{ $att['percent'] ?? 0 }}٪</b><span>حضور</span><small>{{ $att['absent'] ?? 0 }} غیبت · {{ $att['late'] ?? 0 }} تأخیر</small></div>
-        <div class="st bl"><b>{{ $stats['open_homework'] ?? 0 }}</b><span>تکلیف بدون ارسال</span><small>{{ $stats['open_homework_note'] ?? '' }}</small></div>
+        <div class="st gn"><b>{{ isset($att['percent']) ? $att['percent'].'٪' : '—' }}</b><span>حضور</span><small>{{ $att['absent'] ?? '—' }} غیبت · {{ $att['late'] ?? '—' }} تأخیر</small></div>
+        <div class="st bl"><b>{{ $stats['open_homework'] ?? '—' }}</b><span>تکلیف بدون ارسال</span><small>{{ $stats['open_homework_note'] ?? '' }}</small></div>
         <div class="st am"><b>{{ $stats['next_meeting'] ?? '—' }}</b><span>جلسه بعدی</span><small>{{ $stats['next_meeting_note'] ?? '' }}</small></div>
     </div>
     <div class="g g2 parent-dashboard-grid">
@@ -66,7 +66,7 @@
             ]])
         </section>
         <section class="c parent-dashboard-card"><h3>وضعیت حضور ثبت‌شده</h3>
-            @include('parent.partials.chart', ['type' => 'donut', 'parts' => $parts, 'big' => ($att['percent'] ?? 0).'٪', 'small' => 'حضور'])
+            @include('parent.partials.chart', ['type' => 'donut', 'parts' => $parts, 'big' => isset($att['percent']) ? $att['percent'].'٪' : '—', 'small' => 'حضور'])
         </section>
         <section class="c parent-dashboard-card"><h3>عملکرد درس‌ها</h3>
             @include('parent.partials.chart', ['type' => 'radar', 'labels' => $subj->pluck('name')->all(), 'series' => [
