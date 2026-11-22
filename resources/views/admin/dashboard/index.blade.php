@@ -72,14 +72,53 @@
   </aside>
 </section>
 
-<div class="adm-stats">
-  <x-admin.stat tone="users" icon="user" label="دانش‌آموزان فعال" :value="number_format($stats['students'] ?? 0)" hint="در محدوده دسترسی" :href="route('admin.students.index')"/>
-  <x-admin.stat tone="edu" icon="book" label="دوره‌های منتشرشده" :value="number_format($stats['courses'] ?? 0)" hint="قابل مشاهده برای دانش‌آموزان" :href="route('admin.courses.index')"/>
-  <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری" :href="route('admin.classes.index')"/>
-  <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس" :href="route('admin.homework.index')"/>
-  <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال" :href="route('admin.teachers.index')"/>
-  <x-admin.stat tone="shop" icon="chart" label="درآمد تأییدشده ۳۰ روز اخیر" :value="number_format($revenueLast30Days)" hint="تومان · پرداخت‌های موفق دوره"/>
-</div>
+
+<section class="adm-stack" aria-label="مرکز اقدام امروز">
+  <div class="adm-pagehead">
+    <div><h2>الان چه کارهایی باید انجام بدهم؟</h2><p>موارد نیازمند پیگیری و نزدیک‌ترین جلسات را از همین‌جا دنبال کن.</p></div>
+  </div>
+  <div class="adm-work-queue">
+    @can('users.manage')
+      @if(($pendingPaymentReviewCount ?? 0) > 0)
+        <a class="adm-work-item" data-tone="shop" href="{{ route('admin.payments.index', ['status' => 'pending_review']) }}"><span><x-admin.icon name="wallet"/></span><div><b>رسیدهای پرداخت نیازمند بررسی</b><small>قبل از تأیید، اطلاعات واریز را بررسی کن</small></div><strong>{{ number_format($pendingPaymentReviewCount) }}</strong></a>
+      @endif
+    @endcan
+    @if(($recentEnrollmentCount ?? 0) > 0)
+      <a class="adm-work-item" data-tone="users" href="{{ route('admin.enrollments.index') }}"><span><x-admin.icon name="users"/></span><div><b>ثبت‌نام‌های جدید در ۷ روز اخیر</b><small>آخرین درخواست‌ها و وضعیت دسترسی را بررسی کن</small></div><strong>{{ number_format($recentEnrollmentCount) }}</strong></a>
+    @endif
+    @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
+      @if(($upcomingSessions ?? collect())->isNotEmpty())
+        <div class="adm-work-item" data-tone="edu"><span><x-admin.icon name="calendar"/></span><div><b>جلسات پیش‌رو</b><small>جلسات برنامه‌ریزی‌شده تا ۷ روز آینده</small></div><strong>{{ number_format($upcomingSessions->count()) }}</strong></div>
+      @endif
+    @endcanany
+    @if(($pendingPaymentReviewCount ?? 0) === 0 && ($recentEnrollmentCount ?? 0) === 0 && ($upcomingSessions ?? collect())->isEmpty())
+      <div class="adm-queue-empty"><x-admin.icon name="check"/><b>مورد فوری تازه‌ای ثبت نشده است</b><span>صفحه‌های تخصصی را برای پیگیری سایر فعالیت‌ها باز کن.</span></div>
+    @endif
+  </div>
+  @if(($upcomingSessions ?? collect())->isNotEmpty())
+    <div class="adm-action-grid">
+      @foreach($upcomingSessions as $session)
+        <a class="adm-action-tile" href="{{ route('admin.classes.sessions.index', $session->classroom_id) }}">
+          <span><x-admin.icon name="calendar"/></span>
+          <div><b>{{ $session->title }} · {{ $session->classroom?->name }}</b><small>{{ $session->starts_at?->translatedFormat('l j F، H:i') }}</small></div>
+          <x-admin.icon name="chev"/>
+        </a>
+      @endforeach
+    </div>
+  @endif
+  @if(($recentEnrollments ?? collect())->isNotEmpty())
+    <div class="adm-action-grid">
+      @foreach($recentEnrollments as $enrollment)
+        <a class="adm-action-tile" href="{{ route('admin.enrollments.index', ['q' => $enrollment->student?->name]) }}">
+          <span><x-admin.icon name="user"/></span>
+          <div><b>{{ $enrollment->student?->name ?? 'دانش‌آموز' }}</b><small>{{ $enrollment->course?->title ?? 'دوره' }} · ثبت {{ $enrollment->created_at?->diffForHumans() }}</small></div>
+          <x-admin.icon name="chev"/>
+        </a>
+      @endforeach
+    </div>
+  @endif
+</section>
+
 
 <section class="adm-stack" aria-label="دسترسی سریع">
   <div class="adm-pagehead">
@@ -170,4 +209,14 @@
     @endif
   </x-admin.panel>
 </div>
+<div class="adm-stats">
+  <x-admin.stat tone="users" icon="user" label="دانش‌آموزان فعال" :value="number_format($stats['students'] ?? 0)" hint="در محدوده دسترسی" :href="route('admin.students.index')"/>
+  <x-admin.stat tone="edu" icon="book" label="دوره‌های منتشرشده" :value="number_format($stats['courses'] ?? 0)" hint="قابل مشاهده برای دانش‌آموزان" :href="route('admin.courses.index')"/>
+  <x-admin.stat tone="edu" icon="cls" label="گروه‌های آموزشی فعال" :value="number_format($stats['classes'] ?? 0)" hint="کلاس‌های در حال برگزاری" :href="route('admin.classes.index')"/>
+  <x-admin.stat tone="track" icon="file" label="پاسخ‌های منتظر بررسی" :value="number_format($pendingHomework)" hint="نیازمند اقدام مدرس" :href="route('admin.homework.index')"/>
+  <x-admin.stat tone="users" icon="users" label="مدرسان فعال" :value="number_format($stats['teachers'] ?? 0)" hint="حساب‌های فعال" :href="route('admin.teachers.index')"/>
+  <x-admin.stat tone="shop" icon="chart" label="درآمد تأییدشده ۳۰ روز اخیر" :value="number_format($revenueLast30Days)" hint="تومان · پرداخت‌های موفق دوره"/>
+</div>
+
+
 @endsection
