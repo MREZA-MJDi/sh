@@ -13,14 +13,14 @@
 </x-admin.page-head>
 
 <section class="adm-homework-focus" data-tone="track">
-  <div><span>کارتابل بررسی تکالیف</span><b>{{ number_format($pendingSubmissionCount) }} پاسخ منتظر بررسی است</b><small>پاسخ‌ها را بررسی کن، نمره بده و بازخورد را برای دانش‌آموز و ولی ارسال کن.</small></div>
+  <div><span>کارتابل بررسی تکالیف</span><b>{{ number_format($pendingSubmissionCount) }} پاسخ در انتظار بررسی است</b><small>پاسخ‌ها را بررسی کن، نمره بده و بازخورد را برای دانش‌آموز و ولی ارسال کن.</small></div>
   <x-admin.btn size="sm" icon="check" :href="route('admin.homework.index').'#homework-review-queue'">رفتن به صف بررسی</x-admin.btn>
 </section>
 
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="file" label="کل تکالیف" :value="number_format($homeworkCount)" hint="در کلاس‌های مجاز و فیلترشده"/>
   <x-admin.stat tone="track" icon="clock" label="در انتظار بررسی" :value="number_format($pendingSubmissionCount)" hint="در کل پاسخ‌های فیلترشده"/>
-  <x-admin.stat tone="edu" icon="check" label="بررسی‌شده" :value="number_format($reviewedSubmissionCount)" hint="در این صفحه از پاسخ‌ها"/>
+  <x-admin.stat tone="edu" icon="check" label="بررسی‌شده" :value="number_format($reviewedSubmissionCount)" hint="در کل پاسخ‌های فیلترشده"/>
   <x-admin.stat tone="users" icon="users" label="کلاس‌های در دسترس" :value="number_format($classrooms->count())" hint="امکان ساخت تکلیف"/>
 </div>
 
