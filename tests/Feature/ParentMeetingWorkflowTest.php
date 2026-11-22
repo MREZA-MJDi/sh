@@ -274,6 +274,57 @@ final class ParentMeetingWorkflowTest extends TestCase
         ]);
     }
 
+
+    public function test_administrator_can_schedule_and_complete_a_parent_meeting_but_cannot_reopen_it(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $guardian->children()->attach($student);
+
+        $meeting = ParentMeeting::query()->create([
+            'student_id' => $student->id,
+            'guardian_id' => $guardian->id,
+            'title' => 'جلسه قابل مدیریت توسط مدیر',
+            'status' => 'requested',
+        ]);
+        $startsAt = now()->addDays(2)->startOfMinute();
+
+        $this->actingAs($admin)
+            ->patch(route('admin.parent-meetings.status', $meeting), [
+                'status' => 'scheduled',
+                'starts_at' => $startsAt->format('Y-m-d\\TH:i'),
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'scheduled',
+            'responded_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.parent-meetings.status', $meeting), ['status' => 'completed'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'completed',
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.parent-meetings.status', $meeting), [
+                'status' => 'scheduled',
+                'starts_at' => now()->addDays(3)->format('Y-m-d\\TH:i'),
+            ])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'completed',
+        ]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
