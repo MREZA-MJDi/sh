@@ -116,6 +116,19 @@ final class LearningResourceAccessService
 
     private function hasActiveCourseAccess(User $student, int $courseId): bool
     {
+        $freeCourseIsAvailable = Course::query()
+            ->whereKey($courseId)
+            ->where('status', 'published')
+            ->where('type', 'free')
+            ->where(fn (Builder $features) => $features
+                ->whereNull('learning_features')
+                ->orWhere('learning_features->resources', true))
+            ->exists();
+
+        if ($student->is_active && $student->hasRole('student') && $freeCourseIsAvailable) {
+            return true;
+        }
+
         return CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $courseId)
