@@ -14,9 +14,9 @@
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="comm" icon="calendar" label="کل جلسات" :value="number_format($meetings->total())"/>
-  <x-admin.stat tone="comm" icon="clock" label="درخواست / پیشنهاد" :value="number_format($meetings->getCollection()->whereIn('status', ['requested', 'proposed'])->count())"/>
-  <x-admin.stat tone="comm" icon="check" label="زمان‌بندی‌شده" :value="number_format($meetings->getCollection()->where('status', 'scheduled')->count())"/>
+  <x-admin.stat tone="comm" icon="calendar" label="کل جلسات" :value="number_format($stats['total'])"/>
+  <x-admin.stat tone="comm" icon="clock" label="درخواست / پیشنهاد" :value="number_format($stats['pending'])"/>
+  <x-admin.stat tone="comm" icon="check" label="زمان‌بندی‌شده" :value="number_format($stats['scheduled'])"/>
   <x-admin.stat tone="comm" icon="users" label="کلاس‌های فعال در دسترس" :value="number_format($classroomCount)"/>
 </div>
 
