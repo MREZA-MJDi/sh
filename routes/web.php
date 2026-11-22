@@ -306,7 +306,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
         Route::get('/', [StudentDashboardController::class, 'index'])->name('dashboard');
         Route::get('/meetings', [StudentParentMeetingController::class, 'index'])->name('meetings.index');
         Route::get('/homework', [StudentDashboardController::class, 'homework'])->middleware('permission:homework.submit')->name('homework.index');
-        Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->middleware('permission:dashboard.view')->name('attendance');
+        Route::get('/attendance', [StudentDashboardController::class, 'attendance'])->middleware('permission:attendance.view.own')->name('attendance');
         Route::get('/results', [StudentDashboardController::class, 'results'])->middleware('permission:exams.view.own')->name('results');
         Route::get('/resources', [StudentDashboardController::class, 'resources'])->middleware('permission:resources.view.enrolled')->name('resources.index');
         Route::get('/library', [StudentDashboardController::class, 'library'])->middleware('permission:dashboard.view')->name('library');
