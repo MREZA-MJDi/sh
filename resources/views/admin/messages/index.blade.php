@@ -8,7 +8,7 @@
 @endphp
 <x-admin.page-head tone="comm" icon="msg" title="کارتابل پیام‌ها" desc="مدیریت گفت‌وگوها، پاسخ‌ها و ارتباط مستقیم کاربران">
  @if(auth()->user()->hasPermissionTo('announcements.manage'))
-  <x-admin.btn variant="line" icon="megaphone" :href="route('admin.announcements.index')">مدیریت اطلاعیه‌های عمومی</x-admin.btn>
+  <x-admin.btn variant="line" icon="bell" :href="route('admin.announcements.index')">مدیریت اطلاعیه‌های عمومی</x-admin.btn>
  @endif
  @if(auth()->user()->hasPermissionTo('notifications.manage'))
   <x-admin.btn icon="bell" :href="route('admin.internal-notifications.index')">اعلان درون‌پنلی</x-admin.btn>
