@@ -157,6 +157,9 @@ final class ParentMeetingWorkflowTest extends TestCase
 
     public function test_teacher_can_complete_a_scheduled_meeting_without_resubmitting_dates(): void
     {
+        Notification::fake();
+
+        $admin = $this->userWithRole('admin');
         $teacher = $this->userWithRole('teacher');
         $student = $this->userWithRole('student');
         $guardian = $this->userWithRole('parent');
@@ -187,6 +190,7 @@ final class ParentMeetingWorkflowTest extends TestCase
             'status' => 'completed',
             'responded_by' => $teacher->id,
         ]);
+        Notification::assertSentTo($admin, ParentMeetingNotification::class);
     }
 
     public function test_teacher_can_decline_without_a_date_and_cannot_reopen_a_declined_meeting(): void
