@@ -16,7 +16,7 @@
     </section>
     <section class="c"><div class="parent-section-heading"><div><h3>نتایج قابل مشاهده</h3><p>{{ $results->total() }} نتیجه</p></div></div>
         @forelse (($results ?? collect()) as $result)
-            <div class="row"><div>{{ $result->exam?->title }}<small>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name }} · {{ $result->created_at?->format('Y/m/d') }}</small></div>
+            <div class="row"><div>{{ $result->exam?->title }}<small>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name }} · {{ data_get($resultDates ?? [], $result->id, '—') }}</small></div>
                 <i class="bd pk">{{ $result->score }} از {{ $result->max_score }}</i>
             </div>
         @empty
