@@ -18,6 +18,19 @@
   @endif
 </x-admin.page-head>
 
+<section class="adm-user-guide" data-tone="users">
+  <span class="adm-user-guide-icon"><x-admin.icon :name="$role === 'student' ? 'user' : ($role === 'teacher' ? 'teacher' : 'family')"/></span>
+  <div>
+    @if($role === 'student')
+      <b>پرونده آموزشی دانش‌آموزان</b><small>با نام، شماره تماس، پایه یا کلاس جستجو کن؛ از کارت هر دانش‌آموز برای مشاهده ارتباطات و وضعیت آموزشی استفاده کن.</small>
+    @elseif($role === 'teacher')
+      <b>مدرسان و مسئولیت‌های آموزشی</b><small>اطلاعات حساب و تعداد دوره‌های تخصیص‌یافته را بررسی کن؛ دسترسی هر مدرس به کلاس‌ها از بخش گروه‌های آموزشی مدیریت می‌شود.</small>
+    @else
+      <b>اولیا و ارتباط با فرزندان</b><small>هنگام ثبت ولی، فرزند یا فرزندان مرتبط را انتخاب کن تا ارتباط در پرونده آموزشی ثبت شود.</small>
+    @endif
+  </div>
+</section>
+
 <div class="adm-stats">
   <x-admin.stat tone="users" icon="users" label="کل نتایج" :value="number_format($users->total())"/>
   <x-admin.stat tone="users" icon="check" label="حساب‌های فعال" :value="number_format($activeCount)"/>
