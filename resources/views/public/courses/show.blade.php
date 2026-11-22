@@ -224,8 +224,7 @@
                                         <div class="lesson-list">
                                             @foreach($sectionLessons as $lessonIndex => $lesson)
                                                 @php
-                                                    // Free and paid course lessons are available only after an active enrollment.
-                                                    // Free enrollment is immediate and does not start a payment flow.
+                                                    // Active students can access published free courses directly; paid courses require active enrollment.
                                                     $isUnlocked = (bool) $hasCourseAccess;
                                                 @endphp
                                                 <div class="lesson-row {{ $isUnlocked ? 'is-unlocked' : 'is-locked' }}">
@@ -391,8 +390,6 @@
 
             @if ($hasCourseAccess)
                 <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
-            @elseif (auth()->check() && auth()->user()->hasRole('student') && $course->type === 'free')
-                <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">شروع یادگیری رایگان</a>
             @elseif ($course->type === 'paid')
                 <form method="POST" action="{{ route('public.cart.add', $course) }}">
                     @csrf
