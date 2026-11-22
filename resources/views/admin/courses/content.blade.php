@@ -27,7 +27,7 @@
 <section class="adm-course-workspace" data-tone="edu">
   <div class="adm-course-workspace-copy">
     <div class="adm-course-workspace-status">
-      <x-admin.badge :tone="$course->status === 'published' ? 'ok' : 'warn'">{{ $course->status === 'published' ? 'دوره منتشر شده' : 'دوره هنوز پیش‌نویس است' }}</x-admin.badge>
+      <x-admin.badge :tone="$course->status === 'published' ? 'ok' : ($course->status === 'archived' ? 'mute' : 'warn')">{{ ['published' => 'دوره منتشر شده', 'draft' => 'دوره در پیش‌نویس', 'archived' => 'دوره بایگانی شده'][$course->status] ?? 'وضعیت نامشخص' }}</x-admin.badge>
       <span>{{ $course->grade ?: 'پایه تعیین نشده' }} · {{ $course->subject ?: 'موضوع ثبت نشده' }}</span>
     </div>
     <h2>محتوای آموزشی این دوره</h2>
