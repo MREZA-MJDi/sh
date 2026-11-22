@@ -16,7 +16,7 @@
 <div class="adm-actions" style="margin-bottom:18px">
   <x-admin.btn icon="file" :href="route('admin.seo.articles.index')">مدیریت مقاله‌ها</x-admin.btn>
   <x-admin.btn variant="line" icon="file" :href="route('admin.seo.banners.index')">مدیریت بنرها</x-admin.btn>
-  <x-admin.btn variant="line" icon="star" :href="route('admin.seo.testimonials.index')">نظرات صفحه اصلی</x-admin.btn>
+  <x-admin.btn variant="line" icon="check" :href="route('admin.seo.testimonials.index')">نظرات صفحه اصلی</x-admin.btn>
   <x-admin.btn variant="line" icon="link" :href="route('seo.robots')">مشاهده robots.txt</x-admin.btn>
 </div>
 
