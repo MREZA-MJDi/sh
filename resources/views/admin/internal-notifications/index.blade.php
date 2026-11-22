@@ -97,16 +97,17 @@
         <tbody>
           @foreach($broadcasts as $broadcast)
             <tr>
-              <td><b>{{ $broadcast['title'] }}</b><small>{{ \Illuminate\Support\Str::limit($broadcast['message'], 100) }}</small></td>
-              <td>{{ $audienceLabels[$broadcast['audience']] ?? 'کاربران' }}</td>
-              <td>{{ number_format($broadcast['recipients']) }}</td>
-              <td><span class="adm-notice-read-rate">{{ number_format($broadcast['read_count']) }} خوانده‌شده</span></td>
-              <td>{{ \App\Support\PersianDate::format($broadcast['created_at'], 'Y/m/d H:i') }}</td>
+              <td><b>{{ $broadcast->title }}</b><small>{{ \Illuminate\Support\Str::limit($broadcast->message, 100) }}</small></td>
+              <td>{{ $audienceLabels[$broadcast->audience] ?? 'کاربران' }}</td>
+              <td>{{ number_format($broadcast->recipient_count) }}</td>
+              <td><span class="adm-notice-read-rate">{{ number_format($broadcast->read_count) }} خوانده‌شده</span></td>
+              <td>{{ \App\Support\PersianDate::format($broadcast->created_at, 'Y/m/d H:i') }}</td>
             </tr>
           @endforeach
         </tbody>
       </table>
     </div>
+    <footer class="adm-panel-foot">{{ $broadcasts->links() }}</footer>
   @else
     <div class="adm-queue-empty"><x-admin.icon name="bell"/><b>هنوز اعلانی از این بخش ارسال نشده</b><span>بعد از اولین ارسال، گزارش تعداد گیرندگان و خوانده‌شدن اینجا ثبت می‌شود.</span></div>
   @endif
