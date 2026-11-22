@@ -50,7 +50,7 @@
 </section>
 
 <div class="adm-stats">
-  <x-admin.stat tone="edu" icon="calendar" label="همه جلسه‌ها" :value="number_format($stats['total'])"/>
+  <x-admin.stat tone="edu" icon="cal" label="همه جلسه‌ها" :value="number_format($stats['total'])"/>
   <x-admin.stat tone="edu" icon="clock" label="جلسه‌های پیش‌رو" :value="number_format($stats['upcoming'])"/>
   <x-admin.stat tone="edu" icon="check" label="برگزارشده" :value="number_format($stats['completed'])"/>
   <x-admin.stat tone="edu" icon="users" label="دانش‌آموزان کلاس" :value="number_format($classroom->students_count)"/>
