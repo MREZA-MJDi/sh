@@ -23,7 +23,7 @@ return [
         ]],
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
             ['label' => 'کارتابل پیام‌ها', 'url' => 'admin/messages', 'icon' => 'msg'],
-            ['label' => 'اطلاعیه‌های عمومی', 'url' => 'admin/announcements', 'icon' => 'megaphone'],
+            ['label' => 'اطلاعیه‌های عمومی', 'url' => 'admin/announcements', 'icon' => 'bell'],
             ['label' => 'اعلان‌های درون‌پنلی', 'url' => 'admin/internal-notifications', 'icon' => 'bell'],
         ]],
         ['label' => 'ثبت‌نام و فروش', 'tone' => 'shop', 'items' => [
