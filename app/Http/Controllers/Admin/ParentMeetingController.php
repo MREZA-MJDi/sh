@@ -140,6 +140,19 @@ final class ParentMeetingController extends Controller
             'status' => $isTeacher ? 'proposed' : 'scheduled',
         ]);
 
+        if ($isTeacher) {
+            User::query()
+                ->where('is_active', true)
+                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+                ->orderBy('id')
+                ->chunkById(100, fn ($admins) => $admins->each(
+                    fn (User $admin) => $admin->notify(new ParentMeetingNotification(
+                        $meeting,
+                        'مدرس پیشنهاد جلسه جدیدی برای بررسی ثبت کرده است.'
+                    ))
+                ));
+        }
+
         $guardian->notify(new ParentMeetingNotification($meeting, $isTeacher
             ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی فرزند پیشنهاد جلسه ثبت کرده است.'
             : 'جلسه‌ای برای شما و فرزندتان زمان‌بندی شده است.'));
@@ -185,10 +198,14 @@ final class ParentMeetingController extends Controller
             'responded_at' => now(),
         ]);
 
-        $record->loadMissing(['guardian', 'student']);
+        $record->loadMissing(['guardian', 'student', 'classroom.teacher']);
         $notification = new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.');
         $record->guardian?->notify($notification);
         $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
+        $record->classroom?->teacher?->notify(new ParentMeetingNotification(
+            $record,
+            'وضعیت جلسه یکی از دانش‌آموزان کلاس شما تغییر کرد.'
+        ));
 
         return back()->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }
