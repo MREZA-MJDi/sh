@@ -35,7 +35,9 @@ final class DashboardController extends Controller
         $student = $request->user();
         $classroomIds = $access->activeClassroomIds($student);
         $now = now();
-        [$jalaliYear, $jalaliMonth] = JalaliDate::fromGregorian($now);
+        $currentJalali = JalaliDate::fromGregorian($now);
+        $jalaliYear = $currentJalali['year'];
+        $jalaliMonth = $currentJalali['month'];
         $start = JalaliDate::toGregorian($jalaliYear, $jalaliMonth, 1);
         $monthDays = JalaliDate::daysInMonth($jalaliYear, $jalaliMonth);
 
