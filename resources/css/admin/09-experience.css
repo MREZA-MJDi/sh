@@ -699,3 +699,22 @@
 .adm-enrollment-guide>div>b,.adm-payment-guide>div>b,.adm-resource-guide>div>b{font-size:13px}
 .adm-enrollment-guide>div>small,.adm-payment-guide>div>small,.adm-resource-guide>div>small{font-size:11px;color:var(--muted)}
 @media(max-width:760px){.adm-enrollment-guide,.adm-payment-guide,.adm-resource-guide{align-items:stretch;flex-direction:column}.adm-enrollment-guide>.adm-btn,.adm-payment-guide>.adm-btn{width:100%;justify-content:center}}
+
+/* Consistent interaction rhythm and subtle workspace motion. */
+.adm-btn{min-height:40px;transition:background .16s,filter .16s,border-color .16s,transform .16s,box-shadow .16s}
+.adm-btn:hover{transform:translateY(-1px)}
+.adm-btn:active{transform:translateY(0)}
+.adm-btn-sm{min-height:36px}
+.adm-btn-icon{width:40px;height:40px}
+.adm-btn-icon.adm-btn-sm{width:36px;height:36px;min-height:36px}
+.adm-input,.adm-select{min-height:40px}
+.adm-btn:focus-visible,.adm-nav-link:focus-visible,.adm-tab:focus-visible,.adm-communication-item:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+.adm-card,.adm-work-item,.adm-communication-item,.adm-online-card{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.adm-card:hover,.adm-work-item:hover,.adm-communication-item:hover,.adm-online-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-pop)}
+.adm-reveal-pending{opacity:0;transform:translateY(12px)}
+.adm-reveal-visible{opacity:1;transform:translateY(0);transition:opacity .36s ease,transform .36s cubic-bezier(.2,.75,.25,1);transition-delay:var(--adm-reveal-delay,0ms)}
+@media(prefers-reduced-motion:reduce){
+  .adm-btn,.adm-card,.adm-work-item,.adm-communication-item,.adm-online-card,.adm-reveal-visible{transition:none!important}
+  .adm-btn:hover,.adm-card:hover,.adm-work-item:hover,.adm-communication-item:hover,.adm-online-card:hover{transform:none!important}
+  .adm-reveal-pending{opacity:1;transform:none}
+}
