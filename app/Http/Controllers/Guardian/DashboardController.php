@@ -46,7 +46,11 @@ final class DashboardController extends Controller
             'avg' => $averageExamScore !== null ? round((float) $averageExamScore, 1) : '—',
             'avg_note' => $averageExamScore !== null
                 ? 'میانگین همه نتایج قابل مشاهده'
-                : (! $data['selected_child'] ? 'دانش‌آموزی به حساب متصل نشده است' : 'هنوز نمره‌ای ثبت نشده'),
+                : (! $data['selected_child']
+                    ? 'دانش‌آموزی به حساب متصل نشده است'
+                    : (! $guardian->hasPermissionTo('exams.view.children')
+                        ? 'مجوز مشاهده نتایج فعال نیست'
+                        : 'هنوز نمره‌ای ثبت نشده')),
             'open_homework' => $data['pending_homework_count'] !== null ? (int) $data['pending_homework_count'] : '—',
             'open_homework_note' => $data['pending_homework_count'] !== null
                 ? 'تکلیف بدون ارسال'
