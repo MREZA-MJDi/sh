@@ -4,102 +4,115 @@
 @section('content')
 @php
   $featureLabels = [
-    'recorded_video' => 'ویدیوی ضبط‌شده',
-    'live_class' => 'کلاس آنلاین',
-    'resources' => 'منابع آموزشی',
+    'recorded_video' => 'ویدیوهای ضبط‌شده',
+    'live_class' => 'جلسات آنلاین',
+    'resources' => 'جزوه و منابع',
     'assignments' => 'تکلیف و تمرین',
     'exams' => 'آزمون و کوییز',
-    'projects' => 'پروژه و ارزیابی مرحله‌ای',
+    'projects' => 'پروژه و ارزیابی',
   ];
-  $features = [];
-  foreach ($featureLabels as $key => $label) {
-    $features[$key] = $course->featureEnabled($key);
-  }
+  $enabledFeatures = collect($featureLabels)->filter(fn ($label, $key) => $course->featureEnabled($key));
   $lessonCount = $course->sections->sum(fn ($section) => $section->lessons->count());
+  $publishedLessons = $course->sections->sum(fn ($section) => $section->lessons->where('status', 'published')->count());
 @endphp
 
-<x-admin.page-head tone="edu" icon="book" :title="'محتوای دوره: '.$course->title" desc="ساختار واقعی دوره، فصل‌ها، درس‌ها و گروه‌های آموزشی"
-  :back-url="route('admin.courses.index')" back-label="دوره‌ها">
-  <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن بخش جدید</x-admin.btn>
-  <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', $course->slug)" target="_blank">مشاهده صفحه عمومی</x-admin.btn>
+<x-admin.page-head tone="edu" icon="book" :title="$course->title" desc="ساختار آموزشی دوره را مدیریت کن؛ فصل و درس اضافه کن و کلاس‌های مرتبط را ببین."
+  :back-url="route('admin.courses.index')" back-label="همه دوره‌ها">
+  <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش دانش‌آموز</x-admin.btn>
+  @unless($teacherView)
+    <x-admin.btn icon="edit" :href="route('admin.courses.edit', $course)">ویرایش مشخصات دوره</x-admin.btn>
+  @endunless
 </x-admin.page-head>
 
-<div class="adm-stats">
-  <x-admin.stat tone="edu" icon="cls" label="فصل‌ها" :value="number_format($course->sections->count())" :hint="number_format($lessonCount).' درس'"/>
-  <x-admin.stat tone="edu" icon="users" label="گروه‌های فعال" :value="number_format($course->active_classrooms_count)" hint="کلاس‌های متصل به این دوره"/>
-  <x-admin.stat tone="shop" icon="lock" label="ثبت‌نام معتبر" :value="number_format($course->active_enrollments_count)" hint="مجوزهای فعال دوره"/>
-  <x-admin.stat tone="edu" icon="calendar" label="جلسات زمان‌بندی‌شده" :value="number_format($course->classrooms->sum('sessions_count'))" hint="در تمام گروه‌ها"/>
-</div>
+<section class="adm-course-workspace" data-tone="edu">
+  <div class="adm-course-workspace-copy">
+    <div class="adm-course-workspace-status">
+      <x-admin.badge :tone="$course->status === 'published' ? 'ok' : 'warn'">{{ $course->status === 'published' ? 'دوره منتشر شده' : 'دوره هنوز پیش‌نویس است' }}</x-admin.badge>
+      <span>{{ $course->grade ?: 'پایه تعیین نشده' }} · {{ $course->subject ?: 'موضوع ثبت نشده' }}</span>
+    </div>
+    <h2>محتوای آموزشی این دوره</h2>
+    <p>از فصل‌ها شروع کن؛ داخل هر فصل درس‌ها را به ترتیب دانش‌آموز بچین. تغییرات این بخش مستقیماً در ساختار دوره اعمال می‌شوند.</p>
+  </div>
+  <div class="adm-course-workspace-stats">
+    <div><strong>{{ number_format($course->sections->count()) }}</strong><span>فصل</span></div>
+    <div><strong>{{ number_format($lessonCount) }}</strong><span>درس</span></div>
+    <div><strong>{{ number_format($publishedLessons) }}</strong><span>درس منتشرشده</span></div>
+  </div>
+</section>
 
-<div class="adm-split">
-  <section class="adm-stack" data-tone="edu" aria-label="ساختار آموزشی دوره">
-    <x-admin.panel title="امکانات فعال این دوره" desc="امکانات از تنظیمات اصلی دوره کنترل می‌شوند؛ اینجا فقط وضعیت واقعی آن‌ها نمایش داده می‌شود." flush>
-      <div class="adm-side-list">
+<div class="adm-course-content-layout">
+  <main class="adm-course-content-main">
+    @include('admin.courses.partials.curriculum')
+  </main>
+
+  <aside class="adm-course-content-aside">
+    <section class="adm-course-side-card" data-tone="edu">
+      <div class="adm-course-side-heading">
+        <span class="adm-course-side-icon"><x-admin.icon name="users"/></span>
+        <div><h3>کلاس‌های این دوره</h3><p>گروه‌هایی که این محتوا را دریافت می‌کنند.</p></div>
+      </div>
+      <div class="adm-course-class-list">
+        @forelse($course->classrooms as $classroom)
+          <article class="adm-course-class-item">
+            <div class="adm-course-class-top">
+              <b>{{ $classroom->name }}</b>
+              <x-admin.badge :tone="$classroom->status === 'active' ? 'ok' : 'mute'">{{ $classroom->status === 'active' ? 'فعال' : 'متوقف' }}</x-admin.badge>
+            </div>
+            <small>{{ $classroom->teacher?->name ?? 'مدرس تعیین نشده' }}</small>
+            <div class="adm-course-class-facts">
+              <span>{{ number_format($classroom->students_count) }} دانش‌آموز</span>
+              <span>{{ number_format($classroom->sessions_count) }} جلسه</span>
+            </div>
+            <a class="adm-course-class-link" href="{{ route('admin.classes.sessions.index', $classroom) }}">دیدن برنامه کلاس <x-admin.icon name="chev"/></a>
+          </article>
+        @empty
+          <div class="adm-course-side-empty">
+            <x-admin.icon name="users"/>
+            <b>هنوز کلاسی به این دوره وصل نشده</b>
+            <p>برای برنامه‌ریزی جلسه و حضور و غیاب، ابتدا یک گروه آموزشی بساز.</p>
+            @unless($teacherView)
+              <a class="adm-btn adm-btn-primary adm-btn-sm" href="{{ route('admin.courses.edit', $course) }}">ساخت کلاس</a>
+            @endunless
+          </div>
+        @endforelse
+      </div>
+      <div class="adm-course-side-footer">
+        <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.classes.index', ['course_id' => $course->id]) }}">همه کلاس‌ها</a>
+      </div>
+    </section>
+
+    <section class="adm-course-side-card" data-tone="shop">
+      <div class="adm-course-side-heading">
+        <span class="adm-course-side-icon"><x-admin.icon name="video"/></span>
+        <div><h3>ویدیوهای ضبط‌شده</h3><p>فایل‌های دوره و وضعیت آماده‌سازی آن‌ها.</p></div>
+      </div>
+      <p class="adm-course-side-description">برای بارگذاری فایل ویدیویی، به صفحه ویرایش دوره برو. برای مرور همه ویدیوها از کتابخانه استفاده کن.</p>
+      <div class="adm-course-side-footer">
+        @unless($teacherView)
+          <a class="adm-btn adm-btn-primary adm-btn-sm" href="{{ route('admin.courses.edit', $course) }}">مدیریت ویدیوهای این دوره</a>
+        @endunless
+        <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.spotplayer.index') }}">کتابخانه ویدیوها</a>
+      </div>
+    </section>
+
+    <details class="adm-course-side-details">
+      <summary><span><b>امکانات فعال دوره</b><small>{{ $enabledFeatures->count() }} قابلیت فعال</small></span><x-admin.icon name="chev"/></summary>
+      <div class="adm-course-feature-list">
         @foreach($featureLabels as $key => $label)
           <div>
-            <span class="adm-stat-ico" data-tone="{{ $features[$key] ? 'edu' : 'muted' }}" style="width:34px;height:34px;border-radius:10px">
-              <x-admin.icon :name="$features[$key] ? 'check' : 'minus'"/>
-            </span>
-            <div class="adm-grow"><b>{{ $label }}</b></div>
-            @if($features[$key])<x-admin.badge tone="ok">فعال</x-admin.badge>@else<x-admin.badge tone="warn">غیرفعال</x-admin.badge>@endif
+            <span>{{ $label }}</span>
+            @if($course->featureEnabled($key))
+              <x-admin.badge tone="ok">فعال</x-admin.badge>
+            @else
+              <x-admin.badge tone="mute">غیرفعال</x-admin.badge>
+            @endif
           </div>
         @endforeach
       </div>
-      <x-slot:footer>
-        <x-admin.btn variant="line" size="sm" :href="route('admin.courses.index')">ویرایش امکانات در تنظیمات دوره</x-admin.btn>
-      </x-slot:footer>
-    </x-admin.panel>
-
-    @include('admin.courses.partials.curriculum')
-
-  </section>
-
-  <aside class="adm-stack">
-    <x-admin.panel title="گروه‌های آموزشی / کلاس‌ها" desc="هر کلاس یک گروه اجرایی برای مدرس، دانش‌آموزان و جلسات خودش است." flush data-tone="edu">
-      <x-slot:actions><x-admin.btn size="sm" variant="line" :href="route('admin.classes.index')">مدیریت همه کلاس‌ها</x-admin.btn></x-slot:actions>
-      <div class="adm-side-list">
-        @forelse($course->classrooms as $classroom)
-          <div>
-            <span class="adm-stat-ico" data-tone="edu" style="width:38px;height:38px;border-radius:11px"><x-admin.icon name="users"/></span>
-            <div class="adm-grow">
-              <b>{{ $classroom->name }}</b>
-              <small class="adm-muted">{{ $classroom->teacher?->name ?? 'مدرس تعیین نشده' }} · {{ $classroom->students_count }} دانش‌آموز · {{ $classroom->sessions_count }} جلسه</small>
-              @if($classroom->skyroom_status === 'waiting_contract')
-                <small class="adm-muted">اتصال اتاق آنلاین در انتظار قرارداد</small>
-              @elseif($classroom->skyroom_status === 'ready')
-                <small class="adm-muted">اتاق اتاق آنلاین متصل است</small>
-              @endif
-            </div>
-            <x-admin.btn size="sm" variant="soft" :href="route('admin.classes.sessions.index', $classroom)">جلسات</x-admin.btn>
-          </div>
-        @empty
-          <x-admin.empty text="هنوز گروهی برای این دوره ساخته نشده است."/>
-        @endforelse
-      </div>
-    </x-admin.panel>
-
-    @unless($teacherView)
-    <x-admin.panel title="وضعیت پخش ویدیو" desc="وضعیت آماده‌سازی ویدیو جدا از ثبت‌نام دوره نمایش داده می‌شود." data-tone="shop">
-      <div class="adm-stack">
-        <div class="adm-row-between">
-          <b>سرویس قبلی</b>
-          <x-admin.badge :tone="in_array($course->integration_status, ['active', 'ready'], true) ? 'ok' : 'warn'">{{ $course->integration_status ?: 'ثبت نشده' }}</x-admin.badge>
-        </div>
-        @if($course->integration_note)<p class="adm-muted">{{ $course->integration_note }}</p>@endif
-        <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.index')">تنظیمات پخش ویدیو</x-admin.btn>
-        <div class="adm-divider"></div>
-        <p class="adm-muted">مدیریت برنامه و اجرای جلسات از مسیر مستقل کلاس‌ها انجام می‌شود؛ این صفحه روی ساختار دوره، گروه‌های آموزشی و محتوای آموزشی متمرکز است.</p>
-        <x-admin.btn size="sm" variant="line" :href="route('admin.quiz24.index')">مدیریت Quiz24 و همگام‌سازی نتایج</x-admin.btn>
-      </div>
-    </x-admin.panel>
-    @endunless
-
-    <x-admin.panel title="فروش دوره" desc="قیمت فعلی دوره در صفحه خرید استفاده می‌شود." data-tone="shop">
-      <b class="adm-price">{{ $course->type === 'free' ? 'رایگان' : number_format((int) $course->price).' تومان' }}</b>
-      <p class="adm-muted">در این نسخه، فروش در سطح خود دوره انجام می‌شود. بسته‌های دارای مجوزهای جزئی باید به مدل مستقل بسته و مجوز دسترسی متصل شوند؛ این صفحه دیگر پلن‌های نمایشی نشان نمی‌دهد.</p>
-      <x-admin.btn size="sm" variant="line" :href="route('admin.courses.index')">ویرایش قیمت و نوع فروش</x-admin.btn>
-    </x-admin.panel>
+      @unless($teacherView)
+        <a class="adm-course-side-edit" href="{{ route('admin.courses.edit', $course) }}">تغییر امکانات دوره</a>
+      @endunless
+    </details>
   </aside>
 </div>
 @endsection
-
