@@ -21,7 +21,7 @@ final class NotificationController extends Controller
             $isLocalPath = str_starts_with($target, '/')
                 && ! str_starts_with($target, '//')
                 && ! str_starts_with($decodedTarget, '//')
-                && ! str_contains($decodedTarget, '\\\\')
+                && ! str_contains($decodedTarget, '\\')
                 && ! preg_match('/[\\r\\n]/', $target);
 
             if ($isLocalAbsoluteUrl || $isLocalPath) {
