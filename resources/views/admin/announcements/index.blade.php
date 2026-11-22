@@ -28,7 +28,7 @@
 @endif
 
 <section class="adm-notice-intro" data-tone="shop">
-  <span class="adm-notice-intro-icon"><x-admin.icon name="megaphone"/></span>
+  <span class="adm-notice-intro-icon"><x-admin.icon name="bell"/></span>
   <div><b>این بخش برای اطلاع‌رسانی عمومی است</b><p>اطلاعیه‌های منتشرشده در فید سایت و پنل‌های کاربران نمایش داده می‌شوند. برای پیام فوری به زنگوله یک گروه مشخص، از «اعلان‌های درون‌پنلی» استفاده کن.</p></div>
   @if(auth()->user()?->hasPermissionTo('notifications.manage'))
     <x-admin.btn size="sm" variant="line" icon="bell" :href="route('admin.internal-notifications.index')">اعلان درون‌پنلی</x-admin.btn>
