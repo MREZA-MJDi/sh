@@ -7,7 +7,7 @@
     $statuses = ['published' => ['ok', 'منتشرشده'], 'draft' => ['warn', 'پیش‌نویس']];
 @endphp
 
-<x-admin.page-head tone="comm" icon="megaphone" title="اطلاعیه‌های عمومی" desc="انتشار اطلاعیه در سایت و فید اطلاع‌رسانی کاربران؛ پیام درون‌پنلی از بخش جداگانه ارسال می‌شود.">
+<x-admin.page-head tone="comm" icon="bell" title="اطلاعیه‌های عمومی" desc="انتشار اطلاعیه در سایت و فید اطلاع‌رسانی کاربران؛ پیام درون‌پنلی از بخش جداگانه ارسال می‌شود.">
     @if(auth()->user()?->hasPermissionTo('announcements.manage'))
     <x-admin.btn icon="plus" data-modal-open="announcement-modal">اعلان جدید</x-admin.btn>
     @endif
