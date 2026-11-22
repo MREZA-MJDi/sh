@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Message;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class StudentPortalExperienceTest extends TestCase
@@ -79,6 +81,60 @@ final class StudentPortalExperienceTest extends TestCase
     /**
      * @param array<string, mixed> $attributes
      */
+
+    public function test_student_can_send_a_message_to_an_available_school_admin(): void
+    {
+        Notification::fake();
+
+        $student = $this->userWithRole('student');
+        $admin = $this->userWithRole('admin');
+
+        $response = $this->actingAs($student)->post(route('student.messages.store'), [
+            'student_id' => $student->id,
+            'recipient_id' => $admin->id,
+            'subject' => 'پرسش درباره تکلیف',
+            'body' => 'لطفاً درباره مهلت ارسال تکلیف راهنمایی کنید.',
+        ]);
+
+        $message = Message::query()->where('sender_id', $student->id)->sole();
+
+        $response->assertRedirect(route('student.messages.show', $message))
+            ->assertSessionHas('status', 'پیام شما با موفقیت ارسال شد.');
+
+        $this->assertDatabaseHas('messages', [
+            'id' => $message->id,
+            'sender_id' => $student->id,
+            'recipient_id' => $admin->id,
+            'student_id' => $student->id,
+            'parent_id' => null,
+            'subject' => 'پرسش درباره تکلیف',
+            'status' => 'open',
+        ]);
+
+        Notification::assertSentTo($admin, \\App\\Notifications\\MessageActivityNotification::class);
+    }
+
+    public function test_student_cannot_send_a_message_to_an_unrelated_teacher(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+
+        $this->actingAs($student)
+            ->post(route('student.messages.store'), [
+                'student_id' => $student->id,
+                'recipient_id' => $teacher->id,
+                'subject' => 'پرسش درباره تکلیف',
+                'body' => 'لطفاً درباره مهلت ارسال تکلیف راهنمایی کنید.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('messages', [
+            'sender_id' => $student->id,
+            'recipient_id' => $teacher->id,
+            'subject' => 'پرسش درباره تکلیف',
+        ]);
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);
