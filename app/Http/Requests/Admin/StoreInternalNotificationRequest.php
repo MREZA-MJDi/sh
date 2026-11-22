@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Http\\Requests\\Admin;
+namespace App\Http\Requests\Admin;
 
-use Illuminate\\Foundation\\Http\\FormRequest;
-use Illuminate\\Validation\\Rule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class StoreInternalNotificationRequest extends FormRequest
 {
@@ -18,7 +18,7 @@ final class StoreInternalNotificationRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'message' => ['required', 'string', 'max:1000'],
             'audience' => ['required', Rule::in(['all', 'students', 'parents', 'teachers', 'admins'])],
-            'url' => ['nullable', 'string', 'max:2048', function (string $attribute, mixed $value, \\Closure $fail): void {
+            'url' => ['nullable', 'string', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
                 if ($value === null || trim((string) $value) === '') {
                     return;
                 }
