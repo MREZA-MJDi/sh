@@ -20,6 +20,24 @@
   <div><span>انتشار و دسترسی فایل</span><b>قبل از انتشار، مخاطب و سطح دسترسی هر منبع را مشخص کن.</b><small>{{ $teacherView ? 'منابع این صفحه فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته شماست.' : 'منبع می‌تواند عمومی، مخصوص کاربران واردشده یا محدود به ثبت‌نام‌شده‌ها باشد؛ رویدادهای دریافت هم ثبت می‌شوند.' }}</small></div>
 </section>
 
+<div class="adm-stats">
+  <x-admin.stat tone="shop" icon="lib" label="منابع مطابق فیلتر" :value="number_format($resourceCount)"/>
+  <x-admin.stat tone="shop" icon="check" label="منتشرشده" :value="number_format($publishedResourceCount)"/>
+  <x-admin.stat tone="shop" icon="clock" label="خریدهای منتظر بررسی" :value="number_format($pendingPurchaseCount)"/>
+  <x-admin.stat tone="shop" icon="users" label="کلاس‌های در دسترس" :value="number_format($classrooms->count())"/>
+</div>
+
+<x-admin.panel title="پیدا کردن منبع" data-tone="shop">
+  <form method="GET" action="{{ route('admin.resources.index') }}" class="adm-toolbar adm-resource-filters">
+    <label class="adm-label">جستجو <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="عنوان یا توضیحات فایل…"></label>
+    <label class="adm-label">دوره <select class="adm-select" name="course_id"><option value="">همه دوره‌ها</option>@foreach($courses as $course)<option value="{{ $course->id }}" @selected((string)($filters['course_id'] ?? '') === (string)$course->id)>{{ $course->title }}</option>@endforeach</select></label>
+    <label class="adm-label">کلاس <select class="adm-select" name="classroom_id"><option value="">همه کلاس‌ها</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected((string)($filters['classroom_id'] ?? '') === (string)$classroom->id)>{{ $classroom->name }}</option>@endforeach</select></label>
+    <label class="adm-label">وضعیت <select class="adm-select" name="status"><option value="">همه</option>@foreach($statusOptions as $key => $label)<option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $label }}</option>@endforeach</select></label>
+    <label class="adm-label">مخاطب <select class="adm-select" name="visibility"><option value="">همه مخاطبان</option>@foreach($visibilityOptions as $key => $label)<option value="{{ $key }}" @selected(($filters['visibility'] ?? '') === $key)>{{ $label }}</option>@endforeach</select></label>
+    <div class="adm-toolbar-end"><x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn><x-admin.btn size="sm" variant="line" :href="route('admin.resources.index')">پاک‌کردن</x-admin.btn></div>
+  </form>
+</x-admin.panel>
+
 <x-admin.panel flush>
   <div class="adm-grid adm-cols-2">
     @forelse($resources as $resource)
