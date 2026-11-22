@@ -56,7 +56,7 @@
     @endif
     @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
       @if(($upcomingSessions ?? collect())->isNotEmpty())
-        <a class="adm-work-item" data-tone="edu" href="{{ route('admin.online-classes.index') }}"><span><x-admin.icon name="calendar"/></span><div><b>جلسات پیش‌رو</b><small>جلسات برنامه‌ریزی‌شده تا ۷ روز آینده؛ زمان و لینک ورود را بررسی کن</small></div><strong>{{ number_format($upcomingSessions->count()) }}</strong></a>
+        <a class="adm-work-item" data-tone="edu" href="{{ route('admin.online-classes.index') }}"><span><x-admin.icon name="cal"/></span><div><b>جلسات پیش‌رو</b><small>جلسات برنامه‌ریزی‌شده تا ۷ روز آینده؛ زمان و لینک ورود را بررسی کن</small></div><strong>{{ number_format($upcomingSessions->count()) }}</strong></a>
       @endif
     @endcanany
     @can('homework.grade')
@@ -83,7 +83,7 @@
     <div class="adm-action-grid">
       @foreach($upcomingSessions as $session)
         <a class="adm-action-tile" href="{{ route('admin.classes.sessions.index', $session->classroom_id) }}">
-          <span><x-admin.icon name="calendar"/></span>
+          <span><x-admin.icon name="cal"/></span>
           <div><b>{{ $session->title }} · {{ $session->classroom?->name }}</b><small>{{ $session->starts_at?->translatedFormat('l j F، H:i') }}</small></div>
           <x-admin.icon name="chev"/>
         </a>
