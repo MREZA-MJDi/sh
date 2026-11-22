@@ -52,6 +52,9 @@ class ConsultationController extends Controller
         if (array_key_exists('scheduled_at', $data)) {
             $updates['scheduled_at'] = $data['scheduled_at'];
         }
+        if (array_key_exists('notes', $data)) {
+            $updates['notes'] = $data['notes'];
+        }
         $consultation->update($updates);
 
         return back()->with('success', 'وضعیت درخواست مشاوره به‌روزرسانی شد.');
