@@ -18,8 +18,8 @@
 </section>
 
 <div class="adm-stats">
-  <x-admin.stat tone="track" icon="file" label="کل تکالیف" :value="number_format($homeworkCount)" hint="در کلاس‌های مجاز"/>
-  <x-admin.stat tone="track" icon="clock" label="در انتظار بررسی" :value="number_format($pendingSubmissionCount)" hint="در این صفحه از پاسخ‌ها"/>
+  <x-admin.stat tone="track" icon="file" label="کل تکالیف" :value="number_format($homeworkCount)" hint="در کلاس‌های مجاز و فیلترشده"/>
+  <x-admin.stat tone="track" icon="clock" label="در انتظار بررسی" :value="number_format($pendingSubmissionCount)" hint="در کل پاسخ‌های فیلترشده"/>
   <x-admin.stat tone="edu" icon="check" label="بررسی‌شده" :value="number_format($reviewedSubmissionCount)" hint="در این صفحه از پاسخ‌ها"/>
   <x-admin.stat tone="users" icon="users" label="کلاس‌های در دسترس" :value="number_format($classrooms->count())" hint="امکان ساخت تکلیف"/>
 </div>
@@ -68,7 +68,7 @@
             </div>
             <div class="adm-work-item" data-tone="track">
               <span><x-admin.icon name="file"/></span>
-              <div><b>{{ number_format($homework->submissions_count) }} پاسخ دریافت‌شده</b><small>تعداد پاسخ‌های منتظر بررسی</small></div>
+              <div><b>{{ number_format($homework->submissions_count) }} پاسخ دریافت‌شده</b><small>پاسخ‌های منتظر بررسی</small></div>
               <strong>{{ number_format($homework->pending_submissions_count) }}</strong>
             </div>
             <div class="adm-actions">
