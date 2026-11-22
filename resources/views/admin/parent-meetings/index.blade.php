@@ -9,14 +9,14 @@
   $isTeacher = auth()->user()?->hasRole('teacher') ?? false;
 @endphp
 
-<x-admin.page-head tone="comm" icon="calendar" title="جلسات اولیا و مدرس" desc="هماهنگی گفت‌وگوی آموزشی با دانش‌آموز، ولی و مدرس">
+<x-admin.page-head tone="comm" icon="cal" title="جلسات اولیا و مدرس" desc="هماهنگی گفت‌وگوی آموزشی با دانش‌آموز، ولی و مدرس">
   <x-admin.btn icon="plus" data-modal-open="parent-meeting-modal">ثبت جلسه</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="comm" icon="calendar" label="کل جلسات" :value="number_format($meetings->total())"/>
-  <x-admin.stat tone="comm" icon="clock" label="درخواست / پیشنهاد" :value="number_format($meetings->getCollection()->whereIn('status', ['requested', 'proposed'])->count())"/>
-  <x-admin.stat tone="comm" icon="check" label="زمان‌بندی‌شده" :value="number_format($meetings->getCollection()->where('status', 'scheduled')->count())"/>
+  <x-admin.stat tone="comm" icon="cal" label="کل جلسات" :value="number_format($stats['total'])"/>
+  <x-admin.stat tone="comm" icon="clock" label="درخواست / پیشنهاد" :value="number_format($stats['pending'])"/>
+  <x-admin.stat tone="comm" icon="check" label="زمان‌بندی‌شده" :value="number_format($stats['scheduled'])"/>
   <x-admin.stat tone="comm" icon="users" label="کلاس‌های فعال در دسترس" :value="number_format($classroomCount)"/>
 </div>
 

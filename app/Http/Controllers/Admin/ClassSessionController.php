@@ -19,7 +19,10 @@ class ClassSessionController extends Controller
 {
     public function index(Request $request, int $classroom, ClassroomWorkspaceService $workspace): View
     {
-        $classroom = $workspace->queryFor($request->user())->with(['course:id,title', 'teacher:id,name'])->findOrFail($classroom);
+        $user = $request->user();
+        $teacherView = $workspace->isTeacher($user);
+        $canManage = $user->hasAnyPermission(['classes.manage', 'classes.manage.assigned']);
+        $classroom = $workspace->queryFor($user)->with(['course:id,title', 'teacher:id,name'])->withCount('students')->findOrFail($classroom);
 
         $timezone = config('app.timezone', 'Asia/Tehran');
         $dateInput = $request->query('date');
@@ -64,7 +67,7 @@ class ClassSessionController extends Controller
             ->orderBy('starts_at')
             ->first();
 
-        return view('admin.classes.sessions', compact('classroom', 'sessions', 'nextSession', 'calendar', 'selectedDate', 'daySessions', 'stats'));
+        return view('admin.classes.sessions', compact('classroom', 'sessions', 'nextSession', 'calendar', 'selectedDate', 'daySessions', 'stats', 'canManage', 'teacherView'));
     }
 
     public function store(SaveClassSessionRequest $request, int $classroom, ClassroomWorkspaceService $workspace): RedirectResponse

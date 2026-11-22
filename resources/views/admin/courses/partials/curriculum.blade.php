@@ -1,4 +1,4 @@
-<x-admin.panel title="۶. مدیریت فصل‌ها و متن درس‌ها" desc="ترتیب این بخش‌ها همان ترتیبی است که دانش‌آموز در صفحه دوره می‌بیند." flush data-tone="edu">
+<x-admin.panel id="course-curriculum" title="۶. مدیریت فصل‌ها و متن درس‌ها" desc="ترتیب این بخش‌ها همان ترتیبی است که دانش‌آموز در صفحه دوره می‌بیند." flush data-tone="edu">
   <div class="adm-curriculum">
     @forelse($course->sections as $section)
       <section class="adm-chapter">
@@ -39,7 +39,7 @@
     @endforelse
   </div>
   <x-slot:footer>
-    <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن فصل جدید</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن بخش جدید</x-admin.btn>
   </x-slot:footer>
 </x-admin.panel>
 

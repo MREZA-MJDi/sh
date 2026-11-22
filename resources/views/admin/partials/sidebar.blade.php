@@ -9,7 +9,7 @@
     <span><strong>آکادمی شیخان</strong><small>{{ $sidebarRole }}</small></span>
   </a>
   <button type="button" class="adm-sidebar-mini-toggle" data-admin-sidebar-mini-toggle aria-pressed="false" title="جمع یا باز کردن منو" aria-label="جمع یا باز کردن منو">
-    <x-admin.icon name="panel-left-close"/>
+    <x-admin.icon name="menu"/>
   </button>
 
   <nav class="adm-nav">

@@ -10,6 +10,10 @@
 <x-admin.page-head tone="shop" icon="card" title="پرداخت‌ها" desc="سوابق مالی واقعی و وضعیت تأیید؛ پرداخت بدون رسید معتبر یا پاسخ رسمی درگاه تأیید نمی‌شود">
   <x-admin.btn icon="plus" data-modal-open="pay-modal">ثبت رسید پرداخت دستی</x-admin.btn>
 </x-admin.page-head>
+<section class="adm-payment-guide" data-tone="shop">
+  <div><span>روند رسیدگی</span><b>ثبت رسید ← بررسی مدیر ← تأیید پرداخت ← فعال‌شدن مجوز دوره</b><small>تا قبل از تأیید، هیچ دسترسی آموزشی فعال نمی‌شود. وضعیت مجوز نهایی را در بخش ثبت‌نام‌ها و مجوزها ببین.</small></div>
+  <x-admin.btn size="sm" variant="line" icon="lock" :href="route('admin.enrollments.index')">مشاهده مجوزها</x-admin.btn>
+</section>
 <x-admin.panel data-tone="shop">
   <div role="status" aria-live="polite" style="padding:14px;border:1px solid var(--line);border-radius:12px">
     <b>درگاه آنلاین هنوز فعال نشده است</b>

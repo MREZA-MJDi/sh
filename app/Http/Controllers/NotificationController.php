@@ -17,7 +17,12 @@ final class NotificationController extends Controller
             $targetHost = parse_url($target, PHP_URL_HOST);
             $currentHost = parse_url(url('/'), PHP_URL_HOST);
             $isLocalAbsoluteUrl = is_string($targetHost) && $targetHost === $currentHost;
-            $isLocalPath = str_starts_with($target, '/') && ! str_starts_with($target, '//');
+            $decodedTarget = rawurldecode($target);
+            $isLocalPath = str_starts_with($target, '/')
+                && ! str_starts_with($target, '//')
+                && ! str_starts_with($decodedTarget, '//')
+                && ! str_contains($decodedTarget, '\\')
+                && ! preg_match('/[\\r\\n]/', $target);
 
             if ($isLocalAbsoluteUrl || $isLocalPath) {
                 if ($request->user()->hasRole('teacher') && ! $request->user()->hasRole('admin')) {

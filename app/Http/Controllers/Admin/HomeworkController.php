@@ -28,29 +28,43 @@ class HomeworkController extends Controller
         $user = $request->user();
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
 
-        $homeworks = Homework::query()
+        $term = trim((string) ($filters['q'] ?? ''));
+        $homeworkQuery = Homework::query()
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '>=', $date))
             ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('due_at', '<=', $date))
+            ->when($filters['classroom_id'] ?? null, fn ($query, $id) => $query->where('classroom_id', $id))
+            ->when($filters['homework_status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($term !== '', fn ($query) => $query->where(function ($search) use ($term): void {
+                $search->where('title', 'like', "%{$term}%")
+                    ->orWhereHas('classroom', fn ($classroom) => $classroom->where('name', 'like', "%{$term}%"));
+            }))
             ->with(['classroom', 'creator'])
             ->withCount([
                 'submissions',
-                'submissions as pending_submissions_count' => fn ($query) => $query->where('status', 'submitted'),
+                'submissions as pending_submissions_count' => fn ($query) => $query->whereIn('status', ['submitted', 'late']),
             ])
             ->when(
                 $workspace->isTeacher($user),
                 fn ($query) => $query->whereIn('classroom_id', $classroomIds)
-            )
-            ->latest()
-            ->paginate(12)->withQueryString();
+            );
+
+        $homeworkCount = (clone $homeworkQuery)->count();
+        $homeworks = (clone $homeworkQuery)->latest()->paginate(12)->withQueryString();
 
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $submissions = HomeworkSubmission::query()
+        $submissionsQuery = HomeworkSubmission::query()
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '>=', $date))
             ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '<=', $date))
+            ->when($filters['classroom_id'] ?? null, fn ($query, $id) => $query->whereHas('homework', fn ($homework) => $homework->where('classroom_id', $id)))
+            ->when($filters['submission_status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($term !== '', fn ($query) => $query->where(function ($search) use ($term): void {
+                $search->whereHas('homework', fn ($homework) => $homework->where('title', 'like', "%{$term}%"))
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$term}%"));
+            }))
             ->with(['homework.classroom', 'student', 'files'])
             ->when(
                 $workspace->isTeacher($user),
@@ -58,12 +72,16 @@ class HomeworkController extends Controller
                     'homework',
                     fn ($homeworkQuery) => $homeworkQuery->whereIn('classroom_id', $classroomIds)
                 )
-            )
+            );
+
+        $pendingSubmissionCount = (clone $submissionsQuery)->whereIn('status', ['submitted', 'late'])->count();
+        $reviewedSubmissionCount = (clone $submissionsQuery)->where('status', 'reviewed')->count();
+        $submissions = (clone $submissionsQuery)
             ->latest('submitted_at')
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();
 
-        return view('admin.homework.index', compact('homeworks', 'classrooms', 'submissions', 'filters'));
+        return view('admin.homework.index', compact('homeworks', 'classrooms', 'submissions', 'filters', 'homeworkCount', 'pendingSubmissionCount', 'reviewedSubmissionCount'));
     }
 
     public function store(

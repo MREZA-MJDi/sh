@@ -28,19 +28,27 @@ final class ParentMeetingController extends Controller
 
         $classroomCount = $classrooms->count();
 
-        $meetings = ParentMeeting::query()
-            ->when($selectedMeetingId > 0, fn (Builder $query) => $query->whereKey($selectedMeetingId))
+        $meetingsQuery = ParentMeeting::query()
             ->when($workspace->isTeacher($actor), fn (Builder $query) => $query->whereIn(
                 'classroom_id',
                 $workspace->queryFor($actor)->select('classrooms.id')
-            ))
+            ));
+
+        $stats = [
+            'total' => (clone $meetingsQuery)->count(),
+            'pending' => (clone $meetingsQuery)->whereIn('status', ['requested', 'proposed'])->count(),
+            'scheduled' => (clone $meetingsQuery)->where('status', 'scheduled')->count(),
+        ];
+
+        $meetings = (clone $meetingsQuery)
+            ->when($selectedMeetingId > 0, fn (Builder $query) => $query->whereKey($selectedMeetingId))
             ->with(['student:id,name', 'guardian:id,name', 'classroom:id,name', 'course:id,title', 'creator:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.parent-meetings.index', compact('classrooms', 'classroomCount', 'meetings'));
+        return view('admin.parent-meetings.index', compact('classrooms', 'classroomCount', 'meetings', 'stats'));
     }
 
     public function lookup(Request $request, ClassroomWorkspaceService $workspace): JsonResponse

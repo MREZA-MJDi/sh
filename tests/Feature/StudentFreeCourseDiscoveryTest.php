@@ -39,7 +39,9 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             ->get(route('student.courses.index'))
             ->assertOk()
             ->assertSeeText($course->title)
-            ->assertSeeText('ثبت‌نام رایگان و شروع')
+            ->assertSeeText('دسترسی فعال برای دانش‌آموزان')
+            ->assertSeeText('شروع یادگیری')
+            ->assertDontSeeText('ثبت‌نام رایگان و شروع')
             ->assertDontSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده');
     }
 
@@ -71,7 +73,7 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             ->exists());
     }
 
-    public function test_free_course_curriculum_preview_hides_lesson_content_until_enrollment(): void
+    public function test_logged_in_student_can_view_free_course_lesson_content_without_enrollment(): void
     {
         $teacher = $this->userWithRole('teacher');
         $course = $this->course($teacher, [
@@ -96,12 +98,13 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             'status' => 'published',
         ]);
 
-        $this->get(route('public.courses.show', $course->slug))
+        $this->actingAs($this->userWithRole('student'))
+            ->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSeeText('درس آزاد بدون قفل')
-            ->assertSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده')
-            ->assertSeeText('محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.')
-            ->assertDontSeeText('متن آموزشی عمومی دوره رایگان');
+            ->assertSeeText('متن آموزشی عمومی دوره رایگان')
+            ->assertDontSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده')
+            ->assertDontSeeText('محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.');
     }
 
     private function course(User $teacher, array $overrides = []): Course

@@ -29,9 +29,9 @@
         <x-admin.icon name="bell"/>
         @if($unreadNotificationCount > 0)<i class="adm-dot" aria-label="{{ number_format($unreadNotificationCount) }} اعلان خوانده‌نشده"></i>@endif
       </summary>
-      <div class="adm-menu-pop adm-notification-pop" aria-label="اعلان‌های خوانده‌نشده">
+      <div class="adm-menu-pop adm-notification-pop" aria-label="اعلان‌های درون‌پنلی خوانده‌نشده">
         <header class="adm-menu-pop-head">
-          <span>اعلان‌های خوانده‌نشده</span>
+          <span>اعلان‌های درون‌پنلی</span>
           <b class="adm-num">{{ number_format($unreadNotificationCount) }}</b>
         </header>
         @forelse($topbarNotifications as $notification)
@@ -51,6 +51,9 @@
             @csrf @method('PATCH')
             <button type="submit" class="adm-notification-read-all">خواندن همه اعلان‌ها</button>
           </form>
+        @endif
+        @if($topbarUser?->hasPermissionTo('notifications.manage'))
+          <a class="adm-notification-read-all" href="{{ route('admin.internal-notifications.index') }}">ارسال و مدیریت اعلان‌های درون‌پنلی</a>
         @endif
       </div>
     </details>

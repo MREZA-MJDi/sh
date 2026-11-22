@@ -17,14 +17,32 @@ use Illuminate\View\View;
 
 class LearningResourceController extends Controller
 {
-    public function index(ClassroomWorkspaceService $workspace): View
+    public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
-        $user = auth()->user();
+        $user = $request->user();
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'course_id' => ['nullable', 'integer'],
+            'classroom_id' => ['nullable', 'integer'],
+            'status' => ['nullable', 'in:draft,published,archived'],
+            'visibility' => ['nullable', 'in:public,authenticated,enrolled'],
+        ]);
+        $term = trim((string) ($filters['q'] ?? ''));
         $teacherView = $workspace->isTeacher($user);
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
 
-        $resourcesQuery = LearningResource::query()->with(['course', 'classroom', 'uploader'])->withCount('accessLogs');
+        $resourcesQuery = LearningResource::query()
+            ->with(['course', 'classroom', 'uploader'])
+            ->withCount('accessLogs')
+            ->when($filters['course_id'] ?? null, fn ($query, $id) => $query->where('course_id', $id))
+            ->when($filters['classroom_id'] ?? null, fn ($query, $id) => $query->where('classroom_id', $id))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($filters['visibility'] ?? null, fn ($query, $visibility) => $query->where('visibility', $visibility))
+            ->when($term !== '', fn ($query) => $query->where(function ($search) use ($term): void {
+                $search->where('title', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%");
+            }));
 
         if ($teacherView) {
             $resourcesQuery->where(function ($scope) use ($classroomIds, $courseIds): void {
@@ -46,7 +64,9 @@ class LearningResourceController extends Controller
             });
         }
 
-        $resources = $resourcesQuery->latest()->paginate(15)->withQueryString();
+        $resourceCount = (clone $resourcesQuery)->count();
+        $publishedResourceCount = (clone $resourcesQuery)->where('status', 'published')->count();
+        $resources = (clone $resourcesQuery)->latest()->paginate(15)->withQueryString();
 
         $purchasesQuery = ResourcePurchase::query()
             ->with(['resource:id,title', 'student:id,name'])
@@ -64,12 +84,23 @@ class LearningResourceController extends Controller
             });
         }
 
-        $purchases = $purchasesQuery->paginate(15, ['*'], 'purchases')->withQueryString();
+        $pendingPurchaseCount = (clone $purchasesQuery)->count();
+        $purchases = (clone $purchasesQuery)->paginate(15, ['*'], 'purchases')->withQueryString();
 
         $courses = $workspace->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
         $classrooms = $workspace->queryFor($user)->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.resources.index', compact('resources', 'purchases', 'courses', 'classrooms', 'teacherView'));
+        return view('admin.resources.index', compact(
+            'resources',
+            'purchases',
+            'courses',
+            'classrooms',
+            'teacherView',
+            'filters',
+            'resourceCount',
+            'publishedResourceCount',
+            'pendingPurchaseCount'
+        ));
     }
 
     public function store(

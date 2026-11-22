@@ -121,6 +121,7 @@ final class MediaLeakageSecurityTest extends TestCase
     public function test_expired_course_enrollment_cannot_download_learning_resource(): void
     {
         [$student, , $course, $classroom] = $this->makeCourseAndStudent();
+        $course->update(['type' => 'paid', 'price' => 100000]);
         $enrollment = CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
@@ -139,6 +140,7 @@ final class MediaLeakageSecurityTest extends TestCase
     public function test_suspended_enrollment_cannot_download_learning_resource(): void
     {
         [$student, , $course, $classroom] = $this->makeCourseAndStudent();
+        $course->update(['type' => 'paid', 'price' => 100000]);
         CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)

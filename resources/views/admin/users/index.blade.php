@@ -18,15 +18,47 @@
   @endif
 </x-admin.page-head>
 
+<section class="adm-user-guide" data-tone="users">
+  <span class="adm-user-guide-icon"><x-admin.icon :name="$role === 'student' ? 'user' : ($role === 'teacher' ? 'teacher' : 'family')"/></span>
+  <div>
+    @if($role === 'student')
+      <b>پرونده آموزشی دانش‌آموزان</b><small>با نام، شماره تماس، پایه یا کلاس جستجو کن؛ از کارت هر دانش‌آموز برای مشاهده ارتباطات و وضعیت آموزشی استفاده کن.</small>
+    @elseif($role === 'teacher')
+      <b>مدرسان و مسئولیت‌های آموزشی</b><small>اطلاعات حساب و برنامه‌های آموزشی مرتبط را بررسی کن؛ دسترسی هر مدرس به کلاس‌ها از بخش گروه‌های آموزشی مدیریت می‌شود.</small>
+    @else
+      <b>اولیا و ارتباط با فرزندان</b><small>هنگام ثبت ولی، فرزند یا فرزندان مرتبط را انتخاب کن تا ارتباط در پرونده آموزشی ثبت شود.</small>
+    @endif
+  </div>
+</section>
+
 <div class="adm-stats">
-  <x-admin.stat tone="users" icon="users" label="کل حساب‌ها" :value="number_format($users->total())"/>
-  <x-admin.stat tone="users" icon="check" label="فعال" :value="number_format($users->getCollection()->where('is_active', true)->count())" hint="در صفحه جاری"/>
-  <x-admin.stat tone="users" icon="pause" label="غیرفعال" :value="number_format($users->getCollection()->where('is_active', false)->count())" hint="در صفحه جاری"/>
+  <x-admin.stat tone="users" icon="users" label="کل نتایج" :value="number_format($users->total())"/>
+  <x-admin.stat tone="users" icon="check" label="حساب‌های فعال" :value="number_format($activeCount)"/>
+  <x-admin.stat tone="users" icon="clock" label="حساب‌های غیرفعال" :value="number_format($inactiveCount)"/>
   <x-admin.stat tone="users" icon="user" label="نقش" :value="$roleLabel"/>
 </div>
 
-<x-admin.panel flush data-filter>
-  <x-admin.toolbar placeholder="جستجوی نام، ایمیل یا شماره تماس…">
+<x-admin.panel flush>
+  <form class="adm-toolbar" method="GET" action="{{ request()->url() }}">
+    <label class="adm-search-field"><x-admin.icon name="search"/><input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="جستجوی نام، ایمیل یا شماره تماس…" aria-label="جستجوی کاربران"></label>
+    <select class="adm-input" name="status" aria-label="وضعیت حساب">
+      <option value="">همه وضعیت‌ها</option>
+      <option value="active" @selected(($filters['status'] ?? '') === 'active')>فعال</option>
+      <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>غیرفعال</option>
+    </select>
+    @if($role === 'student' && ! $teacherView)
+      <input class="adm-input" type="text" name="grade" value="{{ $filters['grade'] ?? '' }}" maxlength="50" placeholder="پایه تحصیلی">
+    @endif
+    @if($role === 'student')
+      <select class="adm-input" name="classroom_id" aria-label="کلاس آموزشی">
+        <option value="">همه کلاس‌ها</option>
+        @foreach($classrooms as $classroom)
+          <option value="{{ $classroom->id }}" @selected((string) ($filters['classroom_id'] ?? '') === (string) $classroom->id)>{{ $classroom->name }}</option>
+        @endforeach
+      </select>
+    @endif
+    <button class="adm-btn adm-btn-primary adm-btn-sm" type="submit"><x-admin.icon name="search"/>اعمال فیلتر</button>
+    <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ request()->url() }}">پاک‌کردن</a>
     <div class="adm-toolbar-end">
       <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.students.index') }}">دانش‌آموزان</a>
       @unless($teacherView)
@@ -34,8 +66,8 @@
         <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.parents.index') }}">اولیا</a>
       @endunless
     </div>
-  </x-admin.toolbar>
-  <div class="adm-grid adm-cols-2" data-filter-list>
+  </form>
+  <div class="adm-grid adm-cols-2">
     @forelse($users as $user)
       @php
         $associations = $role === 'student'
@@ -57,7 +89,7 @@
         ];
         $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
       @endphp
-      <article class="adm-card" data-name="{{ $user->name.' '.$user->email.' '.$user->phone.' '.$associations }}">
+      <article class="adm-card">
         <div class="adm-card-body">
           <div class="adm-card-title">
             <div class="adm-person">

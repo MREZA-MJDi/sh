@@ -94,7 +94,7 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertDontSee('course-video-dialog');
     }
 
-    public function test_free_course_lessons_require_enrollment_but_enrollment_does_not_require_payment(): void
+    public function test_free_course_lessons_are_available_to_authenticated_students_without_enrollment(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
@@ -115,29 +115,14 @@ final class PublicCourseVideoAccessTest extends TestCase
         $this->actingAs($student)
             ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertSee('ویژه دانش‌آموزان ثبت‌نام‌شده')
-            ->assertDontSee('محتوای دوره در دسترس است')
-            ->assertSee('محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.')
-            ->assertDontSee('محتوای درس پس از ثبت‌نام نمایش داده می‌شود.')
-            ->assertSee('ثبت‌نام رایگان');
+            ->assertSee('محتوای درس پس از ثبت‌نام نمایش داده می‌شود.')
+            ->assertDontSee('ویژه دانش‌آموزان ثبت‌نام‌شده')
+            ->assertDontSee('ثبت‌نام رایگان');
 
-        $this->actingAs($student)
-            ->post(route('student.courses.enroll-free', $course))
-            ->assertRedirect(route('public.courses.show', $course->slug));
-
-        $this->assertDatabaseHas('course_enrollments', [
+        $this->assertDatabaseMissing('course_enrollments', [
             'student_id' => $student->id,
             'course_id' => $course->id,
-            'source' => 'free',
-            'status' => 'active',
         ]);
-
-        $this->actingAs($student)
-            ->get(route('public.courses.show', $course->slug))
-            ->assertOk()
-            ->assertSee('محتوای دوره در دسترس است')
-            ->assertSee('محتوای درس پس از ثبت‌نام نمایش داده می‌شود.')
-            ->assertDontSee('ویژه دانش‌آموزان ثبت‌نام‌شده');
     }
 
     public function test_active_student_with_current_enrollment_and_provider_license_sees_same_page_player(): void
@@ -156,11 +141,14 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertSee(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => SpotPlayerVideo::query()->where('course_id', $course->id)->value('id')]), false);
     }
 
-    public function test_enrolled_student_can_watch_manually_uploaded_course_video_without_spotplayer_license(): void
+    public function test_student_can_watch_manually_uploaded_free_course_video_without_enrollment_or_spotplayer_license(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
-        $this->grantActiveEnrollment($student, $course);
+        $course->update([
+            'delivery_type' => 'onsite',
+            'learning_features' => ['recorded_video' => true],
+        ]);
 
         Storage::fake('local');
         Storage::disk('local')->put('private/course-videos/local-public-preview.mp4', 'video-content');
@@ -271,23 +259,28 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_student_without_enrollment_does_not_receive_the_player_even_with_a_provider_license(): void
+    public function test_student_without_enrollment_can_watch_free_course_provider_video_with_valid_license(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
         $this->attachActiveProviderVideo($student, $course);
+        $video = SpotPlayerVideo::query()->where('course_id', $course->id)->firstOrFail();
 
         $this->actingAs($student)
             ->get(route('public.courses.show', $course->slug))
             ->assertOk()
-            ->assertDontSee('تماشای ویدیوهای دوره')
-            ->assertDontSee('course-video-dialog');
+            ->assertSee('تماشای ویدیوهای دوره')
+            ->assertSee('course-video-dialog');
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
+            ->assertRedirect('https://player.example.test/embed/provider-video-1');
     }
 
-    public function test_expired_enrollment_does_not_receive_the_player(): void
+    public function test_expired_paid_course_enrollment_does_not_receive_the_player(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
+        $course->update(['type' => 'paid', 'price' => 100000]);
         $this->grantActiveEnrollment($student, $course, now()->subSecond());
         $this->attachActiveProviderVideo($student, $course);
 
@@ -298,10 +291,11 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertDontSee('course-video-dialog');
     }
 
-    public function test_every_play_request_rechecks_enrollment_and_license_before_redirecting_to_provider(): void
+    public function test_every_play_request_rechecks_enrollment_status_before_redirecting_to_provider(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
+        $course->update(['type' => 'paid', 'price' => 100000]);
         $this->grantActiveEnrollment($student, $course);
         $this->attachActiveProviderVideo($student, $course);
         $video = SpotPlayerVideo::query()->where('course_id', $course->id)->firstOrFail();
@@ -314,7 +308,7 @@ final class PublicCourseVideoAccessTest extends TestCase
         CourseEnrollment::query()
             ->where('student_id', $student->id)
             ->where('course_id', $course->id)
-            ->update(['expires_at' => now()->subSecond()]);
+            ->update(['status' => 'revoked']);
 
         $this->actingAs($student)
             ->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))

@@ -4,12 +4,12 @@
 @section('content')
 <x-admin.page-head tone="track" icon="chart" :title="'نتایج '.$exam->title" desc="نتایج ثبت‌شده و همگام‌شده این آزمون"
   :back-url="route('admin.exams.index')" back-label="آزمون‌ها">
-  <x-admin.btn variant="line" icon="list" :href="route('admin.exams.attempts', $exam)">تلاش‌ها و تصحیح تشریحی</x-admin.btn>
+  <x-admin.btn variant="line" icon="file" :href="route('admin.exams.attempts', $exam)">تلاش‌ها و تصحیح تشریحی</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="users" label="نتایج ثبت‌شده" :value="number_format($results->total())"/>
-  <x-admin.stat tone="track" icon="award" label="نمره میانگین صفحه" :value="$results->count() ? number_format((float) $results->getCollection()->avg('score'), 2) : '—'"/>
+  <x-admin.stat tone="track" icon="check" label="نمره میانگین صفحه" :value="$results->count() ? number_format((float) $results->getCollection()->avg('score'), 2) : '—'"/>
   <x-admin.stat tone="track" icon="clock" label="آخرین همگام‌سازی" :value="$results->getCollection()->max('synced_at')?->format('Y/m/d') ?? '—'"/>
 </div>
 

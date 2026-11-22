@@ -81,9 +81,14 @@ final class CourseController extends Controller
         return view('admin.courses.form', compact('course', 'teachers', 'videos', 'classrooms', 'grades', 'students', 'resources') + ['isEditing' => true]);
     }
 
-    public function index(ClassroomWorkspaceService $workspace): View
-    {
-        $courses = $workspace->coursesQueryFor(auth()->user())
+    public function index(
+        \App\Http\Requests\Admin\AdminCourseIndexRequest $request,
+        ClassroomWorkspaceService $workspace
+    ): View {
+        $user = $request->user();
+        $filters = $request->validated();
+
+        $coursesQuery = $workspace->coursesQueryFor($user)
             ->with('teacher')
             ->withCount(['sections'])
             ->withCount([
@@ -94,11 +99,19 @@ final class CourseController extends Controller
                 'enrollments as pending_payment_enrollments_count' => fn ($enrollments) => $enrollments
                     ->where('status', 'pending_payment'),
             ])
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ->when(filled($filters['q'] ?? null), function ($query) use ($filters): void {
+                $term = trim($filters['q']);
+                $query->where(function ($search) use ($term): void {
+                    $search->where('title', 'like', "%{$term}%")
+                        ->orWhere('subject', 'like', "%{$term}%")
+                        ->orWhere('grade', 'like', "%{$term}%")
+                        ->orWhereHas('teacher', fn ($teacher) => $teacher->where('name', 'like', "%{$term}%"));
+                });
+            })
+            ->when(filled($filters['grade'] ?? null), fn ($query) => $query->where('grade', $filters['grade']))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']));
 
-        $user = auth()->user();
+        $courses = $coursesQuery->latest()->paginate(9)->withQueryString();
         $grades = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->pluck('name', 'name')->all();
 
         $visibleCourseIds = $workspace->coursesQueryFor($user)->select('courses.id');
@@ -117,7 +130,7 @@ final class CourseController extends Controller
         $canManage = $user->hasPermissionTo('courses.manage');
         $canManageContent = $user->hasAnyPermission(['courses.manage', 'courses.content.manage.assigned']);
 
-        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent', 'grades'));
+        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent', 'grades', 'filters'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse

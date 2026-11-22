@@ -20,12 +20,28 @@
 @endphp
 
 <x-admin.page-head tone="edu" icon="book" :title="$isEditing ? 'ویرایش صفحه دوره' : 'ساخت دوره جدید'"
-  desc="اطلاعات دوره، ویدیوها، درس‌ها و کلاس‌ها را همین‌جا کامل کن؛ لازم نیست بین چند صفحه جابه‌جا شوی.">
+  desc="اول اطلاعات اصلی را ذخیره کن؛ بعد ویدیوها، فصل‌ها و کلاس‌ها را از همین صفحه تکمیل کن.">
   @if($isEditing)
-    <x-admin.btn variant="line" icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش صفحه عمومی</x-admin.btn>
+    <x-admin.btn variant="line" icon="link" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">پیش‌نمایش صفحه عمومی</x-admin.btn>
   @endif
   <x-admin.btn variant="line" :href="route('admin.courses.index')">بازگشت به دوره‌ها</x-admin.btn>
 </x-admin.page-head>
+
+<section class="adm-course-editor-guide" data-tone="edu">
+  <div class="adm-course-editor-guide-copy">
+    <span>راهنمای سریع</span>
+    <b>{{ $isEditing ? 'از هر بخشی که لازم داری ادامه بده.' : 'اول مشخصات دوره را ثبت کن.' }}</b>
+    <p>{{ $isEditing ? 'هر بخش مستقل ذخیره می‌شود؛ لازم نیست همه مراحل را یک‌جا انجام بدهی.' : 'بعد از ساخت دوره، بخش ویدیوها، فصل‌ها و کلاس‌ها در همین صفحه فعال می‌شوند.' }}</p>
+  </div>
+  <nav class="adm-course-editor-steps" aria-label="بخش‌های تکمیل دوره">
+    <a href="#course-basics"><i>۱</i><span>اطلاعات اصلی</span></a>
+    <a href="#course-enrollment"><i>۲</i><span>ثبت‌نام و امکانات</span></a>
+    @if($isEditing)
+      <a href="{{ $course->featureEnabled('recorded_video') ? '#course-videos' : '#course-curriculum' }}"><i>۳</i><span>محتوا و ویدیو</span></a>
+      <a href="#course-classes"><i>۴</i><span>کلاس‌ها و منابع</span></a>
+    @endif
+  </nav>
+</section>
 
 <div class="adm-split" style="align-items:start">
   <main class="adm-stack">
@@ -35,7 +51,7 @@
       <input type="hidden" name="delivery_type" value="onsite">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
-      <x-admin.panel title="۱. سربرگ صفحه عمومی دوره" desc="این اطلاعات در صفحه‌ای که دانش‌آموز می‌بیند نمایش داده می‌شوند." data-tone="edu">
+      <x-admin.panel id="course-basics" title="۱. اطلاعات اصلی دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." data-tone="edu">
         <div class="adm-form">
           <x-admin.input label="عنوان اصلی دوره" name="title" :value="old('title', $course->title)" placeholder="مثلاً شیمی دوازدهم؛ آموزش مفهومی و مسئله‌محور" wide required/>
           <x-admin.input label="موضوع یا درس" name="subject" :value="old('subject', $course->subject)" placeholder="مثلاً شیمی، زیست‌شناسی، ریاضی"/>
@@ -47,7 +63,7 @@
             <span class="adm-label">تصویر روی کارت و صفحه دوره</span>
             <label class="adm-upload adm-upload-wide">
               <input id="course-cover-image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" data-course-cover-input data-preview-ratio="16/9" data-preview-fit="cover">
-              <span class="adm-upload-icon"><x-admin.icon name="image"/></span>
+              <span class="adm-upload-icon"><x-admin.icon name="file"/></span>
               <b>تصویر دوره را اینجا رها کن یا انتخاب کن</b>
               <small data-upload-name>JPG، PNG یا WebP · حداکثر ۵ مگابایت</small>
             </label>
@@ -61,15 +77,15 @@
         </div>
       </x-admin.panel>
 
-      <x-admin.panel title="۲. ثبت‌نام و قیمت" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
+      <x-admin.panel id="course-enrollment" title="۲. ثبت‌نام و قیمت" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
         <div class="adm-form">
-          <x-admin.select label="نوع دوره" name="type" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
+          <x-admin.select label="نوع دوره" name="file" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
           <x-admin.input label="قیمت به تومان" name="price" :value="old('price', $course->price)" inputmode="numeric" type="number" min="0" max="1000000000" placeholder="برای دوره رایگان صفر"/>
           <x-admin.select label="وضعیت نمایش در سایت" name="status" :options="$statuses" :selected="old('status', $course->status ?: 'draft')" required/>
         </div>
       </x-admin.panel>
 
-      <x-admin.panel title="۳. امکاناتی که دانش‌آموز در صفحه دوره می‌بیند" desc="فقط مواردی را روشن کن که واقعاً در این دوره ارائه می‌شوند." data-tone="edu">
+      <x-admin.panel id="course-features" title="۳. امکاناتی که دانش‌آموز در صفحه دوره می‌بیند" desc="فقط مواردی را روشن کن که واقعاً در این دوره ارائه می‌شوند." data-tone="edu">
         <div class="adm-form">
           @foreach($featureLabels as $key => $label)
             <x-admin.switch :label="$label" :name="'learning_features['.$key.']'" :checked="(bool) old('learning_features.'.$key, $course->featureEnabled($key))" wide/>
@@ -86,7 +102,7 @@
     </form>
 
     @if($isEditing)
-      <x-admin.panel title="۴. ویدیوی معرفی / تریلر دوره" desc="این ویدیو بالای صفحه دوره نمایش داده می‌شود. اگر اینترنت قطع شود، بارگذاری از همان‌جا ادامه پیدا می‌کند." data-tone="shop">
+      <x-admin.panel id="course-teaser" title="۴. ویدیوی معرفی / تریلر دوره" desc="این ویدیو بالای صفحه دوره نمایش داده می‌شود. اگر اینترنت قطع شود، بارگذاری از همان‌جا ادامه پیدا می‌کند." data-tone="shop">
         @if($course->teaser_status === 'ready')
           <video controls preload="metadata" style="display:block;width:100%;max-height:360px;border-radius:14px;background:#0f172a" src="{{ route('admin.courses.teaser', $course) }}"></video>
         @elseif($course->teaser_status === 'processing')
@@ -102,7 +118,7 @@
           data-max-mb="{{ config('learning.max_teaser_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
           <label class="adm-upload adm-upload-wide">
             <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v" data-upload-file>
-            <span class="adm-upload-icon"><x-admin.icon name="upload"/></span>
+            <span class="adm-upload-icon"><x-admin.icon name="plus"/></span>
             <b>ویدیوی معرفی را اینجا رها کن یا انتخاب کن</b>
             <small data-upload-name>MP4، MOV یا WebM · حداکثر {{ config('learning.max_teaser_mb') }} مگابایت</small>
           </label>
@@ -121,7 +137,7 @@
       </x-admin.panel>
 
       @if($course->featureEnabled('recorded_video'))
-        <x-admin.panel title="۵. ویدیوهای آموزشی دوره" desc="ویدیو را انتخاب کن و در صورت تمایل به یک کلاس و جلسه وصلش کن. فایل در فضای امن نگهداری می‌شود." data-tone="edu">
+        <x-admin.panel id="course-videos" title="۵. ویدیوهای آموزشی دوره" desc="ویدیو را انتخاب کن و در صورت تمایل به یک کلاس و جلسه وصلش کن. فایل در فضای امن نگهداری می‌شود." data-tone="edu">
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
             data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.uploads.status') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
@@ -186,7 +202,7 @@
 
       @include('admin.courses.partials.curriculum')
 
-      <x-admin.panel title="۷. کلاس‌های این دوره" desc="کلاس یعنی گروهی از دانش‌آموزان که با یک مدرس و برنامه مشخص درس می‌خوانند." data-tone="edu">
+      <x-admin.panel id="course-classes" title="۷. گروه‌های آموزشی این دوره" desc="کلاس یعنی گروهی از دانش‌آموزان که با یک مدرس و برنامه مشخص درس می‌خوانند." data-tone="edu">
         <div class="adm-grid adm-cols-2">
           @forelse($classrooms as $classroom)
             @php
@@ -209,7 +225,7 @@
                 <div class="adm-card-title"><div><h3>{{ $classroom->name }}</h3><p>{{ $classroom->teacher?->name ?? 'مدرس مشخص نشده' }}</p></div><x-admin.badge tone="ok">فعال</x-admin.badge></div>
                 <div class="adm-meta">
                   <span><x-admin.icon name="users"/>{{ number_format($classroom->students_count) }} دانش‌آموز</span>
-                  <span><x-admin.icon name="calendar"/>{{ number_format($classroom->sessions_count) }} جلسه</span>
+                  <span><x-admin.icon name="cal"/>{{ number_format($classroom->sessions_count) }} جلسه</span>
                 </div>
                 <div class="adm-kv">
                   <span>برنامه هفتگی: <b>{{ $scheduleLabel ?: 'شناور' }}</b></span>
@@ -223,7 +239,7 @@
                 <div class="adm-actions">
                   <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="course-class-edit-{{ $classroom->id }}" data-title="ویرایش کلاس" :data-fill="json_encode($classFill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش کلاس</x-admin.btn>
                   <x-admin.btn size="sm" icon="plus" data-modal-open="quick-session-{{ $classroom->id }}">جلسه جدید</x-admin.btn>
-                  <x-admin.btn size="sm" variant="soft" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
+                  <x-admin.btn size="sm" variant="soft" icon="cal" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
                   <x-admin.btn size="sm" variant="line" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
                 </div>
               </div>
@@ -236,7 +252,7 @@
       </x-admin.panel>
 
       @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
-        <x-admin.panel title="۸. جزوه و فایل‌های آموزشی" desc="فایل‌هایی که اینجا اضافه می‌کنی در بخش منابع دوره برای دانش‌آموزان مجاز نمایش داده می‌شوند." data-tone="shop">
+        <x-admin.panel id="course-resources" title="۸. جزوه و فایل‌های آموزشی" desc="فایل‌هایی که اینجا اضافه می‌کنی در بخش منابع دوره برای دانش‌آموزان مجاز نمایش داده می‌شوند." data-tone="shop">
           <div class="adm-grid adm-cols-2">
             @forelse($resources as $resource)
               <article class="adm-work-item"><span><x-admin.icon name="file"/></span><div class="adm-grow"><b>{{ $resource->title }}</b><small>{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }} · {{ $resource->classroom?->name ?? 'برای همه کلاس‌های دوره' }}</small></div><x-admin.badge :tone="$resource->status === 'published' ? 'ok' : 'warn'">{{ $resource->status === 'published' ? 'نمایش در سایت' : 'پیش‌نویس' }}</x-admin.badge></article>
@@ -244,7 +260,7 @@
               <div class="adm-curriculum-empty">هنوز فایل آموزشی اضافه نشده است.</div>
             @endforelse
           </div>
-          <x-slot:footer><x-admin.btn icon="upload" data-modal-open="course-resource-modal">افزودن جزوه یا فایل</x-admin.btn></x-slot:footer>
+          <x-slot:footer><x-admin.btn icon="plus" data-modal-open="course-resource-modal">افزودن جزوه یا فایل</x-admin.btn></x-slot:footer>
         </x-admin.panel>
       @endif
     @else
@@ -257,16 +273,16 @@
   <aside class="adm-stack">
     <x-admin.panel title="جایگاه اطلاعات در صفحه عمومی" desc="راهنمای ساده برای اینکه بدانید هر ورودی کجا دیده می‌شود." data-tone="edu">
       <div class="adm-side-list">
-        <div><span class="adm-stat-ico"><x-admin.icon name="type"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="file"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="user"/></span><div class="adm-grow"><b>مدرس و موضوع</b><small class="adm-muted">کنار مشخصات دوره و بخش معرفی مدرس</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="video"/></span><div class="adm-grow"><b>تریلر</b><small class="adm-muted">بخش معرفی و پیش‌نمایش ویدیویی دوره</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="list"/></span><div class="adm-grow"><b>فصل‌ها و متن درس‌ها</b><small class="adm-muted">بخش سرفصل‌های آموزشی</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="wallet"/></span><div class="adm-grow"><b>نوع و قیمت</b><small class="adm-muted">کارت ثبت‌نام کنار صفحه دوره</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="file"/></span><div class="adm-grow"><b>فصل‌ها و متن درس‌ها</b><small class="adm-muted">بخش سرفصل‌های آموزشی</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="card"/></span><div class="adm-grow"><b>نوع و قیمت</b><small class="adm-muted">کارت ثبت‌نام کنار صفحه دوره</small></div></div>
       </div>
     </x-admin.panel>
     @if($isEditing)
       <x-admin.panel title="پیش‌نمایش صفحه دوره" desc="قبل از انتشار، نتیجه را مثل دانش‌آموز ببین.">
-        <x-admin.btn icon="external" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
+        <x-admin.btn icon="link" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
       </x-admin.panel>
     @endif
   </aside>
@@ -294,7 +310,7 @@
       <x-admin.select label="نوع فایل" name="kind" :options="['pdf' => 'PDF', 'book' => 'کتاب یا جزوه', 'other' => 'سایر فایل‌ها']" :selected="'pdf'" required/>
       <label class="adm-upload adm-upload-wide">
         <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" required>
-        <span class="adm-upload-icon"><x-admin.icon name="upload"/></span>
+        <span class="adm-upload-icon"><x-admin.icon name="plus"/></span>
         <b>فایل را اینجا رها کن یا انتخاب کن</b>
         <small data-upload-name>PDF، Word، تصویر یا ZIP · حداکثر ۳۰ مگابایت</small>
       </label>

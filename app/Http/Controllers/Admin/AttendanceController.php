@@ -41,6 +41,8 @@ class AttendanceController extends Controller
 
         abort_if($selectedClassroomId && ! $classroom, 404);
 
+        $canManage = $request->user()->hasAnyPermission(['attendance.manage.all', 'attendance.manage.assigned']);
+
         $selectedDate = $this->resolveDate($request->query('date'));
         $date = $this->formatJalaliDate($selectedDate);
         $dateIso = $selectedDate->format('Y-m-d');
@@ -138,7 +140,8 @@ class AttendanceController extends Controller
             'sessions',
             'session',
             'roster',
-            'report'
+            'report',
+            'canManage'
         ));
     }
 

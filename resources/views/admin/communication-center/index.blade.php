@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'مرکز پیام‌ها')
+@section('title', 'مرکز ارتباطات')
 
 @section('content')
 @php
@@ -16,10 +16,10 @@
     'requested' => 'درخواست‌شده', 'proposed' => 'پیشنهادشده', 'completed' => 'تکمیل‌شده',
     'declined' => 'ردشده', 'cancelled' => 'لغوشده',
   ];
-  $typeIcons = ['messages' => 'msg', 'contacts' => 'inbox', 'consultations' => 'chat', 'meetings' => 'calendar'];
+  $typeIcons = ['messages' => 'msg', 'contacts' => 'msg', 'consultations' => 'chat', 'meetings' => 'calendar'];
 @endphp
 
-<x-admin.page-head tone="comm" icon="msg" title="مرکز پیام‌ها" desc="گفت‌وگوهای اولیا، پیام‌های فرم تماس، درخواست‌های مشاوره و جلسات در یک کارتابل واحد">
+<x-admin.page-head tone="comm" icon="msg" title="مرکز ارتباطات" desc="پیام‌های کاربران، فرم تماس سایت، درخواست‌های مشاوره و جلسات اولیا را از یک نقطه پیگیری کن.">
 </x-admin.page-head>
 
 <div class="adm-stats">
@@ -51,7 +51,7 @@
           <span class="adm-communication-topline"><strong>{{ $item['title'] }}</strong><small>{{ \App\Support\PersianDate::format($item['created_at'], 'Y/m/d H:i') }}</small></span>
           <span class="adm-communication-meta">{{ $item['label'] }} · {{ $item['sender'] }} @if($item['context']) · {{ $item['context'] }} @endif</span>
           <span class="adm-communication-direction" data-direction="{{ $item['direction'] }}">
-            <x-admin.icon :name="$item['direction'] === 'outgoing' ? 'msg' : 'inbox'"/>
+            <x-admin.icon :name="$item['direction'] === 'outgoing' ? 'msg' : 'msg'"/>
             {{ $item['direction_label'] }}
           </span>
           <span class="adm-communication-summary">{{ $item['summary'] }}</span>

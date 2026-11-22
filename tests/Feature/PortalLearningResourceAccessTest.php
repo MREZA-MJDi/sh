@@ -75,6 +75,56 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_student_can_download_free_course_material_without_a_course_enrollment(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
+
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره رایگان بدون ثبت‌نام دستی',
+            'slug' => 'free-course-resource-access-'.uniqid(),
+            'teacher_id' => $teacher->id,
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+            'learning_features' => ['resources' => true],
+        ]);
+
+        $resource = LearningResource::query()->create([
+            'course_id' => $course->id,
+            'uploaded_by' => $teacher->id,
+            'title' => 'جزوه رایگان دوره',
+            'kind' => 'pdf',
+            'is_free' => true,
+            'price' => 0,
+            'visibility' => 'enrolled',
+            'file_path' => 'private/resources/free-course-without-enrollment.pdf',
+            'status' => 'published',
+        ]);
+
+        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 free course guide');
+
+        $this->actingAs($student)
+            ->get(route('student.resources.download', $resource))
+            ->assertOk();
+
+        $this->assertDatabaseMissing('course_enrollments', [
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+        ]);
+
+        $this->assertDatabaseHas('learning_resource_access_logs', [
+            'learning_resource_id' => $resource->id,
+            'user_id' => $student->id,
+            'student_id' => $student->id,
+            'event_type' => 'download',
+        ]);
+    }
+
     public function test_paid_resource_is_not_downloadable_without_a_verified_purchase(): void
     {
         [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();

@@ -8,9 +8,11 @@ on:
       - feat/student-dashboard-frontend
       - feat/admin-ui-laravel-reference-20261110
       - feature/admin-ux-crud
+      - feat/admin-action-center-20261122
   pull_request:
     branches:
       - main
+      - fix/free-course-instant-access-20261122
 
 permissions:
   contents: read

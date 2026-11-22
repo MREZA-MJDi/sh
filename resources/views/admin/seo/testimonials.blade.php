@@ -3,7 +3,7 @@
 
 @section('content')
 @php $statusLabels = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']; @endphp
-<x-admin.page-head tone="shop" icon="star" title="نظرات و تجربه دانش‌آموزان" desc="مدیریت نظرهای تأییدشده برای نمایش در صفحه اصلی">
+<x-admin.page-head tone="shop" icon="check" title="نظرات و تجربه دانش‌آموزان" desc="مدیریت نظرهای تأییدشده برای نمایش در صفحه اصلی">
   <x-admin.btn icon="plus" data-modal-open="testimonial-modal">ثبت نظر جدید</x-admin.btn>
 </x-admin.page-head>
 

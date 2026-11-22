@@ -22,23 +22,27 @@ class ExamController extends Controller
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
         $user = $request->user();
-        $records = $exams->queryFor($user)
+        $examQuery = $exams->queryFor($user)
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '>=', $date))
-            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '<=', $date))
+            ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '<=', $date));
+
+        $stats = [
+            'total' => (clone $examQuery)->count(),
+            'upcoming' => (clone $examQuery)->whereIn('status', ['scheduled', 'published'])->count(),
+            'quiz24' => (clone $examQuery)->where('provider', 'quiz24')->count(),
+            'drafts' => (clone $examQuery)->where('status', 'draft')->count(),
+        ];
+
+        $records = (clone $examQuery)
             ->with(['classroom', 'course'])
-            ->withCount(['results', 'questions', 'attempts'])->latest()->paginate(15)->withQueryString();
+            ->withCount(['results', 'questions', 'attempts'])
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
         $classroomOptions = $classrooms->queryFor($user)->orderBy('name')->get(['id', 'name']);
         $courseOptions = $classrooms->coursesQueryFor($user)->orderBy('title')->get(['id', 'title']);
 
         $teacherView = $classrooms->isTeacher($user);
-        $pageRows = $records->getCollection();
-
-        $stats = [
-            'total' => $records->total(),
-            'upcoming' => $pageRows->whereIn('status', ['scheduled', 'published'])->count(),
-            'quiz24' => $pageRows->where('provider', 'quiz24')->count(),
-            'drafts' => $pageRows->where('status', 'draft')->count(),
-        ];
 
         return view('admin.exams.index', [
             'exams' => $records,

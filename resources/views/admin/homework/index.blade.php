@@ -12,25 +12,37 @@
   <x-admin.btn icon="plus" data-modal-open="homework-modal">ساخت تکلیف</x-admin.btn>
 </x-admin.page-head>
 
+<section class="adm-homework-focus" data-tone="track">
+  <div><span>کارتابل بررسی تکالیف</span><b>{{ number_format($pendingSubmissionCount) }} پاسخ در انتظار بررسی است</b><small>پاسخ‌ها را بررسی کن، نمره بده و بازخورد را برای دانش‌آموز و ولی ارسال کن.</small></div>
+  <x-admin.btn size="sm" icon="check" :href="route('admin.homework.index').'#homework-review-queue'">رفتن به صف بررسی</x-admin.btn>
+</section>
+
 <div class="adm-stats">
-  <x-admin.stat tone="track" icon="file" label="کل تکالیف" :value="number_format($homeworks->total())" hint="در کلاس‌های مجاز"/>
-  <x-admin.stat tone="track" icon="clock" label="در انتظار بررسی" :value="number_format($submissions->getCollection()->where('status', 'submitted')->count())" hint="در این صفحه از پاسخ‌ها"/>
-  <x-admin.stat tone="edu" icon="check" label="بررسی‌شده" :value="number_format($submissions->getCollection()->where('status', 'reviewed')->count())" hint="در این صفحه از پاسخ‌ها"/>
+  <x-admin.stat tone="track" icon="file" label="کل تکالیف" :value="number_format($homeworkCount)" hint="در کلاس‌های مجاز و فیلترشده"/>
+  <x-admin.stat tone="track" icon="clock" label="در انتظار بررسی" :value="number_format($pendingSubmissionCount)" hint="در کل پاسخ‌های فیلترشده"/>
+  <x-admin.stat tone="edu" icon="check" label="بررسی‌شده" :value="number_format($reviewedSubmissionCount)" hint="در کل پاسخ‌های فیلترشده"/>
   <x-admin.stat tone="users" icon="users" label="کلاس‌های در دسترس" :value="number_format($classrooms->count())" hint="امکان ساخت تکلیف"/>
 </div>
 
 <x-admin.panel title="فیلتر تکالیف" desc="برای پیدا کردن تکلیف‌ها و پاسخ‌های یک بازه‌ی مشخص، تاریخ را انتخاب کن." data-tone="track">
-  <form method="GET" action="{{ route('admin.homework.index') }}" class="adm-toolbar">
+  <form method="GET" action="{{ route('admin.homework.index') }}" class="adm-toolbar adm-homework-filters">
+    <label class="adm-label">جستجو <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="عنوان تکلیف یا نام دانش‌آموز…"></label>
+    <label class="adm-label">کلاس
+      <select class="adm-select" name="classroom_id"><option value="">همه کلاس‌های مجاز</option>@foreach($classrooms as $classroomOption)<option value="{{ $classroomOption->id }}" @selected((string)($filters['classroom_id'] ?? '') === (string)$classroomOption->id)>{{ $classroomOption->name }}</option>@endforeach</select>
+    </label>
+    <label class="adm-label">وضعیت تکلیف
+      <select class="adm-select" name="homework_status"><option value="">همه</option><option value="published" @selected(($filters['homework_status'] ?? '') === 'published')>منتشرشده</option><option value="draft" @selected(($filters['homework_status'] ?? '') === 'draft')>پیش‌نویس</option></select>
+    </label>
+    <label class="adm-label">وضعیت پاسخ
+      <select class="adm-select" name="submission_status"><option value="">همه</option><option value="submitted" @selected(($filters['submission_status'] ?? '') === 'submitted')>در انتظار بررسی</option><option value="reviewed" @selected(($filters['submission_status'] ?? '') === 'reviewed')>بررسی‌شده</option><option value="late" @selected(($filters['submission_status'] ?? '') === 'late')>دیرهنگام</option></select>
+    </label>
     <label class="adm-label">از تاریخ <input class="adm-input" type="date" name="from" value="{{ $filters['from'] ?? '' }}"></label>
     <label class="adm-label">تا تاریخ <input class="adm-input" type="date" name="to" value="{{ $filters['to'] ?? '' }}"></label>
-    <div class="adm-toolbar-end">
-      <x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn>
-      <x-admin.btn :href="route('admin.homework.index')" variant="line" size="sm">پاک‌کردن</x-admin.btn>
-    </div>
+    <div class="adm-toolbar-end"><x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn><x-admin.btn :href="route('admin.homework.index')" variant="line" size="sm">پاک‌کردن</x-admin.btn></div>
   </form>
 </x-admin.panel>
 
-<x-admin.panel title="تکالیف کلاس‌ها" desc="هر کارت وضعیت تکلیف، مهلت تحویل و تعداد پاسخ‌ها را نشان می‌دهد.">
+<x-admin.panel title="تکالیف کلاس‌ها" desc="هر کارت وضعیت تکلیف، مهلت تحویل و تعداد پاسخ‌ها را نشان می‌دهد." id="homework-list">
   @if($homeworks->isNotEmpty())
     <div class="adm-grid adm-cols-2">
       @foreach($homeworks as $homework)
@@ -56,7 +68,7 @@
             </div>
             <div class="adm-work-item" data-tone="track">
               <span><x-admin.icon name="file"/></span>
-              <div><b>{{ number_format($homework->submissions_count) }} پاسخ دریافت‌شده</b><small>تعداد پاسخ‌های منتظر بررسی</small></div>
+              <div><b>{{ number_format($homework->submissions_count) }} پاسخ دریافت‌شده</b><small>پاسخ‌های منتظر بررسی</small></div>
               <strong>{{ number_format($homework->pending_submissions_count) }}</strong>
             </div>
             <div class="adm-actions">
@@ -76,7 +88,7 @@
   <x-slot:footer>{{ $homeworks->links() }}</x-slot:footer>
 </x-admin.panel>
 
-<x-admin.panel title="صف بررسی پاسخ‌ها" desc="پاسخ هر دانش‌آموز را باز کن، نمره بده و بازخورد روشن و قابل‌فهم ثبت کن." flush>
+<x-admin.panel title="صف بررسی پاسخ‌ها" desc="پاسخ هر دانش‌آموز را باز کن، نمره بده و بازخورد روشن و قابل‌فهم ثبت کن." flush id="homework-review-queue">
   @if($submissions->isNotEmpty())
     <div class="adm-review-list">
       @foreach($submissions as $submission)

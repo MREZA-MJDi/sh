@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'کلاس‌ها')
+@section('title', 'گروه‌های آموزشی')
 
 @section('content')
 @php
@@ -10,10 +10,10 @@
   $statusOptions = ['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی'];
 @endphp
 
-<x-admin.page-head tone="edu" icon="cls" title="کلاس‌ها" desc="هر کلاس یک گروه آموزشی از یک دوره است؛ مدرس، اعضا و جلسات خودش را دارد">
-  <x-admin.btn variant="line" icon="calendar" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
+<x-admin.page-head tone="edu" icon="cls" title="گروه‌های آموزشی" desc="کلاس‌ها را به‌صورت گروه آموزشی مدیریت کن؛ هر گروه مدرس، دانش‌آموزان و برنامه خودش را دارد.">
+  <x-admin.btn variant="line" icon="cal" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
   @if($canManage)
-    <x-admin.btn icon="plus" data-modal-open="class-modal">کلاس جدید</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="class-modal">گروه جدید</x-admin.btn>
   @endif
 </x-admin.page-head>
 
@@ -24,15 +24,36 @@
   <x-admin.stat tone="edu" icon="teacher" label="بدون مدرس" :value="number_format($stats['without_teacher'])"/>
 </div>
 
-<div data-filter class="adm-stack">
-  <x-admin.panel flush>
-    <x-admin.toolbar placeholder="جستجوی کلاس، دوره یا مدرس…">
-      <x-admin.filter-select key="teacher" placeholder="همه مدرسان" :options="$teacherOptions"/>
-      <div class="adm-toolbar-end"><x-admin.seg :options="['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی']"/></div>
-    </x-admin.toolbar>
+<div class="adm-stack">
+  <x-admin.panel title="پیدا کردن گروه آموزشی" desc="نام کلاس، دوره یا مدرس را جستجو کن؛ نتایج با فیلترهای انتخابی از سرور دریافت می‌شوند." flush data-tone="edu">
+    <form method="GET" action="{{ route('admin.classes.index') }}" class="adm-course-filter-form" style="padding:16px">
+      <label class="adm-course-search">
+        <x-admin.icon name="search"/>
+        <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام گروه، دوره یا مدرس" aria-label="جستجوی گروه‌های آموزشی">
+      </label>
+      @unless($teacherView)
+        <select class="adm-select" name="teacher_id" aria-label="مدرس">
+          <option value="">همه مدرسان</option>
+          @foreach($teachers as $teacher)
+            <option value="{{ $teacher->id }}" @selected((string) ($filters['teacher_id'] ?? '') === (string) $teacher->id)>{{ $teacher->name }}</option>
+          @endforeach
+        </select>
+      @endunless
+      <select class="adm-select" name="status" aria-label="وضعیت گروه">
+        <option value="">همه وضعیت‌ها</option>
+        @foreach($statusOptions as $key => $label)
+          <option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $label }}</option>
+        @endforeach
+      </select>
+      <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">اعمال فیلتر</button>
+      @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
+        <a href="{{ route('admin.classes.index') }}" class="adm-btn adm-btn-line adm-btn-sm">پاک‌کردن</a>
+      @endif
+    </form>
+    <div class="adm-course-results" style="padding:0 16px 14px"><span>{{ number_format($classrooms->total()) }} گروه آموزشی</span><span>برای دیدن جلسه‌ها، برنامه گروه را باز کن.</span></div>
   </x-admin.panel>
 
-  <div class="adm-grid adm-cols-3" data-filter-list>
+  <div class="adm-grid adm-cols-3">
     @forelse($classrooms as $classroom)
       @php
         $schedule = $classroom->schedule ?? [];
@@ -87,25 +108,31 @@
           @endif
 
           <div class="adm-actions">
-            <x-admin.btn size="sm" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
-            @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
-                  <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
-                @endcanany
+            <x-admin.btn size="sm" icon="cal" :href="route('admin.classes.sessions.index', $classroom)">برنامه جلسات</x-admin.btn>
             @if($canManage)
               <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="class-modal" data-title="ویرایش کلاس" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش</x-admin.btn>
               <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="class-del" :data-name="$classroom->name" :data-action="route('admin.classes.destroy', $classroom)" aria-label="حذف"/>
             @endif
           </div>
-          @if($canManage)
+          @if($canManage && !in_array($classroom->skyroom_status, ['waiting_contract', 'ready'], true))
             <form method="POST" action="{{ route('admin.classes.skyroom-room', $classroom) }}" style="margin-top:8px">
               @csrf
-              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm" style="width:100%">آماده‌سازی اتاق آنلاین</button>
+              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm" style="width:100%">تلاش برای آماده‌سازی اتاق آنلاین</button>
             </form>
           @endif
         </div>
       </article>
     @empty
-      <x-admin.empty text="برای این محدوده دسترسی هنوز کلاسی ثبت نشده است."/>
+      <div class="adm-course-empty">
+        <span><x-admin.icon name="cls"/></span>
+        <h3>{{ collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty() ? 'گروهی با این مشخصات پیدا نشد' : 'هنوز گروه آموزشی نساخته‌ای' }}</h3>
+        <p>{{ collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty() ? 'فیلترها را پاک کن یا عبارت دیگری جستجو کن.' : 'گروه آموزشی، مدرس و دانش‌آموزان را کنار هم قرار می‌دهد و برنامه جلسات را برایشان مشخص می‌کند.' }}</p>
+        @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
+          <a class="adm-btn adm-btn-line" href="{{ route('admin.classes.index') }}">نمایش همه گروه‌ها</a>
+        @elseif($canManage)
+          <button type="button" class="adm-btn adm-btn-primary" data-modal-open="class-modal">ساخت اولین گروه</button>
+        @endif
+      </div>
     @endforelse
   </div>
   @if($classrooms->hasPages())
@@ -116,7 +143,7 @@
 
 @push('modals')
 @if($canManage)
-<x-admin.modal :demo="false" id="class-modal" title="کلاس جدید" size="lg" :action="route('admin.classes.store')">
+<x-admin.modal :demo="false" id="class-modal" title="گروه آموزشی جدید" size="lg" :action="route('admin.classes.store')">
   @include('admin.classes.partials.class-fields', [
     'teacherOptions' => $teacherOptions,
     'courseOptions' => $courseOptions,

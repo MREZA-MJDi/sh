@@ -11,7 +11,7 @@ return [
         ]],
         ['label' => 'آموزش', 'tone' => 'edu', 'items' => [
             ['label' => 'دوره‌ها', 'url' => 'admin/courses', 'icon' => 'book'],
-            ['label' => 'کلاس‌ها', 'url' => 'admin/classes', 'icon' => 'cls'],
+            ['label' => 'گروه‌های آموزشی', 'url' => 'admin/classes', 'icon' => 'cls'],
             ['label' => 'جلسات آنلاین', 'url' => 'admin/online-classes', 'icon' => 'live'],
             ['label' => 'ویدیوهای ضبط‌شده', 'url' => 'admin/spotplayer', 'icon' => 'video'],
         ]],
@@ -22,8 +22,10 @@ return [
             ['label' => 'یکپارچه‌سازی Quiz24', 'url' => 'admin/quiz24', 'icon' => 'exam'],
         ]],
         ['label' => 'ارتباطات', 'tone' => 'comm', 'items' => [
+            ['label' => 'مرکز ارتباطات', 'url' => 'admin/communication-center', 'icon' => 'chat'],
             ['label' => 'کارتابل پیام‌ها', 'url' => 'admin/messages', 'icon' => 'msg'],
-            ['label' => 'اعلان‌ها', 'url' => 'admin/announcements', 'icon' => 'bell'],
+            ['label' => 'اطلاعیه‌های عمومی', 'url' => 'admin/announcements', 'icon' => 'bell'],
+            ['label' => 'اعلان‌های درون‌پنلی', 'url' => 'admin/internal-notifications', 'icon' => 'bell'],
         ]],
         ['label' => 'ثبت‌نام و فروش', 'tone' => 'shop', 'items' => [
             ['label' => 'ثبت‌نام‌ها و مجوزها', 'url' => 'admin/enrollments', 'icon' => 'lock'],
@@ -33,8 +35,8 @@ return [
         ['label' => 'محتوا و بهینه‌سازی', 'tone' => 'shop', 'items' => [
             ['label' => 'مرکز مدیریت سئو', 'url' => 'admin/seo', 'icon' => 'search'],
             ['label' => 'مقاله‌ها', 'url' => 'admin/seo/articles', 'icon' => 'file'],
-            ['label' => 'بنرها', 'url' => 'admin/seo/banners', 'icon' => 'image'],
-            ['label' => 'نظرات دانش‌آموزان', 'url' => 'admin/seo/testimonials', 'icon' => 'star'],
+            ['label' => 'بنرها', 'url' => 'admin/seo/banners', 'icon' => 'file'],
+            ['label' => 'نظرات دانش‌آموزان', 'url' => 'admin/seo/testimonials', 'icon' => 'check'],
         ]],
     ],
 ];

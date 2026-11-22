@@ -13,19 +13,23 @@
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="comm" icon="chat" label="کل درخواست‌ها" :value="number_format($consultations->total())"/>
-  <x-admin.stat tone="comm" icon="clock" label="در انتظار بررسی" :value="number_format($consultations->getCollection()->where('status', 'pending')->count())"/>
-  <x-admin.stat tone="comm" icon="calendar" label="زمان‌بندی‌شده" :value="number_format($consultations->getCollection()->where('status', 'scheduled')->count())"/>
-  <x-admin.stat tone="comm" icon="check" label="انجام‌شده" :value="number_format($consultations->getCollection()->where('status', 'done')->count())"/>
+  <x-admin.stat tone="comm" icon="chat" label="کل درخواست‌ها" :value="number_format($counts['total'])"/>
+  <x-admin.stat tone="comm" icon="clock" label="در انتظار بررسی" :value="number_format($counts['pending'])"/>
+  <x-admin.stat tone="comm" icon="cal" label="زمان‌بندی‌شده" :value="number_format($counts['scheduled'])"/>
+  <x-admin.stat tone="comm" icon="check" label="انجام‌شده" :value="number_format($counts['done'])"/>
 </div>
 
-<x-admin.panel flush data-filter data-tone="comm">
-  <x-admin.toolbar placeholder="جستجوی درخواست‌کننده، دانش‌آموز یا موضوع…">
-    <div class="adm-toolbar-end"><x-admin.seg :options="['pending' => 'در انتظار', 'scheduled' => 'زمان‌بندی‌شده', 'done' => 'انجام‌شده', 'cancelled' => 'لغوشده']"/></div>
-  </x-admin.toolbar>
+<x-admin.panel flush data-tone="comm">
+  <form method="GET" action="{{ route('admin.consultations.index') }}" class="adm-toolbar">
+    <label class="adm-label">جستجو <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام درخواست‌کننده، دانش‌آموز یا موضوع…"></label>
+    <label class="adm-label">وضعیت
+      <select class="adm-select" name="status"><option value="">همه وضعیت‌ها</option><option value="pending" @selected(($filters['status'] ?? '') === 'pending')>در انتظار بررسی</option><option value="scheduled" @selected(($filters['status'] ?? '') === 'scheduled')>زمان‌بندی‌شده</option><option value="done" @selected(($filters['status'] ?? '') === 'done')>انجام‌شده</option><option value="cancelled" @selected(($filters['status'] ?? '') === 'cancelled')>لغوشده</option></select>
+    </label>
+    <div class="adm-toolbar-end"><x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn><x-admin.btn size="sm" variant="line" :href="route('admin.consultations.index')">پاک‌کردن</x-admin.btn></div>
+  </form>
   <div class="adm-table-wrap"><table class="adm-table">
     <thead><tr><th>درخواست‌کننده</th><th>دانش‌آموز / مدرس</th><th>موضوع و نوع</th><th>زمان پیشنهادی</th><th>وضعیت</th><th>ثبت نوبت / یادداشت</th></tr></thead>
-    <tbody data-filter-list>
+    <tbody>
       @forelse($consultations as $consultation)
         <tr id="consultation-{{ $consultation->id }}" data-name="{{ ($consultation->requester?->name ?? '').' '.($consultation->student?->name ?? '').' '.$consultation->topic }}" data-state="{{ $consultation->status }}">
           <td><b>{{ $consultation->requester?->name ?? 'حساب حذف‌شده' }}</b><small>@if($consultation->contact_phone || $consultation->requester?->phone) @phone($consultation->contact_phone ?: $consultation->requester?->phone) @else بدون شماره تماس @endif</small></td>

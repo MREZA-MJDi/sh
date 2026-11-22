@@ -11,6 +11,10 @@
 <x-admin.page-head tone="shop" icon="lock" title="ثبت‌نام‌ها و مجوزها" desc="عضویت آموزشی و مجوز دسترسی مستقل‌اند؛ وضعیت واقعی دسترسی هر دانش‌آموز در این صفحه مدیریت می‌شود">
   <x-admin.btn icon="plus" data-modal-open="enr-modal">ثبت‌نام دستی</x-admin.btn>
 </x-admin.page-head>
+<section class="adm-enrollment-guide" data-tone="shop">
+  <div><span>راهنمای دسترسی آموزشی</span><b>ثبت‌نام، مجوز ورود به محتوای دوره است؛ پرداخت فقط یکی از راه‌های ایجاد آن است.</b><small>برای بررسی رسید و تأیید پرداخت به صفحه پرداخت‌ها برو؛ اینجا وضعیت دسترسی و امکانات فعال دانش‌آموز را کنترل کن.</small></div>
+  <x-admin.btn size="sm" variant="line" icon="card" :href="route('admin.payments.index')">رفتن به پرداخت‌ها</x-admin.btn>
+</section>
 <div class="adm-stats">
   <x-admin.stat tone="shop" icon="check" label="دسترسی فعال" :value="number_format($stats['active'])"/>
   <x-admin.stat tone="shop" icon="clock" label="در حال انقضا (۳۰ روز)" :value="number_format($stats['expiring'])"/>

@@ -13,12 +13,37 @@ class ConsultationController extends Controller
 {
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'in:pending,scheduled,done,cancelled'],
+        ]);
         $selectedId = $request->integer('consultation');
-        $consultations = Consultation::with(['requester', 'student', 'teacher'])
-            ->when($selectedId > 0, fn ($query) => $query->whereKey($selectedId))
-            ->latest()->paginate(20)->withQueryString();
+        $term = trim((string) ($filters['q'] ?? ''));
 
-        return view('admin.consultations.index', compact('consultations'));
+        $baseQuery = Consultation::query()
+            ->when($term !== '', fn ($query) => $query->where(function ($search) use ($term): void {
+                $search->where('topic', 'like', "%{$term}%")
+                    ->orWhereHas('requester', fn ($requester) => $requester->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$term}%"))
+                    ->orWhereHas('teacher', fn ($teacher) => $teacher->where('name', 'like', "%{$term}%"));
+            }));
+
+        $counts = [
+            'total' => (clone $baseQuery)->count(),
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'scheduled' => (clone $baseQuery)->where('status', 'scheduled')->count(),
+            'done' => (clone $baseQuery)->where('status', 'done')->count(),
+        ];
+
+        $consultations = (clone $baseQuery)
+            ->when($selectedId > 0, fn ($query) => $query->whereKey($selectedId))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->with(['requester', 'student', 'teacher'])
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.consultations.index', compact('consultations', 'counts', 'filters'));
     }
 
     public function update(UpdateConsultationRequest $request, Consultation $consultation): RedirectResponse
@@ -34,7 +59,8 @@ class ConsultationController extends Controller
 
         return back()->with('success', 'وضعیت درخواست مشاوره به‌روزرسانی شد.');
     }
-    public function destroy(\Illuminate\Http\Request $request, Consultation $consultation): RedirectResponse
+
+    public function destroy(Request $request, Consultation $consultation): RedirectResponse
     {
         abort_unless($request->user()->hasRole('admin'), 403);
 

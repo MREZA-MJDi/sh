@@ -6,7 +6,8 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow, noarchive">
 <title>@yield('title', 'کارتابل') · {{ $m['academy']['name'] }}</title>
-<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>\n@vite(['resources/css/app.css', 'resources/css/shared/typography.css', 'resources/js/app.js'])
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+@vite(['resources/css/app.css', 'resources/css/shared/typography.css', 'resources/js/app.js'])
 @stack('head')
 </head>
 <body>

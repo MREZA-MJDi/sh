@@ -3,12 +3,12 @@
 
 @section('content')
 @include('admin.seo.partials.workspace-tabs')
-<x-admin.page-head tone="shop" icon="help" title="آزمون و معماهای صفحه اصلی" desc="مدیریت سؤال‌های بخش دوم صفحه اصلی؛ ترتیب، نوع سؤال، پاسخ و توضیح پاسخ را کنترل کنید">
+<x-admin.page-head tone="shop" icon="chat" title="آزمون و معماهای صفحه اصلی" desc="مدیریت سؤال‌های بخش دوم صفحه اصلی؛ ترتیب، نوع سؤال، پاسخ و توضیح پاسخ را کنترل کنید">
   <x-admin.btn icon="plus" data-modal-open="quiz-question-modal">افزودن سؤال</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
-  <x-admin.stat tone="shop" icon="help" label="کل سؤال‌ها" :value="number_format($questions->total())"/>
+  <x-admin.stat tone="shop" icon="chat" label="کل سؤال‌ها" :value="number_format($questions->total())"/>
   <x-admin.stat tone="shop" icon="check" label="منتشرشده در سایت" :value="number_format($publishedCount)"/>
   <x-admin.stat tone="shop" icon="edit" label="پیش‌نویس" :value="number_format($draftCount)"/>
 </div>

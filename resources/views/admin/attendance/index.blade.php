@@ -6,9 +6,14 @@
   $marks = ['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'];
 @endphp
 
-<x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت کن."
+<x-admin.page-head tone="track" icon="check" title="حضور و غیاب"  :desc="$canManage ? 'وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت و ذخیره کن.' : 'سوابق حضور و غیاب جلسه انتخاب‌شده را مشاهده کن؛ امکان ویرایش برای این حساب فعال نیست.'"
   :back-url="$classroom ? route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso]) : route('admin.classes.index')"
   :back-label="$classroom ? 'بازگشت به برنامه کلاس' : 'کلاس‌ها'"/>
+
+<section class="adm-attendance-guide" data-tone="track">
+  <div><span>{{ $canManage ? "راهنمای ثبت حضور" : "راهنمای مشاهده حضور" }}</span><b>۱. کلاس و روز را انتخاب کن</b><small>{{ $canManage ? "۲. جلسه برگزارشده را مشخص کن · ۳. وضعیت هر دانش‌آموز را ثبت و ذخیره کن" : "۲. جلسه موردنظر را انتخاب کن · ۳. وضعیت ثبت‌شده هر دانش‌آموز را ببین" }}</small></div>
+  @if($canManage)<x-admin.badge tone="ok">امکان ثبت و ویرایش</x-admin.badge>@else<x-admin.badge tone="mute">فقط مشاهده</x-admin.badge>@endif
+</section>
 
 <form id="attendance-filter" method="GET" action="{{ route('admin.attendance.index') }}">
   <input type="hidden" name="date" value="{{ $dateIso }}">
@@ -62,6 +67,7 @@
 </x-admin.panel>
 
 <x-admin.panel flush>
+  @if($canManage)
   <form method="POST" action="{{ route('admin.attendance.store') }}" data-roster>
     @csrf
     <input type="hidden" name="class_id" value="{{ $classroom?->id }}">
@@ -120,7 +126,7 @@
         @endforeach
       </div>
     @else
-      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>{{ $session ? 'دانش‌آموزی برای ثبت حضور پیدا نشد' : 'برای این روز جلسه‌ای ثبت نشده' }}</b><span>{{ $session ? 'فهرست اعضای کلاس خالی است؛ ابتدا دانش‌آموزان را به کلاس اضافه کن.' : 'یک روز دارای جلسه انتخاب کن یا برای این تاریخ جلسه تازه‌ای بساز.' }}</span>
+      <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>{{ $session ? 'دانش‌آموزی برای ثبت حضور پیدا نشد' : 'برای این روز جلسه‌ای ثبت نشده' }}</b><span>{{ $session ? 'فهرست اعضای کلاس خالی است؛ ابتدا دانش‌آموزان را به کلاس اضافه کن.' : 'یک روز دارای جلسه انتخاب کن یا برای این تاریخ جلسه تازه‌ای بساز.' }}</span>
         @canany(['classes.manage', 'classes.manage.assigned'])
           @if(!$session && $classroom)
             <x-admin.btn size="sm" icon="plus" :href="route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso])">ساخت جلسه برای این روز</x-admin.btn>
@@ -129,9 +135,27 @@
       </div>
     @endif
   </form>
+  @else
+    @if($roster->isNotEmpty())
+      <div class="adm-roster-grid adm-attendance-readonly">
+        @foreach($roster as $student)
+          @php
+            $status = $student['status'];
+            $tone = match($status) {'present' => 'ok', 'late' => 'warn', 'absent' => 'bad', 'excused' => 'info', default => 'mute'};
+          @endphp
+          <article class="adm-roster-card">
+            <div class="adm-roster-person"><span class="adm-roster-avatar">{{ mb_substr($student['name'], 0, 1) }}</span><div><b>{{ $student['name'] }}</b><small>{{ $student['note'] ?: 'بدون توضیح ثبت‌شده' }}</small></div></div>
+            <x-admin.badge :tone="$tone">{{ $marks[$status] ?? 'ثبت‌نشده' }}</x-admin.badge>
+          </article>
+        @endforeach
+      </div>
+    @else
+      <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه یا فهرست دانش‌آموزی وجود ندارد</b><span>روز و کلاس دیگری را انتخاب کن.</span></div>
+    @endif
+  @endif
 </x-admin.panel>
 
-<x-admin.panel title="غیبت زیاد" desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
+<x-admin.panel title="نیازمند پیگیری غیبت" desc="دانش‌آموزانی با سابقه غیبت را بررسی کن و در صورت نیاز به ولی اطلاع بده." flush id="attendance-risk"> desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
   @if(count($report))
     <div class="adm-attendance-report">
       @foreach ($report as [$studentId, $classroomId, $name, $className, $total, $absent])
@@ -149,7 +173,7 @@
           </div>
           <p>{{ number_format($absent) }} غیبت از {{ number_format($total) }} جلسه برگزارشده</p>
           <div class="adm-progress" data-tone="track"><i style="width:{{ $total > 0 ? min(100, round($absent / $total * 100)) : 0 }}%"></i></div>
-          @if ($absent >= 3)
+          @if ($canManage && $absent >= 3)
             <form method="POST" action="{{ route('admin.attendance.notify', [$classroomId, $studentId]) }}" style="margin-top:12px">
               @csrf
               <x-admin.btn type="submit" variant="soft" size="sm" icon="send">اطلاع به ولی</x-admin.btn>

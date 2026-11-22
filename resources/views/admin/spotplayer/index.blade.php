@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'SpotPlayer')
+@section('title', 'ویدیوهای ضبط‌شده')
 
 @section('content')
 @php
@@ -16,31 +16,48 @@
   ];
 @endphp
 
-<x-admin.page-head tone="edu" icon="video" title="یکپارچه‌سازی SpotPlayer" desc="مدیریت ویدیوهای دوره، درخواست لایسنس و وضعیت اتصال امن">
-  @if(!$teacherView)
-    <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">@csrf<button type="submit" class="adm-btn adm-btn-line">درخواست همگام‌سازی دوره‌ها</button></form>
-  @endif
-  <x-admin.btn icon="plus" data-modal-open="spot-video-modal">ثبت ویدیو</x-admin.btn>
+<x-admin.page-head tone="edu" icon="video" title="ویدیوهای ضبط‌شده" desc="همه ویدیوهای دوره‌ها را از یک‌جا پیدا کن و وضعیت آماده‌سازی آن‌ها را ببین.">
+  @unless($teacherView)
+    <x-admin.btn icon="plus" :href="route('admin.courses.index')">بارگذاری ویدیو در یک دوره</x-admin.btn>
+  @endunless
 </x-admin.page-head>
 
-@if(!$teacherView)
-  <div class="adm-stats">
-    <x-admin.stat tone="edu" icon="video" label="ویدیوهای ثبت‌شده" :value="number_format($videos->total())" hint="فایل خصوصی یا شناسه خارجی"/>
-    <x-admin.stat tone="edu" icon="lock" label="لایسنس‌ها" :value="number_format($licenses->total())" hint="وضعیت محلی و خارجی"/>
-    <x-admin.stat tone="edu" icon="refresh" label="عملیات در انتظار" :value="number_format($operations->whereIn('status', ['waiting_contract', 'queued', 'pending'])->count())" hint="تا دریافت قرارداد اجرا نمی‌شوند"/>
-    <x-admin.stat tone="edu" icon="activity" label="وضعیت سرویس" :value="$health?->available ? 'متصل' : 'در انتظار'" :hint="$health?->message ?? 'اتصال فقط پس از دریافت قرارداد فعال می‌شود'"/>
-  </div>
+<div class="adm-video-overview" data-tone="edu">
+  <x-admin.stat tone="edu" icon="video" label="همه ویدیوها" :value="number_format($videoStats['total'])" hint="در محدوده دسترسی تو"/>
+  <x-admin.stat tone="edu" icon="refresh" label="در حال آماده‌سازی" :value="number_format($videoStats['processing'])" hint="پس از پردازش قابل پخش می‌شوند"/>
+  <x-admin.stat tone="edu" icon="alert" label="نیازمند پیگیری" :value="number_format($videoStats['failed'])" hint="پردازش ناموفق"/>
+  @unless($teacherView)
+    <x-admin.stat tone="edu" icon="check" label="منتظر تأیید" :value="number_format($videoStats['review'])" hint="ویدیوهای ارسال‌شده از طرف مدرس"/>
+  @endunless
+</div>
 
-  <x-admin.panel title="وضعیت اتصال" desc="{{ $health?->message }}" data-tone="shop">
-    <div class="adm-row-between">
-      <b>وضعیت درگاه SpotPlayer</b>
-      <x-admin.badge :tone="$health?->available ? 'ok' : 'warn'">{{ $health?->state ?? 'contract_missing' }}</x-admin.badge>
-    </div>
-    <p class="adm-muted">شیخان در حال حاضر لایسنس موفق یا لینک پخش جعلی تولید نمی‌کند. درخواست‌ها به‌صورت امن ثبت می‌شوند و بعد از دریافت مستندات، کلید و دسترسی واقعی از ارائه‌دهنده دریافت خواهد شد.</p>
-  </x-admin.panel>
-@endif
-
-<x-admin.panel title="کتابخانه ویدیوها" desc="ویدیوها در فضای خصوصی ثبت می‌شوند؛ فایل خام در پنل دانش‌آموز قابل دریافت نیست." flush>
+<x-admin.panel title="کتابخانه ویدیوها" desc="فایل‌های بارگذاری‌شده و ویدیوهای متصل به SpotPlayer در این فهرست دیده می‌شوند." flush data-tone="edu">
+  <form method="GET" action="{{ route('admin.spotplayer.index') }}" class="adm-video-filters">
+    <label class="adm-video-search"><x-admin.icon name="search"/><input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام ویدیو، دوره یا کلاس را جستجو کن" aria-label="جستجوی ویدیوها"></label>
+    <select class="adm-select" name="status" aria-label="وضعیت پردازش">
+      <option value="">همه وضعیت‌ها</option>
+      <option value="active" @selected(($filters['status'] ?? '') === 'active')>آماده پخش</option>
+      <option value="processing" @selected(($filters['status'] ?? '') === 'processing')>در حال پردازش</option>
+      <option value="failed" @selected(($filters['status'] ?? '') === 'failed')>پردازش ناموفق</option>
+      <option value="waiting_contract" @selected(($filters['status'] ?? '') === 'waiting_contract')>در انتظار آماده‌سازی</option>
+    </select>
+    <select class="adm-select" name="source" aria-label="منبع ویدیو">
+      <option value="">همه منابع</option>
+      <option value="local" @selected(($filters['source'] ?? '') === 'local')>فایل بارگذاری‌شده</option>
+      <option value="external" @selected(($filters['source'] ?? '') === 'external')>شناسه SpotPlayer</option>
+    </select>
+    <select class="adm-select" name="approval" aria-label="وضعیت تأیید">
+      <option value="">همه وضعیت‌های تأیید</option>
+      <option value="pending" @selected(($filters['approval'] ?? '') === 'pending')>منتظر تأیید</option>
+      <option value="approved" @selected(($filters['approval'] ?? '') === 'approved')>تأییدشده</option>
+      <option value="rejected" @selected(($filters['approval'] ?? '') === 'rejected')>نیازمند اصلاح</option>
+    </select>
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">اعمال فیلتر</button>
+    @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
+      <a href="{{ route('admin.spotplayer.index') }}" class="adm-btn adm-btn-line adm-btn-sm">پاک‌کردن</a>
+    @endif
+  </form>
+  <div class="adm-video-results"><span>{{ number_format($videos->total()) }} ویدیو</span><span>برای افزودن فایل جدید، از صفحه همان دوره اقدام کن.</span></div>
   <div class="adm-grid adm-cols-2">
     @forelse($videos as $video)
       @php
@@ -55,15 +72,16 @@
       <article class="adm-card">
         <div class="adm-card-body">
           <div class="adm-card-title">
-            <div><h3>{{ $video->title }}</h3><p>شناسه داخلی #{{ $video->id }} · {{ $video->external_id ?: 'شناسه خارجی ثبت نشده' }}</p></div>
+            <div><h3>{{ $video->title }}</h3><p>{{ $video->course?->title ?? 'دوره نامشخص' }} · شناسه داخلی #{{ $video->id }}</p></div>
             <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
           </div>
           <div class="adm-meta">
-            <span><x-admin.icon name="book"/>{{ $video->course?->title ?? 'دوره نامشخص' }}</span>
-            <span><x-admin.icon name="users"/>{{ $video->classroom?->name ?? 'مشترک در سطح دوره' }}</span>
+            <span><x-admin.icon name="users"/>{{ $video->classroom?->name ?? 'در سطح کل دوره' }}</span>
+            @if($video->classSession)<span><x-admin.icon name="cal"/>{{ $video->classSession->title }}</span>@endif
             <span><x-admin.icon name="clock"/>{{ ($video->staged_at ? \App\Support\PersianDate::format($video->staged_at, 'Y/m/d H:i') : 'زمان ثبت نامشخص') }}</span>
           </div>
           <div class="adm-card-foot">
+            <span class="adm-video-source">{{ $video->file_path ? 'فایل بارگذاری‌شده' : 'شناسه SpotPlayer' }}</span>
             @if($video->approval_status === 'pending')
               <x-admin.badge tone="warn">در انتظار تأیید مدیر</x-admin.badge>
             @elseif($video->approval_status === 'rejected')
@@ -72,7 +90,7 @@
               <x-admin.badge tone="ok">تأیید انتشار</x-admin.badge>
             @endif
             @if($video->file_path)
-              <span class="adm-muted">{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} MB</span>
+              <span class="adm-muted">{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} مگابایت</span>
             @else
               <span class="adm-muted">فقط شناسه خارجی</span>
             @endif
@@ -113,7 +131,18 @@
 </x-admin.panel>
 
 @if(!$teacherView)
-  <x-admin.panel title="درخواست لایسنس دانش‌آموز" desc="برای دانش‌آموز دارای ثبت‌نام معتبر درخواست محلی ثبت می‌شود؛ اگر شناسه خارجی یا API هنوز آماده نباشد، وضعیت در انتظار می‌ماند." data-tone="edu">
+  <details class="adm-video-advanced">
+  <summary><span><b>تنظیمات پیشرفته و SpotPlayer</b><small>لایسنس‌ها، وضعیت اتصال و ابزارهای مدیریتی؛ در کارهای روزمره نیازی به این بخش نیست.</small></span><x-admin.icon name="chev"/></summary>
+  <div class="adm-video-advanced-body">
+  <div class="adm-video-connection">
+    <div><b>وضعیت اتصال SpotPlayer</b><p>{{ $health?->message ?? 'وضعیت اتصال سرویس در دسترس نیست.' }}</p></div>
+    <x-admin.badge :tone="$health?->available ? 'ok' : 'warn'">{{ $health?->available ? 'متصل' : 'در انتظار قرارداد' }}</x-admin.badge>
+  </div>
+  <div class="adm-actions">
+    <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">@csrf<button type="submit" class="adm-btn adm-btn-line adm-btn-sm">درخواست همگام‌سازی دوره‌ها</button></form>
+    <button type="button" class="adm-btn adm-btn-line adm-btn-sm" data-modal-open="spot-video-modal">ثبت شناسه ویدیوی موجود در SpotPlayer</button>
+  </div>
+  <x-admin.panel title="درخواست لایسنس دانش‌آموز" desc="فقط برای دانش‌آموز دارای دسترسی معتبر به دوره درخواست ثبت کن." data-tone="edu">
     @if(count($licenseCourseOptions) && count($studentOptions))
       <form method="POST" action="{{ route('admin.spotplayer.licenses.store') }}" class="adm-form">
         @csrf
@@ -174,7 +203,7 @@
     </table></div>
   </x-admin.panel>
 
-  <x-admin.panel title="تنظیمات محلی SpotPlayer" desc="کلید API رمزنگاری‌شده ذخیره می‌شود؛ فعال‌سازی اتصال تا دریافت قرارداد عمداً خاموش است." data-tone="shop">
+  <x-admin.panel title="تنظیمات اتصال" desc="کلید API رمزنگاری‌شده ذخیره می‌شود؛ اتصال خارجی تا دریافت قرارداد رسمی فعال نخواهد شد." data-tone="shop">
     <form method="POST" action="{{ route('admin.spotplayer.settings') }}" class="adm-form">
       @csrf
       @method('PATCH')
@@ -188,11 +217,13 @@
       <div class="wide"><button type="submit" class="adm-btn adm-btn-primary">ذخیره تنظیمات محلی</button></div>
     </form>
   </x-admin.panel>
+  </div>
+</details>
 @endif
 @endsection
 
 @push('modals')
-<x-admin.modal :demo="false" id="spot-video-modal" title="ثبت ویدیوی SpotPlayer" size="lg" :action="route('admin.spotplayer.videos.store')">
+<x-admin.modal :demo="false" id="spot-video-modal" title="ثبت شناسه ویدیوی SpotPlayer" size="lg" :action="route('admin.spotplayer.videos.store')">
   <x-admin.legend title="اطلاعات ویدیو"/>
   <x-admin.input label="عنوان ویدیو" name="title" wide required/>
   <x-admin.select label="دوره" name="course_id" :options="$courseOptions" required/>

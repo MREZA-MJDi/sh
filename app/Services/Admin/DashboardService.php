@@ -6,6 +6,8 @@ use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Consultation;
 use App\Models\Course;
+use App\Models\ClassSession;
+use App\Models\CourseEnrollment;
 use App\Models\HomeworkSubmission;
 use App\Models\Payment;
 use App\Models\User;
@@ -46,30 +48,24 @@ final class DashboardService
         $weekStart = today()->copy()->subDays(6)->startOfDay();
         $attendanceByDay = $canSeeAttendance
             ? Attendance::query()
-                ->leftJoin('class_sessions as sessions', function ($join): void {
-                    $join->on('sessions.id', '=', 'attendances.class_session_id')
-                        ->on('sessions.classroom_id', '=', 'attendances.classroom_id');
+                ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds))
+                ->whereBetween('session_date', [$weekStart->toDateString(), today()->endOfDay()])
+                ->whereIn('status', ['present', 'late', 'absent', 'excused'])
+                ->where(function ($query): void {
+                    $query->whereNull('class_session_id')
+                        ->orWhereHas('session', fn ($sessions) => $sessions
+                            ->where('status', '!=', 'cancelled')
+                            ->where('starts_at', '<=', now()));
                 })
-                ->when($teacherView, fn ($query) => $query->whereIn('attendances.classroom_id', $classroomIds))
                 ->selectRaw(
-                    "DATE(COALESCE(sessions.starts_at, attendances.session_date)) as attendance_day,
+                    "DATE(session_date) as attendance_day,
                     COUNT(*) as total,
-                    SUM(CASE WHEN attendances.status = 'present' THEN 1 ELSE 0 END) as present,
-                    SUM(CASE WHEN attendances.status = 'late' THEN 1 ELSE 0 END) as late,
-                    SUM(CASE WHEN attendances.status = 'absent' THEN 1 ELSE 0 END) as absent,
-                    SUM(CASE WHEN attendances.status = 'excused' THEN 1 ELSE 0 END) as excused"
+                    SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late,
+                    SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN status = 'excused' THEN 1 ELSE 0 END) as excused"
                 )
-                ->whereBetween('attendances.session_date', [$weekStart->toDateString(), today()->toDateString()])
-                ->whereIn('attendances.status', ['present', 'late', 'absent', 'excused'])
-                ->where(function ($query): void {
-                    $query->whereNull('attendances.class_session_id')->orWhereNotNull('sessions.id');
-                })
-                ->where(function ($query): void {
-                    $query->whereNull('sessions.id')->orWhere(function ($validSession): void {
-                        $validSession->where('sessions.status', '!=', 'cancelled')->where('sessions.starts_at', '<=', now());
-                    });
-                })
-                ->groupByRaw('DATE(COALESCE(sessions.starts_at, attendances.session_date))')
+                ->groupByRaw('DATE(session_date)')
                 ->get()
                 ->keyBy('attendance_day')
             : collect();
@@ -97,7 +93,7 @@ final class DashboardService
             'attendance_rate' => $attendanceTotal > 0 ? (int) round(($attendancePresent / $attendanceTotal) * 100) : 0,
             'pending_homework' => $canSeeHomework
                 ? HomeworkSubmission::query()
-                    ->where('status', 'submitted')
+                    ->whereIn('status', ['submitted', 'late'])
                     ->when($teacherView, fn ($query) => $query->whereHas(
                         'homework',
                         fn ($homework) => $homework->whereIn('classroom_id', $classroomIds)
@@ -117,6 +113,34 @@ final class DashboardService
         $publishedAnnouncementCount = $canSeeAnnouncements
             ? Announcement::query()->where('status', 'published')->count()
             : 0;
+
+        $canSeeRegistrations = $user->hasAnyPermission(['users.manage', 'courses.manage']);
+        $recentEnrollmentQuery = CourseEnrollment::query()
+            ->where('created_at', '>=', now()->subDays(7));
+        if (! $canSeeRegistrations) {
+            $recentEnrollmentQuery->whereRaw('1 = 0');
+        }
+        $recentEnrollmentCount = (clone $recentEnrollmentQuery)->count();
+        $recentEnrollments = $recentEnrollmentQuery
+            ->with(['student:id,name', 'course:id,title'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $pendingPaymentReviewCount = $user->hasPermissionTo('users.manage')
+            ? Payment::query()->where('status', 'pending_review')->count()
+            : 0;
+
+        $upcomingSessions = $canSeeClasses
+            ? ClassSession::query()
+                ->whereIn('classroom_id', $classroomIds)
+                ->where('status', 'scheduled')
+                ->whereBetween('starts_at', [now(), now()->addDays(7)])
+                ->with('classroom:id,name')
+                ->orderBy('starts_at')
+                ->limit(5)
+                ->get()
+            : collect();
 
         $weeklyAttendance = $canSeeAttendance
             ? collect(range(6, 0))->map(function (int $daysAgo) use ($attendanceByDay): array {
@@ -153,6 +177,10 @@ final class DashboardService
             'openMessageCount',
             'pendingConsultationCount',
             'publishedAnnouncementCount',
+            'recentEnrollmentCount',
+            'recentEnrollments',
+            'pendingPaymentReviewCount',
+            'upcomingSessions',
             'paidCoursePurchases',
             'averageCoursePurchase',
             'revenueLast30Days',

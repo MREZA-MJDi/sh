@@ -8,6 +8,7 @@ use App\Models\Classroom;
 use App\Models\ClassSession;
 use App\Models\Consultation;
 use App\Models\Course;
+use App\Models\CourseEnrollment;
 use App\Models\Message;
 use App\Models\Payment;
 use App\Models\Role;
@@ -257,4 +258,71 @@ final class AdminDashboardDataBindingTest extends TestCase
             ->assertDontSee('گروه‌های آموزشی فعال</th>', false)
             ->assertDontSee('پیام‌های اخیر');
     }
+
+    public function test_dashboard_exposes_recent_enrollments_pending_payment_reviews_and_upcoming_sessions(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+
+        $course = Course::query()->create([
+            'title' => 'دوره ثبت‌نام جدید',
+            'slug' => 'dashboard-recent-enrollment',
+            'teacher_id' => $admin->id,
+            'type' => 'paid',
+            'price' => 150000,
+            'delivery_type' => 'onsite',
+            'status' => 'published',
+        ]);
+
+        CourseEnrollment::query()->create([
+            'course_id' => $course->id,
+            'student_id' => $student->id,
+            'source' => 'manual',
+            'status' => 'active',
+            'granted_by' => $admin->id,
+            'granted_at' => now(),
+        ]);
+
+        Payment::query()->create([
+            'reference' => 'DASH-REVIEW-NEW',
+            'student_id' => $student->id,
+            'course_id' => $course->id,
+            'amount' => 150000,
+            'method' => 'bank_transfer',
+            'provider' => 'manual',
+            'status' => 'pending_review',
+        ]);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $admin->id,
+            'name' => 'کلاس جلسه پیش‌رو',
+            'status' => 'active',
+        ]);
+        ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه برنامه‌ریزی‌شده',
+            'session_type' => 'onsite',
+            'starts_at' => now()->addDay(),
+            'status' => 'scheduled',
+            'created_by' => $admin->id,
+        ]);
+
+        $dashboard = app(DashboardService::class)->build($admin);
+
+        $this->assertSame(1, $dashboard['recentEnrollmentCount']);
+        $this->assertCount(1, $dashboard['recentEnrollments']);
+        $this->assertSame(1, $dashboard['pendingPaymentReviewCount']);
+        $this->assertCount(1, $dashboard['upcomingSessions']);
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('الان چه کارهایی باید انجام بدهم؟')
+            ->assertSee('رسیدهای پرداخت نیازمند بررسی')
+            ->assertSee('ثبت‌نام‌های جدید در ۷ روز اخیر')
+            ->assertSee('جلسات پیش‌رو')
+            ->assertSee('جلسه برنامه‌ریزی‌شده');
+    }
+
 }
