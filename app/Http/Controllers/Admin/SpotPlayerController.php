@@ -29,12 +29,10 @@ use Illuminate\View\View;
 class SpotPlayerController extends Controller
 {
     public function index(
-        \App\Http\Requests\Admin\AdminSpotPlayerVideoIndexRequest $request,
         SpotPlayerService $spotPlayer,
         ClassroomWorkspaceService $workspace
     ): View {
-        $user = $request->user();
-        $filters = $request->validated();
+        $user = auth()->user();
         $teacherView = $workspace->isTeacher($user);
         $classroomIds = $workspace->queryFor($user)->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($user)->select('courses.id');
@@ -42,9 +40,10 @@ class SpotPlayerController extends Controller
         $settings = $teacherView ? null : SpotPlayerSetting::query()->first();
         $health = $teacherView ? null : $spotPlayer->health();
 
-        $visibleVideosQuery = SpotPlayerVideo::query()->with(['course:id,title', 'classroom:id,name', 'classSession:id,title,starts_at']);
+        $videosQuery = SpotPlayerVideo::query()->with(['course', 'classroom']);
+
         if ($teacherView) {
-            $visibleVideosQuery->where(function ($scope) use ($classroomIds, $courseIds): void {
+            $videosQuery->where(function ($scope) use ($classroomIds, $courseIds): void {
                 $scope->where(function ($classScoped) use ($classroomIds, $courseIds): void {
                     $classScoped->whereNotNull('classroom_id')
                         ->whereIn('classroom_id', $classroomIds)
@@ -57,30 +56,7 @@ class SpotPlayerController extends Controller
             });
         }
 
-        $videoStats = [
-            'total' => (clone $visibleVideosQuery)->count(),
-            'processing' => (clone $visibleVideosQuery)->where('status', 'processing')->count(),
-            'failed' => (clone $visibleVideosQuery)->where('status', 'failed')->count(),
-            'review' => (clone $visibleVideosQuery)->where('approval_status', 'pending')->count(),
-        ];
-
-        $videosQuery = clone $visibleVideosQuery;
-        $videosQuery
-            ->when(filled($filters['q'] ?? null), function ($query) use ($filters): void {
-                $term = trim($filters['q']);
-                $query->where(function ($search) use ($term): void {
-                    $search->where('title', 'like', "%{$term}%")
-                        ->orWhere('external_id', 'like', "%{$term}%")
-                        ->orWhereHas('course', fn ($course) => $course->where('title', 'like', "%{$term}%"))
-                        ->orWhereHas('classroom', fn ($classroom) => $classroom->where('name', 'like', "%{$term}%"));
-                });
-            })
-            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
-            ->when(($filters['source'] ?? '') === 'local', fn ($query) => $query->whereNotNull('file_path'))
-            ->when(($filters['source'] ?? '') === 'external', fn ($query) => $query->whereNull('file_path')->whereNotNull('external_id'))
-            ->when(filled($filters['approval'] ?? null), fn ($query) => $query->where('approval_status', $filters['approval']));
-
-        $videos = $videosQuery->latest()->paginate(12, ['*'], 'videos')->withQueryString();
+        $videos = $videosQuery->latest()->paginate(10, ['*'], 'videos');
 
         $courses = $workspace->coursesQueryFor($user)
             ->where(function ($query): void {
@@ -112,7 +88,7 @@ class SpotPlayerController extends Controller
 
         return view('admin.spotplayer.index', compact(
             'settings', 'health', 'videos', 'licenses', 'courses', 'classrooms',
-            'students', 'operations', 'teacherView', 'filters', 'videoStats'
+            'students', 'operations', 'teacherView'
         ));
     }
 
