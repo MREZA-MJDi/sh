@@ -140,6 +140,61 @@ final class TeacherConsultationVisibilityTest extends TestCase
         Notification::assertSentTo($teacher, ConsultationRequestNotification::class);
     }
 
+
+    public function test_administrator_must_set_a_time_before_scheduling_a_pending_consultation(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $consultation = Consultation::query()->create([
+            'requester_id' => $guardian->id,
+            'student_id' => $student->id,
+            'type' => 'ticket',
+            'topic' => 'مشاوره نیازمند زمان',
+            'notes' => 'شرح درخواست',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.consultations.index'))
+            ->patch(route('admin.consultations.update', $consultation), [
+                'status' => 'scheduled',
+            ])
+            ->assertRedirect(route('admin.consultations.index'))
+            ->assertSessionHasErrors('scheduled_at');
+
+        $this->assertDatabaseHas('consultations', [
+            'id' => $consultation->id,
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_administrator_cannot_reopen_a_completed_consultation(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $consultation = Consultation::query()->create([
+            'requester_id' => $guardian->id,
+            'student_id' => $student->id,
+            'type' => 'ticket',
+            'topic' => 'مشاوره تکمیل‌شده',
+            'notes' => 'شرح درخواست',
+            'status' => 'done',
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.consultations.update', $consultation), [
+                'status' => 'pending',
+            ])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseHas('consultations', [
+            'id' => $consultation->id,
+            'status' => 'done',
+        ]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
