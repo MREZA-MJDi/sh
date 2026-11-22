@@ -14,14 +14,42 @@
 </x-admin.page-head>
 
 @if($classroom->skyroom_status === 'waiting_contract')
-  <x-admin.panel title="جلسه‌ها قابل برنامه‌ریزی هستند" desc="اتاق آنلاین هنوز فعال نشده؛ می‌توانی زمان جلسات را ثبت کنی. لینک ورود بعد از فعال‌شدن سرویس نمایش داده می‌شود." data-tone="shop"/>
+  <x-admin.panel title="برنامه‌ریزی فعال است؛ اتاق آنلاین هنوز آماده نیست" desc="می‌توانی جلسه‌ها را از همین‌جا زمان‌بندی کنی. لینک ورود پس از فعال‌شدن سرویس نمایش داده می‌شود؛ لینک دستی کلاس هم قابل استفاده است." data-tone="shop"/>
 @endif
+
+@php $nextMeetingLink = $nextSession?->meeting_url ?: $classroom->meeting_url; @endphp
+<section class="adm-session-focus" data-tone="edu">
+  <div class="adm-session-focus-copy">
+    <span class="adm-session-focus-kicker"><x-admin.icon name="clock"/> نوبت بعدی کلاس</span>
+    @if($nextSession)
+      <h2>{{ $nextSession->title }}</h2>
+      <p>{{ \\App\\Support\\PersianDate::format($nextSession->starts_at, 'l، d F · H:i') }} · {{ $nextSession->ends_at ? \\App\\Support\\PersianDate::format($nextSession->ends_at, 'H:i') : 'پایان نامشخص' }}</p>
+      <div class="adm-actions">
+        @if($nextMeetingLink && $nextSession->session_type === 'online')
+          <a class="adm-btn adm-btn-primary" href="{{ $nextMeetingLink }}" target="_blank" rel="noopener noreferrer"><x-admin.icon name="live"/>ورود به اتاق جلسه</a>
+        @elseif($nextSession->session_type === 'online')
+          <span class="adm-session-no-link">لینک ورود هنوز آماده نیست</span>
+        @endif
+        <a class="adm-btn adm-btn-line" href="{{ route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $nextSession->starts_at?->format('Y-m-d'), 'session' => $nextSession->id]) }}">آماده‌سازی حضور و غیاب</a>
+      </div>
+    @else
+      <h2>جلسه بعدی هنوز برنامه‌ریزی نشده</h2>
+      <p>اگر این کلاس قرار است برگزار شود، زمان جلسه را ثبت کن تا در برنامه امروز و داشبورد دیده شود.</p>
+      <x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی اولین جلسه</x-admin.btn>
+    @endif
+  </div>
+  <div class="adm-session-focus-side">
+    <span>وضعیت کلاس</span>
+    <b>{{ $classroom->status === 'active' ? 'در حال برگزاری' : 'متوقف' }}</b>
+    <small>{{ number_format($classroom->students_count) }} دانش‌آموز عضو این کلاس</small>
+  </div>
+</section>
 
 <div class="adm-stats">
   <x-admin.stat tone="edu" icon="calendar" label="همه جلسه‌ها" :value="number_format($stats['total'])"/>
   <x-admin.stat tone="edu" icon="clock" label="جلسه‌های پیش‌رو" :value="number_format($stats['upcoming'])"/>
   <x-admin.stat tone="edu" icon="check" label="برگزارشده" :value="number_format($stats['completed'])"/>
-  <x-admin.stat tone="edu" icon="users" label="دانش‌آموزان کلاس" :value="number_format($classroom->students()->count())"/>
+  <x-admin.stat tone="edu" icon="users" label="دانش‌آموزان کلاس" :value="number_format($classroom->students_count)"/>
 </div>
 
 <x-admin.panel title="تقویم کلاس" desc="هر روزی را انتخاب کن تا برنامه همان روز را ببینی." data-tone="edu">
@@ -91,11 +119,18 @@
               <div><h3>{{ $session->title }}</h3><p>{{ $typeLabels[$session->session_type] ?? $session->session_type }} · {{ number_format($session->attendances_count) }} نفر ثبت حضور</p></div>
               <x-admin.badge :tone="$statusTones[$session->status] ?? 'warn'">{{ $statusLabels[$session->status] ?? $session->status }}</x-admin.badge>
             </div>
-            @if($session->session_type === 'online' && blank($session->meeting_url) && blank($classroom->meeting_url) && blank($classroom->skyroom_room_id))
-              <small class="adm-muted">زمان جلسه ثبت شده؛ لینک ورود پس از آماده‌شدن اتاق نمایش داده می‌شود.</small>
+            @if($session->session_type === 'online')
+              @if($session->meeting_url || $classroom->meeting_url)
+                <small class="adm-session-link-ready"><x-admin.icon name="check"/> لینک ورود آماده است</small>
+              @else
+                <small class="adm-muted">زمان جلسه ثبت شده؛ لینک ورود پس از آماده‌شدن اتاق نمایش داده می‌شود.</small>
+              @endif
             @endif
           </div>
           <div class="adm-actions">
+            @if($session->session_type === 'online' && ($session->meeting_url || $classroom->meeting_url))
+              <a class="adm-btn adm-btn-primary adm-btn-sm" href="{{ $session->meeting_url ?: $classroom->meeting_url }}" target="_blank" rel="noopener noreferrer"><x-admin.icon name="live"/>ورود به جلسه</a>
+            @endif
             @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
               <x-admin.btn size="sm" icon="check" variant="soft" :href="route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $session->starts_at?->format('Y-m-d'), 'session' => $session->id])">ثبت حضور</x-admin.btn>
             @endcanany
