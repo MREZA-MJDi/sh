@@ -11,10 +11,10 @@
 <x-admin.page-head tone="comm" icon="msg" title="پیام‌های تماس" desc="پیام‌های ثبت‌شده از فرم تماس سایت و پیگیری وضعیت آن‌ها"/>
 
 <div class="adm-stats">
-  <x-admin.stat tone="comm" icon="inbox" label="پیام جدید" :value="number_format((int) ($counts['new'] ?? 0))"/>
+  <x-admin.stat tone="comm" icon="msg" label="پیام جدید" :value="number_format((int) ($counts['new'] ?? 0))"/>
   <x-admin.stat tone="comm" icon="clock" label="در حال پیگیری" :value="number_format((int) ($counts['in_progress'] ?? 0))"/>
   <x-admin.stat tone="comm" icon="check" label="پاسخ‌داده‌شده" :value="number_format((int) ($counts['resolved'] ?? 0))"/>
-  <x-admin.stat tone="comm" icon="shield" label="هرزنامه" :value="number_format((int) ($counts['spam'] ?? 0))"/>
+  <x-admin.stat tone="comm" icon="lock" label="هرزنامه" :value="number_format((int) ($counts['spam'] ?? 0))"/>
 </div>
 
 <x-admin.panel flush data-filter data-tone="comm">
