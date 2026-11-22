@@ -122,6 +122,7 @@ final class LearningResourceAccessService
             ->where('type', 'free')
             ->where(fn (Builder $features) => $features
                 ->whereNull('learning_features')
+                ->orWhereNull('learning_features->resources')
                 ->orWhere('learning_features->resources', true))
             ->exists();
 
