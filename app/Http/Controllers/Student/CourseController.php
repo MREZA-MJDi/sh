@@ -37,7 +37,7 @@ final class CourseController extends Controller
             ->withQueryString();
 
         $enrolledCourseIds = $courses->getCollection()
-            ->filter(fn (Course $course): bool => (bool) $course->has_active_enrollment)
+            ->filter(fn (Course $course): bool => $course->type === 'free' || (bool) $course->has_active_enrollment)
             ->pluck('id')
             ->all();
         $progressByCourse = $progress->forStudent($student, $enrolledCourseIds)->keyBy('id');
