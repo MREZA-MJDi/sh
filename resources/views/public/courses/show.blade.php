@@ -392,10 +392,7 @@
             @if ($hasCourseAccess)
                 <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
             @elseif (auth()->check() && auth()->user()->hasRole('student') && $course->type === 'free')
-                <form method="POST" action="{{ route('student.courses.enroll-free', $course) }}">
-                    @csrf
-                    <button class="btn" style="width:100%;justify-content:center;font-size:15px" type="submit">ثبت‌نام رایگان</button>
-                </form>
+                <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">شروع یادگیری رایگان</a>
             @elseif ($course->type === 'paid')
                 <form method="POST" action="{{ route('public.cart.add', $course) }}">
                     @csrf
@@ -405,13 +402,13 @@
                     <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">ورود به حساب کاربری</a>
                 @endguest
             @elseif (auth()->guest())
-                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">برای ثبت‌نام رایگان وارد شوید</a>
+                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">برای دسترسی رایگان وارد حساب دانش‌آموزی شوید</a>
             @else
                 <p class="mu" style="text-align:center">ثبت‌نام رایگان فقط از حساب فعال دانش‌آموز انجام می‌شود.</p>
             @endif
 
             <p style="font-size:13px;color:var(--mute);margin:14px 0 0;text-align:center;line-height:1.7">
-                دسترسی دوره بر اساس وضعیت ثبت‌نام و تأیید پرداخت مدیریت می‌شود.
+                دسترسی دوره‌های رایگان برای دانش‌آموزان فعال است؛ دوره‌های پولی پس از تأیید پرداخت باز می‌شوند.
             </p>
 
             <ul>
