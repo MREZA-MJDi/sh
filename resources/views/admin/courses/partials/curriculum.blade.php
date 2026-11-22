@@ -39,7 +39,7 @@
     @endforelse
   </div>
   <x-slot:footer>
-    <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن فصل جدید</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="section-modal">افزودن بخش جدید</x-admin.btn>
   </x-slot:footer>
 </x-admin.panel>
 
