@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\Quiz24Controller;
 use App\Http\Controllers\Admin\SpotPlayerController;
 use App\Http\Controllers\Admin\SeoDashboardController;
 use App\Http\Controllers\Admin\HomeQuizQuestionController;
+use App\Http\Controllers\Admin\InternalNotificationController;
 use App\Http\Controllers\SeoPublicController;
 use App\Http\Controllers\PublicSiteController;
 use App\Http\Controllers\PublicHomeQuizController;
