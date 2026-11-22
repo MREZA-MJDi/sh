@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'کلاس‌ها')
+@section('title', 'گروه‌های آموزشی')
 
 @section('content')
 @php
@@ -10,8 +10,8 @@
   $statusOptions = ['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی'];
 @endphp
 
-<x-admin.page-head tone="edu" icon="cls" title="کلاس‌ها" desc="هر کلاس یک گروه آموزشی از یک دوره است؛ مدرس، اعضا و جلسات خودش را دارد">
-  <x-admin.btn variant="line" icon="calendar" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
+<x-admin.page-head tone="edu" icon="cls" title="گروه‌های آموزشی" desc="هر گروه، مدرس، دانش‌آموزان و برنامه خودش را دارد. برای مدیریت جلسه‌ها، گروه را باز کن.">
+  <x-admin.btn variant="line" icon="cal" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
   @if($canManage)
     <x-admin.btn icon="plus" data-modal-open="class-modal">کلاس جدید</x-admin.btn>
   @endif
@@ -87,19 +87,16 @@
           @endif
 
           <div class="adm-actions">
-            <x-admin.btn size="sm" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
-            @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
-                  <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
-                @endcanany
+            <x-admin.btn size="sm" icon="cal" :href="route('admin.classes.sessions.index', $classroom)">برنامه جلسات</x-admin.btn>
             @if($canManage)
               <x-admin.btn variant="soft" size="sm" icon="edit" data-modal-open="class-modal" data-title="ویرایش کلاس" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش</x-admin.btn>
               <x-admin.btn variant="bad" size="sm" icon="trash" data-modal-open="class-del" :data-name="$classroom->name" :data-action="route('admin.classes.destroy', $classroom)" aria-label="حذف"/>
             @endif
           </div>
-          @if($canManage)
+          @if($canManage && !in_array($classroom->skyroom_status, ['waiting_contract', 'ready'], true))
             <form method="POST" action="{{ route('admin.classes.skyroom-room', $classroom) }}" style="margin-top:8px">
               @csrf
-              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm" style="width:100%">آماده‌سازی اتاق آنلاین</button>
+              <button type="submit" class="adm-btn adm-btn-line adm-btn-sm" style="width:100%">تلاش برای آماده‌سازی اتاق آنلاین</button>
             </form>
           @endif
         </div>
