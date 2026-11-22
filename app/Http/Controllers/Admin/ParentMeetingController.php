@@ -1,19 +1,21 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\ParentMeeting;
-use App\\Models\\User;
-use App\\Services\\Admin\\ClassroomWorkspaceService;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Http\\JsonResponse;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\View\\View;
+use App\Http\Controllers\Controller;
+use App\Models\ParentMeeting;
+use App\Models\User;
+use App\Notifications\ParentMeetingNotification;
+use App\Services\Admin\ClassroomWorkspaceService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
-class ParentMeetingController extends Controller
+final class ParentMeetingController extends Controller
 {
     public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
@@ -105,59 +107,97 @@ class ParentMeetingController extends Controller
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'student_id' => ['required', 'integer', 'exists:users,id'],
             'guardian_id' => ['required', 'integer', 'exists:users,id'],
-            'title' => ['required', 'string', 'max:180'],
-            'message' => ['nullable', 'string', 'max:4000'],
-            'preferred_at' => ['nullable', 'date'],
+            'title' => ['required', 'string', 'min:3', 'max:180'],
+            'message' => ['nullable', 'string', 'max:2000'],
+            'starts_at' => ['required', 'date', 'after:now'],
+            'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);
 
-        $actor = $request->user();
-        $classroom = null;
-        if (filled($data['classroom_id'] ?? null)) {
-            $classroom = $workspace->queryFor($actor)->findOrFail((int) $data['classroom_id']);
-        }
-        abort_unless(! $workspace->isTeacher($actor) || $classroom, 422);
+        abort_unless(! $workspace->isTeacher($request->user()) || ! empty($data['classroom_id']), 422, 'مدرس باید کلاس مرتبط با جلسه را انتخاب کند.');
 
-        $student = User::query()->whereKey($data['student_id'])
+        $classroom = null;
+        if (! empty($data['classroom_id'])) {
+            $classroom = $workspace->queryFor($request->user())
+                ->where('status', 'active')
+                ->findOrFail($data['classroom_id']);
+            abort_unless($classroom->students()->whereKey($data['student_id'])->exists(), 422, 'دانش‌آموز عضو این کلاس نیست.');
+        }
+
+        $student = User::query()
+            ->whereKey($data['student_id'])
             ->where('is_active', true)
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
-            ->when($classroom, fn (Builder $query) => $query->whereIn(
-                'users.id',
-                DB::table('classroom_student')->select('student_id')->where('classroom_id', $classroom->id)
-            ))
             ->firstOrFail();
-
         $guardian = $student->guardians()
             ->whereKey($data['guardian_id'])
             ->where('users.is_active', true)
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'parent'))
             ->firstOrFail();
 
-        ParentMeeting::query()->create([
+        $isTeacher = $workspace->isTeacher($request->user());
+        $meeting = ParentMeeting::query()->create([
             'classroom_id' => $classroom?->id,
             'course_id' => $classroom?->course_id,
             'student_id' => $student->id,
             'guardian_id' => $guardian->id,
-            'created_by' => $actor->id,
-            'title' => $data['title'],
-            'message' => $data['message'] ?? null,
-            'preferred_at' => $data['preferred_at'] ?? null,
-            'status' => 'requested',
+            'created_by' => $request->user()->id,
+            'title' => trim($data['title']),
+            'message' => filled($data['message'] ?? null) ? trim($data['message']) : null,
+            'starts_at' => $data['starts_at'],
+            'ends_at' => $data['ends_at'] ?? null,
+            'status' => $isTeacher ? 'proposed' : 'scheduled',
         ]);
 
-        return back()->with('success', 'درخواست جلسه ثبت شد.');
+        $guardian->notify(new ParentMeetingNotification($meeting, $isTeacher
+            ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی فرزند پیشنهاد جلسه ثبت کرده است.'
+            : 'جلسه‌ای برای شما و فرزندتان زمان‌بندی شده است.'));
+        $student->notify(new ParentMeetingNotification($meeting, $isTeacher
+            ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی شما پیشنهاد جلسه ثبت کرده است.'
+            : 'جلسه‌ای با ولی شما زمان‌بندی شده است.'));
+
+        return back()->with('success', $isTeacher
+            ? 'پیشنهاد جلسه برای بررسی مدیر ثبت شد.'
+            : 'جلسه با موفقیت برای ولی دانش‌آموز زمان‌بندی شد.');
     }
 
-    public function updateStatus(Request $request, ParentMeeting $meeting): RedirectResponse
+    public function updateStatus(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
     {
+        abort_unless($request->user()->hasRole('admin'), 403);
+
+        $record = ParentMeeting::query()
+            ->when($workspace->isTeacher($request->user()), fn (Builder $query) => $query->whereIn(
+                'classroom_id',
+                $workspace->queryFor($request->user())->select('classrooms.id')
+            ))
+            ->findOrFail($meeting);
+
         $data = $request->validate([
-            'status' => ['required', 'in:requested,proposed,scheduled,completed,declined,cancelled'],
-            'starts_at' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled', 'declined'])],
+            'starts_at' => ['nullable', 'date', Rule::requiredIf(fn () => in_array($record->status, ['requested', 'proposed'], true) && $request->input('status') === 'scheduled'), 'after:now'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
-            'meeting_url' => ['nullable', 'url', 'max:2048'],
-            'notes' => ['nullable', 'string', 'max:4000'],
         ]);
 
-        $meeting->update($data + ['handled_by' => $request->user()->id]);
+        if (in_array($record->status, ['requested', 'proposed'], true)) {
+            abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
+            if ($data['status'] === 'scheduled') {
+                abort_unless(filled($data['starts_at'] ?? null), 422, 'زمان جلسه را مشخص کنید.');
+            }
+        } else {
+            abort_unless(in_array($data['status'], ['completed', 'cancelled'], true), 422, 'وضعیت این جلسه قابل تغییر نیست.');
+        }
+
+        $record->update([
+            'status' => $data['status'],
+            'starts_at' => $data['starts_at'] ?? $record->starts_at,
+            'ends_at' => $data['ends_at'] ?? $record->ends_at,
+            'responded_by' => $request->user()->id,
+            'responded_at' => now(),
+        ]);
+
+        $record->loadMissing(['guardian', 'student']);
+        $notification = new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.');
+        $record->guardian?->notify($notification);
+        $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
 
         return back()->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }
