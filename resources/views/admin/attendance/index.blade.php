@@ -6,7 +6,7 @@
   $marks = ['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'];
 @endphp
 
-<x-admin.page-head tone="track" icon="check" title="حضور و غیاب" desc="وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت کن."
+<x-admin.page-head tone="track" icon="check" title="حضور و غیاب"  :desc="$canManage ? 'وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت و ذخیره کن.' : 'سوابق حضور و غیاب جلسه انتخاب‌شده را مشاهده کن؛ امکان ویرایش برای این حساب فعال نیست.'"
   :back-url="$classroom ? route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso]) : route('admin.classes.index')"
   :back-label="$classroom ? 'بازگشت به برنامه کلاس' : 'کلاس‌ها'"/>
 
@@ -173,7 +173,7 @@
           </div>
           <p>{{ number_format($absent) }} غیبت از {{ number_format($total) }} جلسه برگزارشده</p>
           <div class="adm-progress" data-tone="track"><i style="width:{{ $total > 0 ? min(100, round($absent / $total * 100)) : 0 }}%"></i></div>
-          @if ($absent >= 3)
+          @if ($canManage && $absent >= 3)
             <form method="POST" action="{{ route('admin.attendance.notify', [$classroomId, $studentId]) }}" style="margin-top:12px">
               @csrf
               <x-admin.btn type="submit" variant="soft" size="sm" icon="send">اطلاع به ولی</x-admin.btn>
