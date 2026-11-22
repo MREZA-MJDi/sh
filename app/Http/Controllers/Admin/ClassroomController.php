@@ -18,14 +18,29 @@ use Illuminate\Support\Facades\DB;
 
 class ClassroomController extends Controller
 {
-    public function index(Request $request, ClassroomWorkspaceService $workspace): View
-    {
+    public function index(
+        \App\Http\Requests\Admin\AdminClassroomIndexRequest $request,
+        ClassroomWorkspaceService $workspace
+    ): View {
         $user = $request->user();
         $teacherView = $workspace->isTeacher($user);
+        $filters = $request->validated();
 
-        $classrooms = $workspace->queryFor($user)
-            ->with(['course', 'teacher', 'students:id,name'])
-            ->withCount(['students', 'sessions'])->latest()->paginate(15);
+        $classroomsQuery = $workspace->queryFor($user)
+            ->with(['course:id,title', 'teacher:id,name', 'students' => fn ($students) => $students->select('users.id', 'users.name')->limit(4)])
+            ->withCount(['students', 'sessions'])
+            ->when(filled($filters['teacher_id'] ?? null), fn ($query) => $query->where('teacher_id', $filters['teacher_id']))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['q'] ?? null), function ($query) use ($filters): void {
+                $term = trim($filters['q']);
+                $query->where(function ($search) use ($term): void {
+                    $search->where('name', 'like', "%{$term}%")
+                        ->orWhereHas('course', fn ($course) => $course->where('title', 'like', "%{$term}%"))
+                        ->orWhereHas('teacher', fn ($teacher) => $teacher->where('name', 'like', "%{$term}%"));
+                });
+            });
+
+        $classrooms = $classroomsQuery->latest()->paginate(12)->withQueryString();
 
         $courses = $workspace->coursesQueryFor($user)
             ->whereIn('status', ['published', 'draft'])
@@ -62,7 +77,7 @@ class ClassroomController extends Controller
 
         $canManage = $user->hasAnyPermission(['classes.manage', 'classes.manage.assigned']);
 
-        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView', 'stats', 'canManage'));
+        return view('admin.classes.index', compact('classrooms', 'courses', 'teachers', 'students', 'teacherView', 'stats', 'canManage', 'filters'));
     }
 
     public function store(StoreClassroomRequest $request, ClassroomService $classrooms): RedirectResponse
