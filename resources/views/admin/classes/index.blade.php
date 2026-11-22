@@ -10,7 +10,7 @@
   $statusOptions = ['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی'];
 @endphp
 
-<x-admin.page-head tone="edu" icon="cls" title="گروه‌های آموزشی" desc="هر گروه، مدرس، دانش‌آموزان و برنامه خودش را دارد. برای مدیریت جلسه‌ها، گروه را باز کن.">
+<x-admin.page-head tone="edu" icon="cls" title="گروه‌های آموزشی" desc="هر کلاس یک گروه آموزشی با مدرس، دانش‌آموزان و برنامه خودش است. برای مدیریت جلسه‌ها، گروه را باز کن.">
   <x-admin.btn variant="line" icon="cal" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
   @if($canManage)
     <x-admin.btn icon="plus" data-modal-open="class-modal">گروه جدید</x-admin.btn>
