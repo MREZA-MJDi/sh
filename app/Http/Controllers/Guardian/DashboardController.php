@@ -44,11 +44,15 @@ final class DashboardController extends Controller
 
         $data['stats'] = [
             'avg' => $averageExamScore !== null ? round((float) $averageExamScore, 1) : '—',
-            'avg_note' => $averageExamScore !== null ? 'میانگین همه نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
+            'avg_note' => $averageExamScore !== null
+                ? 'میانگین همه نتایج قابل مشاهده'
+                : (! $data['selected_child'] ? 'دانش‌آموزی به حساب متصل نشده است' : 'هنوز نمره‌ای ثبت نشده'),
             'open_homework' => $data['pending_homework_count'] !== null ? (int) $data['pending_homework_count'] : '—',
             'open_homework_note' => $data['pending_homework_count'] !== null
                 ? 'تکلیف بدون ارسال'
-                : 'مجوز مشاهده تکالیف فعال نیست',
+                : (! $data['selected_child']
+                    ? 'دانش‌آموزی به حساب متصل نشده است'
+                    : 'مجوز مشاهده تکالیف فعال نیست'),
             'next_meeting' => $data['meetings']->firstWhere('status', 'scheduled')?->starts_at
                 ? JalaliDate::format($data['meetings']->firstWhere('status', 'scheduled')->starts_at, true)
                 : '—',
