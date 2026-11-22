@@ -683,3 +683,11 @@
 .adm-attendance-readonly .adm-roster-card{grid-template-columns:minmax(0,1fr) auto}
 .adm-btn-sm{min-height:36px;padding-inline:12px}
 @media(max-width:760px){.adm-homework-focus{align-items:stretch;flex-direction:column}.adm-homework-focus>.adm-btn{width:100%;justify-content:center}.adm-homework-filters>.adm-label,.adm-homework-filters>.adm-label:first-child{min-width:100%;flex-basis:100%}.adm-attendance-guide{align-items:flex-start;flex-direction:column}}
+
+
+.adm-exam-guide{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 19px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(110deg,var(--surface),var(--tone-soft))}
+.adm-exam-guide>div{display:grid;gap:3px;min-width:0}
+.adm-exam-guide>div>span{font-size:10px;font-weight:850;color:var(--tone)}
+.adm-exam-guide>div>b{font-size:13px}
+.adm-exam-guide>div>small{font-size:11px;color:var(--muted)}
+@media(max-width:760px){.adm-exam-guide{align-items:stretch;flex-direction:column}.adm-exam-guide>.adm-btn{width:100%;justify-content:center}}
