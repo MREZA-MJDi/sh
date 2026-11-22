@@ -58,6 +58,7 @@ final class InternalNotificationWorkspaceTest extends TestCase
             && $data['title'] === 'تغییر زمان کلاس'
             && $data['url'] === '/student/homework'));
         $this->assertDatabaseCount('announcements', 0);
+        $this->assertDatabaseHas('admin_notification_broadcasts', ['audience' => 'students', 'recipient_count' => 2, 'title' => 'تغییر زمان کلاس']);
         $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $parent->id)->count());
         $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $inactiveStudent->id)->count());
     }
@@ -96,6 +97,6 @@ final class InternalNotificationWorkspaceTest extends TestCase
             ->assertOk()
             ->assertSee('اعلان‌های درون‌پنلی')
             ->assertSee('یادآوری آزمون')
-            ->assertSee('۱');
+            ->assertSee('1');
     }
 }
