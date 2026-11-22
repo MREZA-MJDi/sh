@@ -143,7 +143,7 @@
       @endforeach
     </div>
   @else
-    <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>برای این روز جلسه‌ای ثبت نشده</b><span>اگر قرار است کلاس برگزار شود، از همین‌جا زمان جلسه را مشخص کن.</span><x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn></div>
+    <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه‌ای ثبت نشده</b><span>اگر قرار است کلاس برگزار شود، از همین‌جا زمان جلسه را مشخص کن.</span><x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn></div>
   @endif
 </x-admin.panel>
 
