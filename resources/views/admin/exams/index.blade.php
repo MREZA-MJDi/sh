@@ -22,9 +22,16 @@
   <x-admin.btn icon="plus" data-modal-open="exam-modal">آزمون جدید</x-admin.btn>
 </x-admin.page-head>
 
+<section class="adm-exam-guide" data-tone="track">
+  <div><span>مسیر مدیریت آزمون</span><b>آزمون را بساز، زمان‌بندی کن، سؤال‌ها و نتایج را مدیریت کن.</b><small>آزمون داخلی در شیخان اجرا می‌شود؛ اتصال Quiz24 تا زمان فعال‌شدن قرارداد مستقل باقی می‌ماند.</small></div>
+  @if(auth()->user()->hasPermissionTo('integrations.manage'))
+    <x-admin.btn size="sm" variant="line" icon="link" :href="route('admin.quiz24.index')">وضعیت اتصال Quiz24</x-admin.btn>
+  @endif
+</section>
+
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="exam" label="آزمون‌های فهرست" :value="number_format($stats['total'])" hint="بر اساس دسترسی نقش شما"/>
-  <x-admin.stat tone="track" icon="clock" label="در جریان / پیش‌رو" :value="number_format($stats['upcoming'])" hint="در صفحه جاری"/>
+  <x-admin.stat tone="track" icon="clock" label="در جریان / پیش‌رو" :value="number_format($stats['upcoming'])" hint="در کل آزمون‌های فیلترشده"/>
   <x-admin.stat tone="track" icon="link" label="آزمون‌های Quiz24" :value="number_format($stats['quiz24'])" hint="وضعیت اتصال جداگانه"/>
   <x-admin.stat tone="track" icon="edit" label="پیش‌نویس‌ها" :value="number_format($stats['drafts'])" hint="نیازمند تکمیل و انتشار"/>
 </div>
