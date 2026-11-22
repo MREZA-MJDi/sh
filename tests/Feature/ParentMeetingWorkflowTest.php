@@ -395,6 +395,37 @@ final class ParentMeetingWorkflowTest extends TestCase
         Notification::assertSentTo($admin, ParentMeetingNotification::class);
     }
 
+
+    public function test_administrator_scheduled_meeting_notifies_the_assigned_teacher(): void
+    {
+        Notification::fake();
+
+        $admin = $this->userWithRole('admin');
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس زمان‌بندی مدیر',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $this->actingAs($admin)
+            ->post(route('admin.parent-meetings.store'), [
+                'classroom_id' => $classroom->id,
+                'student_id' => $student->id,
+                'guardian_id' => $guardian->id,
+                'title' => 'جلسه زمان‌بندی‌شده توسط مدیر',
+                'starts_at' => now()->addDays(2)->format('Y-m-d\\TH:i'),
+            ])
+            ->assertRedirect();
+
+        Notification::assertSentTo($teacher, ParentMeetingNotification::class);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
