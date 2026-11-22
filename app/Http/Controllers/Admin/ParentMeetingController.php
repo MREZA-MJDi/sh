@@ -156,32 +156,31 @@ final class ParentMeetingController extends Controller
     {
         abort_unless($request->user()->hasRole('admin'), 403);
 
-        $record = ParentMeeting::query()
-            ->when($workspace->isTeacher($request->user()), fn (Builder $query) => $query->whereIn(
-                'classroom_id',
-                $workspace->queryFor($request->user())->select('classrooms.id')
-            ))
-            ->findOrFail($meeting);
+        $record = ParentMeeting::query()->findOrFail($meeting);
+        $isPending = in_array($record->status, ['requested', 'proposed'], true);
+        $isScheduling = $request->input('status') === 'scheduled'
+            && ($isPending || $record->status === 'scheduled');
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled', 'declined'])],
-            'starts_at' => ['nullable', 'date', Rule::requiredIf(fn () => in_array($record->status, ['requested', 'proposed'], true) && $request->input('status') === 'scheduled'), 'after:now'],
-            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'starts_at' => [Rule::excludeIf(! $isScheduling), 'required', 'date', 'after:now'],
+            'ends_at' => [Rule::excludeIf(! $isScheduling), 'nullable', 'date', 'after:starts_at'],
         ]);
 
-        if (in_array($record->status, ['requested', 'proposed'], true)) {
+        if ($isPending) {
             abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
-            if ($data['status'] === 'scheduled') {
-                abort_unless(filled($data['starts_at'] ?? null), 422, 'زمان جلسه را مشخص کنید.');
-            }
+        } elseif ($record->status === 'scheduled') {
+            abort_unless(in_array($data['status'], ['scheduled', 'completed', 'cancelled'], true), 422);
         } else {
-            abort_unless(in_array($data['status'], ['completed', 'cancelled'], true), 422, 'وضعیت این جلسه قابل تغییر نیست.');
+            abort(422, 'وضعیت این جلسه قابل تغییر نیست.');
         }
 
         $record->update([
             'status' => $data['status'],
-            'starts_at' => $data['starts_at'] ?? $record->starts_at,
-            'ends_at' => $data['ends_at'] ?? $record->ends_at,
+            'starts_at' => $data['starts_at'] ?? $record->starts_at ?? $record->preferred_at,
+            'ends_at' => array_key_exists('ends_at', $data)
+                ? $data['ends_at']
+                : ($isScheduling && isset($data['starts_at']) ? null : $record->ends_at),
             'responded_by' => $request->user()->id,
             'responded_at' => now(),
         ]);
