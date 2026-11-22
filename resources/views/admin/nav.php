@@ -11,7 +11,7 @@ return [
         ]],
         ['label' => 'آموزش', 'tone' => 'edu', 'items' => [
             ['label' => 'دوره‌ها', 'url' => 'admin/courses', 'icon' => 'book'],
-            ['label' => 'کلاس‌ها', 'url' => 'admin/classes', 'icon' => 'cls'],
+            ['label' => 'گروه‌های آموزشی', 'url' => 'admin/classes', 'icon' => 'cls'],
             ['label' => 'جلسات آنلاین', 'url' => 'admin/online-classes', 'icon' => 'live'],
             ['label' => 'ویدیوهای ضبط‌شده', 'url' => 'admin/spotplayer', 'icon' => 'video'],
         ]],
