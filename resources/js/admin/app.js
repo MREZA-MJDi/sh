@@ -18,3 +18,4 @@ import './attendance.js';
 import './course-editor.js';
 
 import './inbox.js';
+import './notification-composer.js';
