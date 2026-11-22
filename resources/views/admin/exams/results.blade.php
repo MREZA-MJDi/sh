@@ -4,7 +4,7 @@
 @section('content')
 <x-admin.page-head tone="track" icon="chart" :title="'نتایج '.$exam->title" desc="نتایج ثبت‌شده و همگام‌شده این آزمون"
   :back-url="route('admin.exams.index')" back-label="آزمون‌ها">
-  <x-admin.btn variant="line" icon="list" :href="route('admin.exams.attempts', $exam)">تلاش‌ها و تصحیح تشریحی</x-admin.btn>
+  <x-admin.btn variant="line" icon="file" :href="route('admin.exams.attempts', $exam)">تلاش‌ها و تصحیح تشریحی</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">
