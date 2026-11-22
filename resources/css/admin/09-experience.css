@@ -663,3 +663,23 @@
 @media(max-width:900px){.adm-notice-layout{grid-template-columns:minmax(0,1fr)}.adm-notice-preview-wrap{position:static;grid-template-columns:minmax(0,1fr) minmax(170px,.6fr);align-items:start}}
 @media(max-width:600px){.adm-notice-intro{align-items:flex-start;flex-wrap:wrap}.adm-notice-layout{gap:12px}.adm-notice-preview-wrap{grid-template-columns:minmax(0,1fr)}.adm-notice-submit{align-items:stretch}.adm-notice-submit .adm-btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.adm-notice-preview{animation:none}}
+
+
+/* Homework review is the primary action, not an afterthought below the task catalogue. */
+.adm-homework-focus{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 19px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(110deg,var(--surface),var(--tone-soft))}
+.adm-homework-focus>div{display:grid;gap:3px;min-width:0}
+.adm-homework-focus>div>span{font-size:10px;font-weight:850;color:var(--tone)}
+.adm-homework-focus>div>b{font-size:15px;font-weight:850}
+.adm-homework-focus>div>small{font-size:11px;color:var(--muted)}
+.adm-homework-filters{align-items:end}
+.adm-homework-filters>.adm-label{min-width:140px;flex:1}
+.adm-homework-filters>.adm-label:first-child{min-width:220px;flex:1.5}
+.adm-attendance-guide{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(110deg,var(--surface),var(--tone-soft))}
+.adm-attendance-guide>div{display:grid;gap:2px}
+.adm-attendance-guide>div>span{font-size:10px;font-weight:850;color:var(--tone)}
+.adm-attendance-guide>div>b{font-size:12px}
+.adm-attendance-guide>div>small{font-size:10.5px;color:var(--muted)}
+.adm-attendance-readonly{padding:16px}
+.adm-attendance-readonly .adm-roster-card{grid-template-columns:minmax(0,1fr) auto}
+.adm-btn-sm{min-height:36px;padding-inline:12px}
+@media(max-width:760px){.adm-homework-focus{align-items:stretch;flex-direction:column}.adm-homework-focus>.adm-btn{width:100%;justify-content:center}.adm-homework-filters>.adm-label,.adm-homework-filters>.adm-label:first-child{min-width:100%;flex-basis:100%}.adm-attendance-guide{align-items:flex-start;flex-direction:column}}
