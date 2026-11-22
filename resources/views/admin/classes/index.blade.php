@@ -24,15 +24,36 @@
   <x-admin.stat tone="edu" icon="teacher" label="بدون مدرس" :value="number_format($stats['without_teacher'])"/>
 </div>
 
-<div data-filter class="adm-stack">
-  <x-admin.panel flush>
-    <x-admin.toolbar placeholder="جستجوی کلاس، دوره یا مدرس…">
-      <x-admin.filter-select key="teacher" placeholder="همه مدرسان" :options="$teacherOptions"/>
-      <div class="adm-toolbar-end"><x-admin.seg :options="['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی']"/></div>
-    </x-admin.toolbar>
+<div class="adm-stack">
+  <x-admin.panel title="پیدا کردن گروه آموزشی" desc="نام کلاس، دوره یا مدرس را جستجو کن؛ نتایج با فیلترهای انتخابی از سرور دریافت می‌شوند." flush data-tone="edu">
+    <form method="GET" action="{{ route('admin.classes.index') }}" class="adm-course-filter-form" style="padding:16px">
+      <label class="adm-course-search">
+        <x-admin.icon name="search"/>
+        <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام گروه، دوره یا مدرس" aria-label="جستجوی گروه‌های آموزشی">
+      </label>
+      @unless($teacherView)
+        <select class="adm-select" name="teacher_id" aria-label="مدرس">
+          <option value="">همه مدرسان</option>
+          @foreach($teachers as $teacher)
+            <option value="{{ $teacher->id }}" @selected((string) ($filters['teacher_id'] ?? '') === (string) $teacher->id)>{{ $teacher->name }}</option>
+          @endforeach
+        </select>
+      @endunless
+      <select class="adm-select" name="status" aria-label="وضعیت گروه">
+        <option value="">همه وضعیت‌ها</option>
+        @foreach($statusOptions as $key => $label)
+          <option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $label }}</option>
+        @endforeach
+      </select>
+      <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">اعمال فیلتر</button>
+      @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
+        <a href="{{ route('admin.classes.index') }}" class="adm-btn adm-btn-line adm-btn-sm">پاک‌کردن</a>
+      @endif
+    </form>
+    <div class="adm-course-results" style="padding:0 16px 14px"><span>{{ number_format($classrooms->total()) }} گروه آموزشی</span><span>برای دیدن جلسه‌ها، برنامه گروه را باز کن.</span></div>
   </x-admin.panel>
 
-  <div class="adm-grid adm-cols-3" data-filter-list>
+  <div class="adm-grid adm-cols-3">
     @forelse($classrooms as $classroom)
       @php
         $schedule = $classroom->schedule ?? [];
@@ -102,7 +123,16 @@
         </div>
       </article>
     @empty
-      <x-admin.empty text="برای این محدوده دسترسی هنوز کلاسی ثبت نشده است."/>
+      <div class="adm-course-empty">
+        <span><x-admin.icon name="cls"/></span>
+        <h3>{{ collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty() ? 'گروهی با این مشخصات پیدا نشد' : 'هنوز گروه آموزشی نساخته‌ای' }}</h3>
+        <p>{{ collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty() ? 'فیلترها را پاک کن یا عبارت دیگری جستجو کن.' : 'گروه آموزشی، مدرس و دانش‌آموزان را کنار هم قرار می‌دهد و برنامه جلسات را برایشان مشخص می‌کند.' }}</p>
+        @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
+          <a class="adm-btn adm-btn-line" href="{{ route('admin.classes.index') }}">نمایش همه گروه‌ها</a>
+        @elseif($canManage)
+          <button type="button" class="adm-btn adm-btn-primary" data-modal-open="class-modal">ساخت اولین گروه</button>
+        @endif
+      </div>
     @endforelse
   </div>
   @if($classrooms->hasPages())
