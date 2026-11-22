@@ -348,12 +348,18 @@ final class ParentMeetingWorkflowTest extends TestCase
         $this->actingAs($guardian)
             ->post(route('guardian.meetings.store'), [
                 'student_id' => $student->id,
-                'classroom_id' => $classroom->id,
                 'title' => 'درخواست جلسه والدین',
                 'message' => 'لطفاً برای گفت‌وگو هماهنگ شود.',
                 'preferred_at' => now()->addDays(2)->format('Y-m-d\\TH:i'),
             ])
             ->assertRedirect();
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'guardian_id' => $guardian->id,
+            'student_id' => $student->id,
+            'classroom_id' => $classroom->id,
+            'status' => 'requested',
+        ]);
 
         Notification::assertSentTo($admin, ParentMeetingNotification::class);
         Notification::assertSentTo($teacher, ParentMeetingNotification::class);
