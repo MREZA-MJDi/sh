@@ -29,8 +29,12 @@ class StoreAnnouncementRequest extends FormRequest
 
                 $url = trim((string) $value);
                 $parts = parse_url($url);
+                $decodedUrl = rawurldecode($url);
                 $isSafeInternalPath = str_starts_with($url, '/')
                     && ! str_starts_with($url, '//')
+                    && ! str_starts_with($decodedUrl, '//')
+                    && ! str_contains($decodedUrl, '\\\\')
+                    && ! preg_match('/[\\r\\n]/', $url)
                     && empty($parts['scheme'])
                     && empty($parts['host']);
                 $isSafeExternalUrl = ($parts['scheme'] ?? null) === 'https'
