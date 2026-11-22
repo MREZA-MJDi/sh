@@ -6,7 +6,7 @@
   $types = ['single' => 'تک‌گزینه‌ای', 'multiple' => 'چندگزینه‌ای', 'text' => 'تشریحی'];
 @endphp
 
-<x-admin.page-head tone="track" icon="list" :title="'سؤال‌های '.$exam->title" desc="مدیریت سؤال‌های موتور داخلی شیخان و مسیر جایگزین Quiz24"
+<x-admin.page-head tone="track" icon="file" :title="'سؤال‌های '.$exam->title" desc="مدیریت سؤال‌های موتور داخلی شیخان و مسیر جایگزین Quiz24"
   :back-url="route('admin.exams.index')" back-label="آزمون‌ها">
   <x-admin.btn icon="plus" data-modal-open="question-modal">افزودن سؤال</x-admin.btn>
   <x-admin.btn variant="line" icon="eye" :href="route('admin.exams.results', $exam)">نتایج</x-admin.btn>
