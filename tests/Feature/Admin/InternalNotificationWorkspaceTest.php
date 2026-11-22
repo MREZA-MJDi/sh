@@ -63,6 +63,29 @@ final class InternalNotificationWorkspaceTest extends TestCase
         $this->assertSame(0, DB::table('notifications')->where('notifiable_id', $inactiveStudent->id)->count());
     }
 
+    public function test_external_action_urls_are_rejected_before_any_notification_is_sent(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->firstOrFail());
+        $student = User::factory()->create(['is_active' => true]);
+        $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
+
+        $this->actingAs($admin)
+            ->from(route('admin.internal-notifications.index'))
+            ->post(route('admin.internal-notifications.store'), [
+                'title' => 'لینک نامعتبر',
+                'message' => 'این پیام نباید ارسال شود.',
+                'audience' => 'students',
+                'url' => 'https://evil.example/redirect',
+                'action_label' => 'ادامه',
+            ])
+            ->assertRedirect(route('admin.internal-notifications.index'))
+            ->assertSessionHasErrors('url');
+
+        $this->assertDatabaseCount('notifications', 0);
+        $this->assertDatabaseCount('admin_notification_broadcasts', 0);
+    }
+
     public function test_teacher_cannot_send_admin_internal_broadcasts(): void
     {
         $teacher = User::factory()->create();
