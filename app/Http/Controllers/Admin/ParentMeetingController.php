@@ -151,6 +151,11 @@ final class ParentMeetingController extends Controller
                         'مدرس پیشنهاد جلسه جدیدی برای بررسی ثبت کرده است.'
                     ))
                 ));
+        } else {
+            $classroom?->teacher?->notify(new ParentMeetingNotification(
+                $meeting,
+                'مدیر آموزشگاه جلسه جدیدی برای کلاس شما زمان‌بندی کرده است.'
+            ));
         }
 
         $guardian->notify(new ParentMeetingNotification($meeting, $isTeacher
