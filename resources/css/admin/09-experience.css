@@ -718,3 +718,10 @@
   .adm-btn:hover,.adm-card:hover,.adm-work-item:hover,.adm-communication-item:hover,.adm-online-card:hover{transform:none!important}
   .adm-reveal-pending{opacity:1;transform:none}
 }
+
+.adm-user-guide{display:flex;align-items:center;gap:13px;padding:14px 17px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(110deg,var(--surface),var(--tone-soft))}
+.adm-user-guide-icon{width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:12px;background:var(--tone-soft);color:var(--tone)}
+.adm-user-guide-icon .adm-icon{width:20px;height:20px}
+.adm-user-guide>div{display:grid;gap:3px;min-width:0}
+.adm-user-guide b{font-size:12.5px}
+.adm-user-guide small{font-size:11px;line-height:1.8;color:var(--muted)}
