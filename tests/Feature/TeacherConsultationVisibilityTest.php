@@ -7,6 +7,8 @@ use App\Models\Consultation;
 use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\ConsultationRequestNotification;
+use Illuminate\Support\Facades\Notification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -98,6 +100,44 @@ final class TeacherConsultationVisibilityTest extends TestCase
             ->assertSee('درخواست مشاوره سراسری')
             ->assertSee($guardian->name)
             ->assertSee($student->name);
+    }
+
+
+    public function test_parent_consultation_notifies_administrators_and_the_assigned_teacher(): void
+    {
+        Notification::fake();
+
+        $admin = $this->userWithRole('admin');
+        $teacher = $this->userWithRole('teacher');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس اعلان مشاوره',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $this->actingAs($guardian)
+            ->post(route('guardian.consultations.store'), [
+                'student_id' => $student->id,
+                'type' => 'ticket',
+                'topic' => 'درخواست مشاوره والدین',
+                'body' => 'لطفاً وضعیت آموزشی فرزندم بررسی شود.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('consultations', [
+            'requester_id' => $guardian->id,
+            'student_id' => $student->id,
+            'topic' => 'درخواست مشاوره والدین',
+            'status' => 'pending',
+        ]);
+
+        Notification::assertSentTo($admin, ConsultationRequestNotification::class);
+        Notification::assertSentTo($teacher, ConsultationRequestNotification::class);
     }
 
     private function userWithRole(string $role): User
