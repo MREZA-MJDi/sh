@@ -24,7 +24,7 @@
         <x-admin.btn icon="plus" :href="route('admin.courses.create')">ساخت دوره</x-admin.btn>
       @endcan
       @can('classes.manage')
-        <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">رفتن به کلاس‌ها</x-admin.btn>
+        <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">گروه‌های آموزشی</x-admin.btn>
       @endcan
     </div>
   </div>
