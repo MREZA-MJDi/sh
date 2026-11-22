@@ -7,7 +7,7 @@
 @endphp
 
 <x-admin.page-head tone="comm" icon="bell" title="اعلان‌های درون‌پنلی" desc="ارسال پیام مستقیم به زنگوله کاربران؛ مستقل از اطلاعیه‌های سایت عمومی">
-  <x-admin.btn variant="line" icon="megaphone" :href="route('admin.announcements.index')">اطلاعیه‌های عمومی</x-admin.btn>
+  <x-admin.btn variant="line" icon="bell" :href="route('admin.announcements.index')">اطلاعیه‌های عمومی</x-admin.btn>
 </x-admin.page-head>
 
 <section class="adm-notice-intro" data-tone="comm">
