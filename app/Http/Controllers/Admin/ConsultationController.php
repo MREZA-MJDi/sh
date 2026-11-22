@@ -17,6 +17,7 @@ class ConsultationController extends Controller
             'q' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', 'in:pending,scheduled,done,cancelled'],
         ]);
+        $selectedId = $request->integer('consultation');
         $term = trim((string) ($filters['q'] ?? ''));
 
         $baseQuery = Consultation::query()
@@ -35,6 +36,7 @@ class ConsultationController extends Controller
         ];
 
         $consultations = (clone $baseQuery)
+            ->when($selectedId > 0, fn ($query) => $query->whereKey($selectedId))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->with(['requester', 'student', 'teacher'])
             ->latest()
