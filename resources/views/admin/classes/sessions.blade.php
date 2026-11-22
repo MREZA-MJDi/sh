@@ -8,9 +8,11 @@
   $typeLabels = ['online' => 'آنلاین', 'onsite' => 'حضوری'];
 @endphp
 
-<x-admin.page-head tone="edu" icon="calendar" :title="'برنامه کلاس '.$classroom->name" :desc="($classroom->course?->title ?? 'کلاس مستقل').' · '.($classroom->teacher?->name ?? 'مدرس تعیین نشده')"
-  :back-url="$classroom->course ? route('admin.courses.edit', $classroom->course) : route('admin.classes.index')" :back-label="$classroom->course ? 'بازگشت به دوره' : 'کلاس‌ها'">
-  <x-admin.btn icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>
+<x-admin.page-head tone="edu" icon="cal" :title="'برنامه کلاس '.$classroom->name" :desc="($classroom->course?->title ?? 'کلاس مستقل').' · '.($classroom->teacher?->name ?? 'مدرس تعیین نشده')"
+  :back-url="$classroom->course ? ($teacherView ? route('admin.courses.content', $classroom->course) : route('admin.courses.edit', $classroom->course)) : route('admin.classes.index')" :back-label="$classroom->course ? 'بازگشت به دوره' : 'گروه‌های آموزشی'">
+  @if($canManage)
+    <x-admin.btn icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>
+  @endif
 </x-admin.page-head>
 
 @if($classroom->skyroom_status === 'waiting_contract')
@@ -37,7 +39,7 @@
     @else
       <h2>جلسه بعدی هنوز برنامه‌ریزی نشده</h2>
       <p>اگر این کلاس قرار است برگزار شود، زمان جلسه را ثبت کن تا در برنامه امروز و داشبورد دیده شود.</p>
-      <x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی اولین جلسه</x-admin.btn>
+      @if($canManage)<x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی اولین جلسه</x-admin.btn>@endif
     @endif
   </div>
   <div class="adm-session-focus-side">
@@ -136,14 +138,16 @@
             @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
               <x-admin.btn size="sm" icon="check" variant="soft" :href="route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $session->starts_at?->format('Y-m-d'), 'session' => $session->id])">ثبت حضور</x-admin.btn>
             @endcanany
-            <x-admin.btn size="sm" variant="line" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn>
-            <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="session-delete" :data-name="$session->title" :data-action="route('admin.classes.sessions.destroy', $session)" aria-label="حذف جلسه"/>
+            @if($canManage)
+              <x-admin.btn size="sm" variant="line" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn>
+              <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="session-delete" :data-name="$session->title" :data-action="route('admin.classes.sessions.destroy', $session)" aria-label="حذف جلسه"/>
+            @endif
           </div>
         </article>
       @endforeach
     </div>
   @else
-    <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه‌ای ثبت نشده</b><span>اگر قرار است کلاس برگزار شود، از همین‌جا زمان جلسه را مشخص کن.</span><x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn></div>
+    <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه‌ای ثبت نشده</b><span>اگر قرار است کلاس برگزار شود، از همین‌جا زمان جلسه را مشخص کن.</span>@if($canManage)<x-admin.btn size="sm" icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>@endif</div>
   @endif
 </x-admin.panel>
 
@@ -178,8 +182,10 @@
               <td class="adm-num">{{ number_format($session->attendances_count) }}</td>
               <td><x-admin.badge :tone="$statusTones[$session->status] ?? 'warn'">{{ $statusLabels[$session->status] ?? $session->status }}</x-admin.badge></td>
               <td><div class="adm-actions">
-                <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn>
-                <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="session-delete" :data-name="$session->title" :data-action="route('admin.classes.sessions.destroy', $session)" aria-label="حذف جلسه"/>
+                @if($canManage)
+                  <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn>
+                  <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="session-delete" :data-name="$session->title" :data-action="route('admin.classes.sessions.destroy', $session)" aria-label="حذف جلسه"/>
+                @endif
               </div></td>
             </tr>
           @empty
@@ -194,8 +200,10 @@
 @endsection
 
 @push('modals')
-<x-admin.modal :demo="false" id="session-modal" title="برنامه‌ریزی جلسه" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
-  @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => $selectedDate->setTimeFromTimeString(data_get($classroom->schedule, 'time') ?: '09:00')->format('Y-m-d\\TH:i')])
-</x-admin.modal>
-<x-admin.confirm :demo="false" id="session-delete" title="حذف جلسه" text="جلسه‌ای که حضور یا سابقه ورود دارد حذف نمی‌شود؛ آن را لغو کن تا سوابق حفظ شود."/>
+@if($canManage)
+  <x-admin.modal :demo="false" id="session-modal" title="برنامه‌ریزی جلسه" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
+    @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => $selectedDate->setTimeFromTimeString(data_get($classroom->schedule, 'time') ?: '09:00')->format('Y-m-d\\TH:i')])
+  </x-admin.modal>
+  <x-admin.confirm :demo="false" id="session-delete" title="حذف جلسه" text="جلسه‌ای که حضور یا سابقه ورود دارد حذف نمی‌شود؛ آن را لغو کن تا سوابق حفظ شود."/>
+@endif
 @endpush
