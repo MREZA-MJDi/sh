@@ -46,6 +46,7 @@
       'admin/communication-center' => ['messages.view.all', 'messages.view.assigned', 'consultations.manage', 'classes.manage', 'classes.manage.assigned'],
       'admin/consultations' => ['consultations.manage'],
       'admin/announcements' => ['announcements.manage', 'announcements.view'],
+      'admin/internal-notifications' => ['notifications.manage'],
       'admin/enrollments' => ['courses.manage', 'users.manage'],
       'admin/payments' => ['users.manage'],
       'admin/resources' => ['resources.manage', 'resources.manage.assigned'],
