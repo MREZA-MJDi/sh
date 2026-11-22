@@ -128,7 +128,7 @@
               </a>
             @endif
             @if($canManage)
-              <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.courses.edit', $course) }}" aria-label="ویرایش {{ $course->title }}"><x-admin.icon name="edit"/>ویرایش</a>
+              <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.courses.edit', $course) }}" aria-label="ویرایش {{ $course->title }}"><x-admin.icon name="edit"/>مشخصات و ویدیوها</a>
             @endif
           </div>
         </div>
