@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'مرکز پیام‌ها')
+@section('title', 'مرکز ارتباطات')
 
 @section('content')
 @php
@@ -19,7 +19,7 @@
   $typeIcons = ['messages' => 'msg', 'contacts' => 'inbox', 'consultations' => 'chat', 'meetings' => 'calendar'];
 @endphp
 
-<x-admin.page-head tone="comm" icon="msg" title="مرکز پیام‌ها" desc="گفت‌وگوهای اولیا، پیام‌های فرم تماس، درخواست‌های مشاوره و جلسات در یک کارتابل واحد">
+<x-admin.page-head tone="comm" icon="msg" title="مرکز ارتباطات" desc="پیام‌های کاربران، فرم تماس سایت، درخواست‌های مشاوره و جلسات اولیا را از یک نقطه پیگیری کن.">
 </x-admin.page-head>
 
 <div class="adm-stats">
