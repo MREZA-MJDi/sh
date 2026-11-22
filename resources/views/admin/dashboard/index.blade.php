@@ -32,7 +32,7 @@
     <div class="adm-sales-foot"><b class="adm-sales-title">فروش واقعی دوره‌ها</b>
       <span>میانگین خرید تأییدشده <b>{{ number_format($averageCoursePurchase) }} تومان</b></span>
       <span>تعداد خرید موفق <b>{{ number_format($paidCoursePurchases) }}</b></span>
-      <span>فروش ۳۰ روز اخیر <b>{{ number_format($revenueLast30Days) }} تومان</b></span>
+      <span>درآمد تأییدشده ۳۰ روز اخیر <b>{{ number_format($revenueLast30Days) }} تومان</b></span>
     </div>
     @if($paidCoursePurchases === 0)
       <p class="adm-sales-empty">هنوز خرید دوره‌ای با پرداخت تأییدشده ثبت نشده است.</p>
