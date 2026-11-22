@@ -61,7 +61,7 @@
         <option value="{{ $key }}" @selected(($filters['status'] ?? '') === $key)>{{ $status[1] }}</option>
       @endforeach
     </select>
-    <button class="adm-btn adm-btn-primary adm-btn-sm" type="submit"><x-admin.icon name="filter"/>اعمال فیلتر</button>
+    <button class="adm-btn adm-btn-primary adm-btn-sm" type="submit"><x-admin.icon name="search"/>اعمال فیلتر</button>
     @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
       <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.courses.index') }}">پاک‌کردن</a>
     @endif
@@ -88,7 +88,7 @@
         @if($coverImageUrl)
           <img src="{{ $coverImageUrl }}" alt="تصویر {{ $course->title }}" loading="lazy">
         @else
-          <div class="adm-course-cover-placeholder"><x-admin.icon name="book-open"/></div>
+          <div class="adm-course-cover-placeholder"><x-admin.icon name="book"/></div>
         @endif
         <x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge>
         <span class="adm-course-grade">{{ $course->grade ?: 'پایه تعیین نشده' }}</span>
@@ -103,8 +103,8 @@
         </div>
         <div class="adm-course-facts">
           <span><x-admin.icon name="users"/>{{ number_format($course->active_enrollments_count) }} دانش‌آموز</span>
-          <span><x-admin.icon name="layers"/>{{ number_format($course->sections_count) }} فصل</span>
-          <span><x-admin.icon name="users-round"/>{{ number_format($course->active_classrooms_count) }} کلاس</span>
+          <span><x-admin.icon name="file"/>{{ number_format($course->sections_count) }} فصل</span>
+          <span><x-admin.icon name="users"/>{{ number_format($course->active_classrooms_count) }} کلاس</span>
         </div>
         @if($enabledFeatures->isNotEmpty())
           <div class="adm-course-features">
@@ -124,11 +124,11 @@
             @if($canManageContent)
               <a class="adm-btn adm-btn-primary adm-btn-sm" href="{{ $primaryAction }}">
                 {{ $course->status === 'draft' ? 'تکمیل دوره' : 'مدیریت محتوا' }}
-                <x-admin.icon name="arrow-left"/>
+                <x-admin.icon name="chev"/>
               </a>
             @endif
             @if($canManage)
-              <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.courses.edit', $course) }}" aria-label="ویرایش {{ $course->title }}"><x-admin.icon name="settings-2"/>ویرایش</a>
+              <a class="adm-btn adm-btn-line adm-btn-sm" href="{{ route('admin.courses.edit', $course) }}" aria-label="ویرایش {{ $course->title }}"><x-admin.icon name="edit"/>ویرایش</a>
             @endif
           </div>
         </div>
@@ -136,7 +136,7 @@
     </article>
   @empty
     <div class="adm-course-empty">
-      <span><x-admin.icon name="book-open"/></span>
+      <span><x-admin.icon name="book"/></span>
       <h3>{{ collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty() ? 'دوره‌ای با این مشخصات پیدا نشد' : 'هنوز دوره‌ای ساخته نشده است' }}</h3>
       <p>{{ collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty() ? 'فیلترها را پاک کن یا عبارت دیگری جستجو کن.' : 'اولین دوره را بساز و بعد محتوای آموزشی و کلاس‌هایش را اضافه کن.' }}</p>
       @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
