@@ -107,7 +107,7 @@ class RolePermissionSeeder extends Seeder
                 'courses.view.assigned', 'courses.content.manage.assigned', 'classes.manage.assigned', 'exams.manage.assigned',
                 'resources.manage.assigned', 'attendance.view.assigned', 'attendance.manage.assigned',
                 'homework.view.assigned', 'homework.manage.assigned', 'homework.grade',
-                'messages.view.assigned', 'messages.reply', 'consultations.create',
+                'messages.view.assigned', 'messages.reply', 'consultations.view.assigned', 'consultations.create',
                 'announcements.view', 'videos.view.assigned', 'videos.manage.assigned', 'profile.update',
             ],
             'student' => [
