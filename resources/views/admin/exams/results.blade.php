@@ -9,7 +9,7 @@
 
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="users" label="نتایج ثبت‌شده" :value="number_format($results->total())"/>
-  <x-admin.stat tone="track" icon="award" label="نمره میانگین صفحه" :value="$results->count() ? number_format((float) $results->getCollection()->avg('score'), 2) : '—'"/>
+  <x-admin.stat tone="track" icon="check" label="نمره میانگین صفحه" :value="$results->count() ? number_format((float) $results->getCollection()->avg('score'), 2) : '—'"/>
   <x-admin.stat tone="track" icon="clock" label="آخرین همگام‌سازی" :value="$results->getCollection()->max('synced_at')?->format('Y/m/d') ?? '—'"/>
 </div>
 
