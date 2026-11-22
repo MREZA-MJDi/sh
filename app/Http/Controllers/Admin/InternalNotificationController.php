@@ -4,10 +4,10 @@ namespace App\\Http\\Controllers\\Admin;
 
 use App\\Http\\Controllers\\Controller;
 use App\\Http\\Requests\\Admin\\StoreInternalNotificationRequest;
+use App\\Models\\AdminNotificationBroadcast;
 use App\\Models\\User;
 use App\\Notifications\\AdminPanelBroadcastNotification;
 use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Support\\Collection;
 use Illuminate\\Support\\Facades\\DB;
 use Illuminate\\Support\\Facades\\Notification;
 use Illuminate\\Support\\Str;
@@ -33,37 +33,21 @@ final class InternalNotificationController extends Controller
             'admins' => $this->audienceQuery('admins')->count(),
         ];
 
-        $recentRows = DB::table('notifications')
-            ->where('type', AdminPanelBroadcastNotification::class)
+        $broadcasts = AdminNotificationBroadcast::query()
+            ->with('sender:id,name')
             ->latest()
-            ->limit(500)
-            ->get(['data', 'read_at', 'created_at']);
+            ->paginate(20);
 
-        $broadcasts = $recentRows
-            ->map(function (object $row): array {
-                return [
-                    'data' => json_decode($row->data, true) ?: [],
-                    'read_at' => $row->read_at,
-                    'created_at' => $row->created_at,
-                ];
-            })
-            ->filter(fn (array $row) => filled($row['data']['broadcast_id'] ?? null))
-            ->groupBy(fn (array $row) => $row['data']['broadcast_id'])
-            ->map(function (Collection $items): array {
-                $first = $items->first();
-
-                return [
-                    'title' => $first['data']['title'] ?? 'اعلان درون‌پنلی',
-                    'message' => $first['data']['message'] ?? '',
-                    'audience' => $first['data']['audience'] ?? 'all',
-                    'created_at' => $first['created_at'],
-                    'recipients' => $items->count(),
-                    'read_count' => $items->whereNotNull('read_at')->count(),
-                ];
-            })
-            ->sortByDesc('created_at')
-            ->take(20)
-            ->values();
+        $broadcasts->getCollection()->each(function (AdminNotificationBroadcast $broadcast): void {
+            $broadcast->setAttribute(
+                'read_count',
+                DB::table('notifications')
+                    ->where('type', AdminPanelBroadcastNotification::class)
+                    ->where('data->broadcast_id', $broadcast->id)
+                    ->whereNotNull('read_at')
+                    ->count()
+            );
+        });
 
         return view('admin.internal-notifications.index', compact('audiences', 'counts', 'broadcasts'));
     }
@@ -91,8 +75,19 @@ final class InternalNotificationController extends Controller
             (int) $request->user()->id,
         );
 
-        DB::transaction(function () use ($recipients, $notification): void {
-            $recipients->chunkById(500, function (Collection $users) use ($notification): void {
+        DB::transaction(function () use ($recipients, $notification, $data, $broadcastId, $recipientCount, $request): void {
+            AdminNotificationBroadcast::query()->create([
+                'id' => $broadcastId,
+                'sender_id' => $request->user()->id,
+                'audience' => $data['audience'],
+                'title' => $data['title'],
+                'message' => $data['message'],
+                'url' => $data['url'] ?? null,
+                'action_label' => $data['action_label'] ?? null,
+                'recipient_count' => $recipientCount,
+            ]);
+
+            $recipients->chunkById(500, function ($users) use ($notification): void {
                 Notification::send($users, $notification);
             });
         });
