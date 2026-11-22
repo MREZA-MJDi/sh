@@ -19,7 +19,7 @@ class ClassSessionController extends Controller
 {
     public function index(Request $request, int $classroom, ClassroomWorkspaceService $workspace): View
     {
-        $classroom = $workspace->queryFor($request->user())->with(['course:id,title', 'teacher:id,name'])->findOrFail($classroom);
+        $classroom = $workspace->queryFor($request->user())->with(['course:id,title', 'teacher:id,name'])->withCount('students')->findOrFail($classroom);
 
         $timezone = config('app.timezone', 'Asia/Tehran');
         $dateInput = $request->query('date');
