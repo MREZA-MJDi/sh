@@ -119,9 +119,6 @@
     @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.attendance.index') }}"><span><x-admin.icon name="check"/></span><div><b>حضور و غیاب</b><small>ثبت وضعیت جلسات</small></div><x-admin.icon name="chev"/></a>
     @endcan
-    @canany(['homework.manage.all', 'homework.manage.assigned', 'homework.view.assigned'])
-      <a class="adm-action-tile" href="{{ route('admin.homework.index') }}"><span><x-admin.icon name="file"/></span><div><b>تکالیف</b><small>ساخت و بررسی تمرین‌ها</small></div><x-admin.icon name="chev"/></a>
-    @endcan
     @canany(['integrations.manage', 'videos.manage.assigned', 'videos.view.assigned'])
       <a class="adm-action-tile" href="{{ route('admin.spotplayer.index') }}"><span><x-admin.icon name="video"/></span><div><b>ویدیوهای ضبط‌شده</b><small>کتابخانه ویدیوهای دوره‌ها</small></div><x-admin.icon name="chev"/></a>
     @endcanany
