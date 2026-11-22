@@ -141,11 +141,10 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->assertSee(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => SpotPlayerVideo::query()->where('course_id', $course->id)->value('id')]), false);
     }
 
-    public function test_enrolled_student_can_watch_manually_uploaded_course_video_without_spotplayer_license(): void
+    public function test_student_can_watch_manually_uploaded_free_course_video_without_enrollment_or_spotplayer_license(): void
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
-        $this->grantActiveEnrollment($student, $course);
 
         Storage::fake('local');
         Storage::disk('local')->put('private/course-videos/local-public-preview.mp4', 'video-content');
