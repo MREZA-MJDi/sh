@@ -195,6 +195,35 @@ final class TeacherConsultationVisibilityTest extends TestCase
         ]);
     }
 
+
+    public function test_administrator_can_save_consultation_follow_up_notes_without_changing_status(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $consultation = Consultation::query()->create([
+            'requester_id' => $guardian->id,
+            'student_id' => $student->id,
+            'type' => 'ticket',
+            'topic' => 'مشاوره برای ثبت یادداشت',
+            'notes' => 'شرح اولیه والد',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)
+            ->patch(route('admin.consultations.update', $consultation), [
+                'status' => 'pending',
+                'notes' => 'پیگیری تلفنی انجام شد.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('consultations', [
+            'id' => $consultation->id,
+            'status' => 'pending',
+            'notes' => 'پیگیری تلفنی انجام شد.',
+        ]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
