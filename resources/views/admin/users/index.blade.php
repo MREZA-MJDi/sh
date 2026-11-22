@@ -21,7 +21,7 @@
 <div class="adm-stats">
   <x-admin.stat tone="users" icon="users" label="کل نتایج" :value="number_format($users->total())"/>
   <x-admin.stat tone="users" icon="check" label="حساب‌های فعال" :value="number_format($activeCount)"/>
-  <x-admin.stat tone="users" icon="pause" label="حساب‌های غیرفعال" :value="number_format($inactiveCount)"/>
+  <x-admin.stat tone="users" icon="clock" label="حساب‌های غیرفعال" :value="number_format($inactiveCount)"/>
   <x-admin.stat tone="users" icon="user" label="نقش" :value="$roleLabel"/>
 </div>
 
