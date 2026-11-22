@@ -80,7 +80,7 @@
       $status = $statuses[$course->status] ?? ['mute', $course->status];
       $enabledFeatures = collect($featureLabels)->filter(fn ($label, $key) => $course->featureEnabled($key))->values()->take(3);
       $primaryAction = $canManageContent
-        ? url('admin/courses/'.$course->id.'/content')
+        ? route('admin.courses.content', $course)
         : route('admin.courses.index');
     @endphp
     <article class="adm-course-card">
