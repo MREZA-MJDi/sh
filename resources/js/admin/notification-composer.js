@@ -1,10 +1,3 @@
-const audienceCounts = Object.fromEntries(
-  [...document.querySelectorAll('[data-notice-audience] option')].map((option) => [
-    option.value,
-    Number((option.textContent.match(/[0-9,٬]+/) || ['0'])[0].replace(/[٬,]/g, '')),
-  ]),
-);
-
 document.addEventListener('input', (event) => {
   const form = event.target.closest('.adm-notice-form');
   if (!form) return;
