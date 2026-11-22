@@ -25,7 +25,10 @@ final class StoreInternalNotificationRequest extends FormRequest
 
                 $url = trim((string) $value);
                 $parts = parse_url($url);
+                $decodedUrl = rawurldecode($url);
                 if (! str_starts_with($url, '/') || str_starts_with($url, '//')
+                    || str_starts_with($decodedUrl, '//') || str_contains($decodedUrl, '\\\\')
+                    || preg_match('/[\\r\\n]/', $url)
                     || ! empty($parts['scheme']) || ! empty($parts['host'])) {
                     $fail('لینک اعلان باید مسیر داخلی پنل یا سایت باشد؛ آدرس خارجی مجاز نیست.');
                 }
