@@ -41,7 +41,7 @@ class HomeworkController extends Controller
             ->with(['classroom', 'creator'])
             ->withCount([
                 'submissions',
-                'submissions as pending_submissions_count' => fn ($query) => $query->where('status', 'submitted'),
+                'submissions as pending_submissions_count' => fn ($query) => $query->whereIn('status', ['submitted', 'late']),
             ])
             ->when(
                 $workspace->isTeacher($user),
@@ -74,7 +74,7 @@ class HomeworkController extends Controller
                 )
             );
 
-        $pendingSubmissionCount = (clone $submissionsQuery)->where('status', 'submitted')->count();
+        $pendingSubmissionCount = (clone $submissionsQuery)->whereIn('status', ['submitted', 'late'])->count();
         $reviewedSubmissionCount = (clone $submissionsQuery)->where('status', 'reviewed')->count();
         $submissions = (clone $submissionsQuery)
             ->latest('submitted_at')
