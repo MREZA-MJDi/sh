@@ -120,6 +120,14 @@ final class JalaliDate
         return (int) $newYear->diffInDays($nextNewYear) === 366 ? 30 : 29;
     }
 
+    public static function format(CarbonInterface $date, bool $withTime = false): string
+    {
+        $parts = self::fromGregorian($date);
+        $formatted = sprintf('%04d/%02d/%02d', $parts['year'], $parts['month'], $parts['day']);
+
+        return $withTime ? $formatted.' '.$date->format('H:i') : $formatted;
+    }
+
     public static function monthLabel(int $year, int $month): string
     {
         return sprintf('%04d/%02d', $year, $month);
