@@ -93,7 +93,7 @@ final class DashboardService
             'attendance_rate' => $attendanceTotal > 0 ? (int) round(($attendancePresent / $attendanceTotal) * 100) : 0,
             'pending_homework' => $canSeeHomework
                 ? HomeworkSubmission::query()
-                    ->where('status', 'submitted')
+                    ->whereIn('status', ['submitted', 'late'])
                     ->when($teacherView, fn ($query) => $query->whereHas(
                         'homework',
                         fn ($homework) => $homework->whereIn('classroom_id', $classroomIds)
