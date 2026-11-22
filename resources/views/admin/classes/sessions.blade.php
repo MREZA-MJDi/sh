@@ -23,14 +23,16 @@
     <span class="adm-session-focus-kicker"><x-admin.icon name="clock"/> نوبت بعدی کلاس</span>
     @if($nextSession)
       <h2>{{ $nextSession->title }}</h2>
-      <p>{{ \\App\\Support\\PersianDate::format($nextSession->starts_at, 'l، d F · H:i') }} · {{ $nextSession->ends_at ? \\App\\Support\\PersianDate::format($nextSession->ends_at, 'H:i') : 'پایان نامشخص' }}</p>
+      <p>{{ \App\Support\PersianDate::format($nextSession->starts_at, 'l، d F · H:i') }} · {{ $nextSession->ends_at ? \App\Support\PersianDate::format($nextSession->ends_at, 'H:i') : 'پایان نامشخص' }}</p>
       <div class="adm-actions">
         @if($nextMeetingLink && $nextSession->session_type === 'online')
           <a class="adm-btn adm-btn-primary" href="{{ $nextMeetingLink }}" target="_blank" rel="noopener noreferrer"><x-admin.icon name="live"/>ورود به اتاق جلسه</a>
         @elseif($nextSession->session_type === 'online')
           <span class="adm-session-no-link">لینک ورود هنوز آماده نیست</span>
         @endif
-        <a class="adm-btn adm-btn-line" href="{{ route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $nextSession->starts_at?->format('Y-m-d'), 'session' => $nextSession->id]) }}">آماده‌سازی حضور و غیاب</a>
+        @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+          <a class="adm-btn adm-btn-line" href="{{ route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $nextSession->starts_at?->format('Y-m-d'), 'session' => $nextSession->id]) }}">آماده‌سازی حضور و غیاب</a>
+        @endcanany
       </div>
     @else
       <h2>جلسه بعدی هنوز برنامه‌ریزی نشده</h2>
