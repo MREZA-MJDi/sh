@@ -16,7 +16,7 @@
   <x-admin.stat tone="track" icon="exam" label="آزمون‌های Quiz24" :value="number_format($exams->total())" hint="متصل یا در انتظار نگاشت"/>
   <x-admin.stat tone="track" icon="users" label="شرکت‌کنندگان نیازمند تطبیق" :value="number_format($unmatched->total())" hint="نتیجه بدون پروفایل معتبر"/>
   <x-admin.stat tone="track" icon="refresh" label="عملیات ثبت‌شده" :value="number_format($operations->count())" hint="در انتظار قرارداد یا پاسخ"/>
-  <x-admin.stat tone="track" icon="activity" label="وضعیت سرویس" :value="$health->available ? 'متصل' : 'در انتظار'" :hint="$health->message"/>
+  <x-admin.stat tone="track" icon="chart" label="وضعیت سرویس" :value="$health->available ? 'متصل' : 'در انتظار'" :hint="$health->message"/>
 </div>
 
 <x-admin.panel title="وضعیت سرویس Quiz24" desc="{{ $health->message }}" data-tone="shop">
