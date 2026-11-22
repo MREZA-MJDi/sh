@@ -87,8 +87,11 @@ function lineChart(labels, series, options = {}) {
 /** Bar chart, grouped or stacked. series: [{ name, c, data }] */
 function barChart(labels, series, options = {}) {
     const w = options.w || 360, h = options.h || 190, stacked = !!options.stacked;
-    const totals = labels.map((_, i) => series.reduce((sum, item) => sum + (Number(item.data[i]) || 0), 0));
-    const values = series.reduce((all, item) => all.concat(item.data.map(Number)), []);
+    const totals = labels.map((_, i) => series.reduce((sum, item) => {
+        const value = item.data[i];
+        return sum + (Number.isFinite(value) ? value : 0);
+    }, 0));
+    const values = series.reduce((all, item) => all.concat(item.data.filter(Number.isFinite)), []);
     const rawMax = Number.isFinite(options.max) ? options.max : Math.max(1, ...(stacked ? totals : values));
     const max = rawMax * 1.1;
     const iw = w - PAD.l - PAD.r, ih = h - PAD.t - PAD.b, slot = iw / labels.length;
@@ -99,6 +102,7 @@ function barChart(labels, series, options = {}) {
         let acc = 0;
         const rects = series.map((s, k) => {
             const v = s.data[i];
+            if (!Number.isFinite(v)) return '';
             const rect = stacked
                 ? `<rect x="${cx - bw / 2}" y="${y(acc + v)}" width="${bw}" height="${y(acc) - y(acc + v)}"`
                 : `<rect x="${cx - bw * series.length / 2 + k * bw}" y="${y(v)}" width="${bw - 2}" height="${y(0) - y(v)}"`;
