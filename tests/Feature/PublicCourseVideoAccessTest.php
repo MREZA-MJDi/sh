@@ -145,6 +145,10 @@ final class PublicCourseVideoAccessTest extends TestCase
     {
         $student = $this->makeStudent();
         $course = $this->makeCourse();
+        $course->update([
+            'delivery_type' => 'onsite',
+            'learning_features' => ['recorded_video' => true],
+        ]);
 
         Storage::fake('local');
         Storage::disk('local')->put('private/course-videos/local-public-preview.mp4', 'video-content');
