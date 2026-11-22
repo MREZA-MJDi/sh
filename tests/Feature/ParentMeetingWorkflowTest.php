@@ -152,6 +152,128 @@ final class ParentMeetingWorkflowTest extends TestCase
             ->assertDontSee('جلسه مربوط به فرزند اول');
     }
 
+
+    public function test_teacher_can_complete_a_scheduled_meeting_without_resubmitting_dates(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس تکمیل جلسه',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $meeting = ParentMeeting::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+            'guardian_id' => $guardian->id,
+            'title' => 'جلسه قابل تکمیل',
+            'starts_at' => now()->addDay(),
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('teacher.meetings.update', $meeting), ['status' => 'completed'])
+            ->assertRedirect(route('teacher.meetings'));
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'completed',
+            'responded_by' => $teacher->id,
+        ]);
+    }
+
+    public function test_teacher_can_decline_without_a_date_and_cannot_reopen_a_declined_meeting(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس رد درخواست',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $meeting = ParentMeeting::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+            'guardian_id' => $guardian->id,
+            'title' => 'درخواست قابل رد',
+            'preferred_at' => now()->addDay(),
+            'status' => 'requested',
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('teacher.meetings.update', $meeting), ['status' => 'declined'])
+            ->assertRedirect(route('teacher.meetings'));
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'declined',
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('teacher.meetings.update', $meeting), [
+                'status' => 'scheduled',
+                'starts_at' => now()->addDays(2)->format('Y-m-d\\TH:i'),
+            ])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'declined',
+        ]);
+    }
+
+    public function test_teacher_can_reschedule_an_existing_scheduled_meeting(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس تغییر زمان',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $meeting = ParentMeeting::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+            'guardian_id' => $guardian->id,
+            'title' => 'جلسه قابل تغییر زمان',
+            'starts_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
+            'status' => 'scheduled',
+        ]);
+        $newStart = now()->addDays(3)->startOfMinute();
+        $newEnd = $newStart->copy()->addHour();
+
+        $this->actingAs($teacher)
+            ->patch(route('teacher.meetings.update', $meeting), [
+                'status' => 'scheduled',
+                'starts_at' => $newStart->format('Y-m-d\\TH:i'),
+                'ends_at' => $newEnd->format('Y-m-d\\TH:i'),
+            ])
+            ->assertRedirect(route('teacher.meetings'));
+
+        $this->assertDatabaseHas('parent_meetings', [
+            'id' => $meeting->id,
+            'status' => 'scheduled',
+            'starts_at' => $newStart->format('Y-m-d H:i:s'),
+            'ends_at' => $newEnd->format('Y-m-d H:i:s'),
+        ]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();
