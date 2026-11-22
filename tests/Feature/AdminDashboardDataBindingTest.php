@@ -8,6 +8,7 @@ use App\Models\Classroom;
 use App\Models\ClassSession;
 use App\Models\Consultation;
 use App\Models\Course;
+use App\Models\CourseEnrollment;
 use App\Models\Message;
 use App\Models\Payment;
 use App\Models\Role;
