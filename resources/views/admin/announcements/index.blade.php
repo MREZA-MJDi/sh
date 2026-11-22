@@ -3,7 +3,7 @@
 
 @section('content')
 @php
-    $audiences = ['all' => 'همه کاربران', 'students' => 'دانش‌آموزان', 'parents' => 'اولیا', 'teachers' => 'مدرسان'];
+    $audiences = ['all' => 'عمومی؛ سایت و همه کاربران', 'students' => 'فقط پنل دانش‌آموزان', 'parents' => 'فقط پنل اولیا', 'teachers' => 'فقط پنل مدرسان'];
     $statuses = ['published' => ['ok', 'منتشرشده'], 'draft' => ['warn', 'پیش‌نویس']];
 @endphp
 
@@ -99,6 +99,7 @@
     <x-admin.input label="عنوان" name="title" wide required/>
     <x-admin.textarea label="متن اعلان" name="body" rows="5" wide required/>
     <x-admin.select label="مخاطب" name="audience" :options="$audiences" required/>
+    <p class="adm-muted wide">«عمومی» در سایت و فید همه پنل‌ها نمایش داده می‌شود؛ انتخاب دانش‌آموز، اولیا یا مدرس فقط در پنل همان گروه دیده خواهد شد.</p>
     <x-admin.select label="وضعیت انتشار" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'انتشار / زمان‌بندی']" required/>
     <x-admin.legend title="زمان‌بندی و دکمه اقدام"/>
     <label class="adm-field"><span>شروع نمایش (اختیاری)</span><input type="datetime-local" name="starts_at"></label>
@@ -108,7 +109,7 @@
     <x-admin.legend title="نحوه نمایش در صفحه اصلی"/>
     <input type="hidden" name="display_as_ticket" value="0">
     <label class="adm-field wide" style="display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid var(--adm-border);border-radius:12px"><input type="checkbox" name="display_as_ticket" value="1" style="width:18px;height:18px;margin-top:3px"><span><b>نمایش به‌شکل کارت ویژه صفحه اصلی</b><small class="adm-muted" style="display:block">این اعلان به‌جای سکشن مراحل یادگیری در صفحه اصلی قرار می‌گیرد و فقط برای مخاطب «همه کاربران» قابل انتخاب است.</small></span></label>
-    <div class="wide" style="padding:14px;border-radius:12px;background:var(--adm-soft, #f5f6fb)"><b>رفتار کارت صفحه اصلی</b><p class="adm-muted" style="margin:6px 0 0">در هر زمان فقط یک کارت هولوگرافیک فعال است. با انتخاب این گزینه، مخاطب به «همه کاربران» تنظیم می‌شود و زمان‌بندی روی کارت اعمال نمی‌شود. تخفیف، ظرفیت و شمارنده‌ای نمایش داده نخواهد شد.</p></div>
+    <div class="wide" style="padding:14px;border-radius:12px;background:var(--adm-soft, #f5f6fb)"><b>رفتار کارت صفحه اصلی</b><p class="adm-muted" style="margin:6px 0 0">در هر زمان فقط یک کارت ویژه صفحه اصلی فعال است. با انتخاب این گزینه، مخاطب به «همه کاربران» تنظیم می‌شود و زمان‌بندی روی کارت اعمال نمی‌شود. تخفیف، ظرفیت و شمارنده‌ای نمایش داده نخواهد شد.</p></div>
     <p class="adm-muted wide">اعلان‌های عادی بر اساس مخاطب و زمان‌بندی نمایش داده می‌شوند. کارت ویژه صفحه اصلی سایت فقط یک مورد فعال دارد و برای همه کاربران قابل مشاهده است. پیامک ارسال نمی‌شود.</p>
 </x-admin.modal>
 @if ($errors->any())
