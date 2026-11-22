@@ -47,7 +47,7 @@
           </div>
           <div class="adm-actions">
             @if(!in_array($exam->integration_status, ['active', 'connected'], true))
-              <x-admin.btn size="sm" variant="soft" icon="list" :href="route('admin.exams.questions', $exam)">سؤال‌های محلی</x-admin.btn>
+              <x-admin.btn size="sm" variant="soft" icon="file" :href="route('admin.exams.questions', $exam)">سؤال‌های محلی</x-admin.btn>
             @endif
             @if(filled($exam->external_id) && in_array($exam->status, ['published', 'closed'], true))
               <form method="POST" action="{{ route('admin.quiz24.sync-results', $exam) }}">@csrf<button type="submit" class="adm-btn adm-btn-line adm-btn-sm">درخواست دریافت نتایج</button></form>
