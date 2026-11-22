@@ -1,17 +1,17 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Http\\Requests\\Admin\\StoreInternalNotificationRequest;
-use App\\Models\\AdminNotificationBroadcast;
-use App\\Models\\User;
-use App\\Notifications\\AdminPanelBroadcastNotification;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Notification;
-use Illuminate\\Support\\Str;
-use Illuminate\\View\\View;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreInternalNotificationRequest;
+use App\Models\AdminNotificationBroadcast;
+use App\Models\User;
+use App\Notifications\AdminPanelBroadcastNotification;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 final class InternalNotificationController extends Controller
 {
