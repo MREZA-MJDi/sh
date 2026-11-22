@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AdminUserIndexRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateTeacherAccessRequest;
 use App\Http\Requests\Admin\UpdateStudentRequest;
@@ -20,7 +21,7 @@ class UserController extends Controller
 {
     private const MANAGED_ROLES = ['student', 'teacher', 'parent'];
 
-    public function index(Request $request, string $role, ClassroomWorkspaceService $workspace): View
+    public function index(AdminUserIndexRequest $request, string $role, ClassroomWorkspaceService $workspace): View
     {
         abort_unless(in_array($role, self::MANAGED_ROLES, true), 404);
 
@@ -30,7 +31,8 @@ class UserController extends Controller
         $classroomIds = $workspace->queryFor($request->user())->select('classrooms.id');
         $courseIds = $workspace->coursesQueryFor($request->user())->select('courses.id');
 
-        $users = User::query()
+        $filters = $request->validated();
+        $usersQuery = User::query()
             ->when($role === 'student', fn ($query) => $query->with('enrolledClasses:id,name'))
             ->when($role === 'teacher', fn ($query) => $query->withCount('assignedCourses'))
             ->when($role === 'parent', fn ($query) => $query->with('children:id,name'))
@@ -41,14 +43,24 @@ class UserController extends Controller
                         ->whereIn('course_id', $courseIds)
                         ->where('status', 'active'));
             }))
-            ->when($request->filled('q'), function ($query) use ($request): void {
-                $term = trim($request->string('q')->toString());
+            ->when(filled($filters['q'] ?? null), function ($query) use ($filters): void {
+                $term = '%' . trim($filters['q']) . '%';
                 $query->where(fn ($search) => $search
-                    ->where('name', 'like', "%{$term}%")
-                    ->orWhere('email', 'like', "%{$term}%")
-                    ->orWhere('phone', 'like', "%{$term}%"));
+                    ->where('name', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('phone', 'like', $term));
             })
-            ->latest()->paginate(15)->withQueryString();
+            ->when(isset($filters['status']), fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+            ->when($role === 'student' && filled($filters['grade'] ?? null), fn ($query) => $query->where('grade', $filters['grade']))
+            ->when($role === 'student' && filled($filters['classroom_id'] ?? null), fn ($query) => $query->whereHas(
+                'enrolledClasses',
+                fn ($classes) => $classes->where('classrooms.id', $filters['classroom_id'])
+                    ->whereIn('classrooms.id', $classroomIds)
+            ));
+
+        $activeCount = (clone $usersQuery)->where('is_active', true)->count();
+        $inactiveCount = (clone $usersQuery)->where('is_active', false)->count();
+        $users = $usersQuery->latest()->paginate(15)->withQueryString();
 
         $classrooms = collect();
         $selectedChildren = collect();
@@ -71,7 +83,7 @@ class UserController extends Controller
                 ->orderBy('name')->get(['id', 'name']);
         }
 
-        return view('admin.users.index', compact('users', 'role', 'classrooms', 'selectedChildren', 'teacherView'));
+        return view('admin.users.index', compact('users', 'role', 'classrooms', 'selectedChildren', 'teacherView', 'filters', 'activeCount', 'inactiveCount'));
     }
 
     public function store(StoreUserRequest $request, string $role, UserManagementService $users): RedirectResponse
