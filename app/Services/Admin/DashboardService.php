@@ -48,30 +48,24 @@ final class DashboardService
         $weekStart = today()->copy()->subDays(6)->startOfDay();
         $attendanceByDay = $canSeeAttendance
             ? Attendance::query()
-                ->leftJoin('class_sessions as sessions', function ($join): void {
-                    $join->on('sessions.id', '=', 'attendances.class_session_id')
-                        ->on('sessions.classroom_id', '=', 'attendances.classroom_id');
+                ->when($teacherView, fn ($query) => $query->whereIn('classroom_id', $classroomIds))
+                ->whereBetween('session_date', [$weekStart->toDateString(), today()->toDateString()])
+                ->whereIn('status', ['present', 'late', 'absent', 'excused'])
+                ->where(function ($query): void {
+                    $query->whereNull('class_session_id')
+                        ->orWhereHas('session', fn ($sessions) => $sessions
+                            ->where('status', '!=', 'cancelled')
+                            ->where('starts_at', '<=', now()));
                 })
-                ->when($teacherView, fn ($query) => $query->whereIn('attendances.classroom_id', $classroomIds))
                 ->selectRaw(
-                    "DATE(COALESCE(sessions.starts_at, attendances.session_date)) as attendance_day,
+                    "DATE(session_date) as attendance_day,
                     COUNT(*) as total,
-                    SUM(CASE WHEN attendances.status = 'present' THEN 1 ELSE 0 END) as present,
-                    SUM(CASE WHEN attendances.status = 'late' THEN 1 ELSE 0 END) as late,
-                    SUM(CASE WHEN attendances.status = 'absent' THEN 1 ELSE 0 END) as absent,
-                    SUM(CASE WHEN attendances.status = 'excused' THEN 1 ELSE 0 END) as excused"
+                    SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late,
+                    SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN status = 'excused' THEN 1 ELSE 0 END) as excused"
                 )
-                ->whereBetween('attendances.session_date', [$weekStart->toDateString(), today()->toDateString()])
-                ->whereIn('attendances.status', ['present', 'late', 'absent', 'excused'])
-                ->where(function ($query): void {
-                    $query->whereNull('attendances.class_session_id')->orWhereNotNull('sessions.id');
-                })
-                ->where(function ($query): void {
-                    $query->whereNull('sessions.id')->orWhere(function ($validSession): void {
-                        $validSession->where('sessions.status', '!=', 'cancelled')->where('sessions.starts_at', '<=', now());
-                    });
-                })
-                ->groupByRaw('DATE(COALESCE(sessions.starts_at, attendances.session_date))')
+                ->groupByRaw('DATE(session_date)')
                 ->get()
                 ->keyBy('attendance_day')
             : collect();
