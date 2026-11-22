@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\\Feature\\Admin;
+namespace Tests\Feature\Admin;
 
-use App\\Models\\Role;
-use App\\Models\\User;
-use App\\Notifications\\AdminPanelBroadcastNotification;
-use Database\\Seeders\\RolePermissionSeeder;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\DB;
-use Tests\\TestCase;
+use App\Models\Role;
+use App\Models\User;
+use App\Notifications\AdminPanelBroadcastNotification;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 final class InternalNotificationWorkspaceTest extends TestCase
 {
