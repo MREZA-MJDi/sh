@@ -65,11 +65,12 @@ final class DashboardController extends Controller
                 : 'جلسه‌ای زمان‌بندی نشده است',
         ];
 
-        $data['subjects'] = $data['results']->filter(fn ($result) => $result->exam?->course)
+        $data['subjects'] = $data['results']
+            ->filter(fn ($result) => $result->exam?->course && $result->score !== null && $result->max_score > 0)
             ->groupBy(fn ($result) => $result->exam->course->title)
             ->map(fn ($items, $name) => [
                 'name' => $name,
-                'score' => round($items->avg(fn ($item) => $item->max_score > 0 ? $item->score / $item->max_score * 20 : 0), 1),
+                'score' => round($items->avg(fn ($item) => $item->score / $item->max_score * 20), 1),
                 'class_avg' => null,
             ])->values();
 
