@@ -47,7 +47,9 @@ final class DashboardController extends Controller
             'avg_note' => $averageExamScore !== null ? 'میانگین همه نتایج قابل مشاهده' : 'هنوز نمره‌ای ثبت نشده',
             'open_homework' => (int) $data['pending_homework_count'],
             'open_homework_note' => 'تکلیف بدون ارسال',
-            'next_meeting' => optional($data['meetings']->firstWhere('status', 'scheduled')?->starts_at)->format('Y/m/d H:i') ?? '—',
+            'next_meeting' => $data['meetings']->firstWhere('status', 'scheduled')?->starts_at
+                ? JalaliDate::format($data['meetings']->firstWhere('status', 'scheduled')->starts_at, true)
+                : '—',
             'next_meeting_note' => 'جلسه ثبت‌شده',
         ];
 
@@ -71,12 +73,22 @@ final class DashboardController extends Controller
         $data['scores'] = $periods->map(function ($month) use ($trend) {
             return $trend->get($month);
         })->values();
+        $data['resultDates'] = $data['results']->mapWithKeys(fn ($result) => [
+            $result->id => $result->created_at ? JalaliDate::format($result->created_at) : '—',
+        ])->all();
+
         $data['classAvg'] = [];
         $homeworkTrend = $data['homework_trend'];
         $data['homeworkMonths'] = $data['months'];
-        $data['hwOnTime'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'on_time', 0))->values();
-        $data['hwLate'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'late', 0))->values();
-        $data['hwMissing'] = $periods->map(fn ($month) => (int) data_get($homeworkTrend->get($month, []), 'missing', 0))->values();
+        $data['hwOnTime'] = $periods->map(fn ($month) => $homeworkTrend->has($month)
+            ? (int) data_get($homeworkTrend->get($month), 'on_time', 0)
+            : null)->values();
+        $data['hwLate'] = $periods->map(fn ($month) => $homeworkTrend->has($month)
+            ? (int) data_get($homeworkTrend->get($month), 'late', 0)
+            : null)->values();
+        $data['hwMissing'] = $periods->map(fn ($month) => $homeworkTrend->has($month)
+            ? (int) data_get($homeworkTrend->get($month), 'missing', 0)
+            : null)->values();
         $data['teacherNotes'] = $data['reviewed_homework']->filter(fn ($submission) => filled($submission->feedback))
             ->map(fn ($submission) => [
                 'teacher' => $submission->reviewer?->name ?? 'مدرس',
@@ -140,7 +152,9 @@ final class DashboardController extends Controller
             'monthTitle' => JalaliDate::monthLabel($year, $month),
             'monthKey' => $monthKey, 'monthOptions' => $monthOptions,
             'absencePattern' => (int) $monthBreakdown->get('absent', 0).' غیبت در این ماه',
-            'lastLate' => $data['last_late_attendance']?->session_date?->format('Y/m/d') ?? 'موردی ثبت نشده',
+            'lastLate' => $data['last_late_attendance']?->session_date
+                ? JalaliDate::format($data['last_late_attendance']->session_date)
+                : 'موردی ثبت نشده',
         ]);
     }
 
@@ -148,6 +162,9 @@ final class DashboardController extends Controller
     {
         $data = $this->build($request, $dashboard);
         $results = $data['exam_results'];
+        $resultDates = $results->getCollection()->mapWithKeys(fn ($result) => [
+            $result->id => $result->created_at ? JalaliDate::format($result->created_at) : '—',
+        ])->all();
         $subjects = $results->getCollection()->filter(fn ($result) => $result->exam?->course)
             ->groupBy(fn ($result) => $result->exam->course->title)
             ->map(fn ($items, $name) => [
@@ -158,7 +175,7 @@ final class DashboardController extends Controller
 
         return view('parent.exams', [
             'kid' => $data['selected_child'], 'kids' => $data['children'],
-            'subjects' => $subjects, 'results' => $results,
+            'subjects' => $subjects, 'results' => $results, 'resultDates' => $resultDates,
         ]);
     }
 
@@ -172,7 +189,7 @@ final class DashboardController extends Controller
             $missing = ! $submission && $item->due_at && $item->due_at->isPast();
             return [
                 'title' => $item->title,
-                'due' => $item->due_at?->format('Y/m/d H:i') ?? 'بدون مهلت',
+                'due' => $item->due_at ? JalaliDate::format($item->due_at, true) : 'بدون مهلت',
                 'status' => $submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار'),
                 'tone' => $submission ? ($late ? 'am' : 'gn') : ($missing ? 'rd' : 'bl'),
             ];
