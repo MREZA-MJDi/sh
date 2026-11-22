@@ -159,15 +159,18 @@ function radar(labels, series) {
       return { name: esc(s.name), c: color(s.c), data: nums(s.data), area: !!s.area, dash: !!s.dash };
     });
     var hasData = series.length && series.every(function (s) { return s.data.length === labels.length; });
+    var hasValues = series.some(function (s) {
+      return s.data.some(function (value) { return value !== null && value !== undefined && Number.isFinite(value); });
+    });
 
     if (type === 'donut') {
       var parts = (cfg.parts || []).map(function (p) { return { l: esc(p.l), v: Number(p.v) || 0, c: color(p.c) }; });
       if (parts.some(function (p) { return p.v > 0; })) html = donut(parts, faStr(esc(cfg.big)), esc(cfg.small));
-    } else if (type === 'line' && hasData && labels.length >= 1) {
+    } else if (type === 'line' && hasData && hasValues && labels.length >= 1) {
       html = lineChart(labels, series, o) + legendHtml(series);
-    } else if (type === 'bar' && hasData && labels.length >= 1) {
+    } else if (type === 'bar' && hasData && hasValues && labels.length >= 1) {
       html = barChart(labels, series, o) + legendHtml(series);
-    } else if (type === 'radar' && hasData && labels.length >= 3) {
+    } else if (type === 'radar' && hasData && hasValues && labels.length >= 3) {
       html = radar(labels, series) + legendHtml(series);
     }
     if (html) {
