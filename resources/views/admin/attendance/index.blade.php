@@ -11,7 +11,7 @@
   :back-label="$classroom ? 'بازگشت به برنامه کلاس' : 'کلاس‌ها'"/>
 
 <section class="adm-attendance-guide" data-tone="track">
-  <div><span>راهنمای ثبت حضور</span><b>۱. کلاس و روز را انتخاب کن</b><small>۲. جلسه برگزارشده را مشخص کن · ۳. وضعیت هر دانش‌آموز را ثبت و ذخیره کن</small></div>
+  <div><span>{{ $canManage ? "راهنمای ثبت حضور" : "راهنمای مشاهده حضور" }}</span><b>۱. کلاس و روز را انتخاب کن</b><small>{{ $canManage ? "۲. جلسه برگزارشده را مشخص کن · ۳. وضعیت هر دانش‌آموز را ثبت و ذخیره کن" : "۲. جلسه موردنظر را انتخاب کن · ۳. وضعیت ثبت‌شده هر دانش‌آموز را ببین" }}</small></div>
   @if($canManage)<x-admin.badge tone="ok">امکان ثبت و ویرایش</x-admin.badge>@else<x-admin.badge tone="mute">فقط مشاهده</x-admin.badge>@endif
 </section>
 
