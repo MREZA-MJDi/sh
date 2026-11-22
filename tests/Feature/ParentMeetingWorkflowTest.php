@@ -6,8 +6,10 @@ use App\Models\Classroom;
 use App\Models\ParentMeeting;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\ParentMeetingNotification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class ParentMeetingWorkflowTest extends TestCase
@@ -323,6 +325,68 @@ final class ParentMeetingWorkflowTest extends TestCase
             'id' => $meeting->id,
             'status' => 'completed',
         ]);
+    }
+
+
+    public function test_parent_meeting_request_notifies_administrators_and_the_assigned_teacher(): void
+    {
+        Notification::fake();
+
+        $admin = $this->userWithRole('admin');
+        $teacher = $this->userWithRole('teacher');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس درخواست ولی',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $this->actingAs($guardian)
+            ->post(route('guardian.meetings.store'), [
+                'student_id' => $student->id,
+                'classroom_id' => $classroom->id,
+                'title' => 'درخواست جلسه والدین',
+                'message' => 'لطفاً برای گفت‌وگو هماهنگ شود.',
+                'preferred_at' => now()->addDays(2)->format('Y-m-d\\TH:i'),
+            ])
+            ->assertRedirect();
+
+        Notification::assertSentTo($admin, ParentMeetingNotification::class);
+        Notification::assertSentTo($teacher, ParentMeetingNotification::class);
+    }
+
+    public function test_teacher_meeting_proposal_notifies_administrators(): void
+    {
+        Notification::fake();
+
+        $admin = $this->userWithRole('admin');
+        $teacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس پیشنهاد مدرس',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student->id);
+
+        $this->actingAs($teacher)
+            ->post(route('admin.parent-meetings.store'), [
+                'classroom_id' => $classroom->id,
+                'student_id' => $student->id,
+                'guardian_id' => $guardian->id,
+                'title' => 'پیشنهاد جلسه مدرس',
+                'starts_at' => now()->addDays(2)->format('Y-m-d\\TH:i'),
+            ])
+            ->assertRedirect();
+
+        Notification::assertSentTo($admin, ParentMeetingNotification::class);
     }
 
     private function userWithRole(string $role): User
