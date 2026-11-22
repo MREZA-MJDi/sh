@@ -79,7 +79,7 @@
 
       <x-admin.panel id="course-enrollment" title="۲. ثبت‌نام و قیمت" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
         <div class="adm-form">
-          <x-admin.select label="نوع دوره" name="list" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
+          <x-admin.select label="نوع دوره" name="file" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
           <x-admin.input label="قیمت به تومان" name="price" :value="old('price', $course->price)" inputmode="numeric" type="number" min="0" max="1000000000" placeholder="برای دوره رایگان صفر"/>
           <x-admin.select label="وضعیت نمایش در سایت" name="status" :options="$statuses" :selected="old('status', $course->status ?: 'draft')" required/>
         </div>
@@ -225,7 +225,7 @@
                 <div class="adm-card-title"><div><h3>{{ $classroom->name }}</h3><p>{{ $classroom->teacher?->name ?? 'مدرس مشخص نشده' }}</p></div><x-admin.badge tone="ok">فعال</x-admin.badge></div>
                 <div class="adm-meta">
                   <span><x-admin.icon name="users"/>{{ number_format($classroom->students_count) }} دانش‌آموز</span>
-                  <span><x-admin.icon name="calendar"/>{{ number_format($classroom->sessions_count) }} جلسه</span>
+                  <span><x-admin.icon name="cal"/>{{ number_format($classroom->sessions_count) }} جلسه</span>
                 </div>
                 <div class="adm-kv">
                   <span>برنامه هفتگی: <b>{{ $scheduleLabel ?: 'شناور' }}</b></span>
@@ -239,7 +239,7 @@
                 <div class="adm-actions">
                   <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="course-class-edit-{{ $classroom->id }}" data-title="ویرایش کلاس" :data-fill="json_encode($classFill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.update', $classroom)" data-method="PATCH">ویرایش کلاس</x-admin.btn>
                   <x-admin.btn size="sm" icon="plus" data-modal-open="quick-session-{{ $classroom->id }}">جلسه جدید</x-admin.btn>
-                  <x-admin.btn size="sm" variant="soft" icon="calendar" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
+                  <x-admin.btn size="sm" variant="soft" icon="cal" :href="route('admin.classes.sessions.index', $classroom)">تقویم کلاس</x-admin.btn>
                   <x-admin.btn size="sm" variant="line" icon="check" :href="route('admin.attendance.index', ['class_id' => $classroom->id])">حضور و غیاب</x-admin.btn>
                 </div>
               </div>
@@ -273,10 +273,10 @@
   <aside class="adm-stack">
     <x-admin.panel title="جایگاه اطلاعات در صفحه عمومی" desc="راهنمای ساده برای اینکه بدانید هر ورودی کجا دیده می‌شود." data-tone="edu">
       <div class="adm-side-list">
-        <div><span class="adm-stat-ico"><x-admin.icon name="list"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="file"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="user"/></span><div class="adm-grow"><b>مدرس و موضوع</b><small class="adm-muted">کنار مشخصات دوره و بخش معرفی مدرس</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="video"/></span><div class="adm-grow"><b>تریلر</b><small class="adm-muted">بخش معرفی و پیش‌نمایش ویدیویی دوره</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="list"/></span><div class="adm-grow"><b>فصل‌ها و متن درس‌ها</b><small class="adm-muted">بخش سرفصل‌های آموزشی</small></div></div>
+        <div><span class="adm-stat-ico"><x-admin.icon name="file"/></span><div class="adm-grow"><b>فصل‌ها و متن درس‌ها</b><small class="adm-muted">بخش سرفصل‌های آموزشی</small></div></div>
         <div><span class="adm-stat-ico"><x-admin.icon name="card"/></span><div class="adm-grow"><b>نوع و قیمت</b><small class="adm-muted">کارت ثبت‌نام کنار صفحه دوره</small></div></div>
       </div>
     </x-admin.panel>
