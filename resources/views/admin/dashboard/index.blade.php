@@ -61,7 +61,7 @@
         </div>
       </div>
     </div>
-    <div class="adm-sales-foot">
+    <div class="adm-sales-foot"><b class="adm-sales-title">فروش واقعی دوره‌ها</b>
       <span>میانگین خرید تأییدشده <b>{{ number_format($averageCoursePurchase) }} تومان</b></span>
       <span>تعداد خرید موفق <b>{{ number_format($paidCoursePurchases) }}</b></span>
       <span>فروش ۳۰ روز اخیر <b>{{ number_format($revenueLast30Days) }} تومان</b></span>
