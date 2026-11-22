@@ -126,7 +126,7 @@
         @endforeach
       </div>
     @else
-      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>{{ $session ? 'دانش‌آموزی برای ثبت حضور پیدا نشد' : 'برای این روز جلسه‌ای ثبت نشده' }}</b><span>{{ $session ? 'فهرست اعضای کلاس خالی است؛ ابتدا دانش‌آموزان را به کلاس اضافه کن.' : 'یک روز دارای جلسه انتخاب کن یا برای این تاریخ جلسه تازه‌ای بساز.' }}</span>
+      <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>{{ $session ? 'دانش‌آموزی برای ثبت حضور پیدا نشد' : 'برای این روز جلسه‌ای ثبت نشده' }}</b><span>{{ $session ? 'فهرست اعضای کلاس خالی است؛ ابتدا دانش‌آموزان را به کلاس اضافه کن.' : 'یک روز دارای جلسه انتخاب کن یا برای این تاریخ جلسه تازه‌ای بساز.' }}</span>
         @canany(['classes.manage', 'classes.manage.assigned'])
           @if(!$session && $classroom)
             <x-admin.btn size="sm" icon="plus" :href="route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $dateIso])">ساخت جلسه برای این روز</x-admin.btn>
@@ -150,7 +150,7 @@
         @endforeach
       </div>
     @else
-      <div class="adm-queue-empty"><x-admin.icon name="calendar"/><b>برای این روز جلسه یا فهرست دانش‌آموزی وجود ندارد</b><span>روز و کلاس دیگری را انتخاب کن.</span></div>
+      <div class="adm-queue-empty"><x-admin.icon name="cal"/><b>برای این روز جلسه یا فهرست دانش‌آموزی وجود ندارد</b><span>روز و کلاس دیگری را انتخاب کن.</span></div>
     @endif
   @endif
 </x-admin.panel>
