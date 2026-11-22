@@ -281,6 +281,9 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/announcements/{announcement}/status', [AnnouncementController::class, 'updateStatus'])->middleware('permission:announcements.manage')->name('announcements.status');
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->middleware('permission:announcements.manage')->name('announcements.destroy');
 
+    Route::get('/internal-notifications', [InternalNotificationController::class, 'index'])->middleware('permission:notifications.manage')->name('internal-notifications.index');
+    Route::post('/internal-notifications', [InternalNotificationController::class, 'store'])->middleware(['permission:notifications.manage', 'throttle:10,1'])->name('internal-notifications.store');
+
     Route::get('/spotplayer', [SpotPlayerController::class, 'index'])->middleware(['role:admin', 'permission:integrations.manage,videos.manage.assigned'])->name('spotplayer.index');
     Route::patch('/spotplayer/settings', [SpotPlayerController::class, 'updateSettings'])->middleware('permission:integrations.manage')->name('spotplayer.settings');
     Route::post('/spotplayer/sync-courses', [SpotPlayerController::class, 'requestCourseSync'])->middleware('permission:integrations.manage')->name('spotplayer.sync-courses');
