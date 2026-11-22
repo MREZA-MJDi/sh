@@ -38,16 +38,22 @@ final class InternalNotificationController extends Controller
             ->latest()
             ->paginate(20);
 
-        $broadcasts->getCollection()->each(function (AdminNotificationBroadcast $broadcast): void {
-            $broadcast->setAttribute(
+        $broadcastIds = $broadcasts->getCollection()->pluck('id');
+        $readCounts = DB::table('notifications')
+            ->select('data->broadcast_id as broadcast_id')
+            ->selectRaw('COUNT(*) as aggregate')
+            ->where('type', AdminPanelBroadcastNotification::class)
+            ->whereIn('data->broadcast_id', $broadcastIds)
+            ->whereNotNull('read_at')
+            ->groupBy('data->broadcast_id')
+            ->pluck('aggregate', 'broadcast_id');
+
+        $broadcasts->getCollection()->each(
+            fn (AdminNotificationBroadcast $broadcast) => $broadcast->setAttribute(
                 'read_count',
-                DB::table('notifications')
-                    ->where('type', AdminPanelBroadcastNotification::class)
-                    ->where('data->broadcast_id', $broadcast->id)
-                    ->whereNotNull('read_at')
-                    ->count()
-            );
-        });
+                (int) ($readCounts[$broadcast->id] ?? 0)
+            )
+        );
 
         return view('admin.internal-notifications.index', compact('audiences', 'counts', 'broadcasts'));
     }
