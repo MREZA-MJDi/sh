@@ -15,7 +15,7 @@
 <div class="adm-stats">
   <x-admin.stat tone="comm" icon="chat" label="کل درخواست‌ها" :value="number_format($counts['total'])"/>
   <x-admin.stat tone="comm" icon="clock" label="در انتظار بررسی" :value="number_format($counts['pending'])"/>
-  <x-admin.stat tone="comm" icon="calendar" label="زمان‌بندی‌شده" :value="number_format($counts['scheduled'])"/>
+  <x-admin.stat tone="comm" icon="cal" label="زمان‌بندی‌شده" :value="number_format($counts['scheduled'])"/>
   <x-admin.stat tone="comm" icon="check" label="انجام‌شده" :value="number_format($counts['done'])"/>
 </div>
 
