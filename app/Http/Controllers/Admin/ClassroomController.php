@@ -27,7 +27,7 @@ class ClassroomController extends Controller
         $filters = $request->validated();
 
         $classroomsQuery = $workspace->queryFor($user)
-            ->with(['course:id,title', 'teacher:id,name', 'students' => fn ($students) => $students->select('users.id', 'users.name')->limit(4)])
+            ->with(['course:id,title', 'teacher:id,name', 'students:id,name'])
             ->withCount(['students', 'sessions'])
             ->when(filled($filters['teacher_id'] ?? null), fn ($query) => $query->where('teacher_id', $filters['teacher_id']))
             ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
