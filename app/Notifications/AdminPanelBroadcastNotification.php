@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Notifications;
+namespace App\Notifications;
 
-use Illuminate\\Bus\\Queueable;
-use Illuminate\\Notifications\\Notification;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
 
 final class AdminPanelBroadcastNotification extends Notification
 {
