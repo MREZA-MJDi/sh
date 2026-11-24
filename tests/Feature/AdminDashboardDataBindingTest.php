@@ -259,6 +259,22 @@ final class AdminDashboardDataBindingTest extends TestCase
             ->assertDontSee('پیام‌های اخیر');
     }
 
+    public function test_closed_conversations_are_excluded_from_open_message_count(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        Message::query()->create([
+            'sender_id' => $admin->id, 'subject' => 'Open', 'body' => 'Open message', 'status' => 'open',
+        ]);
+        $closed = Message::query()->create([
+            'sender_id' => $admin->id, 'subject' => 'Closed', 'body' => 'Closed message', 'status' => 'open',
+        ]);
+        $closed->forceFill(['closed_at' => now()])->save();
+
+        $this->assertSame(1, app(DashboardService::class)->build($admin)['openMessageCount']);
+    }
+
     public function test_dashboard_exposes_recent_enrollments_pending_payment_reviews_and_upcoming_sessions(): void
     {
         $admin = User::factory()->create();
