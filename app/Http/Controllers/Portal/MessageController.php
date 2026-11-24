@@ -235,23 +235,32 @@ final class MessageController extends Controller
     private function availableRecipients(User $student, LearningAccessService $access): Collection
     {
         $classroomIds = $access->activeClassroomIds($student);
+        $visibleClassrooms = Classroom::query()
+            ->whereIn('id', clone $classroomIds)
+            ->get(['id', 'course_id', 'teacher_id']);
 
-        $visibleClassrooms = Classroom::query()->whereIn('id', clone $classroomIds)->get(['id', 'course_id', 'teacher_id']);
-        $teacherIds = $visibleClassrooms->pluck('teacher_id')->filter();
-        $courseTeacherIds = Course::query()
-            ->whereIn('id', $visibleClassrooms->pluck('course_id')->filter()->unique())
-            ->whereNotNull('teacher_id')
-            ->pluck('teacher_id');
-
-        $adminIds = User::query()
-            ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
-            ->pluck('id');
+        $courseIds = $visibleClassrooms->pluck('course_id')->filter()->unique();
+        $teacherIds = $visibleClassrooms->pluck('teacher_id')
+            ->filter()
+            ->merge(
+                Course::query()
+                    ->whereIn('id', $courseIds)
+                    ->whereNotNull('teacher_id')
+                    ->pluck('teacher_id')
+            )
+            ->unique()
+            ->values();
 
         return User::query()
             ->where('is_active', true)
-            ->whereIn('id', $teacherIds->merge($courseTeacherIds)->merge($adminIds)->unique())
+            ->where(function (Builder $recipients) use ($teacherIds): void {
+                $recipients->where(function (Builder $teachers) use ($teacherIds): void {
+                    $teachers->whereIn('users.id', $teacherIds)
+                        ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'teacher'));
+                })->orWhereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'));
+            })
             ->orderBy('name')
+            ->orderBy('id')
             ->get(['id', 'name']);
     }
 
