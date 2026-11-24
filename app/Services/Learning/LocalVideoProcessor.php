@@ -18,12 +18,12 @@ final class LocalVideoProcessor
         $command = [
             'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
             '-threads', $threads, '-filter_threads', $threads, '-i', $source,
-            '-map', '0:v:0', '-map', '0:a:0?', '-sn', '-dn',
+            '-map', '0:V:0', '-map', '0:a:0?', '-sn', '-dn',
             '-map_metadata', '-1', '-map_chapters', '-1',
         ];
 
         $encoding = [
-            '-vf', 'scale=-2:min('.$height.'\,ih)',
+            '-vf', 'scale=w=min(1920\,iw):h=min('.$height.'\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2',
             '-c:v', 'libx264', '-threads:v', $threads,
             '-preset', 'veryfast', '-crf', (string) $crf, '-pix_fmt', 'yuv420p',
             '-c:a', 'aac', '-b:a', $audioKbps.'k', '-ac', '2',
@@ -113,12 +113,12 @@ final class LocalVideoProcessor
     {
         $process = new Process([
             'ffprobe', '-v', 'error',
-            '-show_entries', 'format=duration:stream=codec_type,codec_name,profile,level,pix_fmt,width,height,channels',
+            '-show_entries', 'format=duration:stream=codec_type,codec_name,profile,level,pix_fmt,width,height,channels:stream_disposition=attached_pic',
             '-of', 'json', $path,
         ]);
         $process->setTimeout(30)->mustRun();
         $data = json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR);
-        $video = collect($data['streams'] ?? [])->firstWhere('codec_type', 'video');
+        $video = collect($data['streams'] ?? [])->first(fn (array $stream): bool => ($stream['codec_type'] ?? null) === 'video' && ! ($stream['disposition']['attached_pic'] ?? false));
         $audio = collect($data['streams'] ?? [])->firstWhere('codec_type', 'audio');
         $duration = (float) ($data['format']['duration'] ?? 0);
 
