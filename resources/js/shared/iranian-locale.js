@@ -111,7 +111,7 @@
     }
 
     function localizeDateText(value) {
-        const fullDate = /(^|[^\d])((?:19|20)\d{2})[/-](0?[1-9]|1[0-2])[/-](0?[1-9]|[12]\d|3[01])(?:[ T](\d{1,2}):([0-5]\d)(?::([0-5]\d))?)?/g;
+        const fullDate = /(^|[^\d])((?:19|20)\d{2})[/-](0?[1-9]|1[0-2])[/-]([12]\d|3[01]|0?[1-9])(?!\d)(?:[ T](\d{1,2}):([0-5]\d)(?::([0-5]\d))?)?/g;
         value = value.replace(fullDate, (full, prefix, year, month, day, hour, minute, second) => {
             const utcHour = hour === undefined ? 8 : Number(hour) - 3;
             const utcMinute = hour === undefined ? 30 : Number(minute || 0) - 30;
@@ -119,7 +119,7 @@
             return prefix + (formatJalaliDate(date, hour !== undefined) || full.slice(prefix.length));
         });
 
-        const monthOnly = /(^|[^\d])((?:19|20)\d{2})-(0?[1-9]|1[0-2])(?![\/\d])/g;
+        const monthOnly = /(^|[^\d])((?:19|20)\d{2})-(0?[1-9]|1[0-2])(?![-/\d])/g;
         value = value.replace(monthOnly, (full, prefix, year, month) => {
             const parts = persianDateParts(new Date(Number(year), Number(month) - 1, 15, 12));
             if (!parts) return full;

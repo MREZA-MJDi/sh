@@ -140,7 +140,7 @@
   <x-admin.legend title="اطلاعات حساب"/>
   <x-admin.input label="نام و نام خانوادگی" name="name" wide required/>
   <x-admin.input label="ایمیل" name="email" type="email" :required="$role !== 'teacher'"/>
-  <x-admin.input label="شماره تماس" name="phone"/>
+  <x-admin.input label="شماره تماس" name="phone" :required="$role === 'teacher'"/>
   @if($role === 'student')
     <x-admin.input label="پایه تحصیلی" name="grade" required/>
     <x-admin.input label="شناسه دانش‌آموزی (اختیاری)" name="external_student_id"/>

@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
+use App\Models\Classroom;
+use App\Models\ClassSession;
 use App\Models\Message;
 use App\Models\Permission;
 use App\Models\Role;
@@ -31,7 +34,48 @@ final class StudentPortalExperienceTest extends TestCase
             ->get(route('student.attendance'))
             ->assertOk()
             ->assertSee('حضور و غیاب')
-            ->assertSee('جلسه دارای وضعیت ثبت‌شده');
+            ->assertSee('برای این ماه هنوز سابقهٔ حضور و غیاب ثبت نشده است.');
+    }
+
+    public function test_student_attendance_shows_saved_records_for_their_active_class_only(): void
+    {
+        $this->travelTo(now()->setDate(2026, 11, 24)->setTime(12, 0));
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+
+        foreach (['late', 'absent'] as $status) {
+            $classroom = Classroom::query()->create([
+                'teacher_id' => $teacher->id,
+                'name' => 'کلاس '.$status,
+                'status' => 'active',
+            ]);
+            if ($status === 'late') {
+                $classroom->students()->attach($student);
+            }
+            $session = ClassSession::query()->create([
+                'classroom_id' => $classroom->id,
+                'title' => 'جلسه حضور و غیاب',
+                'session_type' => 'onsite',
+                'starts_at' => now()->subHours(2),
+                'ends_at' => now()->subHour(),
+                'status' => 'completed',
+                'created_by' => $teacher->id,
+            ]);
+            Attendance::query()->create([
+                'classroom_id' => $classroom->id,
+                'class_session_id' => $session->id,
+                'student_id' => $student->id,
+                'session_date' => now()->toDateString(),
+                'status' => $status,
+                'marked_by' => $teacher->id,
+            ]);
+        }
+
+        $this->actingAs($student)->get(route('student.attendance'))
+            ->assertOk()
+            ->assertSee('1 جلسه دارای وضعیت ثبت‌شده')
+            ->assertSee('تأخیر')
+            ->assertDontSee('<small>غایب</small>', false);
     }
 
     public function test_student_without_own_attendance_permission_does_not_see_or_access_attendance(): void
