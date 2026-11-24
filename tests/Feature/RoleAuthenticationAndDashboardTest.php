@@ -180,13 +180,14 @@ class RoleAuthenticationAndDashboardTest extends TestCase
 
         $response->assertOk()
             ->assertSee('id="overview"', false)
-            ->assertSee('id="classes"', false)
-            ->assertSee('id="homework"', false)
-            ->assertSee('id="attendance-notice"', false)
-            ->assertSee('id="results"', false)
-            ->assertSee('id="resources-notice"', false)
-            ->assertSee('id="sessions-notice"', false)
-            ->assertSee('id="homework-notice"', false);
+            ->assertSee('portal-action-card', false)
+            ->assertSee(route('student.courses.index'))
+            ->assertSee(route('student.homework.index'))
+            ->assertSee(route('student.attendance'))
+            ->assertSee(route('student.exams.index'))
+            ->assertSee(route('student.resources.index'))
+            ->assertSee(route('student.live-classes'))
+            ->assertSee(route('student.videos.index'));
 
         $this->assertStringNotContainsString(chr(92).'n    @vite', $response->getContent());
     }

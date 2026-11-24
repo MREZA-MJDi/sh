@@ -46,7 +46,7 @@ import '../shared/iranian-locale.js';
   var s = $('#globalSearch');
   if (s) s.addEventListener('input', function () {
     var q = s.value.trim().toLowerCase();
-    $$('.page .trk, .page .tbl tr:not(:first-child), .page .cc, .page .note, .page .medal').forEach(function (el) {
+    $$('.page .trk, .page .tbl tr:not(:first-child), .page .cc, .page .note, .page .medal, .page .portal-action-card, .page .portal-exam-card').forEach(function (el) {
       el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1;
     });
   });
@@ -54,7 +54,7 @@ import '../shared/iranian-locale.js';
   /* فرم‌ها: جلوگیری از ارسال مجدد تا پایان درخواست و بازگشت صفحه. */
   $$('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
-      if (e.defaultPrevented) return;
+      if (e.defaultPrevented || f.target === '_blank') return;
       if (f.dataset.busy) { e.preventDefault(); return; }
       f.dataset.busy = '1';
       $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {

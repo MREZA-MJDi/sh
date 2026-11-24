@@ -3,6 +3,7 @@
  $attempts = $exam->attempts;
  $active = $attempts->firstWhere('status','in_progress');
  $used = $attempts->whereIn('status',['graded','pending_review','submitted','expired'])->count();
+ if ($active && (int)$exam->duration_minutes > 0 && $active->started_at && now()->gt($active->started_at->copy()->addMinutes((int)$exam->duration_minutes)->addSeconds(15))) { $active = null; $used++; }
  $limit = max(1,min(5,(int)$exam->attempts_allowed));
  $ready = $exam->status === 'published' && (!$exam->starts_at || !$exam->starts_at->isFuture()) && ($exam->questions_count ?? $exam->questions->count()) > 0;
 @endphp
