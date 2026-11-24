@@ -42,8 +42,8 @@
             <span class="bd {{ $isLive ? 'gn' : ($joinUrl ? 'bl' : 'am') }}">{{ $isLive ? 'در حال برگزاری' : ($joinUrl ? 'آماده ورود' : 'در انتظار لینک') }}</span>
         </div>
         <div class="teacher-live-session-meta">
-            <div><span>شروع</span><strong><time data-jalali-display="{{ $session->starts_at?->format('Y-m-d H:i') }}">{{ $session->starts_at?->format('Y/m/d H:i') }}</time></strong></div>
-            <div><span>پایان</span><strong><time data-jalali-display="{{ $session->ends_at?->format('Y-m-d H:i') }}">{{ $session->ends_at?->format('Y/m/d H:i') ?: 'ثبت نشده' }}</time></strong></div>
+            <div><span>شروع</span><strong><time data-jalali-display="{{ $session->starts_at?->format('Y-m-d H:i') }}">{{ $session->starts_at ? \\App\\Support\\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—' }}</time></strong></div>
+            <div><span>پایان</span><strong><time data-jalali-display="{{ $session->ends_at?->format('Y-m-d H:i') }}">{{ $session->ends_at ? \\App\\Support\\PersianDate::format($session->ends_at, 'Y/m/d H:i') : 'ثبت نشده' }}</time></strong></div>
             <div><span>وضعیت سرویس</span><strong>{{ $session->classroom?->skyroom_status === 'ready' ? 'اتاق آماده' : ($session->classroom?->skyroom_status === 'waiting_contract' ? 'در انتظار قرارداد' : $provider) }}</strong></div>
         </div>
         <div class="teacher-live-session-actions">
