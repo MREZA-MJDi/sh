@@ -99,6 +99,11 @@ final class GuardianPanelExperienceTest extends TestCase
 
         $this->assertSame('1405/09/01 13:30', JalaliDate::format($date, true));
         $this->assertSame('1405/09/01', JalaliDate::format($date));
+        $this->assertSame('۱۴۰۵/۰۹/۰۱ ۱۳:۳۰', \App\Support\PersianDate::format($date));
+        $lastDay = CarbonImmutable::parse('2026-11-21 23:59:00', 'Asia/Tehran');
+        $this->assertSame('1405/08/30', JalaliDate::format($lastDay));
+        $this->assertSame('۱۴۰۵/۰۸/۳۰ ۲۳:۵۹', \App\Support\PersianDate::format($lastDay));
+        $this->assertSame('2026-11-22', JalaliDate::toGregorian(1405, 9, 1)->toDateString());
     }
 
     public function test_switching_children_clears_stale_message_and_pagination_query_parameters(): void
