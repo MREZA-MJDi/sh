@@ -15,6 +15,7 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -139,6 +140,9 @@ final class CourseController extends Controller
         $coverPath = $request->hasFile('cover_image')
             ? $request->file('cover_image')->store('course-covers', 'public')
             : null;
+        if ($request->hasFile('cover_image') && ! $coverPath) {
+            throw ValidationException::withMessages(['cover_image' => 'ذخیره تصویر دوره ناموفق بود؛ دوباره تلاش کنید.']);
+        }
         if ($coverPath) {
             $data['cover_image_path'] = $coverPath;
         }
@@ -173,6 +177,9 @@ final class CourseController extends Controller
 
         if ($request->hasFile('cover_image')) {
             $newCoverPath = $request->file('cover_image')->store('course-covers', 'public');
+            if (! $newCoverPath) {
+                throw ValidationException::withMessages(['cover_image' => 'ذخیره تصویر دوره ناموفق بود؛ دوباره تلاش کنید.']);
+            }
             $data['cover_image_path'] = $newCoverPath;
         } elseif ($request->boolean('remove_cover_image')) {
             $data['cover_image_path'] = null;
