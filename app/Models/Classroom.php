@@ -62,6 +62,11 @@ class Classroom extends Model
         return $this->hasMany(LearningResource::class);
     }
 
+    public function parentMeetings(): HasMany
+    {
+        return $this->hasMany(ParentMeeting::class);
+    }
+
     public function spotPlayerVideos(): HasMany
     {
         return $this->hasMany(SpotPlayerVideo::class);
