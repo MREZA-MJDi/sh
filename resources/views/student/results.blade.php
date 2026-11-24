@@ -31,7 +31,7 @@
     @forelse ($results as $result)
      <tr><td>{{ $result->exam?->title ?? 'آزمون' }}</td><td>{{ $result->exam?->course?->title ?? $result->exam?->classroom?->name ?? '—' }}</td><td>{{ $result->score === null ? '—' : $result->score.' / '.$result->max_score }}</td><td>{{ $result->feedback ?: '—' }}</td></tr>
     @empty
-     <tr><td colspan="4">نتیجه‌ای ثبت نشده است.</td></tr>
+     <tr><td colspan="4"><x-portal.empty-state icon="file" tone="tracking" title="نتیجه‌ای ثبت نشده است." description="نمره و بازخورد پس از ارزیابی آزمون در این بخش نمایش داده می‌شوند."/></td></tr>
     @endforelse
    </table></div>
   </div>
