@@ -10,6 +10,7 @@ return [
             ['label' => 'اولیا', 'url' => 'admin/parents', 'icon' => 'family'],
         ]],
         ['label' => 'آموزش', 'tone' => 'edu', 'items' => [
+            ['label' => 'مرکز مدیریت آموزش', 'url' => 'admin/lms', 'icon' => 'book'],
             ['label' => 'دوره‌ها', 'url' => 'admin/courses', 'icon' => 'book'],
             ['label' => 'گروه‌های آموزشی', 'url' => 'admin/classes', 'icon' => 'cls'],
             ['label' => 'جلسات آنلاین', 'url' => 'admin/online-classes', 'icon' => 'live'],

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Admin\CommunicationCenterController;
 use App\Http\Controllers\Admin\ConsultationController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\LearningWorkspaceController;
 use App\Http\Controllers\Admin\EnrollmentAdminController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\OnlineClassController;
@@ -121,6 +122,11 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 
     Route::get('/', [AdminDashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+
+    Route::middleware(['role:admin', 'permission:courses.manage'])->group(function (): void {
+        Route::get('/lms', [LearningWorkspaceController::class, 'index'])->name('lms.index');
+        Route::get('/lms/{course}', [LearningWorkspaceController::class, 'show'])->name('lms.show');
+    });
 
     // Backward-compatible URLs for the retired demo screens. Keep bookmarks working
     // while all data and actions live in the canonical workflows.

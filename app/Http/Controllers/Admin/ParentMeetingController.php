@@ -7,12 +7,12 @@ use App\Models\ParentMeeting;
 use App\Models\User;
 use App\Notifications\ParentMeetingNotification;
 use App\Services\Admin\ClassroomWorkspaceService;
+use App\Services\Learning\ParentMeetingScheduler;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class ParentMeetingController extends Controller
@@ -178,38 +178,16 @@ final class ParentMeetingController extends Controller
             : 'جلسه با موفقیت برای ولی دانش‌آموز زمان‌بندی شد.');
     }
 
-    public function updateStatus(Request $request, int $meeting): RedirectResponse
+    public function updateStatus(Request $request, int $meeting, ParentMeetingScheduler $scheduler): RedirectResponse
     {
         abort_unless($request->user()->hasRole('admin'), 403);
 
-        $record = ParentMeeting::query()->findOrFail($meeting);
-        $isPending = in_array($record->status, ['requested', 'proposed'], true);
-        $isScheduling = $request->input('status') === 'scheduled'
-            && ($isPending || $record->status === 'scheduled');
-
-        $data = $request->validate([
-            'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled', 'declined'])],
-            'starts_at' => [Rule::excludeIf(! $isScheduling), 'required', 'date', 'after:now'],
-            'ends_at' => [Rule::excludeIf(! $isScheduling), 'nullable', 'date', 'after:starts_at'],
-        ]);
-
-        if ($isPending) {
-            abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
-        } elseif ($record->status === 'scheduled') {
-            abort_unless(in_array($data['status'], ['scheduled', 'completed', 'cancelled'], true), 422);
-        } else {
-            abort(422, 'وضعیت این جلسه قابل تغییر نیست.');
-        }
-
-        $record->update([
-            'status' => $data['status'],
-            'starts_at' => $data['starts_at'] ?? $record->starts_at ?? $record->preferred_at,
-            'ends_at' => array_key_exists('ends_at', $data)
-                ? $data['ends_at']
-                : ($isScheduling && isset($data['starts_at']) ? null : $record->ends_at),
-            'responded_by' => $request->user()->id,
-            'responded_at' => now(),
-        ]);
+        [$record] = $scheduler->transition(
+            ParentMeeting::query(),
+            $meeting,
+            $request->only(['status', 'starts_at', 'ends_at']),
+            (int) $request->user()->id,
+        );
 
         $record->loadMissing(['guardian', 'student', 'classroom.teacher']);
         $notification = new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.');

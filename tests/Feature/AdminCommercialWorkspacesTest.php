@@ -9,6 +9,7 @@ use App\Models\CourseEnrollment;
 use App\Models\Payment;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Courses\CourseEnrollmentService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -76,6 +77,15 @@ final class AdminCommercialWorkspacesTest extends TestCase
         $this->actingAs($this->admin)->patch(route('admin.payments.verify', $payment))->assertRedirect();
         $this->assertSame('paid', $payment->fresh()->status);
         $this->assertDatabaseHas('course_enrollments', ['student_id' => $student->id, 'course_id' => $course->id, 'source' => 'payment', 'status' => 'active']);
+
+        $enrollment = CourseEnrollment::query()->where('student_id', $student->id)->where('course_id', $course->id)->sole();
+        $this->patch(route('admin.enrollments.revoke', $enrollment))->assertRedirect();
+
+        $retry = app(CourseEnrollmentService::class)
+            ->grantAfterVerifiedPayment($student, $course, 'payment:'.$payment->reference);
+
+        $this->assertSame($enrollment->id, $retry->id);
+        $this->assertSame('revoked', $retry->status);
     }
 
     public function test_online_class_workspace_reads_real_class_sessions(): void

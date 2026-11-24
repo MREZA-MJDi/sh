@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Http\Requests\Admin\StoreAttendanceRequest;
 use App\Models\Attendance;
+use App\Services\Learning\ParentMeetingScheduler;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\ClassSession;
 use App\Models\Homework;
@@ -383,42 +384,24 @@ final class PortalController extends Controller
         return view('teacher.meetings', compact('meetings', 'filters'));
     }
 
-    public function updateMeeting(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
-    {
-        $record = ParentMeeting::query()
-            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
-            ->findOrFail($meeting);
+    public function updateMeeting(
+        Request $request,
+        int $meeting,
+        ClassroomWorkspaceService $workspace,
+        ParentMeetingScheduler $scheduler
+    ): RedirectResponse {
+        $visibleMeetings = ParentMeeting::query()
+            ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'));
 
-        $isPending = in_array($record->status, ['requested', 'proposed'], true);
-        $isScheduling = in_array($request->input('status'), ['scheduled'], true)
-            && ($isPending || $record->status === 'scheduled');
-
-        $data = $request->validate([
-            'status' => ['required', Rule::in(['scheduled', 'declined', 'cancelled', 'completed'])],
-            'starts_at' => [Rule::excludeIf(! $isScheduling), 'required', 'date', 'after:now'],
-            'ends_at' => [Rule::excludeIf(! $isScheduling), 'nullable', 'date', 'after:starts_at'],
-        ]);
-
-        if ($isPending) {
-            abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
-        } elseif ($record->status === 'scheduled') {
-            abort_unless(in_array($data['status'], ['scheduled', 'completed', 'cancelled'], true), 422);
-        } else {
-            abort(422, 'وضعیت این جلسه قابل تغییر نیست.');
-        }
-
-        $record->update([
-            'status' => $data['status'],
-            'starts_at' => $data['starts_at'] ?? $record->starts_at ?? $record->preferred_at,
-            'ends_at' => array_key_exists('ends_at', $data)
-                ? $data['ends_at']
-                : ($isScheduling && isset($data['starts_at']) ? null : $record->ends_at),
-            'responded_by' => $request->user()->id,
-            'responded_at' => now(),
-        ]);
+        [$record, $isPending] = $scheduler->transition(
+            $visibleMeetings,
+            $meeting,
+            $request->only(['status', 'starts_at', 'ends_at']),
+            (int) $request->user()->id,
+        );
 
         $record->loadMissing(['guardian', 'student']);
-        $message = match ($data['status']) {
+        $message = match ($record->status) {
             'scheduled' => $isPending
                 ? 'درخواست جلسه شما توسط مدرس تأیید شد.'
                 : 'زمان جلسه شما توسط مدرس تغییر کرد.',

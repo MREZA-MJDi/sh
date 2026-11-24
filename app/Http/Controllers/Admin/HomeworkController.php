@@ -22,6 +22,10 @@ class HomeworkController extends Controller
     public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
         $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'classroom_id' => ['nullable', 'integer', 'min:1'],
+            'homework_status' => ['nullable', 'in:draft,published'],
+            'submission_status' => ['nullable', 'in:submitted,reviewed,late'],
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
@@ -48,8 +52,8 @@ class HomeworkController extends Controller
                 fn ($query) => $query->whereIn('classroom_id', $classroomIds)
             );
 
-        $homeworkCount = (clone $homeworkQuery)->count();
-        $homeworks = (clone $homeworkQuery)->latest()->paginate(12)->withQueryString();
+        $homeworks = $homeworkQuery->latest()->paginate(12)->withQueryString();
+        $homeworkCount = $homeworks->total();
 
         $classrooms = $workspace->queryFor($user)
             ->where('status', 'active')

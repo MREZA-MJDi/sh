@@ -1,97 +1,76 @@
-# نصب بسته Learning (دوره، تیزر، ثبت‌نام، لایسنس)
+# به‌روزرسانی آکادمی شیخان روی VPS
 
-> این کد بدون دیدن فایل‌های پروژه نوشته شده. اسم‌های فرضی در انتها فهرست شده؛ قبل از اجرا با پروژه تطبیق بده.
+این دستورها برای نصب موجود هستند. در مسیر اصلی مخزن و با همان کاربری اجرا کنید که انتشار نسخه‌های قبلی را انجام می‌دهد. تنظیمات فعلی `.env`، کلید برنامه و فایل‌های `storage` برای این به‌روزرسانی استفاده می‌شوند.
 
-## ۱) کپی فایل‌ها
-همه پوشه‌ها را روی ریشه پروژه کپی کن (ساختار پوشه‌ها همان ساختار Laravel است).
-`CourseSection` و `CourseLesson` جایگزین نسخه قبلی می‌شوند.
+## بررسی قبل از انتشار
 
-## ۲) ثبت چیزها
-- `bootstrap/providers.php`: اضافه کن `App\Providers\LearningServiceProvider::class,`
-- انتهای `routes/web.php`: `require __DIR__.'/learning.php';`
-- مدل `Course`: `use \App\Models\Concerns\HasLearningAccess;` و اگر `getTeaserUrlAttribute/getTeaserPosterUrlAttribute` را قبلاً دستی نوشته‌ای حذفشان کن (داخل trait هستند). رابطه `sections()` از قبل لازم است.
-- `$fillable` مدل Course: `access_type, price, is_published, external_course_id, teaser_*`.
-- مدل `User`: رابطه‌ای لازم نیست.
-
-## ۳) اجرا
 ```bash
-php artisan migrate
-php artisan storage:link
-sudo apt install ffmpeg
+pwd
+git remote get-url origin
+git status --short
+git branch --show-current
+php -v
+composer --version
+node --version
+npm --version
+ffmpeg -version | head -n 1
+ffprobe -version | head -n 1
+php artisan migrate:status
+sudo supervisorctl status
 ```
-در `.env`:
-```
-QUEUE_CONNECTION=redis
-CACHE_STORE=redis
-SPOTPLAYER_APP_URL=            # لینک دانلود اپ (اختیاری)
-LEARNING_PLAYER_MODE=license   # embed فقط بعد از تحویل رسمی نسخه وب
-```
-در `config/queue.php` برای اتصال redis: `'retry_after' => 3700` (بزرگ‌تر از timeout جاب ویدیو).
 
-## ۴) ورکرها
-`deploy/supervisor-learning.conf` را کپی و فعال کن:
+نسخهٔ CI پروژه PHP 8.2 و Node.js 22 است. شاخه باید `main` باشد و خروجی `git status --short` خالی باشد. اگر روی VPS تغییر محلی دارید، به‌روزرسانی را متوقف کنید و تغییرات را بررسی کنید. قبل از انتشار از دیتابیس و فایل‌های بارگذاری‌شده نسخهٔ پشتیبان بگیرید. مسیر Document Root باید پوشهٔ `public` برنامه باشد.
+
+## انتشار نسخه
+
 ```bash
-sudo supervisorctl reread && sudo supervisorctl update
-```
-بعد از هر deploy: `php artisan queue:restart`
-
-## ۵) Nginx / PHP
-- `deploy/nginx-learning.conf` را داخل server سایت بگذار.
-- آپلود تکه‌تکه ۵ مگابایتی است؛ لازم نیست `upload_max_filesize` را بالا ببری (حداقل ۶ مگ باشد).
-
-## ۶) پاک‌سازی تکه‌های رهاشده (routes/console.php)
-```php
-use Illuminate\Support\Facades\Schedule;
-use Illuminate\Support\Facades\Storage;
-
-Schedule::call(function () {
-    $disk = Storage::disk('local');
-    foreach ($disk->directories('chunks') as $dir) {
-        if ($disk->lastModified($dir) < now()->subDay()->timestamp) $disk->deleteDirectory($dir);
-    }
-})->daily();
-```
-
-## ۷) صفحه ادمین (curriculum.blade.php)
-- بخش قدیمی «ویدیوی تیزر» و فرم آپلودش را حذف کن و بگذار: `@include('admin.courses._teaser_box')`
-- داخل `<details>` ویرایش هر درس، زیر `_lesson_form` بگذار: `@include('admin.courses._lesson_video', ['lesson' => $lesson])`
-- `CourseTeaserController` قبلی و route‌های `courses.teaser.update/destroy` قبلی را حذف کن (جایگزین در `LearningAdminController` است).
-- فرم ویرایش دوره: فیلد «نوع دسترسی» (`access_type`: free/paid)، «قیمت» (`price`) و «External Course ID». هنگام انتشار:
-```php
-if ($request->boolean('is_published') && ($problems = $course->fill($data)->publishProblems())) {
-    return back()->withErrors(['is_published' => implode(' ', $problems)])->withInput();
-}
+bash -e <<'DEPLOY'
+test "$(git branch --show-current)" = main
+test -z "$(git status --porcelain)"
+git fetch origin main
+printf 'Previous revision: '
+git rev-parse HEAD
+php artisan down --retry=60
+git merge --ff-only origin/main
+composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+npm ci --include=dev --no-audit --no-fund
+npm run build
+php artisan optimize:clear
+php artisan migrate --force
+php artisan optimize
+php artisan queue:restart
+php artisan up
+printf 'Deployed revision: '
+git rev-parse --short HEAD
+DEPLOY
 ```
 
-## ۸) وصل کردن پرداخت
-۱. در شروع پرداخت (route با نام `payment.start` یا هر اسم دیگری که در `config/learning.php` گذاشتی) Authority را ذخیره کن: `$enrollment->update(['payment_ref' => $authority]);`
-۲. داخل Callback، **بعد از verify موفق درگاه**:
-```php
-$enrollment = Enrollment::where('payment_ref', $authority)->firstOrFail();
-app(\App\Services\Learning\EnrollmentService::class)
-    ->activateAfterPayment($enrollment, $verifiedAmount); // واحد مبلغ = واحد ستون price
-return redirect()->route('courses.show', $enrollment->course->slug);
+در صورت خطای یکی از دستورها، اسکریپت در همان مرحله متوقف می‌شود. ابتدا خطا را رفع کنید، سپس انتشار را دوباره اجرا کنید. اگر برنامه پس از خطا در وضعیت تعمیر مانده، پیش از باز کردن سایت سلامت نسخه و دیتابیس را بررسی کنید.
+
+## بررسی سرویس‌ها
+
+```bash
+php artisan route:list --name=admin.lms
+php artisan migrate:status
+php artisan schedule:list
+php artisan queue:failed
+sudo supervisorctl status
 ```
-فعال‌سازی idempotent است؛ رفرش یا تکرار Callback لایسنس دوم نمی‌سازد.
 
-## ۹) وقتی API رسمی SpotPlayer رسید
-یک کلاس بنویس که `App\Services\Learning\LearningProvider` را پیاده کند (`issueLicense` و `uploadVideo`) و در `LearningServiceProvider` به‌جای `PendingContractProvider` bind کن. بعدش:
-- لایسنس‌های `waiting_contract` را با route `admin.licenses.retry` دوباره به صف بده.
-- ویدیوهای `waiting_contract` را با `admin.lessons.video.retry`.
+در صورت استفاده از Supervisor، نمونهٔ `deploy/supervisor-learning.conf` سه برنامهٔ `learning-default`، `learning-video` و `learning-upload-finalize` را تعریف می‌کند. مسیر PHP، مسیر برنامه، کاربر اجرا و اتصال صف را با VPS تطبیق دهید. کارگر نهایی‌سازی قطعه‌ها باید صف `upload-finalize` و کارگر تبدیل ویدئو باید صف `video` را بخواند. برای پاک‌سازی نشست‌های رهاشده، اجرای دقیقه‌ای `php artisan schedule:run` را در زمان‌بند سرور بررسی کنید.
 
-## فرض‌هایی که باید چک کنی
-| فرض | اگر فرق داشت |
-|---|---|
-| layout عمومی `layouts.app` با `@yield('content')` و `@yield('title')` | اسم را در `courses/*.blade.php` عوض کن |
-| مدل‌های `App\Models\User` و `Course`، جدول `courses` با `slug` و `title` یا `name` | |
-| route لاگین با نام `login` | |
-| مجوز ادمین `courses.manage` | در `routes/learning.php` عوض کن |
-| جدول `enrollments` قبلاً وجود ندارد | اگر دارد، migration دست نمی‌زند؛ ستون‌ها را با مدل `Enrollment` تطبیق بده |
-| ستون انتشار `is_published` | `scopePublished` در trait را عوض کن |
-| واحد `price` تومان است (در JSON-LD ×۱۰ می‌شود به ریال) | |
+در صورت استفاده از Nginx، اندازهٔ درخواست و مسیرهای ذخیره‌سازی را با `deploy/nginx-learning.conf` مقایسه کنید. پس از تغییر تنظیمات Nginx ابتدا `sudo nginx -t` را اجرا کنید. برای ورود با حساب واقعی از نشانی HTTPS دارای گواهی معتبر استفاده کنید.
 
----
-## اضافه‌های نسخه ۲ (نوع دوره، کلاس آنلاین، حضور و غیاب)
-migration دوم (`..._000002_course_types_and_attendance.php`) را هم اجرا کن و `docs/FILAMENT_AND_TYPES_FA.md` را بخوان.
-فایل‌های جدید: `Enums/CourseType`, `ClassSession`, `Attendance`, `LiveClassService`, `AttendanceImporter`, `SpotPlayerProvider`, `JoinClassController`, کامپوننت `course-type-badge`.
-`_access_box.blade.php` و `routes/learning.php` و `config/learning.php` نسبت به نسخه قبل به‌روز شده‌اند (جایگزین کن).
+## پذیرش نسخه روی VPS
+
+| حساب | مسیر و اقدام | نتیجهٔ قابل ثبت |
+|---|---|---|
+| مدیر | آموزش ← مرکز مدیریت آموزش ← باز کردن دوره | دوره، کلاس و برنامهٔ جلسات همان دوره باز شوند و لینک ثبت‌نام با همان دوره فیلتر شود. |
+| مدیر و مدرس | دوره یا کلاس مربوط ← بارگذاری ویدئو | دریافت فایل، خروج از صف و رسیدن به وضعیت آماده یا منتظر تأیید در حساب ثبت شود. |
+| دانش‌آموز عضو و غیرعضو | دوره ← ویدئو و جزوه | عضو بتواند پخش یا دریافت کند و دسترسی غیرعضو محدود باشد. |
+| مدرس، دانش‌آموز و ولی | ساخت تکلیف، ارسال پاسخ و ثبت بازخورد | نتیجه در حساب شاگرد و ولی مرتبط دیده شود. |
+| مدرس، دانش‌آموز و ولی | ثبت حضور در یک جلسه، باز کردن گزارش دانش‌آموز و ولی | گزارش دارای رکورد و حالت بدون رکورد بدون خطا باز شوند و تاریخ جلسه یکسان باشد. |
+| ولی، مدرس و مدیر | ارسال پیام، پاسخ مدرس و تعیین زمان جلسه | گیرنده و پاسخ در همان گفت‌وگو باشند و جلسه در حساب‌های مرتبط دیده شود. |
+| مدیر و دانش‌آموز | انتشار اطلاعیه، تنظیم منبع یا محصول و باز کردن داشبورد یا کتابخانه | مخاطب مجاز محتوا را ببیند و وضعیت ذخیره و نمایش محصول ثبت شود. |
+
+برای ایراد ۵۰۰، زمان درخواست و مسیر را یادداشت کنید و همان خطا را در لاگ برنامه یا سرویس PHP پیدا کنید. برای ویدئوی معطل، وضعیت کارگرها و خطای کار مربوط را بررسی کنید. در گزارش رفع، شناسهٔ نسخه، نقش، مسیر، نتیجه و زمان را ثبت کنید. این مراحل مربوط به قابلیت‌های محلی هستند. سرویس‌های بیرونی در راهنمای `docs/integrations/API_HANDOFF_FA.md` توضیح داده شده‌اند.

@@ -27,6 +27,7 @@
       'admin/students' => ['users.view', 'users.manage', 'students.view.assigned'],
       'admin/teachers' => ['users.manage'],
       'admin/parents' => ['users.manage'],
+      'admin/lms' => ['courses.manage'],
       'admin/courses' => ['courses.manage', 'courses.view.assigned'],
       'admin/classes' => ['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'],
       'admin/spotplayer' => ['integrations.manage', 'videos.manage.assigned', 'videos.view.assigned'],
@@ -53,6 +54,7 @@
     ];
     $nav['groups'] = collect($nav['groups'])->map(function ($group) use ($user, $isAdmin, $permissionMap) {
       $group['items'] = collect($group['items'])->filter(function ($item) use ($user, $isAdmin, $permissionMap) {
+        if ($item['url'] === 'admin/lms' && ! $isAdmin) return false;
         $permissions = $permissionMap[$item['url']] ?? [];
         if ($isAdmin && count($permissions) === 0) return true;
         return $user && count($permissions) > 0 && $user->hasAnyPermission($permissions);
