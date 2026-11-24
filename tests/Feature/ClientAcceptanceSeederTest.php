@@ -39,27 +39,27 @@ final class ClientAcceptanceSeederTest extends TestCase
         try {
             $this->seed(ClientAcceptanceSeeder::class);
 
-            $this->assertSame(8, User::query()->where('email', 'like', 'qa.acceptance.%@example.test')->count());
-            $this->assertSame(3, Course::query()->where('slug', 'like', 'qa-acceptance-%')->count());
-            $student = User::query()->where('email', 'qa.acceptance.student1@example.test')->firstOrFail();
-            $other = User::query()->where('email', 'qa.acceptance.student3@example.test')->firstOrFail();
-            $empty = User::query()->where('email', 'qa.acceptance.empty@example.test')->firstOrFail();
-            $resource = LearningResource::query()->where('title', 'آزمایشی | جزوه خصوصی گروه اول')->firstOrFail();
+            $this->assertSame(8, User::query()->where('email', 'like', '%@academy.example.test')->count());
+            $this->assertSame(3, Course::query()->where('slug', 'like', 'demo-academy-%')->count());
+            $student = User::query()->where('email', 'armin.mehri@academy.example.test')->firstOrFail();
+            $other = User::query()->where('email', 'helia.karimi@academy.example.test')->firstOrFail();
+            $empty = User::query()->where('email', 'parsa.rostami@academy.example.test')->firstOrFail();
+            $resource = LearningResource::query()->where('title', 'جزوه مفاهیم پایه و حل مسئله')->firstOrFail();
             Storage::disk('local')->assertExists($resource->file_path);
             $this->assertStringStartsWith('%PDF-1.4', Storage::disk('local')->get($resource->file_path));
             $this->actingAs($student)->get(route('student.resources.download', $resource))->assertOk();
             $this->actingAs($other)->get(route('student.resources.download', $resource))->assertNotFound();
             $this->actingAs($empty)->get(route('student.resources.download', $resource))->assertNotFound();
 
-            $course = Course::query()->where('slug', 'qa-acceptance-course-1')->firstOrFail();
+            $course = Course::query()->where('slug', 'demo-academy-math-problem-solving')->firstOrFail();
             $course->update(['title' => 'Edited by administrator']);
-            $draft = Course::query()->where('slug', 'qa-acceptance-edit-delete')->firstOrFail();
+            $draft = Course::query()->where('slug', 'demo-academy-study-skills')->firstOrFail();
             $this->actingAs($admin)->delete(route('admin.courses.destroy', $draft))->assertRedirect();
             $this->assertDatabaseMissing('courses', ['id' => $draft->id]);
 
             $this->seed(ClientAcceptanceSeeder::class);
             $this->assertSame('Edited by administrator', $course->fresh()->title);
-            $this->assertDatabaseMissing('courses', ['slug' => 'qa-acceptance-edit-delete']);
+            $this->assertDatabaseMissing('courses', ['slug' => 'demo-academy-study-skills']);
         } finally {
             foreach ($previous as $key => $value) {
                 putenv($value === false ? $key : $key.'='.$value);
