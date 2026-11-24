@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
-use Symfony\Component\Process\Process;
+use App\Services\Learning\LocalVideoProcessor;
 use Throwable;
 
 /**
@@ -58,6 +58,7 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
 
     public function handle(): void
     {
+        $processor = app(LocalVideoProcessor::class);
         $local = Storage::disk('local');
         $public = Storage::disk('public');
         $course = Course::query()->find($this->courseId);
@@ -92,72 +93,15 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
         $poster = "{$dir}/{$name}.jpg";
 
         try {
-            $encode = new Process([
-                'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
-                '-threads', (string) config('learning.video_threads', 1),
-                '-filter_threads', (string) config('learning.video_threads', 1),
-                '-i', $input,
-                '-map', '0:v:0',
-                '-map', '0:a:0?',
-                '-vf', 'scale=-2:min(720\,ih)',
-                '-c:v', 'libx264', '-threads:v', (string) config('learning.video_threads', 1), '-preset', 'veryfast', '-crf', '26',
-                '-pix_fmt', 'yuv420p',
-                '-c:a', 'aac', '-b:a', '96k',
-                '-movflags', '+faststart',
-                '-f', 'mp4',
-                $public->path($videoTemp),
-            ]);
-            $encode->setTimeout(3300)->mustRun();
-
             $tempPath = $public->path($videoTemp);
-            clearstatcache(true, $tempPath);
-            if (! is_file($tempPath) || filesize($tempPath) < 1024) {
-                throw new RuntimeException('خروجی فشرده تیزر معتبر نیست یا حجم کافی ندارد.');
-            }
-
-            $probe = new Process([
-                'ffprobe', '-v', 'error',
-                '-show_entries', 'format=duration:stream=codec_type,width,height',
-                '-of', 'json', $tempPath,
-            ]);
-            $probe->setTimeout(60)->mustRun();
-            $probeData = json_decode($probe->getOutput(), true);
-            $streams = $probeData['streams'] ?? [];
-            $hasVideo = collect($streams)->contains(
-                fn (array $stream): bool => ($stream['codec_type'] ?? null) === 'video'
-                    && (int) ($stream['width'] ?? 0) > 0
-                    && (int) ($stream['height'] ?? 0) > 0
-            );
-            $duration = (float) ($probeData['format']['duration'] ?? 0);
-
-            if (! $hasVideo || $duration <= 0) {
-                throw new RuntimeException('اعتبارسنجی خروجی تیزر با FFprobe ناموفق بود.');
-            }
+            $processor->prepare($input, $tempPath, 720, 26, 96, 3200);
 
             if (! rename($tempPath, $public->path($video))) {
                 throw new RuntimeException('انتشار فایل پردازش‌شده تیزر ناموفق بود.');
             }
 
-            $hasPoster = false;
-            foreach (['1', '0'] as $second) {
-                $posterProcess = new Process([
-                    'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
-                    '-threads', (string) config('learning.video_threads', 1),
-                    '-filter_threads', (string) config('learning.video_threads', 1),
-                    '-ss', $second, '-i', $input,
-                    '-frames:v', '1', '-threads:v', (string) config('learning.video_threads', 1), '-q:v', '4',
-                    $public->path($posterTemp),
-                ]);
-                $posterProcess->setTimeout(120)->run();
-
-                $posterTempPath = $public->path($posterTemp);
-                if ($posterProcess->isSuccessful() && is_file($posterTempPath) && filesize($posterTempPath) > 0) {
-                    if (rename($posterTempPath, $public->path($poster))) {
-                        $hasPoster = true;
-                        break;
-                    }
-                }
-            }
+            $hasPoster = $processor->poster($public->path($video), $public->path($posterTemp))
+                && rename($public->path($posterTemp), $public->path($poster));
 
             if (! $hasPoster) {
                 $public->delete($posterTemp);
