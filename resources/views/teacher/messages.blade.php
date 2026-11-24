@@ -27,7 +27,7 @@
     </aside>
     <section class="teacher-inbox-thread c">
         @if ($selectedMessage)
-            <header class="teacher-thread-head"><div><h2>{{ $selectedMessage->subject ?: 'گفت‌وگو' }}</h2><p>{{ $selectedMessage->student?->name ?? $selectedMessage->sender?->name }} · {{ $selectedMessage->created_at?->format('Y/m/d H:i') }}</p></div><span class="bd {{ $selectedMessage->status === 'open' ? 'am' : ($selectedMessage->status === 'closed' ? 'rd' : 'gn') }}">{{ ['open' => 'نیازمند پاسخ', 'answered' => 'پاسخ داده شد', 'closed' => 'بسته'][$selectedMessage->status] ?? 'در جریان' }}</span></header>
+            <header class="teacher-thread-head"><div><h2>{{ $selectedMessage->subject ?: 'گفت‌وگو' }}</h2><p>{{ $selectedMessage->student?->name ?? $selectedMessage->sender?->name }} · {{ $selectedMessage->created_at?->format('Y/m/d H:i') }}</p></div><span class="bd {{ $selectedMessage->conversationStatus() === 'open' ? 'am' : ($selectedMessage->conversationStatus() === 'closed' ? 'rd' : 'gn') }}">{{ ['open' => 'نیازمند پاسخ', 'answered' => 'پاسخ داده شد', 'closed' => 'بسته'][$selectedMessage->conversationStatus()] ?? 'در جریان' }}</span></header>
             <div class="teacher-thread-messages">
                 @if($selectedMessage->replies_count > $selectedMessage->replies->count())<p class="teacher-help">برای حفظ سرعت، آخرین ۵۰ پاسخ این گفت‌وگو نمایش داده می‌شود.</p>@endif
                 <article class="teacher-message-bubble {{ $selectedMessage->sender_id === auth()->id() ? 'is-own' : '' }}">
@@ -41,7 +41,7 @@
                     </article>
                 @endforeach
             </div>
-            @if (!in_array($selectedMessage->status, ['closed', 'deleted'], true) && auth()->user()->hasPermissionTo('messages.reply'))
+            @if ($selectedMessage->acceptsReplies() && auth()->user()->hasPermissionTo('messages.reply'))
                 <form class="teacher-thread-reply" method="POST" action="{{ route('teacher.messages.reply', $selectedMessage) }}">@csrf<textarea name="body" required maxlength="30000" placeholder="پاسخ خود را بنویسید…"></textarea><button class="b" type="submit">ارسال پاسخ</button></form>
             @endif
         @else

@@ -20,7 +20,7 @@
             <a class="teacher-inbox-item {{ $selectedMessage?->id === $item->id ? 'is-active' : '' }}" href="{{ route('guardian.messages.index', ['child' => $selected_child?->id, 'message' => $item->id, 'q' => $filters['q'] ?? null, 'status' => $filters['status'] ?? null, 'sort' => $filters['sort'] ?? null]) }}">
                 <span class="teacher-inbox-avatar">{{ mb_substr($item->recipient?->name ?? $item->sender?->name ?? 'م', 0, 1) }}</span>
                 <span class="teacher-inbox-copy"><strong>{{ $item->subject ?: 'بدون موضوع' }}</strong><small>{{ $item->sender?->name }} · {{ \App\Support\JalaliDate::format($item->created_at, true) }}</small></span>
-                <i class="bd {{ $item->status === 'open' ? 'am' : 'gn' }}">{{ ['open' => 'باز', 'answered' => 'پاسخ‌داده‌شده', 'closed' => 'بسته', 'deleted' => 'حذف‌شده'][$item->status] ?? 'در جریان' }}</i>
+                <i class="bd {{ $item->conversationStatus() === 'open' ? 'am' : 'gn' }}">{{ ['open' => 'باز', 'answered' => 'پاسخ‌داده‌شده', 'closed' => 'بسته', 'deleted' => 'حذف‌شده'][$item->conversationStatus()] ?? 'در جریان' }}</i>
             </a>
         @empty
             <p class="teacher-inbox-empty">برای این فرزند گفت‌وگویی ثبت نشده است.</p>
@@ -29,7 +29,7 @@
     </aside>
     <section class="teacher-inbox-thread c">
         @if ($selectedMessage)
-            <header class="teacher-thread-head"><div><h2>{{ $selectedMessage->subject ?: 'گفت‌وگو' }}</h2><p>{{ $selectedMessage->student?->name ?? $selected_child?->name }} · {{ \App\Support\JalaliDate::format($selectedMessage->created_at, true) }}</p></div><span class="bd {{ $selectedMessage->status === 'open' ? 'am' : 'gn' }}">{{ ['open' => 'در انتظار پاسخ', 'answered' => 'پاسخ‌داده‌شده', 'closed' => 'بسته', 'deleted' => 'حذف‌شده'][$selectedMessage->status] ?? 'در جریان' }}</span></header>
+            <header class="teacher-thread-head"><div><h2>{{ $selectedMessage->subject ?: 'گفت‌وگو' }}</h2><p>{{ $selectedMessage->student?->name ?? $selected_child?->name }} · {{ \App\Support\JalaliDate::format($selectedMessage->created_at, true) }}</p></div><span class="bd {{ $selectedMessage->conversationStatus() === 'open' ? 'am' : 'gn' }}">{{ ['open' => 'در انتظار پاسخ', 'answered' => 'پاسخ‌داده‌شده', 'closed' => 'بسته', 'deleted' => 'حذف‌شده'][$selectedMessage->conversationStatus()] ?? 'در جریان' }}</span></header>
             <div class="teacher-thread-messages">
                 <article class="teacher-message-bubble {{ $selectedMessage->sender_id === auth()->id() ? 'is-own' : '' }}">
                     <div class="teacher-message-meta"><strong>{{ $selectedMessage->sender?->name ?? 'فرستنده' }}</strong><time>{{ \App\Support\JalaliDate::format($selectedMessage->created_at, true) }}</time></div>
@@ -45,7 +45,7 @@
             @if (($selectedMessage->replies_count ?? 0) > $selectedMessage->replies->count())
                 <p class="parent-thread-note">برای سبک ماندن گفتگو، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>
             @endif
-            @if (auth()->user()->hasPermissionTo('messages.send.own') && !in_array($selectedMessage->status, ['closed','deleted'], true))
+            @if (auth()->user()->hasPermissionTo('messages.send.own') && $selectedMessage->acceptsReplies())
                 <form class="teacher-thread-reply" method="POST" action="{{ route('guardian.messages.reply', $selectedMessage) }}">@csrf<textarea name="body" required maxlength="30000" placeholder="پیام خود را بنویسید…">{{ old('body') }}</textarea><button class="b" type="submit">ارسال پیام</button></form>
             @endif
         @else

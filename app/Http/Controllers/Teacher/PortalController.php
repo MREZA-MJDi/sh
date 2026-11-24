@@ -13,9 +13,8 @@ use App\Models\Homework;
 use App\Models\HomeworkSubmission;
 use App\Models\LearningResource;
 use App\Models\SpotPlayerVideo;
-use App\Models\MessageReply;
+use App\Services\Messaging\MessageReplyService;
 use App\Models\User;
-use App\Notifications\MessageActivityNotification;
 use App\Notifications\ParentMeetingNotification;
 use App\Models\ParentMeeting;
 use App\Services\Admin\AttendanceService;
@@ -431,7 +430,7 @@ final class PortalController extends Controller
             'status' => ['nullable', Rule::in(['open', 'answered', 'closed'])],
         ]);
         $conversations = $messages->queryFor($request->user())
-            ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->withConversationStatus($filters['status']))
             ->when(filled($filters['q'] ?? null), fn ($query) => $query->where(function ($search) use ($filters): void {
                 $term = '%'.$filters['q'].'%';
                 $search->where('subject', 'like', $term)
@@ -467,23 +466,12 @@ final class PortalController extends Controller
     public function reply(
         ReplyMessageRequest $request,
         \App\Models\Message $message,
-        MessageWorkspaceService $workspace
+        MessageWorkspaceService $workspace,
+        MessageReplyService $replies
     ): RedirectResponse {
         $message = $workspace->findVisible($request->user(), $message->id);
 
-        MessageReply::query()->create([
-            'message_id' => $message->id,
-            'sender_id' => $request->user()->id,
-            'body' => $request->validated('body'),
-        ]);
-
-        $message->update(['status' => 'answered', 'replied_at' => now()]);
-        $otherParticipantId = (int) $message->sender_id === (int) $request->user()->id
-            ? $message->recipient_id
-            : $message->sender_id;
-        User::query()->find($otherParticipantId)?->notify(
-            new MessageActivityNotification($message, 'پاسخ جدیدی در گفت‌وگوی شما ثبت شد.')
-        );
+        $replies->reply($message, $request->user(), $request->validated('body'), markAnswered: true);
 
         return redirect()->route('teacher.messages.index', ['message' => $message->id])
             ->with('success', 'پاسخ شما ثبت شد.');
