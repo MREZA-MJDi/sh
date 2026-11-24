@@ -16,7 +16,7 @@
     <section class="c"><h3>درخواست‌های جدید</h3>
         @forelse ($requests as $meeting)
             <div class="row">
-                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ ($meeting->starts_at ?? $meeting->preferred_at) ? \\App\\Support\\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
+                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ ($meeting->starts_at ?? $meeting->preferred_at) ? \App\Support\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
                 <i class="bd am">{{ ['requested' => 'درخواست جدید', 'proposed' => 'پیشنهادشده', 'scheduled' => 'زمان‌بندی‌شده', 'declined' => 'ردشده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده'][$meeting->status] ?? $meeting->status }}</i>
                 @if(auth()->user()->hasPermissionTo('classes.manage.assigned'))
                     <form method="POST" action="{{ route('teacher.meetings.update', $meeting) }}" class="teacher-meeting-actions">
@@ -37,7 +37,7 @@
     <section class="c"><h3>جلسه‌های تأییدشده</h3>
         @forelse ($scheduled as $meeting)
             <div class="row">
-                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ $meeting->starts_at?->format('Y-m-d H:i') }}">{{ $meeting->starts_at ? \\App\\Support\\PersianDate::format($meeting->starts_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
+                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ $meeting->starts_at?->format('Y-m-d H:i') }}">{{ $meeting->starts_at ? \App\Support\PersianDate::format($meeting->starts_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
                 <i class="bd gn">تأیید</i>
                 @if(auth()->user()->hasPermissionTo('classes.manage.assigned'))
                     <form method="POST" action="{{ route('teacher.meetings.update', $meeting) }}" class="teacher-meeting-actions">

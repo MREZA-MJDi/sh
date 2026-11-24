@@ -19,7 +19,7 @@
      <tr>
       <td data-label="تکلیف"><span class="assignment-title">{{ $homework->title }}</span></td>
       <td data-label="درس / کلاس">{{ $homework->classroom?->name ?? '—' }}</td>
-      <td data-label="مهلت">{{ $homework->due_at ? \App\Support\\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
+      <td data-label="مهلت">{{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
       <td data-label="وضعیت">
        @if($reviewed)
         <span class="tag d">بررسی‌شده</span>

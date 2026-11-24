@@ -13,19 +13,12 @@ class DatabaseSeeder extends Seeder
             InternalNotificationPermissionSeeder::class,
             SeoWorkspaceSeeder::class,
             AcademicGradeSeeder::class,
-            LocalDemoAccountsSeeder::class,
         ]);
 
-        $productionDemoSeedEnabled = app()->environment('production')
-            && config('demo.enabled')
-            && config('demo.seed_academic_content');
-
         if (app()->environment(['local', 'testing'])) {
-            $this->call(RegistrationTicketAnnouncementSeeder::class);
-        }
-
-        if (app()->environment(['local', 'testing']) || $productionDemoSeedEnabled) {
             $this->call([
+                LocalDemoAccountsSeeder::class,
+                RegistrationTicketAnnouncementSeeder::class,
                 AcademicPortalContentSeeder::class,
                 DemoWorkflowContentSeeder::class,
             ]);

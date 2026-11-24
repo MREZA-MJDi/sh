@@ -10,7 +10,7 @@
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="users" label="نتایج ثبت‌شده" :value="number_format($results->total())"/>
   <x-admin.stat tone="track" icon="check" label="نمره میانگین صفحه" :value="$results->count() ? number_format((float) $results->getCollection()->avg('score'), 2) : '—'"/>
-  <x-admin.stat tone="track" icon="clock" label="آخرین همگام‌سازی" :value="($results->getCollection()->max('synced_at') ? \App\Support\\PersianDate::format($results->getCollection()->max('synced_at'), 'Y/m/d') : '—')"/>
+  <x-admin.stat tone="track" icon="clock" label="آخرین همگام‌سازی" :value="($results->getCollection()->max('synced_at') ? \App\Support\PersianDate::format($results->getCollection()->max('synced_at'), 'Y/m/d') : '—')"/>
 </div>
 
 <x-admin.panel title="کارنامه نتایج" flush>
@@ -24,7 +24,7 @@
             <td>{{ $result->student?->name ?? 'دانش‌آموز حذف‌شده' }}</td>
             <td class="adm-num">{{ number_format((float) $result->score, 2) }} / {{ number_format((float) $result->max_score, 2) }}</td>
             <td class="adm-num">{{ $percentage === null ? '—' : number_format($percentage, 1).'٪' }}</td>
-            <td>{{ ($result->synced_at ? \App\Support\\PersianDate::format($result->synced_at, 'Y/m/d H:i') : '—') }}</td>
+            <td>{{ ($result->synced_at ? \App\Support\PersianDate::format($result->synced_at, 'Y/m/d H:i') : '—') }}</td>
             <td>{{ $result->feedback ?: '—' }}</td>
           </tr>
         @empty

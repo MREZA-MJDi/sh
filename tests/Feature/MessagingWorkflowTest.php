@@ -80,6 +80,50 @@ final class MessagingWorkflowTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_guardian_can_message_an_assigned_teacher_and_read_the_reply(): void
+    {
+        Notification::fake();
+
+        $teacher = $this->userWithRole('teacher');
+        $otherTeacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $classroom = Classroom::query()->create([
+            'teacher_id' => $teacher->id,
+            'name' => 'کلاس فعال',
+            'status' => 'active',
+        ]);
+        $classroom->students()->attach($student);
+
+        $payload = [
+            'student_id' => $student->id,
+            'subject' => 'پیگیری تکلیف',
+            'body' => 'لطفاً وضعیت تکلیف را بررسی کنید.',
+        ];
+
+        $this->actingAs($guardian)
+            ->post(route('guardian.messages.store'), $payload + ['recipient_id' => $otherTeacher->id])
+            ->assertForbidden();
+        $this->assertDatabaseCount('messages', 0);
+
+        $response = $this->post(route('guardian.messages.store'), $payload + ['recipient_id' => $teacher->id]);
+        $message = Message::query()->sole();
+        $response->assertRedirect(route('guardian.messages.show', $message));
+
+        $reply = 'تکلیف بررسی و نمره ثبت شد.';
+        $this->actingAs($teacher)
+            ->post(route('teacher.messages.reply', $message), ['body' => $reply])
+            ->assertRedirect(route('teacher.messages.index', ['message' => $message->id]));
+
+        $this->actingAs($guardian)
+            ->get(route('guardian.messages.show', $message))
+            ->assertOk()
+            ->assertSee($reply);
+        Notification::assertSentTo($guardian, MessageActivityNotification::class);
+    }
+
     public function test_teacher_inbox_only_contains_threads_for_students_in_assigned_active_classes(): void
     {
         $teacher = $this->userWithRole('teacher');

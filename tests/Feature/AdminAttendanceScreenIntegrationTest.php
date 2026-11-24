@@ -25,6 +25,8 @@ final class AdminAttendanceScreenIntegrationTest extends TestCase
 
     public function test_existing_attendance_radio_form_reads_and_writes_the_canonical_database_schema(): void
     {
+        $this->travelTo(now()->setTime(12, 0));
+
         $admin = User::factory()->create();
         $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
 
@@ -68,7 +70,7 @@ final class AdminAttendanceScreenIntegrationTest extends TestCase
             ->assertSee('data-roster', false)
             ->assertSee('data-t="present"', false);
 
-        $this->actingAs($admin)
+        $response = $this->actingAs($admin)
             ->post(route('admin.attendance.store'), [
                 'class_id' => $classroom->id,
                 'date' => now()->format('Y-m-d'),
@@ -86,6 +88,22 @@ final class AdminAttendanceScreenIntegrationTest extends TestCase
             'note' => '۱۲ دقیقه تأخیر',
             'marked_by' => $admin->id,
         ]);
+
+        $this->get($response->headers->get('Location'))
+            ->assertOk()
+            ->assertSee('۱۲ دقیقه تأخیر');
+    }
+
+    public function test_attendance_screen_renders_without_any_classrooms(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->value('id'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.attendance.index'))
+            ->assertOk()
+            ->assertSee('برای این روز جلسه‌ای ثبت نشده')
+            ->assertSee('موردی برای پیگیری ثبت نشده');
     }
 
     public function test_report_counts_absences_from_the_existing_attendance_database(): void

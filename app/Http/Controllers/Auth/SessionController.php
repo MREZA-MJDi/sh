@@ -22,65 +22,20 @@ final class SessionController extends Controller
         return view('auth.login', $this->loginViewData('login'));
     }
 
-    /**
-     * Use one centered screen for both sign-in and student registration.
-     * Demo credentials are direct in local/testing and require a private session unlock in production.
-     */
     private function loginViewData(string $activeTab): array
     {
         $demoPassword = config('demo.password');
-        $demoConfigured = (bool) config('demo.enabled')
-            && (bool) config('demo.login_cards_enabled')
+        $showDemoAccounts = app()->environment(['local', 'testing'])
+            && config('demo.enabled')
+            && config('demo.login_cards_enabled')
             && is_string($demoPassword)
             && mb_strlen($demoPassword) >= 12;
-
-        $isRestrictedEnvironment = app()->environment(['local', 'testing']);
-        $productionUnlockConfigured = app()->environment('production')
-            && is_string(config('demo.login_cards_key'))
-            && mb_strlen((string) config('demo.login_cards_key')) >= 32;
-        $productionSessionUnlocked = session('demo_login_cards_unlocked') === true;
-
-        // Never expose reusable credentials to every visitor of a public production login page.
-        // Production users must first unlock the cards with a separate secret stored in .env.
-        $showDemoAccounts = $demoConfigured
-            && ($isRestrictedEnvironment || ($productionUnlockConfigured && $productionSessionUnlocked));
 
         return [
             'activeTab' => $activeTab,
             'demoAccounts' => $showDemoAccounts ? config('demo.accounts', []) : [],
             'demoPassword' => $showDemoAccounts ? $demoPassword : null,
-            'showDemoAccessForm' => $demoConfigured
-                && $productionUnlockConfigured
-                && ! $productionSessionUnlocked,
         ];
-    }
-
-    public function unlockDemoAccounts(Request $request): RedirectResponse
-    {
-        abort_unless(app()->environment('production'), 404);
-        abort_unless(
-            (bool) config('demo.enabled')
-                && (bool) config('demo.login_cards_enabled')
-                && is_string(config('demo.password'))
-                && mb_strlen((string) config('demo.password')) >= 12,
-            404
-        );
-
-        $validated = $request->validate([
-            'access_key' => ['required', 'string', 'min:32', 'max:255'],
-        ]);
-
-        $configuredKey = (string) config('demo.login_cards_key');
-
-        if (strlen($configuredKey) < 32 || ! hash_equals($configuredKey, $validated['access_key'])) {
-            return back()->withErrors([
-                'access_key' => 'کلید دسترسی معتبر نیست.',
-            ]);
-        }
-
-        $request->session()->put('demo_login_cards_unlocked', true);
-
-        return redirect()->route('login')->with('status', 'کارت‌های ورود آزمایشی برای این نشست فعال شدند.');
     }
 
     public function store(
