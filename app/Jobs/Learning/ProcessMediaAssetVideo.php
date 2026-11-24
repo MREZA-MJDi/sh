@@ -56,11 +56,13 @@ final class ProcessMediaAssetVideo implements ShouldQueue
         try {
             $process = new Process([
                 'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
+                '-threads', (string) config('learning.video_threads', 1),
+                '-filter_threads', (string) config('learning.video_threads', 1),
                 '-i', $disk->path($asset->source_path),
                 '-map', '0:v:0', '-map', '0:a?',
                 '-sn', '-dn',
                 '-vf', 'scale=-2:min(1080\,ih)',
-                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24',
+                '-c:v', 'libx264', '-threads:v', (string) config('learning.video_threads', 1), '-preset', 'veryfast', '-crf', '24',
                 '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k',
                 '-movflags', '+faststart', '-map_metadata', '-1',
                 $processingPath,
