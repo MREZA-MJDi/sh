@@ -66,7 +66,7 @@
   </div>
 </x-admin.panel>
 
-<x-admin.panel flush>
+<x-admin.panel flush data-tone="track">
   @if($canManage)
   <form method="POST" action="{{ route('admin.attendance.store') }}" data-roster>
     @csrf
@@ -155,7 +155,7 @@
   @endif
 </x-admin.panel>
 
-<x-admin.panel title="نیازمند پیگیری غیبت" desc="دانش‌آموزانی با سابقه غیبت را بررسی کن و در صورت نیاز به ولی اطلاع بده." flush id="attendance-risk">
+<x-admin.panel title="نیازمند پیگیری غیبت" desc="دانش‌آموزانی با سابقه غیبت را بررسی کن و در صورت نیاز به ولی اطلاع بده." flush id="attendance-risk" data-tone="track">
   @if(count($report))
     <div class="adm-attendance-report">
       @foreach ($report as [$studentId, $classroomId, $name, $className, $total, $absent])
