@@ -2,24 +2,6 @@
     const root = document.getElementById('admin-inbox');
     if (!root) return;
 
-    let role = '';
-    let status = '';
-    const items = [...root.querySelectorAll('[data-inbox-item]')];
-    const filter = () => items.forEach(item => {
-        item.hidden = Boolean((role && item.dataset.role !== role) || (status && item.dataset.status !== status));
-    });
-
-    root.querySelectorAll('[data-role-filter]').forEach(button => button.addEventListener('click', () => {
-        role = button.dataset.roleFilter;
-        root.querySelectorAll('[data-role-filter]').forEach(item => item.classList.toggle('on', item === button));
-        filter();
-    }));
-    root.querySelectorAll('[data-status-filter]').forEach(button => button.addEventListener('click', () => {
-        status = button.dataset.statusFilter;
-        root.querySelectorAll('[data-status-filter]').forEach(item => item.classList.toggle('on', item === button));
-        filter();
-    }));
-
     root.querySelector('#ib-back')?.addEventListener('click', () => root.classList.remove('chat'));
     if (window.matchMedia('(max-width: 760px)').matches && new URLSearchParams(window.location.search).has('message')) {
         root.classList.add('chat');
