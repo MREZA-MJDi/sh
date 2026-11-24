@@ -40,6 +40,20 @@ final class FreeCourseEnrollmentTest extends TestCase
         $this->get(route('student.courses.index'))->assertOk()->assertSee($course->title);
     }
 
+    public function test_published_free_course_is_accessible_before_any_student_enrolls(): void
+    {
+        $student = User::factory()->create();
+        $student->roles()->attach(Role::query()->where('name', 'student')->firstOrFail());
+        $free = $this->course('free');
+        $paid = $this->course('paid');
+
+        $this->assertDatabaseCount('course_enrollments', 0);
+        $this->actingAs($student)
+            ->get(route('student.courses.show', $free))
+            ->assertRedirect(route('public.courses.show', $free->slug));
+        $this->get(route('student.courses.show', $paid))->assertNotFound();
+    }
+
     public function test_student_cannot_self_enroll_in_paid_or_unpublished_course(): void
     {
         $student = User::factory()->create();

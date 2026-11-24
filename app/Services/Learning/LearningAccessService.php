@@ -43,18 +43,13 @@ final class LearningAccessService
             });
         };
 
-        $query = CourseEnrollment::query()
-            ->where(function (Builder $access) use ($student, $courseScope): void {
-                $access->where(function (Builder $enrolled) use ($student, $courseScope): void {
-                    $enrolled->where('student_id', $student->id)
-                        ->currentlyActive()
-                        ->whereHas('course', $courseScope);
-                })->orWhereIn('course_id', Course::query()
-                    ->where('type', 'free')
-                    ->where($courseScope)
-                    ->select('id'));
-            })
-            ->select('course_id');
+        $query = Course::query()
+            ->where($courseScope)
+            ->where(fn (Builder $access) => $access->where('type', 'free')
+                ->orWhereHas('enrollments', fn (Builder $enrolled) => $enrolled
+                    ->where('student_id', $student->id)
+                    ->currentlyActive()))
+            ->select('courses.id as course_id');
 
         return $student->is_active && $student->hasRole('student')
             ? $query

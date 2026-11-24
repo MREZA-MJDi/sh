@@ -54,18 +54,23 @@ import '../shared/iranian-locale.js';
   /* فرم‌ها: جلوگیری از ارسال مجدد تا پایان درخواست و بازگشت صفحه. */
   $$('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
+      if (e.defaultPrevented) return;
       if (f.dataset.busy) { e.preventDefault(); return; }
       f.dataset.busy = '1';
-      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+      $$('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         // Preserve the clicked submitter so name/value fields remain in the request.
-        if (button !== e.submitter) button.disabled = true;
+        if (button !== e.submitter && !button.disabled) {
+          button.dataset.disabledWhileSubmitting = 'true';
+          button.disabled = true;
+        }
       });
     });
   });
   window.addEventListener('pageshow', function () {
     $$('form[data-busy]').forEach(function (f) {
       delete f.dataset.busy;
-      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+      $$('[data-disabled-while-submitting]', f).forEach(function (button) {
+        delete button.dataset.disabledWhileSubmitting;
         button.disabled = false;
       });
     });

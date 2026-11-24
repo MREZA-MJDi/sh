@@ -184,6 +184,28 @@ initCourseCoverCropper();
 
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+const uploadResponse = async (response) => {
+  let result = {};
+  try { result = await response.json(); } catch (_) {}
+  if (response.ok) return result;
+
+  const guidance = {
+    401: 'برای ادامه ابتدا دوباره وارد حساب شوید.',
+    403: 'حساب شما برای بارگذاری در این بخش مجوز ندارد.',
+    413: 'حجم فایل یا بخش ارسالی از محدودیت سرور بیشتر است. فایل کوچک‌تری انتخاب کنید.',
+    419: 'اعتبار نشست تمام شده است. دوباره وارد شوید و همین فایل را برای ادامه انتخاب کنید.',
+    429: 'تعداد درخواست‌های ارسال فایل زیاد شده است. کمی صبر کنید و دوباره تلاش کنید.',
+  };
+  const validationMessage = Object.values(result.errors || {}).flat()[0];
+  const serverMessage = typeof result.message === 'string' && /[\u0600-\u06ff]/u.test(result.message)
+    ? result.message : null;
+  const error = new Error(validationMessage || guidance[response.status] || serverMessage ||
+    (response.status >= 500 ? 'سرور نتوانست فایل را دریافت یا پردازش کند. وضعیت آپلود را بررسی و دوباره تلاش کنید.'
+      : 'ارسال فایل انجام نشد. انتخاب فایل و دسترسی خود را بررسی کنید.'));
+  error.status = response.status;
+  throw error;
+};
+
 const jsonRequest = async (url, payload) => {
   const response = await fetch(url, {
     method: 'POST',
@@ -196,15 +218,7 @@ const jsonRequest = async (url, payload) => {
     },
     body: JSON.stringify(payload),
   });
-  let result = {};
-  try { result = await response.json(); } catch (_) {}
-  if (!response.ok) {
-    const validationMessage = Object.values(result.errors || {}).flat()[0];
-    const error = new Error(validationMessage || result.message || (response.status === 413 ? 'وب‌سرور یا PHP درخواست را بزرگ‌تر از حد مجاز تشخیص داد؛ client_max_body_size و post_max_size را بررسی کنید.' : 'ارتباط با سرور ناموفق بود.'));
-    error.status = response.status;
-    throw error;
-  }
-  return result;
+  return uploadResponse(response);
 };
 
 const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -458,14 +472,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
               },
               body: form,
             });
-            let result = {};
-            try { result = await response.json(); } catch (_) {}
-            if (!response.ok) {
-              const validationMessage = Object.values(result.errors || {}).flat()[0];
-              const error = new Error(validationMessage || result.message || (response.status === 413 ? 'وب‌سرور درخواست را بزرگ‌تر از حد مجاز تشخیص داد؛ محدودیت client_max_body_size هاست را بررسی کنید.' : 'ارسال بخشی از فایل ناموفق بود.'));
-              error.status = response.status;
-              throw error;
-            }
+            await uploadResponse(response);
             chunkUploaded = true;
             receivedChunks.add(index);
           } catch (error) {

@@ -8,8 +8,11 @@
     <x-admin.icon name="alert"/>
     <div>
       <strong>ذخیره انجام نشد.</strong>
-      <span>{{ $errors->first() }}</span>
-      @if ($errors->count() > 1)<small>{{ $errors->count() }} خطای دیگر نیز وجود دارد؛ فیلدهای مشخص‌شده را بررسی کنید.</small>@endif
+      <ul>
+        @foreach ($errors->all() as $message)
+          <li>{{ $message }}</li>
+        @endforeach
+      </ul>
     </div>
   </div>
 @endif
