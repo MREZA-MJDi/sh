@@ -64,7 +64,7 @@
       </td>
      </tr>
     @empty
-     <tr><td colspan="5">تکلیفی برای کلاس‌های فعال شما ثبت نشده است.</td></tr>
+     <tr><td colspan="5"><x-portal.empty-state icon="file" tone="tracking" title="تکلیفی برای کلاس‌های فعال شما ثبت نشده است." description="تکالیف منتشرشده و پاسخ‌های شما در این بخش قابل پیگیری‌اند."/></td></tr>
     @endforelse
     </tbody>
    </table>
