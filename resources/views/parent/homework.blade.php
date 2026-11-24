@@ -26,7 +26,7 @@
                 <div>
                     <strong>{{ data_get($h, 'title') }}</strong>
                     <small>مهلت: {{ data_get($h, 'due') }}</small>
-                    <small>وضعیت: {{ data_get($h, 'status') }}</small>
+                    
                     @if(data_get($h, 'score') !== null)
                         <small class="parent-homework-score">نمره: {{ data_get($h, 'score') }} از ۲۰</small>
                     @endif
@@ -40,7 +40,7 @@
                 <i class="bd {{ data_get($h, 'tone', 'am') }}">{{ data_get($h, 'status') }}</i>
             </article>
         @empty
-            <div class="parent-empty-state"><strong>تکلیفی برای این فرزند ثبت نشده است.</strong><span>تکالیف جدید پس از انتشار در این قسمت دیده می‌شوند.</span></div>
+            <x-portal.empty-state icon="file" tone="tracking" title="تکلیفی برای این فرزند ثبت نشده است." description="تکالیف جدید پس از انتشار در این قسمت دیده می‌شوند."/>
         @endforelse
         <div class="parent-pagination">{{ $homeworkPaginator->links() }}</div>
     </section>
