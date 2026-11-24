@@ -6,7 +6,7 @@
 @php
   $classOptions = $classrooms->pluck('name', 'id')->all();
   $statusLabels = ['requested' => 'درخواست‌شده', 'proposed' => 'پیشنهاد مدرس', 'scheduled' => 'زمان‌بندی‌شده', 'completed' => 'انجام‌شده', 'declined' => 'ردشده', 'cancelled' => 'لغوشده'];
-  $isTeacher = auth()->user()?->hasRole('teacher') ?? false;
+  $isTeacher = auth()->user()->hasRole('teacher') && !auth()->user()->hasRole('admin');
 @endphp
 
 <x-admin.page-head tone="comm" icon="cal" title="جلسات اولیا و مدرس" desc="هماهنگی گفت‌وگوی آموزشی با دانش‌آموز، ولی و مدرس">
@@ -46,7 +46,7 @@
                   @endif
                 </select>
                 @if(in_array($meeting->status, ['requested', 'proposed'], true))
-                  <input type="datetime-local" name="starts_at" class="adm-input" value="{{ $meeting->starts_at?->format('Y-m-d\TH:i') }}" required>
+                  <input type="datetime-local" name="starts_at" class="adm-input" value="{{ $meeting->starts_at?->format('Y-m-d\TH:i') }}">
                   <input type="datetime-local" name="ends_at" class="adm-input" value="{{ $meeting->ends_at?->format('Y-m-d\TH:i') }}">
                 @endif
                 <button type="submit" class="adm-btn adm-btn-line adm-btn-sm">ثبت وضعیت</button>
@@ -173,7 +173,7 @@
     <x-admin.select id="parent-meeting-audience" label="نوع جلسه" name="audience" :options="['individual'=>'جلسه فردی', 'classroom'=>'جلسه سراسری اولیای کلاس']" :selected="old('audience', 'individual')" required/>
   @endif
   <x-admin.select id="parent-meeting-classroom" label="کلاس مرتبط" name="classroom_id" :options="$classOptions" :required="$isTeacher" placeholder="بدون کلاس / جلسه مستقل"/>
-  <div id="parent-meeting-individual-fields" class="wide adm-stack">
+  <div id="parent-meeting-individual-fields" class="wide">
   <x-admin.input id="parent-meeting-student-search" label="جستجوی دانش‌آموز" name="student_search" type="search" wide placeholder="نام یا شماره تماس را وارد کنید"/>
   <button type="button" class="adm-btn adm-btn-line" data-parent-meeting-search data-endpoint="{{ route('admin.parent-meetings.lookup') }}" data-requires-class="{{ $isTeacher ? '1' : '0' }}">جستجو</button>
   <p class="adm-muted" data-parent-meeting-status aria-live="polite">برای نمایش دانش‌آموزان، حداقل دو حرف جستجو کنید.</p>
