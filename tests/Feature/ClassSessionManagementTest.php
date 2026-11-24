@@ -93,6 +93,35 @@ final class ClassSessionManagementTest extends TestCase
         $this->assertDatabaseHas('class_sessions', ['id' => $session->id]);
     }
 
+    public function test_course_teacher_cannot_manage_a_group_explicitly_assigned_to_another_teacher(): void
+    {
+        [$courseTeacher, $classroom] = $this->teacherWithClassroom('explicit-assignment');
+        [$groupTeacher] = $this->teacherWithClassroom('other-assignment');
+        $classroom->update(['teacher_id' => $groupTeacher->id]);
+
+        $this->actingAs($courseTeacher)->get(route('admin.classes.sessions.index', $classroom))->assertNotFound();
+        $this->actingAs($groupTeacher)->get(route('admin.classes.sessions.index', $classroom))->assertOk();
+    }
+
+    public function test_classroom_with_session_history_cannot_be_deleted(): void
+    {
+        [$teacher, $classroom] = $this->teacherWithClassroom('group-history');
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::query()->where('name', 'admin')->firstOrFail());
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه برگزارشده',
+            'session_type' => 'onsite',
+            'starts_at' => now()->subDay(),
+            'status' => 'completed',
+        ]);
+
+        $this->actingAs($admin)->delete(route('admin.classes.destroy', $classroom))
+            ->assertSessionHasErrors('classroom');
+        $this->assertDatabaseHas('classrooms', ['id' => $classroom->id]);
+        $this->assertDatabaseHas('class_sessions', ['id' => $session->id]);
+    }
+
     public function test_session_with_attendance_is_not_deleted(): void
     {
         [$teacher, $classroom] = $this->teacherWithClassroom('att');
