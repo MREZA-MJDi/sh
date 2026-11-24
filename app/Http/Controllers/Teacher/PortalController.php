@@ -407,8 +407,7 @@ final class PortalController extends Controller
             'declined' => 'درخواست جلسه شما توسط مدرس رد شد.',
             default => 'وضعیت جلسه شما به‌روزرسانی شد.',
         };
-        $record->guardian?->notify(new ParentMeetingNotification($record, $message));
-        $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
+        $scheduler->notifyParticipants($record, $message, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.');
         User::query()
             ->where('is_active', true)
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
