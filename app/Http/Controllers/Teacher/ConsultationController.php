@@ -5,20 +5,31 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Consultation;
 use App\Models\User;
+use App\Services\Admin\ClassroomWorkspaceService;
 use App\Notifications\ConsultationRequestNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 final class ConsultationController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, ClassroomWorkspaceService $workspace): View
     {
+        $teacher = $request->user();
+        $assignedStudentIds = DB::table('classroom_student')
+            ->select('student_id')
+            ->whereIn('classroom_id', $workspace->queryFor($teacher)->select('classrooms.id'));
+
         $consultations = Consultation::query()
-            ->where('requester_id', $request->user()->id)
-            ->with('student:id,name')
+            ->where(function ($query) use ($teacher, $assignedStudentIds): void {
+                $query->where('requester_id', $teacher->id)
+                    ->orWhereIn('student_id', clone $assignedStudentIds);
+            })
+            ->with(['requester:id,name', 'student:id,name', 'teacher:id,name'])
             ->latest()
+            ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 

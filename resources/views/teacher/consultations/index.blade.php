@@ -1,9 +1,24 @@
 @extends('teacher.layouts.app')
 @section('title', 'درخواست مشاوره')
 @section('content')
-@php($statusLabels = ['pending' => 'در انتظار بررسی', 'in_progress' => 'در حال پیگیری', 'done' => 'انجام‌شده', 'rejected' => 'ردشده'])
-@php($typeLabels = ['ticket' => 'پیام و تیکت', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'])
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">هماهنگی با مدیریت سایت</span><h1>درخواست مشاوره و هماهنگی</h1><p>زمان پیشنهادی را ثبت کنید تا مدیر سایت درخواست را بررسی و پیگیری کند.</p></div></div>
+@php
+    $statusLabels = [
+        'pending' => 'در انتظار بررسی',
+        'scheduled' => 'زمان‌بندی‌شده',
+        'approved' => 'تأییدشده',
+        'done' => 'انجام‌شده',
+        'completed' => 'تکمیل‌شده',
+        'cancelled' => 'لغوشده',
+    ];
+    $typeLabels = ['ticket' => 'پیام و تیکت', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'];
+@endphp
+<div class="teacher-page-head">
+    <div>
+        <span class="teacher-eyebrow">هماهنگی آموزشی</span>
+        <h1>درخواست‌های مشاوره</h1>
+        <p>درخواست‌های ثبت‌شده توسط شما و والدین دانش‌آموزان کلاس‌های تحت مسئولیتتان.</p>
+    </div>
+</div>
 <div class="g g2">
     <section class="c">
         <h3>ثبت درخواست جدید</h3>
@@ -27,14 +42,26 @@
         </form>
     </section>
     <section class="c">
-        <h3>درخواست‌های من</h3>
+        <h3>درخواست‌های مرتبط</h3>
         @forelse ($consultations as $consultation)
             <div class="row">
-                <div>{{ $consultation->topic }}<small>{{ $typeLabels[$consultation->type] ?? $consultation->type }} · <time data-jalali-display="{{ $consultation->desired_at?->format('Y-m-d H:i') }}">{{ $consultation->desired_at?->format('Y/m/d H:i') }}</time></small></div>
-                <i class="bd {{ $consultation->status === 'done' ? 'gn' : 'am' }}">{{ $statusLabels[$consultation->status] ?? $consultation->status }}</i>
+                <div>
+                    {{ $consultation->topic }}
+                    <small>
+                        درخواست‌کننده: {{ $consultation->requester?->name ?? 'حساب حذف‌شده' }}
+                        @if ($consultation->student) · دانش‌آموز: {{ $consultation->student->name }} @endif
+                    </small>
+                    <small>
+                        {{ $typeLabels[$consultation->type] ?? $consultation->type }}
+                        @if ($consultation->desired_at) · <time data-jalali-display="{{ $consultation->desired_at->format('Y-m-d H:i') }}">{{ $consultation->desired_at->format('Y/m/d H:i') }}</time> @endif
+                    </small>
+                </div>
+                <i class="bd {{ in_array($consultation->status, ['done', 'completed', 'scheduled', 'approved'], true) ? 'gn' : 'am' }}">
+                    {{ $statusLabels[$consultation->status] ?? 'در حال بررسی' }}
+                </i>
             </div>
         @empty
-            <p>درخواستی ثبت نشده است.</p>
+            <p>درخواست مشاوره‌ای برای نمایش وجود ندارد.</p>
         @endforelse
         {{ $consultations->links() }}
     </section>

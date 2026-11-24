@@ -7,6 +7,10 @@ use App\Http\Requests\Guardian\ReplyConsultationRequest;
 use App\Http\Requests\Guardian\StoreConsultationRequest;
 use App\Models\Consultation;
 use App\Models\ConsultationReply;
+use App\Models\User;
+use App\Notifications\ConsultationRequestNotification;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -68,6 +72,25 @@ final class ConsultationController extends Controller
             'notes' => $data['body'],
             'status' => 'pending',
         ]);
+
+        $teacherIds = DB::table('classroom_student')
+            ->join('classrooms', 'classrooms.id', '=', 'classroom_student.classroom_id')
+            ->where('classroom_student.student_id', $consultation->student_id)
+            ->whereNotNull('classrooms.teacher_id')
+            ->distinct()
+            ->pluck('classrooms.teacher_id');
+
+        $notification = new ConsultationRequestNotification($consultation);
+        User::query()
+            ->where('is_active', true)
+            ->where(function (Builder $recipients) use ($teacherIds): void {
+                $recipients->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+                    ->orWhereIn('id', $teacherIds);
+            })
+            ->orderBy('id')
+            ->chunkById(100, fn ($recipients) => $recipients->each(
+                fn (User $recipient) => $recipient->notify($notification)
+            ));
 
         return redirect()
             ->route('guardian.consultations.show', $consultation)

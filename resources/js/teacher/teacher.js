@@ -290,8 +290,9 @@ import '../shared/iranian-locale.js';
     f.addEventListener('submit', function (e) {
       if (f.getAttribute('data-busy')) { e.preventDefault(); return; }
       f.setAttribute('data-busy', '1');
-      $$('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
-        button.disabled = true;
+      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+        // A disabled submitter is omitted from the browser request, including its name/value.
+        if (button !== e.submitter) button.disabled = true;
       });
     });
   });
