@@ -139,7 +139,7 @@ final class DashboardController extends Controller
             $statuses = $dayRecords->pluck('status');
             $status = $statuses->contains('absent') ? 'a'
                 : ($statuses->contains('late') ? 'l'
-                : ($statuses->contains('present') ? 'p' : 'future'));
+                : ($statuses->contains('present') ? 'p' : ($statuses->contains('excused') ? 'e' : 'future')));
             return ['day' => $day, 'status' => $status, 'today' => $todayJalaliDay > 0 && $day === $todayJalaliDay];
         });
 
@@ -149,6 +149,7 @@ final class DashboardController extends Controller
             'present' => (int) $monthBreakdown->get('present', 0),
             'late' => (int) $monthBreakdown->get('late', 0),
             'absent' => (int) $monthBreakdown->get('absent', 0),
+            'excused' => (int) $monthBreakdown->get('excused', 0),
             'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : null,
         ];
 
@@ -200,13 +201,15 @@ final class DashboardController extends Controller
             $submission = $item->submissions->first();
             $late = $submission && $item->due_at && $submission->submitted_at && $submission->submitted_at->gt($item->due_at);
             $missing = ! $submission && $item->due_at && $item->due_at->isPast();
+            $reviewed = $submission && ($submission->reviewed_at || in_array($submission->status, ['reviewed', 'graded'], true));
             return [
                 'title' => $item->title,
                 'due' => $item->due_at ? JalaliDate::format($item->due_at, true) : 'بدون مهلت',
-                'status' => $submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار'),
-                'tone' => $submission ? ($late ? 'am' : 'gn') : ($missing ? 'rd' : 'bl'),
-                'score' => $submission?->score,
-                'feedback' => $submission?->feedback,
+                'status' => $reviewed ? 'بررسی‌شده' : ($submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار')),
+                'submitted_late' => $late,
+                'tone' => $reviewed ? 'gn' : ($submission ? ($late ? 'am' : 'bl') : ($missing ? 'rd' : 'am')),
+                'score' => $reviewed ? $submission->score : null,
+                'feedback' => $reviewed ? $submission->feedback : null,
                 'reviewed_at' => $submission?->reviewed_at ? JalaliDate::format($submission->reviewed_at, true) : null,
                 'reviewer' => $submission?->reviewer?->name,
             ];
