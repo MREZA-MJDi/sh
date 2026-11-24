@@ -124,7 +124,7 @@ final class DashboardController extends Controller
         [$year, $month] = array_map('intval', explode('-', $monthKey));
         abort_if($year < 1300 || $year > 1500, 422, 'ماه انتخاب‌شده معتبر نیست.');
 
-        $data = $this->build($request, $dashboard, $monthKey);
+        $data = $this->build($request, $dashboard, $monthKey, 'attendance');
         $start = JalaliDate::toGregorian($year, $month, 1);
         $monthDays = JalaliDate::daysInMonth($year, $month);
         $todayJalali = JalaliDate::fromGregorian(now());
@@ -174,7 +174,7 @@ final class DashboardController extends Controller
 
     public function exams(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
+        $data = $this->build($request, $dashboard, null, 'exams');
         $results = $data['exam_results'];
         $resultDates = $results->getCollection()->mapWithKeys(fn ($result) => [
             $result->id => $result->created_at ? JalaliDate::format($result->created_at) : '—',
@@ -195,7 +195,7 @@ final class DashboardController extends Controller
 
     public function homework(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
+        $data = $this->build($request, $dashboard, null, 'homework');
         $homeworkPaginator = $data['homeworks'];
         $homework = $homeworkPaginator->getCollection()->map(function ($item): array {
             $submission = $item->submissions->first();
@@ -229,7 +229,7 @@ final class DashboardController extends Controller
 
     public function resources(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
+        $data = $this->build($request, $dashboard, null, 'resources');
 
         return view('parent.resources', [
             'kids' => $data['children'],
@@ -238,13 +238,14 @@ final class DashboardController extends Controller
         ]);
     }
 
-    private function build(Request $request, GuardianDashboardService $dashboard, ?string $attendanceMonthKey = null): array
+    private function build(Request $request, GuardianDashboardService $dashboard, ?string $attendanceMonthKey = null, string $section = 'all'): array
     {
         $validated = $request->validate(['child' => ['nullable', 'integer', 'min:1']]);
         return $dashboard->build(
             $request->user(),
             isset($validated['child']) ? (int) $validated['child'] : null,
-            $attendanceMonthKey
+            $attendanceMonthKey,
+            $section
         );
     }
 

@@ -134,7 +134,7 @@ final class StudentDashboardService
 
         $resources = (clone $resourceQuery)
             ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
-            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
+            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)->latest()->limit(1)])
             ->latest()
             ->limit(5)
             ->get(['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'downloadable', 'release_at', 'created_at']);

@@ -54,6 +54,7 @@ import '../shared/iranian-locale.js';
   /* فرم‌ها: جلوگیری از ارسال مجدد تا پایان درخواست و بازگشت صفحه. */
   $$('form').forEach(function (f) {
     f.addEventListener('submit', function (e) {
+      if (e.defaultPrevented) return;
       if (f.dataset.busy) { e.preventDefault(); return; }
       f.dataset.busy = '1';
       $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
@@ -77,17 +78,18 @@ import '../shared/iranian-locale.js';
   /* آزمون: تایمر معکوس؛ با صفر شدن فرم خودکار با go=finish ارسال می‌شود */
   var ex = $('#exam'), te = $('#examTimer');
   if (ex && te) {
-    var left = parseInt(ex.getAttribute('data-seconds'), 10) || 0;
+    var deadline = Date.now() + Math.max(0, Number(ex.dataset.seconds) || 0) * 1000;
     var tick = function () {
+      var left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       var m = Math.floor(left / 60), sec = left % 60;
-      te.textContent = fa(('0' + m).slice(-2) + ':' + ('0' + sec).slice(-2));
+      te.textContent = fa(String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0'));
       if (left <= 0) {
         clearInterval(iv);
         var h = document.createElement('input');
         h.type = 'hidden'; h.name = 'go'; h.value = 'finish'; ex.appendChild(h);
-        ex.submit(); return;
+        if (!ex.dataset.busy) { ex.dataset.busy = '1'; ex.submit(); }
+        return;
       }
-      left--;
     };
     var iv = setInterval(tick, 1000); tick();
   }

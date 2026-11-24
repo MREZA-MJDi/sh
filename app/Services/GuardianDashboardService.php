@@ -30,7 +30,7 @@ final class GuardianDashboardService
      * active linked child, and an account without linked children receives
      * empty collections.
      */
-    public function build(User $guardian, ?int $selectedChildId = null, ?string $attendanceMonthKey = null): array
+    public function build(User $guardian, ?int $selectedChildId = null, ?string $attendanceMonthKey = null, string $section = 'all'): array
     {
         $children = $guardian->children()
             ->where('users.is_active', true)
@@ -54,68 +54,77 @@ final class GuardianDashboardService
         $resourceClassroomIds = $this->learningAccess->activeClassroomIds($student, 'resources');
         $resourceCourseIds = $this->learningAccess->activeCourseIds($student, 'resources');
 
-        $classrooms = Classroom::query()
-            ->whereIn('classrooms.id', clone $classroomIds)
-            ->with(['course:id,title,subject,grade', 'teacher:id,name'])
-            ->orderBy('classrooms.name')
-            ->limit(8)
-            ->get();
+        $context = ['children' => $children, 'selected_child' => $selectedChild];
 
-        $homeworkQuery = Homework::query()
-            ->whereIn('classroom_id', clone $assignmentClassroomIds)
-            ->where('status', 'published');
+        if ($section === 'all') {
+            $classrooms = Classroom::query()
+                ->whereIn('classrooms.id', clone $classroomIds)
+                ->with(['course:id,title,subject,grade', 'teacher:id,name'])
+                ->orderBy('classrooms.name')
+                ->limit(8)
+                ->get();
+        }
 
-        $homeworks = (clone $homeworkQuery)
-            ->with('classroom:id,name,course_id')
-            ->with(['submissions' => fn ($query) => $query
-                ->where('student_id', $student->id)
-                ->orderByDesc('submitted_at')
-                ->with('reviewer:id,name')
-                ->limit(1)])
-            ->withCount([
-                'submissions as selected_student_submission_count' => fn (Builder $query) => $query
-                    ->where('student_id', $student->id),
-            ])
-            ->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')
-            ->orderBy('due_at')
-            ->latest('created_at')
-            ->paginate(12, ['*'], 'homework')
-            ->withQueryString();
+        if (in_array($section, ['all', 'homework'], true)) {
+            $homeworkQuery = Homework::query()
+                ->whereIn('classroom_id', clone $assignmentClassroomIds)
+                ->where('status', 'published');
 
-        $currentJalali = JalaliDate::fromGregorian(now());
-        $trendStartKey = JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], 5);
-        [$trendStartYear, $trendStartMonth] = array_map('intval', explode('-', $trendStartKey));
-        $trendStart = JalaliDate::toGregorian($trendStartYear, $trendStartMonth, 1);
+            $homeworks = (clone $homeworkQuery)
+                ->with('classroom:id,name,course_id')
+                ->with(['submissions' => fn ($query) => $query
+                    ->where('student_id', $student->id)
+                    ->orderByDesc('submitted_at')
+                    ->with('reviewer:id,name')
+                    ->limit(1)])
+                ->withCount([
+                    'submissions as selected_student_submission_count' => fn (Builder $query) => $query
+                        ->where('student_id', $student->id),
+                ])
+                ->orderByRaw('CASE WHEN due_at IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('due_at')
+                ->latest('created_at')
+                ->paginate(12, ['*'], 'homework')
+                ->withQueryString();
 
-        $homeworkTrend = collect();
-        (clone $homeworkQuery)
-            ->where('created_at', '>=', $trendStart)
-            ->with(['submissions' => fn ($query) => $query
-                ->where('student_id', $student->id)
-                ->orderByDesc('submitted_at')
-                ->select(['id', 'homework_id', 'submitted_at'])
-                ->limit(1)])
-            ->orderBy('id')
-            ->chunkById(500, function (Collection $items) use (&$homeworkTrend): void {
-                foreach ($items as $homework) {
-                    $date = JalaliDate::fromGregorian($homework->created_at);
-                    $key = JalaliDate::monthKey($date['year'], $date['month']);
-                    $counts = $homeworkTrend->get($key, ['on_time' => 0, 'late' => 0, 'missing' => 0]);
-                    $submission = $homework->submissions->first();
+            $currentJalali = JalaliDate::fromGregorian(now());
+            $trendStartKey = JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], 5);
+            [$trendStartYear, $trendStartMonth] = array_map('intval', explode('-', $trendStartKey));
+            $trendStart = JalaliDate::toGregorian($trendStartYear, $trendStartMonth, 1);
 
-                    if ($submission) {
-                        if ($homework->due_at && $submission->submitted_at && $submission->submitted_at->gt($homework->due_at)) {
-                            $counts['late']++;
-                        } else {
-                            $counts['on_time']++;
+            $homeworkTrend = collect();
+            (clone $homeworkQuery)
+                ->where('created_at', '>=', $trendStart)
+                ->with(['submissions' => fn ($query) => $query
+                    ->where('student_id', $student->id)
+                    ->orderByDesc('submitted_at')
+                    ->select(['id', 'homework_id', 'submitted_at'])
+                    ->limit(1)])
+                ->orderBy('id')
+                ->chunkById(500, function (Collection $items) use (&$homeworkTrend): void {
+                    foreach ($items as $homework) {
+                        $date = JalaliDate::fromGregorian($homework->created_at);
+                        $key = JalaliDate::monthKey($date['year'], $date['month']);
+                        $counts = $homeworkTrend->get($key, ['on_time' => 0, 'late' => 0, 'missing' => 0]);
+                        $submission = $homework->submissions->first();
+
+                        if ($submission) {
+                            if ($homework->due_at && $submission->submitted_at && $submission->submitted_at->gt($homework->due_at)) {
+                                $counts['late']++;
+                            } else {
+                                $counts['on_time']++;
+                            }
+                        } elseif ($homework->due_at && $homework->due_at->isPast()) {
+                            $counts['missing']++;
                         }
-                    } elseif ($homework->due_at && $homework->due_at->isPast()) {
-                        $counts['missing']++;
-                    }
 
-                    $homeworkTrend->put($key, $counts);
-                }
-            });
+                        $homeworkTrend->put($key, $counts);
+                    }
+                });
+
+            if ($section === 'homework') {
+                return $context + ['homeworks' => $homeworks, 'homework_trend' => $homeworkTrend];
+        }
 
         $reviewedHomework = HomeworkSubmission::query()
             ->where('student_id', $student->id)
@@ -132,71 +141,90 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
-        $attendanceQuery = Attendance::query()->visibleToStudent($student, clone $classroomIds);
+        }
 
-        $attendanceTotal = (clone $attendanceQuery)
-            ->whereIn('status', ['present', 'late', 'absent'])
-            ->count();
+        if (in_array($section, ['all', 'attendance'], true)) {
+            $attendanceQuery = Attendance::query()->visibleToStudent($student, clone $classroomIds);
 
-        $attendancePresent = (clone $attendanceQuery)
-            ->whereIn('status', ['present', 'late'])
-            ->count();
+            $attendanceTotal = (clone $attendanceQuery)
+                ->whereIn('status', ['present', 'late', 'absent'])
+                ->count();
 
-        $attendance = (clone $attendanceQuery)
-            ->with(['classroom:id,name', 'session:id,starts_at,ends_at'])
-            ->latest('session_date')
-            ->limit(8)
-            ->get();
+            $attendancePresent = (clone $attendanceQuery)
+                ->whereIn('status', ['present', 'late'])
+                ->count();
 
-        $currentMonth = JalaliDate::fromGregorian(now());
-        [$attendanceYear, $attendanceMonth] = $attendanceMonthKey
-            ? array_map('intval', explode('-', $attendanceMonthKey))
-            : [$currentMonth['year'], $currentMonth['month']];
-        $jalaliMonthStart = JalaliDate::toGregorian($attendanceYear, $attendanceMonth, 1);
-        $jalaliMonthEnd = JalaliDate::toGregorian(
-            $attendanceYear,
-            $attendanceMonth,
-            JalaliDate::daysInMonth($attendanceYear, $attendanceMonth)
-        );
+            $attendance = (clone $attendanceQuery)
+                ->with(['classroom:id,name', 'session:id,starts_at,ends_at'])
+                ->latest('session_date')
+                ->limit(8)
+                ->get();
 
-        $attendanceCalendar = (clone $attendanceQuery)
-            ->where('session_date', '>=', $jalaliMonthStart->toDateString())
-            ->where('session_date', '<', $jalaliMonthEnd->addDay()->toDateString())
-            ->orderBy('session_date')
-            ->get(['id', 'session_date', 'status']);
+            $currentMonth = JalaliDate::fromGregorian(now());
+            [$attendanceYear, $attendanceMonth] = $attendanceMonthKey
+                ? array_map('intval', explode('-', $attendanceMonthKey))
+                : [$currentMonth['year'], $currentMonth['month']];
+            $jalaliMonthStart = JalaliDate::toGregorian($attendanceYear, $attendanceMonth, 1);
+            $jalaliMonthEnd = JalaliDate::toGregorian(
+                $attendanceYear,
+                $attendanceMonth,
+                JalaliDate::daysInMonth($attendanceYear, $attendanceMonth)
+            );
 
-        $attendanceBreakdown = (clone $attendanceQuery)
-            ->whereIn('status', ['present', 'late', 'absent'])
-            ->selectRaw('status, COUNT(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
-        $lastLateAttendance = (clone $attendanceQuery)
-            ->where('status', 'late')
-            ->latest('session_date')
-            ->first(['session_date']);
+            $attendanceCalendar = (clone $attendanceQuery)
+                ->where('session_date', '>=', $jalaliMonthStart->toDateString())
+                ->where('session_date', '<', $jalaliMonthEnd->addDay()->toDateString())
+                ->orderBy('session_date')
+                ->get(['id', 'session_date', 'status']);
 
-        $resultQuery = ExamResult::query()
-            ->where('student_id', $student->id)
-            ->whereHas('exam', function (Builder $exam) use ($examClassroomIds, $examCourseIds): void {
-                $exam->where('show_to_guardians', true)
-                ->where(function (Builder $scope) use ($examClassroomIds, $examCourseIds): void {
-                    $scope->where(function (Builder $classScoped) use ($examClassroomIds): void {
-                        $classScoped->whereIn('exams.classroom_id', clone $examClassroomIds)
-                            ->where(function (Builder $classCourse): void {
-                                $classCourse->whereHas('classroom', fn (Builder $classroom) => $classroom
-                                    ->whereColumn('classrooms.course_id', 'exams.course_id'))
-                                    ->orWhere(function (Builder $classOnly): void {
-                                        $classOnly->whereNull('exams.course_id')
-                                            ->whereHas('classroom', fn (Builder $classroom) => $classroom
-                                                ->whereNull('classrooms.course_id'));
-                                    });
-                            });
-                    })->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
-                        $courseLevel->whereNull('exams.classroom_id')
-                            ->whereIn('exams.course_id', clone $examCourseIds);
+            $attendanceBreakdown = (clone $attendanceQuery)
+                ->whereIn('status', ['present', 'late', 'absent'])
+                ->selectRaw('status, COUNT(*) as aggregate')
+                ->groupBy('status')
+                ->pluck('aggregate', 'status');
+            $lastLateAttendance = (clone $attendanceQuery)
+                ->where('status', 'late')
+                ->latest('session_date')
+                ->first(['session_date']);
+
+            if ($section === 'attendance') {
+                return $context + ['attendance_calendar' => $attendanceCalendar, 'last_late_attendance' => $lastLateAttendance];
+            }
+        }
+
+        if (in_array($section, ['all', 'exams'], true)) {
+            $resultQuery = ExamResult::query()
+                ->where('student_id', $student->id)
+                ->whereHas('exam', function (Builder $exam) use ($examClassroomIds, $examCourseIds): void {
+                    $exam->where('show_to_guardians', true)
+                    ->where(function (Builder $scope) use ($examClassroomIds, $examCourseIds): void {
+                        $scope->where(function (Builder $classScoped) use ($examClassroomIds): void {
+                            $classScoped->whereIn('exams.classroom_id', clone $examClassroomIds)
+                                ->where(function (Builder $classCourse): void {
+                                    $classCourse->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                        ->whereColumn('classrooms.course_id', 'exams.course_id'))
+                                        ->orWhere(function (Builder $classOnly): void {
+                                            $classOnly->whereNull('exams.course_id')
+                                                ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                                    ->whereNull('classrooms.course_id'));
+                                        });
+                                });
+                        })->orWhere(function (Builder $courseLevel) use ($examCourseIds): void {
+                            $courseLevel->whereNull('exams.classroom_id')
+                                ->whereIn('exams.course_id', clone $examCourseIds);
+                        });
                     });
                 });
-            });
+
+            $examResults = (clone $resultQuery)
+                ->with(['exam:id,title,classroom_id,course_id', 'exam.course:id,title', 'exam.classroom:id,name'])
+                ->latest()
+                ->paginate(12, ['*'], 'results')
+                ->withQueryString();
+
+            if ($section === 'exams') {
+                return $context + ['exam_results' => $examResults];
+        }
 
         $averageExamScore = (clone $resultQuery)
             ->whereNotNull('score')
@@ -209,12 +237,6 @@ final class GuardianDashboardService
             ->latest()
             ->limit(8)
             ->get();
-
-        $examResults = (clone $resultQuery)
-            ->with(['exam:id,title,classroom_id,course_id', 'exam.course:id,title', 'exam.classroom:id,name'])
-            ->latest()
-            ->paginate(12, ['*'], 'results')
-            ->withQueryString();
 
         $resultTrend = collect();
         (clone $resultQuery)
@@ -235,36 +257,44 @@ final class GuardianDashboardService
             });
         $resultTrend = $resultTrend->map(fn (array $summary) => round($summary['sum'] / max(1, $summary['count']), 1));
 
-        $resourceQuery = LearningResource::query()
-            ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
-            ->where('status', 'published')
-            ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
-            ->where(function (Builder $scope) use ($resourceClassroomIds, $resourceCourseIds): void {
-                $scope->where(function (Builder $classScoped) use ($resourceClassroomIds, $resourceCourseIds): void {
-                    $classScoped->whereNotNull('classroom_id')
-                        ->whereIn('classroom_id', clone $resourceClassroomIds)
-                        ->where(function (Builder $courseScope) use ($resourceCourseIds): void {
-                            $courseScope->whereNull('course_id')
-                                ->orWhere(function (Builder $matchingCourse) use ($resourceCourseIds): void {
-                                    $matchingCourse->whereIn('course_id', clone $resourceCourseIds)
-                                        ->whereHas('classroom', fn (Builder $classroom) => $classroom
-                                            ->whereColumn('classrooms.course_id', 'learning_resources.course_id'));
-                                });
-                        });
-                })->orWhere(function (Builder $courseOnly) use ($resourceCourseIds): void {
-                    $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $resourceCourseIds);
-                })->orWhere(function (Builder $unscoped): void {
-                    $unscoped->whereNull('classroom_id')->whereNull('course_id')
-                        ->whereIn('visibility', ['public', 'authenticated']);
-                });
-            });
+        }
 
-        $resources = (clone $resourceQuery)
-            ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
-            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)->latest()->limit(1)])
-            ->latest()
-            ->paginate(12, ['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'release_at', 'created_at'], 'resources')
-            ->withQueryString();
+        if (in_array($section, ['all', 'resources'], true)) {
+            $resourceQuery = LearningResource::query()
+                ->whereIn('visibility', ['public', 'enrolled', 'authenticated'])
+                ->where('status', 'published')
+                ->where(fn (Builder $release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
+                ->where(function (Builder $scope) use ($resourceClassroomIds, $resourceCourseIds): void {
+                    $scope->where(function (Builder $classScoped) use ($resourceClassroomIds, $resourceCourseIds): void {
+                        $classScoped->whereNotNull('classroom_id')
+                            ->whereIn('classroom_id', clone $resourceClassroomIds)
+                            ->where(function (Builder $courseScope) use ($resourceCourseIds): void {
+                                $courseScope->whereNull('course_id')
+                                    ->orWhere(function (Builder $matchingCourse) use ($resourceCourseIds): void {
+                                        $matchingCourse->whereIn('course_id', clone $resourceCourseIds)
+                                            ->whereHas('classroom', fn (Builder $classroom) => $classroom
+                                                ->whereColumn('classrooms.course_id', 'learning_resources.course_id'));
+                                    });
+                            });
+                    })->orWhere(function (Builder $courseOnly) use ($resourceCourseIds): void {
+                        $courseOnly->whereNull('classroom_id')->whereIn('course_id', clone $resourceCourseIds);
+                    })->orWhere(function (Builder $unscoped): void {
+                        $unscoped->whereNull('classroom_id')->whereNull('course_id')
+                            ->whereIn('visibility', ['public', 'authenticated']);
+                    });
+                });
+
+            $resources = (clone $resourceQuery)
+                ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
+                ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)->latest()->limit(1)])
+                ->latest()
+                ->paginate(12, ['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'description', 'kind', 'is_free', 'price', 'file_path', 'downloadable', 'release_at', 'created_at'], 'resources')
+                ->withQueryString();
+
+            if ($section === 'resources') {
+                return $context + ['resources' => $resources];
+            }
+        }
 
         $courseProgress = app(CourseProgressService::class)->forStudent($student, clone $courseIds, 8);
 
