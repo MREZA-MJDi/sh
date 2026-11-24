@@ -35,17 +35,19 @@ final class DashboardController extends Controller
         $student = $request->user();
         $classroomIds = $access->activeClassroomIds($student);
         $now = now();
+        $filters = $request->validate(['month' => ['nullable', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/']]);
         $currentJalali = JalaliDate::fromGregorian($now);
-        $jalaliYear = $currentJalali['year'];
-        $jalaliMonth = $currentJalali['month'];
+        $monthKey = $filters['month'] ?? JalaliDate::monthKey($currentJalali['year'], $currentJalali['month']);
+        [$jalaliYear, $jalaliMonth] = array_map('intval', explode('-', $monthKey));
+        abort_if($jalaliYear < 1300 || $jalaliYear > 1500, 422, 'ماه انتخاب‌شده معتبر نیست.');
         $start = JalaliDate::toGregorian($jalaliYear, $jalaliMonth, 1);
         $monthDays = JalaliDate::daysInMonth($jalaliYear, $jalaliMonth);
 
-        $monthRecords = Attendance::query()
-            ->where('student_id', $student->id)
-            ->whereIn('classroom_id', clone $classroomIds)
-            ->where('session_date', '>=', $start->toDateString())
-            ->where('session_date', '<', $now->copy()->addDay()->toDateString())
+        $monthEnd = $start->addDays($monthDays - 1);
+        $monthRecords = Attendance::query()->visibleToStudent($student, $classroomIds)
+            ->whereBetween('session_date', [$start->toDateString(), $monthEnd->toDateString()])
+            ->with('classroom:id,name')
+            ->latest('session_date')
             ->get();
         $records = $monthRecords->groupBy(
             fn (Attendance $record) => JalaliDate::fromGregorian($record->session_date)['day']
@@ -70,6 +72,10 @@ final class DashboardController extends Controller
             'calendar' => $calendar,
             'monthOffset' => ($start->dayOfWeek + 1) % 7,
             'monthTitle' => JalaliDate::monthLabel($jalaliYear, $jalaliMonth),
+            'monthKey' => $monthKey,
+            'monthOptions' => collect(range(0, 11))->map(fn (int $offset) => JalaliDate::monthKeyByOffset($currentJalali['year'], $currentJalali['month'], $offset)),
+            'monthRecords' => $monthRecords,
+            'counts' => $counts,
             'attendance_count' => $monthRecords->count(),
             'attendance_rate' => $rate,
         ]);
