@@ -160,7 +160,8 @@ final class GuardianDashboardService
         );
 
         $attendanceCalendar = (clone $attendanceQuery)
-            ->whereBetween('session_date', [$jalaliMonthStart->toDateString(), $jalaliMonthEnd->toDateString()])
+            ->where('session_date', '>=', $jalaliMonthStart->toDateString())
+            ->where('session_date', '<', $jalaliMonthEnd->addDay()->toDateString())
             ->orderBy('session_date')
             ->get(['id', 'session_date', 'status']);
 

@@ -44,9 +44,10 @@ final class DashboardController extends Controller
         $start = JalaliDate::toGregorian($jalaliYear, $jalaliMonth, 1);
         $monthDays = JalaliDate::daysInMonth($jalaliYear, $jalaliMonth);
 
-        $monthEnd = $start->addDays($monthDays - 1);
+        $monthEnd = $start->addDays($monthDays);
         $monthRecords = Attendance::query()->visibleToStudent($student, $classroomIds)
-            ->whereBetween('session_date', [$start->toDateString(), $monthEnd->toDateString()])
+            ->where('session_date', '>=', $start->toDateString())
+            ->where('session_date', '<', $monthEnd->toDateString())
             ->with('classroom:id,name')
             ->latest('session_date')
             ->get();

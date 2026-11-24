@@ -35,7 +35,7 @@ class Attendance extends Model
     {
         return $query->where('student_id', $student->id)
             ->whereIn('classroom_id', $classroomIds)
-            ->where('session_date', '<=', now()->toDateString())
+            ->where('session_date', '<', now()->addDay()->toDateString())
             ->where(function (Builder $scope): void {
                 $scope->whereNull('attendances.class_session_id')
                     ->orWhereHas('session', fn (Builder $session) => $session

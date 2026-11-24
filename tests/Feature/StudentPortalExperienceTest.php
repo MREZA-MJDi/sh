@@ -73,7 +73,8 @@ final class StudentPortalExperienceTest extends TestCase
 
         $this->actingAs($student)->get(route('student.attendance'))
             ->assertOk()
-            ->assertSee('1 جلسه ثبت‌شده')
+            ->assertViewHas('attendance_count', 1)
+            ->assertSee('کلاس late')
             ->assertSee('تأخیر')
             ->assertDontSee('کلاس absent');
         $this->get(route('student.attendance', ['month' => '1405-08']))
