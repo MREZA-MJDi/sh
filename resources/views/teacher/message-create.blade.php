@@ -1,7 +1,7 @@
 @extends('teacher.layouts.app')
 @section('title', 'ارسال پیام')
 @section('content')
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">ارتباطات</span><h1>ارسال پیام</h1><p>مخاطب را از میان دانش‌آموزان و اولیای کلاس‌های فعال خود انتخاب کنید.</p></div><a class="b s" href="{{ route('teacher.messages.index') }}">بازگشت به صندوق پیام</a></div>
+<x-portal.page-head icon="message" tone="communication" title="ارسال پیام" :back="route('teacher.messages.index')" back-label="بازگشت به صندوق پیام"/>
 <section class="c">
  <form class="teacher-form" method="POST" action="{{ route('teacher.messages.store') }}">
   @csrf

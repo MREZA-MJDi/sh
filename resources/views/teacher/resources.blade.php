@@ -2,9 +2,9 @@
 @section('title', 'منابع آموزشی')
 @section('content')
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">محتوای آموزشی</span><h1>بارگذاری جزوه و منابع</h1><p>منابع فقط برای دوره‌ها و کلاس‌های تخصیص‌یافته به شما ثبت می‌شوند.</p></div></div>
+<x-portal.page-head icon="book" tone="education" title="بارگذاری جزوه و منابع"/>
 <div class="g g2">
-<section class="c"><h2>ثبت منبع جدید</h2>
+<section class="c"><h2 class="portal-section-title"><x-portal.icon name="plus"/> ثبت منبع جدید</h2>
 <form class="teacher-form" data-learning-scope method="POST" action="{{ route('teacher.resources.store') }}" enctype="multipart/form-data">@csrf
 <label>عنوان منبع</label><input name="title" maxlength="180" required value="{{ old('title') }}">
 <label>توضیحات</label><textarea name="description" rows="4">{{ old('description') }}</textarea>
@@ -20,7 +20,7 @@
 <label><input type="checkbox" name="downloadable" value="1" @checked((bool) old('downloadable', true))> امکان دانلود</label>
 <button class="b" type="submit">ثبت منبع</button>
 </form></section>
-<section class="c"><div class="teacher-section-head"><div><h2>منابع ثبت‌شده</h2><p>{{ $resources->total() }} منبع آموزشی</p></div></div>
+<section class="c"><div class="teacher-section-head"><div><h2 class="portal-section-title"><x-portal.icon name="book"/> منابع ثبت‌شده</h2><p>{{ $resources->total() }} منبع آموزشی</p></div></div>
 <form method="GET" action="{{ route('teacher.resources') }}" class="teacher-list-filters">
 <label class="teacher-search-field"><span class="sr-only">جست‌وجوی منبع</span><input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="جست‌وجوی عنوان منبع"></label>
 <label><span class="sr-only">مرتب‌سازی</span><select name="sort"><option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>جدیدترین</option><option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>قدیمی‌ترین</option><option value="title" @selected(($filters['sort'] ?? '') === 'title')>عنوان</option></select></label>

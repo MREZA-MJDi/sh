@@ -1,7 +1,7 @@
 @extends('teacher.layouts.app')
 @section('title', 'جلسات با اولیا')
 @section('content')
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">ارتباط با خانواده</span><h1>جلسات با اولیا</h1><p>درخواست‌ها و زمان‌بندی جلسه‌های مربوط به کلاس‌های شما.</p></div></div>
+<x-portal.page-head icon="calendar" tone="communication" title="جلسات با اولیا"/>
 @php
     $requests = $meetings->getCollection()->whereIn('status', ['requested', 'proposed']);
     $scheduled = $meetings->getCollection()->where('status', 'scheduled');

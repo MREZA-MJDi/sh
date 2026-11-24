@@ -7,17 +7,11 @@
     $seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
 @endphp
 
-<div class="teacher-page-head">
-    <div>
-        <span class="teacher-eyebrow">محتوای آموزشی</span>
-        <h1>بارگذاری فیلم‌ها</h1>
-        <p>ویدئو فقط به دوره‌ها و کلاس‌های تخصیص‌یافته به شما متصل می‌شود. فایل‌ها در فضای خصوصی ذخیره و به‌صورت محلی پردازش می‌شوند؛ اتصال SpotPlayer موجود به API رسمی نیاز دارد.</p>
-    </div>
-</div>
+<x-portal.page-head icon="video" tone="education" title="بارگذاری فیلم‌ها"/>
 
 <div class="g g2">
     <section class="c">
-        <h2>ثبت ویدئوی جدید</h2>
+        <h2 class="portal-section-title"><x-portal.icon name="plus"/> ثبت ویدئوی جدید</h2>
         <form class="teacher-form" data-learning-scope method="POST" action="{{ route('teacher.spotplayer.videos.store') }}" enctype="multipart/form-data">
             @csrf
             <label>عنوان ویدئو</label>

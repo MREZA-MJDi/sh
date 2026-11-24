@@ -3,13 +3,7 @@
 @section('title', 'پروفایل و تصویر مدرس')
 
 @section('content')
-<div class="teacher-page-head">
-    <div>
-        <span class="teacher-eyebrow">حساب کاربری</span>
-        <h1>پروفایل و تصویر مدرس</h1>
-        <p>مشخصات فردی، حوزه تدریس و تصویر پرسنلی خود را ویرایش کنید.</p>
-    </div>
-</div>
+<x-portal.page-head icon="user" tone="education" title="پروفایل و تصویر مدرس"/>
 
  <div class="g g2">
     <section class="c">
