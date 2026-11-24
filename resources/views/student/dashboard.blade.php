@@ -17,6 +17,8 @@
   </div>
  </div>
 
+ @include('components.announcement-feed', ['announcements' => $announcements ?? collect()])
+
  <div class="stats">
   <a class="st s1" href="{{ url('student/live-classes') }}" id="classes">
    <div class="ic"><svg class="i"><use href="#i-video"/></svg></div>

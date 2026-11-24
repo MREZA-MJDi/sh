@@ -85,11 +85,6 @@ Route::middleware('guest')->group(function (): void {
         ->middleware('throttle:6,1')
         ->name('login.store');
 
-    // Production demo credentials require a separate session unlock secret.
-    Route::post('/login/demo-access', [SessionController::class, 'unlockDemoAccounts'])
-        ->middleware('throttle:3,1')
-        ->name('login.demo.unlock');
-
     Route::get('/register', [SessionController::class, 'register'])->name('register');
     Route::post('/register', [SessionController::class, 'storeRegistration'])
         ->middleware('throttle:3,1')
@@ -377,10 +372,12 @@ Route::middleware(['auth', 'role:teacher', 'permission:dashboard.view'])
         Route::patch('/meetings/{meeting}', [TeacherPortalController::class, 'updateMeeting'])->middleware('permission:classes.manage.assigned')->name('meetings.update');
         Route::get('/messages', [TeacherPortalController::class, 'messages'])->middleware('permission:messages.view.assigned')->name('messages.index');
         Route::post('/messages/{message}/reply', [TeacherPortalController::class, 'reply'])->middleware('permission:messages.reply')->name('messages.reply');
-        Route::middleware('permission:consultations.create')->group(function (): void {
-            Route::get('/consultations', [TeacherConsultationController::class, 'index'])->name('consultations.index');
-            Route::post('/consultations', [TeacherConsultationController::class, 'store'])->middleware('throttle:5,1')->name('consultations.store');
-        });
+        Route::get('/consultations', [TeacherConsultationController::class, 'index'])
+            ->middleware('permission:consultations.view.assigned,consultations.create')
+            ->name('consultations.index');
+        Route::post('/consultations', [TeacherConsultationController::class, 'store'])
+            ->middleware(['permission:consultations.create', 'throttle:5,1'])
+            ->name('consultations.store');
         Route::middleware('permission:messages.view.assigned')->group(function (): void {
             Route::get('/message-recipients', [TeacherMessageController::class, 'recipients'])->middleware('throttle:30,1')->name('messages.recipients');
             Route::get('/messages/create', [TeacherMessageController::class, 'create'])->name('messages.create');

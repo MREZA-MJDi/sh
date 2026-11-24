@@ -33,11 +33,7 @@ final class AcademicPortalContentSeeder extends Seeder
 {
     public function run(): void
     {
-        $productionDemoSeedEnabled = app()->environment('production')
-            && config('demo.enabled')
-            && config('demo.seed_academic_content');
-
-        if (! app()->environment(['local', 'testing']) && ! $productionDemoSeedEnabled) {
+        if (! app()->environment(['local', 'testing'])) {
             $this->command?->warn('داده‌های نمایشی فقط در محیط local و testing قابل ساخت هستند.');
 
             return;

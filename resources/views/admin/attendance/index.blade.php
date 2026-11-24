@@ -155,7 +155,7 @@
   @endif
 </x-admin.panel>
 
-<x-admin.panel title="نیازمند پیگیری غیبت" desc="دانش‌آموزانی با سابقه غیبت را بررسی کن و در صورت نیاز به ولی اطلاع بده." flush id="attendance-risk"> desc="دانش‌آموزانی که حداقل سه جلسه غیبت داشته‌اند در این فهرست مشخص می‌شوند." flush>
+<x-admin.panel title="نیازمند پیگیری غیبت" desc="دانش‌آموزانی با سابقه غیبت را بررسی کن و در صورت نیاز به ولی اطلاع بده." flush id="attendance-risk">
   @if(count($report))
     <div class="adm-attendance-report">
       @foreach ($report as [$studentId, $classroomId, $name, $className, $total, $absent])

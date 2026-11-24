@@ -19,12 +19,18 @@ final class ConsultationRequestNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
+        $isParentRequest = $this->consultation->requester?->hasRole('parent') ?? false;
+
         return [
-            'title' => 'درخواست جدید مدرس: '.$this->consultation->topic,
-            'message' => 'درخواست هماهنگی همراه با تاریخ و ساعت پیشنهادی در کارتابل مشاوره ثبت شده است.',
+            'title' => 'درخواست مشاوره جدید: '.$this->consultation->topic,
+            'message' => $isParentRequest
+                ? 'ولی دانش‌آموز درخواست مشاوره ثبت کرده است.'
+                : 'درخواست هماهنگی همراه با تاریخ و ساعت پیشنهادی ثبت شده است.',
             'consultation_id' => $this->consultation->id,
             'status' => $this->consultation->status,
-            'url' => route('admin.consultations.index'),
+            'url' => $notifiable->hasRole('teacher')
+                ? route('teacher.consultations.index')
+                : route('admin.consultations.index'),
         ];
     }
 }

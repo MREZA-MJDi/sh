@@ -14,11 +14,15 @@
                 @endforeach
             </select>
             <label>کلاس مرتبط</label>
-            <select name="classroom_id">
-                <option value="">بدون انتخاب کلاس</option>
-                @foreach (($classrooms ?? []) as $classroom)
-                    <option value="{{ $classroom->id }}" @selected((string) old('classroom_id') === (string) $classroom->id)>{{ $classroom->name }}</option>
-                @endforeach
+            <select name="classroom_id" {{ ($classrooms ?? collect())->isNotEmpty() ? 'required' : '' }}>
+                @if (($classrooms ?? collect())->isEmpty())
+                    <option value="">بدون کلاس فعال</option>
+                @else
+                    <option value="" @selected(! old('classroom_id') && $classrooms->count() > 1)>انتخاب کلاس مرتبط</option>
+                    @foreach ($classrooms as $classroom)
+                        <option value="{{ $classroom->id }}" @selected((string) old('classroom_id', $classrooms->count() === 1 ? $classrooms->first()->id : '') === (string) $classroom->id)>{{ $classroom->name }}</option>
+                    @endforeach
+                @endif
             </select>
             <label>موضوع جلسه</label>
             <input name="title" value="{{ old('title') }}" required minlength="3" maxlength="180" placeholder="موضوع درخواست">

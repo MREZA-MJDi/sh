@@ -68,13 +68,20 @@ final class ParentMeetingController extends Controller
             ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'student'))
             ->firstOrFail();
 
-        $classroom = null;
-        if (! empty($data['classroom_id'])) {
-            $classroom = Classroom::query()
-                ->whereKey($data['classroom_id'])
-                ->where('status', 'active')
-                ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-                ->firstOrFail();
+        $availableClassrooms = Classroom::query()
+            ->where('status', 'active')
+            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id));
+
+        if (filled($data['classroom_id'] ?? null)) {
+            $classroom = (clone $availableClassrooms)->findOrFail($data['classroom_id']);
+        } else {
+            $classroomOptions = (clone $availableClassrooms)->orderBy('id')->get();
+            abort_if(
+                $classroomOptions->count() > 1,
+                422,
+                'برای ارسال درخواست، کلاس مرتبط با فرزندتان را انتخاب کنید.'
+            );
+            $classroom = $classroomOptions->first();
         }
 
         $meeting = ParentMeeting::query()->create([
@@ -94,6 +101,10 @@ final class ParentMeetingController extends Controller
             ->orderBy('id')
             ->chunkById(100, fn ($admins) => Notification::send($admins, $notification));
         $student->notify(new ParentMeetingNotification($meeting, 'ولی شما درخواست جلسه‌ای را برای بررسی آموزشگاه ثبت کرده است.'));
+        $classroom?->teacher?->notify(new ParentMeetingNotification(
+            $meeting,
+            'ولی یکی از دانش‌آموزان کلاس شما درخواست جلسه ثبت کرده است.'
+        ));
 
         return redirect()->route('guardian.meetings.index', ['child' => $student->id])->with('success', 'درخواست جلسه برای بررسی آموزشگاه ثبت شد.');
     }

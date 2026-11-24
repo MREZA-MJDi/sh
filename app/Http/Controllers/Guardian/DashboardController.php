@@ -205,6 +205,10 @@ final class DashboardController extends Controller
                 'due' => $item->due_at ? JalaliDate::format($item->due_at, true) : 'بدون مهلت',
                 'status' => $submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار'),
                 'tone' => $submission ? ($late ? 'am' : 'gn') : ($missing ? 'rd' : 'bl'),
+                'score' => $submission?->score,
+                'feedback' => $submission?->feedback,
+                'reviewed_at' => $submission?->reviewed_at ? JalaliDate::format($submission->reviewed_at, true) : null,
+                'reviewer' => $submission?->reviewer?->name,
             ];
         });
 

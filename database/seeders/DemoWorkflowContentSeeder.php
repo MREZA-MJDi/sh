@@ -37,12 +37,7 @@ final class DemoWorkflowContentSeeder extends Seeder
 {
     public function run(): void
     {
-        $enabled = app()->environment(['local', 'testing'])
-            || (app()->environment('production')
-                && config('demo.enabled')
-                && config('demo.seed_academic_content'));
-
-        if (! $enabled) {
+        if (! app()->environment(['local', 'testing'])) {
             return;
         }
 

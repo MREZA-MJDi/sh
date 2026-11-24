@@ -148,6 +148,24 @@ final class ParentMeetingController extends Controller
             'status' => $isTeacher ? 'proposed' : 'scheduled',
         ]);
 
+        if ($isTeacher) {
+            User::query()
+                ->where('is_active', true)
+                ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+                ->orderBy('id')
+                ->chunkById(100, fn ($admins) => $admins->each(
+                    fn (User $admin) => $admin->notify(new ParentMeetingNotification(
+                        $meeting,
+                        'مدرس پیشنهاد جلسه جدیدی برای بررسی ثبت کرده است.'
+                    ))
+                ));
+        } else {
+            $classroom?->teacher?->notify(new ParentMeetingNotification(
+                $meeting,
+                'مدیر آموزشگاه جلسه جدیدی برای کلاس شما زمان‌بندی کرده است.'
+            ));
+        }
+
         $guardian->notify(new ParentMeetingNotification($meeting, $isTeacher
             ? 'مدرس برای گفت‌وگو درباره وضعیت آموزشی فرزند پیشنهاد جلسه ثبت کرده است.'
             : 'جلسه‌ای برای شما و فرزندتان زمان‌بندی شده است.'));
@@ -160,44 +178,47 @@ final class ParentMeetingController extends Controller
             : 'جلسه با موفقیت برای ولی دانش‌آموز زمان‌بندی شد.');
     }
 
-    public function updateStatus(Request $request, int $meeting, ClassroomWorkspaceService $workspace): RedirectResponse
+    public function updateStatus(Request $request, int $meeting): RedirectResponse
     {
         abort_unless($request->user()->hasRole('admin'), 403);
 
-        $record = ParentMeeting::query()
-            ->when($workspace->isTeacher($request->user()), fn (Builder $query) => $query->whereIn(
-                'classroom_id',
-                $workspace->queryFor($request->user())->select('classrooms.id')
-            ))
-            ->findOrFail($meeting);
+        $record = ParentMeeting::query()->findOrFail($meeting);
+        $isPending = in_array($record->status, ['requested', 'proposed'], true);
+        $isScheduling = $request->input('status') === 'scheduled'
+            && ($isPending || $record->status === 'scheduled');
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled', 'declined'])],
-            'starts_at' => ['nullable', 'date', Rule::requiredIf(fn () => in_array($record->status, ['requested', 'proposed'], true) && $request->input('status') === 'scheduled'), 'after:now'],
-            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'starts_at' => [Rule::excludeIf(! $isScheduling), 'required', 'date', 'after:now'],
+            'ends_at' => [Rule::excludeIf(! $isScheduling), 'nullable', 'date', 'after:starts_at'],
         ]);
 
-        if (in_array($record->status, ['requested', 'proposed'], true)) {
+        if ($isPending) {
             abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
-            if ($data['status'] === 'scheduled') {
-                abort_unless(filled($data['starts_at'] ?? null), 422, 'زمان جلسه را مشخص کنید.');
-            }
+        } elseif ($record->status === 'scheduled') {
+            abort_unless(in_array($data['status'], ['scheduled', 'completed', 'cancelled'], true), 422);
         } else {
-            abort_unless(in_array($data['status'], ['completed', 'cancelled'], true), 422, 'وضعیت این جلسه قابل تغییر نیست.');
+            abort(422, 'وضعیت این جلسه قابل تغییر نیست.');
         }
 
         $record->update([
             'status' => $data['status'],
-            'starts_at' => $data['starts_at'] ?? $record->starts_at,
-            'ends_at' => $data['ends_at'] ?? $record->ends_at,
+            'starts_at' => $data['starts_at'] ?? $record->starts_at ?? $record->preferred_at,
+            'ends_at' => array_key_exists('ends_at', $data)
+                ? $data['ends_at']
+                : ($isScheduling && isset($data['starts_at']) ? null : $record->ends_at),
             'responded_by' => $request->user()->id,
             'responded_at' => now(),
         ]);
 
-        $record->loadMissing(['guardian', 'student']);
+        $record->loadMissing(['guardian', 'student', 'classroom.teacher']);
         $notification = new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.');
         $record->guardian?->notify($notification);
         $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
+        $record->classroom?->teacher?->notify(new ParentMeetingNotification(
+            $record,
+            'وضعیت جلسه یکی از دانش‌آموزان کلاس شما تغییر کرد.'
+        ));
 
         return back()->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }

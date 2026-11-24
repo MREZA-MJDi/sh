@@ -49,13 +49,38 @@ class ConsultationController extends Controller
     public function update(UpdateConsultationRequest $request, Consultation $consultation): RedirectResponse
     {
         $data = $request->validated();
-        $data['status'] = match ($data['status']) {
+        $nextStatus = match ($data['status']) {
             'approved' => 'scheduled',
             'completed' => 'done',
             default => $data['status'],
         };
+        $currentStatus = match ($consultation->status) {
+            'approved' => 'scheduled',
+            'completed' => 'done',
+            default => $consultation->status,
+        };
 
-        $consultation->update($data + ['handled_by' => auth()->id()]);
+        $allowedTransitions = match ($currentStatus) {
+            'pending' => ['pending', 'scheduled', 'cancelled'],
+            'scheduled' => ['scheduled', 'done', 'cancelled'],
+            'done' => ['done'],
+            'cancelled' => ['cancelled'],
+            default => [],
+        };
+
+        abort_unless(in_array($nextStatus, $allowedTransitions, true), 422, 'وضعیت این درخواست قابل تغییر نیست.');
+
+        $updates = [
+            'status' => $nextStatus,
+            'handled_by' => auth()->id(),
+        ];
+        if (array_key_exists('scheduled_at', $data)) {
+            $updates['scheduled_at'] = $data['scheduled_at'];
+        }
+        if (array_key_exists('notes', $data)) {
+            $updates['notes'] = $data['notes'];
+        }
+        $consultation->update($updates);
 
         return back()->with('success', 'وضعیت درخواست مشاوره به‌روزرسانی شد.');
     }

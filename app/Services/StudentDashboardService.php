@@ -210,10 +210,7 @@ final class StudentDashboardService
             ->where('student_id', $student->id)
             ->count();
 
-        $announcementCount = Announcement::query()
-            ->where('status', 'published')
-            ->whereIn('audience', ['all', 'students'])
-            ->count();
+        $announcements = app(AnnouncementFeed::class)->forAudience('students', $student, 4);
 
         return [
             'classroom_count' => $classroomCount,
@@ -221,7 +218,8 @@ final class StudentDashboardService
             'homework_count' => $homeworkCount,
             'pending_homework_count' => $pendingHomeworkCount,
             'result_count' => $resultCount,
-            'announcement_count' => $announcementCount,
+            'announcements' => $announcements,
+            'announcement_count' => $announcements->count(),
         ];
     }
 

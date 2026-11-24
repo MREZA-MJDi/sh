@@ -1,36 +1,39 @@
-// Conditional fields: <div data-show-if="access=paid"> … </div>   (several values: "type=book|product")
+// Conditional fields: <div data-show-if="access=paid"> … </div>
+// Multiple accepted values: "type=book|product".
+
 export function syncReveal(form) {
+  if (!(form instanceof HTMLFormElement)) return;
+
   const data = new FormData(form);
-  form.querySelectorAll('[data-show-if]').forEach((el) => {
-    const [name, values] = el.dataset.showIf.split('=');
-    const current = [...data.getAll(name), ...data.getAll(`${name}[]`)].map(String);
-    el.classList.toggle('adm-hide', !values.split('|').some((v) => current.includes(v)));
+
+  form.querySelectorAll('[data-show-if]').forEach((element) => {
+    const [name, values = ''] = element.dataset.showIf.split('=');
+    const selectedValues = [
+      ...data.getAll(name),
+      ...data.getAll(`${name}[]`),
+    ].map(String);
+
+    const shouldShow = values
+      .split('|')
+      .some((value) => selectedValues.includes(value));
+
+    element.classList.toggle('adm-hide', !shouldShow);
   });
 }
 
-document.addEventListener('change', (e) => { const f = e.target.closest('form'); if (f) syncReveal(f); });
+// Admin pages are server-rendered. Keep their content visible from the first
+// paint; progressive enhancement must never hide the page while JS initializes.
+const handleConditionalFields = (event) => {
+  const target = event.target;
+
+  if (!(target instanceof Element)) return;
+
+  const form = target.closest('form');
+
+  if (form) syncReveal(form);
+};
+
+document.addEventListener('change', handleConditionalFields);
+
+// Vite loads this module as a deferred module after the document has been parsed.
 document.querySelectorAll('form').forEach(syncReveal);
-
-
-// Subtle, one-time entrance motion for cards and work queues across admin pages.
-const revealTargets = document.querySelectorAll(
-  '.adm-stat, .adm-panel, .adm-card, .adm-work-item, .adm-communication-item, .adm-online-card',
-);
-const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-
-if (!reduceMotion && 'IntersectionObserver' in window) {
-  const revealObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.remove('adm-reveal-pending');
-      entry.target.classList.add('adm-reveal-visible');
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -24px 0px' });
-
-  revealTargets.forEach((element, index) => {
-    element.classList.add('adm-reveal-pending');
-    element.style.setProperty('--adm-reveal-delay', `${Math.min(index % 6, 5) * 38}ms`);
-    revealObserver.observe(element);
-  });
-}

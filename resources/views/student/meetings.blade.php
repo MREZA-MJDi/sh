@@ -20,7 +20,7 @@
                 <div>
                     <b>{{ $meeting->title }}</b>
                     <span>{{ $meeting->guardian?->name ?? 'ولی دانش‌آموز' }} · {{ $meeting->classroom?->name ?? 'جلسه مستقل' }}</span>
-                    <span>{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y/m/d H:i') ?? 'زمان تعیین نشده' }}</span>
+                    <span>{{ ($meeting->starts_at ?? $meeting->preferred_at) ? \App\Support\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</span>
                     @if($meeting->message)<p>{{ $meeting->message }}</p>@endif
                 </div>
                 <span class="tag {{ $status[0] }}">{{ $status[1] }}</span>

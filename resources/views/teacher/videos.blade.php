@@ -50,7 +50,7 @@
                 @foreach($classrooms as $classroom)
                     @foreach($classroom->sessions as $session)
                         <option value="{{ $session->id }}" @selected((string) old('class_session_id') === (string) $session->id) data-classroom-id="{{ $classroom->id }}">
-                            {{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}
+                            {{ $session->title ?: $classroom->name }} · {{ ($session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—') }}
                         </option>
                     @endforeach
                 @endforeach
@@ -108,7 +108,7 @@
                 @foreach($classrooms as $classroom)
                     @foreach($classroom->sessions as $session)
                         <option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">
-                            {{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}
+                            {{ $session->title ?: $classroom->name }} · {{ ($session->starts_at ? \App\Support\PersianDate::format($session->starts_at, 'Y/m/d H:i') : '—') }}
                         </option>
                     @endforeach
                 @endforeach

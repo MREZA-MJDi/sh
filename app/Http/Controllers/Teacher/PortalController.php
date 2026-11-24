@@ -389,35 +389,54 @@ final class PortalController extends Controller
             ->whereIn('classroom_id', $workspace->queryFor($request->user())->select('classrooms.id'))
             ->findOrFail($meeting);
 
+        $isPending = in_array($record->status, ['requested', 'proposed'], true);
+        $isScheduling = in_array($request->input('status'), ['scheduled'], true)
+            && ($isPending || $record->status === 'scheduled');
+
         $data = $request->validate([
             'status' => ['required', Rule::in(['scheduled', 'declined', 'cancelled', 'completed'])],
-            'starts_at' => ['nullable', 'date', 'after:now', Rule::requiredIf(fn () => in_array($record->status, ['requested', 'proposed'], true) && $request->input('status') === 'scheduled')],
-            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'starts_at' => [Rule::excludeIf(! $isScheduling), 'required', 'date', 'after:now'],
+            'ends_at' => [Rule::excludeIf(! $isScheduling), 'nullable', 'date', 'after:starts_at'],
         ]);
 
-        if (in_array($record->status, ['requested', 'proposed'], true)) {
+        if ($isPending) {
             abort_unless(in_array($data['status'], ['scheduled', 'declined', 'cancelled'], true), 422);
-            if ($data['status'] === 'scheduled') {
-                abort_unless(filled($data['starts_at'] ?? null), 422, 'برای تأیید جلسه باید زمان مشخص شود.');
-            }
+        } elseif ($record->status === 'scheduled') {
+            abort_unless(in_array($data['status'], ['scheduled', 'completed', 'cancelled'], true), 422);
         } else {
-            abort_unless($record->status === 'scheduled' && in_array($data['status'], ['completed', 'cancelled'], true), 422);
+            abort(422, 'وضعیت این جلسه قابل تغییر نیست.');
         }
 
         $record->update([
             'status' => $data['status'],
             'starts_at' => $data['starts_at'] ?? $record->starts_at ?? $record->preferred_at,
-            'ends_at' => $data['ends_at'] ?? $record->ends_at,
+            'ends_at' => array_key_exists('ends_at', $data)
+                ? $data['ends_at']
+                : ($isScheduling && isset($data['starts_at']) ? null : $record->ends_at),
             'responded_by' => $request->user()->id,
             'responded_at' => now(),
         ]);
 
         $record->loadMissing(['guardian', 'student']);
-        $message = $data['status'] === 'scheduled'
-            ? 'درخواست جلسه شما توسط مدرس تأیید شد.'
-            : ($data['status'] === 'declined' ? 'درخواست جلسه شما توسط مدرس رد شد.' : 'وضعیت جلسه شما به‌روزرسانی شد.');
+        $message = match ($data['status']) {
+            'scheduled' => $isPending
+                ? 'درخواست جلسه شما توسط مدرس تأیید شد.'
+                : 'زمان جلسه شما توسط مدرس تغییر کرد.',
+            'declined' => 'درخواست جلسه شما توسط مدرس رد شد.',
+            default => 'وضعیت جلسه شما به‌روزرسانی شد.',
+        };
         $record->guardian?->notify(new ParentMeetingNotification($record, $message));
         $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
+        User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+            ->orderBy('id')
+            ->chunkById(100, fn ($admins) => $admins->each(
+                fn (User $admin) => $admin->notify(new ParentMeetingNotification(
+                    $record,
+                    'وضعیت جلسه توسط مدرس به‌روزرسانی شد.'
+                ))
+            ));
 
         return redirect()->route('teacher.meetings')->with('success', 'وضعیت جلسه به‌روزرسانی شد.');
     }

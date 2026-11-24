@@ -19,4 +19,12 @@ final class TeacherTopbarInteractionAssetsTest extends TestCase
         self::assertStringNotContainsString('var paletteButtons = $(\'[data-pal]\');', $script);
         self::assertStringNotContainsString('var topbarMenus = $(\'.teacher-menu\');', $script);
     }
+
+    public function test_teacher_form_lock_preserves_the_clicked_submitter(): void
+    {
+        $script = file_get_contents(resource_path('js/teacher/teacher.js'));
+
+        self::assertIsString($script);
+        self::assertStringContainsString('if (button !== e.submitter) button.disabled = true;', $script);
+    }
 }
