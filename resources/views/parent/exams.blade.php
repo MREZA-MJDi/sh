@@ -20,7 +20,7 @@
                 <i class="bd pk">{{ $result->score }} از {{ $result->max_score }}</i>
             </div>
         @empty
-            <div class="parent-empty-state"><strong>هنوز نتیجه‌ای برای نمایش وجود ندارد.</strong><span>نتایج پس از ثبت و تأیید مدرس در این بخش قرار می‌گیرند.</span></div>
+            <x-portal.empty-state icon="file" tone="tracking" title="هنوز نتیجه‌ای برای نمایش وجود ندارد." description="نتایج پس از ثبت و تأیید مدرس در این بخش قرار می‌گیرند."/>
         @endforelse
         <div class="parent-pagination">{{ $results->links() }}</div>
     </section>
