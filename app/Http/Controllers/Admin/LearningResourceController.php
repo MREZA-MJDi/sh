@@ -110,7 +110,9 @@ class LearningResourceController extends Controller
         $resource = $resources->create($request->validated(), $request->user());
         $statusLabel = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی‌شده'][$resource->status] ?? $resource->status;
 
-        return redirect()->route('admin.resources.index')->with('success', 'منبع «'.$resource->title.'» ذخیره شد. وضعیت: '.$statusLabel);
+        $route = $request->user()->hasRole('admin') ? 'admin.resources.index' : 'teacher.resources';
+
+        return redirect()->route($route)->with('success', 'منبع «'.$resource->title.'» ذخیره شد. وضعیت: '.$statusLabel);
     }
 
     public function update(
