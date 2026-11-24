@@ -68,9 +68,10 @@ final class ClientAcceptanceSeeder extends Seeder
         }
 
         $pdfPath = 'private/resources/qa-acceptance-'.Str::uuid().'.pdf';
+        $productPath = 'private/resources/qa-acceptance-'.Str::uuid().'.pdf';
         $disk = Storage::disk('local');
         try {
-            DB::transaction(function () use ($password, $roles, $admin, $disk, $pdfPath): void {
+            DB::transaction(function () use ($password, $roles, $admin, $disk, $pdfPath, $productPath): void {
                 $grade = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->firstOrFail();
                 $account = function (string $key, string $name, string $role) use ($password, $roles, $grade): User {
                     $user = User::query()->create([
@@ -252,6 +253,16 @@ final class ClientAcceptanceSeeder extends Seeder
                             'kind' => 'pdf', 'is_free' => true, 'price' => 0, 'visibility' => 'enrolled',
                             'downloadable' => true, 'file_path' => $pdfPath, 'status' => 'published',
                         ]);
+                        if (! $disk->put($productPath, $this->samplePdf())) {
+                            throw new RuntimeException('Could not write private QA product PDF.');
+                        }
+                        LearningResource::query()->create([
+                            'course_id' => $course->id, 'classroom_id' => $class->id,
+                            'uploaded_by' => $teacher->id, 'title' => 'آزمایشی | کتاب تمرین پولی',
+                            'description' => 'محصول نمونه برای بررسی خرید و عدم دریافت بدون تایید پرداخت.',
+                            'kind' => 'pdf', 'is_free' => false, 'price' => 25000, 'visibility' => 'enrolled',
+                            'downloadable' => true, 'file_path' => $productPath, 'status' => 'published',
+                        ]);
                         SpotPlayerVideo::query()->create([
                             'course_id' => $course->id, 'classroom_id' => $class->id,
                             'created_by' => $teacher->id, 'title' => 'آزمایشی | نمونه بدون فایل',
@@ -277,7 +288,7 @@ final class ClientAcceptanceSeeder extends Seeder
                 ]);
             });
         } catch (Throwable $exception) {
-            $disk->delete($pdfPath);
+            $disk->delete([$pdfPath, $productPath]);
             throw $exception;
         }
 
