@@ -1,7 +1,7 @@
 @props(['course'])
 
 @php($coverImageUrl = $course->coverImageUrl ?: $course->teaserPosterUrl)
-@php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
+@php($seasonLabels = \App\Models\Course::SEASONS)
 
 <a class="ac-card ac-course" href="{{ route('public.courses.show', $course->slug) }}" aria-label="مشاهده دوره {{ $course->title }}">
     <div class="ac-course-cover">
@@ -17,7 +17,7 @@
                 <span class="ac-pill">پایه {{ $course->grade }}</span>
             @endif
             @if($course->season && isset($seasonLabels[$course->season]))
-                <span class="ac-pill">{{ $seasonLabels[$course->season] }}</span>
+                <span class="ac-pill">{{ $seasonLabels[$course->season] }} @if($course->academic_year) · {{ $course->academic_year }} @endif</span>
             @endif
             @if($course->type === 'free')
                 <span class="ac-pill">رایگان</span>
