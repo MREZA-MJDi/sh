@@ -107,9 +107,10 @@ class LearningResourceController extends Controller
         StoreLearningResourceRequest $request,
         LearningResourceService $resources
     ): RedirectResponse {
-        $resources->create($request->validated(), $request->user());
+        $resource = $resources->create($request->validated(), $request->user());
+        $statusLabel = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی‌شده'][$resource->status] ?? $resource->status;
 
-        return back()->with('success', 'منبع آموزشی در فضای خصوصی شیخان ذخیره شد.');
+        return redirect()->route('admin.resources.index')->with('success', 'منبع «'.$resource->title.'» ذخیره شد. وضعیت: '.$statusLabel);
     }
 
     public function update(
@@ -138,16 +139,15 @@ class LearningResourceController extends Controller
     public function verifyPurchase(Request $request, ResourcePurchase $purchase): RedirectResponse
     {
         abort_unless($request->user()->hasRole('admin'), 403);
-        abort_unless($purchase->status === 'pending_review', 422, 'این درخواست خرید قبلاً تعیین تکلیف شده است.');
-
-        $purchase->update([
+        $changed = ResourcePurchase::query()->whereKey($purchase->id)->where('status', 'pending_review')->update([
             'status' => 'paid',
             'verified_by' => $request->user()->id,
             'verified_at' => now(),
             'paid_at' => now(),
         ]);
 
-        $purchase->loadMissing('student');
+        abort_unless($changed === 1, 422, 'این درخواست خرید قبلاً تعیین تکلیف شده است.');
+        $purchase->refresh()->loadMissing('student');
         $purchase->student?->notify(new \App\Notifications\ResourcePurchaseNotification(
             $purchase,
             'پرداخت شما تأیید شد و دسترسی به محصول فعال است.'
