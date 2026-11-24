@@ -1,1 +1,16 @@
-/* Reserved for shared role-dashboard primitives. Student, parent and teacher portals intentionally keep their own design systems. */
+/* Shared portal primitives; role-specific layouts keep their existing styles. */
+.portal-empty-state {
+  --state-accent: var(--bl,#345aa5);
+  display:grid;justify-items:center;gap:8px;padding:24px 16px;
+  border:1px dashed var(--ln,var(--panel-b));border-radius:14px;
+  text-align:center;color:var(--mu,var(--muted));line-height:1.8;
+  overflow-wrap:anywhere;
+}
+.portal-empty-state[data-tone="tracking"]{--state-accent:var(--am,#a66c17)}
+.portal-empty-state[data-tone="communication"]{--state-accent:var(--pk,#a34e83)}
+.portal-empty-state[data-tone="commerce"]{--state-accent:var(--gn,#16895a)}
+.portal-state-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:13px;color:var(--state-accent);background:color-mix(in srgb,var(--state-accent) 13%,transparent)}
+.portal-state-icon svg{width:24px;height:24px}
+.portal-empty-state strong{font-size:14px;color:var(--tx,var(--text));font-weight:700}
+.portal-empty-state p{margin:0;max-width:42ch;font-size:13px}
+.portal-state-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:4px}
