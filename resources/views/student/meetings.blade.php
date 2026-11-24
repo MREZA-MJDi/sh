@@ -19,14 +19,14 @@
             <div class="trk">
                 <div>
                     <b>{{ $meeting->title }}</b>
-                    <span>{{ $meeting->guardian?->name ?? 'ولی دانش‌آموز' }} · {{ $meeting->classroom?->name ?? 'جلسه مستقل' }}</span>
+                    <span>{{ $meeting->audience === 'classroom' ? 'جلسه سراسری اولیا' : ($meeting->guardian?->name ?? 'ولی دانش‌آموز') }} · {{ $meeting->classroom?->name ?? 'جلسه مستقل' }}</span>
                     <span>{{ ($meeting->starts_at ?? $meeting->preferred_at) ? \App\Support\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</span>
                     @if($meeting->message)<p>{{ $meeting->message }}</p>@endif
                 </div>
                 <span class="tag {{ $status[0] }}">{{ $status[1] }}</span>
             </div>
         @empty
-            <p>جلسه‌ای برای شما ثبت نشده است.</p>
+            <x-portal.empty-state icon="calendar" tone="communication" title="جلسه‌ای برای شما ثبت نشده است." description="جلسات هماهنگ‌شده با خانواده در همین بخش دیده می‌شوند."/>
         @endforelse
         {{ $meetings->links() }}
     </div>
