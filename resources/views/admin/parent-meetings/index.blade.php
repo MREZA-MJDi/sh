@@ -27,7 +27,7 @@
       @forelse($meetings as $meeting)
         <tr id="parent-meeting-{{ $meeting->id }}">
           <td><b>{{ $meeting->title }}</b><small>{{ \Illuminate\Support\Str::limit($meeting->message, 100) }}</small></td>
-          <td>{{ $meeting->student?->name ?? '—' }}<small>ولی: {{ $meeting->guardian?->name ?? '—' }}</small></td>
+          <td>@if($meeting->audience === 'classroom')<x-admin.badge tone="info">جلسه سراسری کلاس</x-admin.badge>@else{{ $meeting->student?->name ?? '—' }}<small>ولی: {{ $meeting->guardian?->name ?? '—' }}</small>@endif</td>
           <td>{{ $meeting->classroom?->name ?? 'بدون کلاس' }}<small>{{ $meeting->course?->title ?? '—' }}</small></td>
           <td>{{ ($meeting->starts_at ? \App\Support\PersianDate::format($meeting->starts_at, 'Y/m/d H:i') : 'زمان تعیین نشده') }}<small>{{ ($meeting->ends_at ? \App\Support\PersianDate::format($meeting->ends_at, 'H:i') : '') }}</small></td>
           <td><x-admin.badge :tone="in_array($meeting->status, ['completed', 'scheduled'], true) ? 'ok' : 'warn'">{{ $statusLabels[$meeting->status] ?? $meeting->status }}</x-admin.badge></td>
@@ -91,6 +91,7 @@
   if (!guardians.length && student.value) status.textContent = 'برای این دانش‌آموز ولی فعال ثبت نشده است.';
  };
  const search = async () => {
+  if (document.querySelector('#parent-meeting-audience')?.value === 'classroom') return;
   const query = input.value.trim();
   if (query.length < 2) {
    status.textContent = 'برای جستجو حداقل دو حرف وارد کنید.';
@@ -115,6 +116,7 @@
    });
    const payload = await response.json();
    if (!response.ok) throw new Error(payload.message || 'جستجوی دانش‌آموزان انجام نشد.');
+   if (document.querySelector('#parent-meeting-audience')?.value === 'classroom') return;
    (payload.data || []).forEach((item) => {
     const option = new Option(item.name, item.id);
     option.dataset.guardians = JSON.stringify(item.guardians || []);
@@ -126,7 +128,7 @@
   } catch (error) {
    status.textContent = error.message || 'خطا در جستجوی دانش‌آموز.';
   } finally {
-   button.disabled = false;
+   button.disabled = document.querySelector('#parent-meeting-audience')?.value === 'classroom';
   }
  };
 
@@ -140,6 +142,26 @@
   status.textContent = 'کلاس تغییر کرد؛ دوباره دانش‌آموز را جستجو کنید.';
  });
  guardian.disabled = true;
+ const audience = document.querySelector('#parent-meeting-audience');
+ const fields = document.querySelector('#parent-meeting-individual-fields');
+ const syncAudience = () => {
+  const group = audience?.value === 'classroom';
+  if (fields) fields.hidden = group;
+  if (classroom) classroom.required = group || button.dataset.requiresClass === '1';
+  input.disabled = group;
+  button.disabled = group;
+  student.disabled = group;
+  student.required = !group;
+  guardian.required = !group;
+  if (group) {
+   reset();
+   guardian.disabled = true;
+  } else {
+   guardian.disabled = !student.value;
+  }
+ };
+ audience?.addEventListener('change', syncAudience);
+ syncAudience();
 })();
 </script>
 @endpush
@@ -147,12 +169,17 @@
 @push('modals')
 <x-admin.modal :demo="false" id="parent-meeting-modal" title="ثبت جلسه با ولی" size="lg" :action="route('admin.parent-meetings.store')">
   <x-admin.legend title="افراد و موضوع جلسه"/>
+  @if(!$isTeacher)
+    <x-admin.select id="parent-meeting-audience" label="نوع جلسه" name="audience" :options="['individual'=>'جلسه فردی', 'classroom'=>'جلسه سراسری اولیای کلاس']" :selected="old('audience', 'individual')" required/>
+  @endif
   <x-admin.select id="parent-meeting-classroom" label="کلاس مرتبط" name="classroom_id" :options="$classOptions" :required="$isTeacher" placeholder="بدون کلاس / جلسه مستقل"/>
+  <div id="parent-meeting-individual-fields" class="wide adm-stack">
   <x-admin.input id="parent-meeting-student-search" label="جستجوی دانش‌آموز" name="student_search" type="search" wide placeholder="نام یا شماره تماس را وارد کنید"/>
   <button type="button" class="adm-btn adm-btn-line" data-parent-meeting-search data-endpoint="{{ route('admin.parent-meetings.lookup') }}" data-requires-class="{{ $isTeacher ? '1' : '0' }}">جستجو</button>
   <p class="adm-muted" data-parent-meeting-status aria-live="polite">برای نمایش دانش‌آموزان، حداقل دو حرف جستجو کنید.</p>
   <x-admin.select id="parent-meeting-student" label="دانش‌آموز" name="student_id" :options="[]" required placeholder="ابتدا جستجو و انتخاب کنید"/>
   <x-admin.select id="parent-meeting-guardian" label="ولی دانش‌آموز" name="guardian_id" :options="[]" required placeholder="ابتدا دانش‌آموز را انتخاب کنید"/>
+  </div>
   <x-admin.input label="موضوع جلسه" name="title" wide required/>
   <x-admin.textarea label="توضیحات" name="message" wide/>
   <x-admin.legend title="زمان‌بندی"/>
