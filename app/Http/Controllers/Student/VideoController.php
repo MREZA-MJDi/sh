@@ -55,6 +55,23 @@ final class VideoController extends Controller
     {
         $recording = $this->findAccessibleVideo($request->user(), $video, $access);
 
+        $privacyHeaders = [
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'same-origin',
+            'Cross-Origin-Resource-Policy' => 'same-origin',
+            'X-Robots-Tag' => 'noindex, nofollow',
+        ];
+
+        // Fetch Metadata is a browser-level deterrent, not DRM or authentication.
+        // Keep compatibility with older browsers that omit these headers.
+        if ($request->header('Sec-Fetch-Mode') === 'navigate'
+            || in_array($request->header('Sec-Fetch-Dest'), ['document', 'iframe', 'frame', 'object', 'embed'], true)
+            || in_array($request->header('Sec-Fetch-Site'), ['cross-site', 'same-site'], true)) {
+            return response('برای تماشای ویدیو از پلیر دوره استفاده کنید.', 403, $privacyHeaders);
+        }
+
         if (
             $recording->status !== 'active'
             || blank($recording->file_path)
@@ -64,12 +81,7 @@ final class VideoController extends Controller
             return response(
                 'پخش این فایل تا زمان آماده‌شدن منبع ویدیو فعال نیست.',
                 409,
-                [
-                    'Cache-Control' => 'private, no-store, max-age=0',
-                    'Pragma' => 'no-cache',
-                    'X-Content-Type-Options' => 'nosniff',
-                    'Referrer-Policy' => 'same-origin',
-                ]
+                $privacyHeaders
             );
         }
 
@@ -87,10 +99,8 @@ final class VideoController extends Controller
         $headers = [
             'Content-Type' => $mimeType,
             'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'private, no-store, max-age=0',
-            'Pragma' => 'no-cache',
-            'X-Content-Type-Options' => 'nosniff',
-            'Referrer-Policy' => 'same-origin',
+            'Content-Disposition' => 'inline',
+            ...$privacyHeaders,
         ];
 
         // PHP authorizes the request; Nginx sends the bytes and handles ranges.

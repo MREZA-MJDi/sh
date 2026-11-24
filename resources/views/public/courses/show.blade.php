@@ -126,7 +126,7 @@
         <div>
             {{-- تیزر عمومی دوره؛ فقط خروجی پردازش‌شده منتشر می‌شود --}}
             @if ($course->teaser_status === 'ready' && $course->teaser_url)
-                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
+                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload" playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
                     <source src="{{ $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>

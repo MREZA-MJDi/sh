@@ -21,6 +21,12 @@ import '../shared/iranian-locale.js';
     if (c && !window.confirm(c.getAttribute('data-confirm'))) e.preventDefault();
   });
 
+  // Only suppress the ordinary save-video context menu on the protected player.
+  // Other page elements retain their normal browser context menu.
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.closest('video[data-protected-video]')) e.preventDefault();
+  });
+
   /* تم تیره/روشن */
   var root = document.documentElement, tg = $('#themeToggle');
   if (tg) tg.addEventListener('click', function () {
