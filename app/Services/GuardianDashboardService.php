@@ -282,8 +282,7 @@ final class GuardianDashboardService
             ->get();
 
         $meetings = ParentMeeting::query()
-            ->where('guardian_id', $guardian->id)
-            ->where('student_id', $student->id)
+            ->forGuardian($guardian->id, $student->id)
             ->with(['classroom:id,name', 'course:id,title'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')
