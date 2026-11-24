@@ -1,6 +1,7 @@
 @import "../shared/calendar.css";
 @import "../shared/phone-number.css";
 @import "../shared/announcements.css";
+@import "../panels/role-dashboards.css";
 :root {
   --bg:#f3f4fa;
   --sf:#fff;
