@@ -97,6 +97,17 @@ final class VideoController extends Controller
             'Referrer-Policy' => 'same-origin',
         ];
 
+        // PHP authorizes the request; Nginx sends the bytes and handles ranges.
+        // Only canonical processed recording paths may be internally redirected.
+        if (config('learning.nginx_private_video')
+            && preg_match('~^private/course-videos/[A-Za-z0-9_-]+\\.mp4$~D', $recording->file_path)
+            && realpath($path) === realpath(Storage::disk('local')->path('private/course-videos')).'/'.basename($path)) {
+            return response('', 200, [
+                ...$headers,
+                'X-Accel-Redirect' => '/_protected_course_video/'.rawurlencode(basename($path)),
+            ]);
+        }
+
         $range = $request->header('Range');
         if (filled($range)) {
             if (! preg_match('/^bytes=(\\d*)-(\\d*)$/', trim($range), $matches) || ($matches[1] === '' && $matches[2] === '')) {
