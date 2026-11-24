@@ -2,15 +2,15 @@
 @section('title', 'جزئیات درخواست مشاوره')
 @section('content')
 @php $kids = $children; $kid = $selected_child; $labels = ['pending'=>'در انتظار بررسی','scheduled'=>'هماهنگ‌شده','done'=>'انجام‌شده','cancelled'=>'لغوشده']; @endphp
-<h2>{{ $consultation->topic }}</h2>
+<x-portal.page-head icon="message" tone="communication" :title="$consultation->topic" :back="route('guardian.consultations.index', ['child' => $selected_child?->id])"/>
 @include('parent.partials.kid-picker')
 <section class="c">
     <div class="row"><div>وضعیت درخواست</div><i class="bd">{{ $labels[$consultation->status] ?? $consultation->status }}</i></div>
     <div class="row"><div>فرزند<small>{{ $consultation->student?->name }}</small></div></div>
     <div class="row"><div>توضیحات<small>{{ $consultation->notes }}</small></div></div>
-    @if ($consultation->scheduled_at)<div class="row"><div>زمان هماهنگ‌شده<small>{{ $consultation->scheduled_at->format('Y/m/d H:i') }}</small></div></div>@endif
+    @if ($consultation->scheduled_at)<div class="row"><div>زمان هماهنگ‌شده<small>{{ \App\Support\PersianDate::format($consultation->scheduled_at) }}</small></div></div>@endif
     @foreach ($consultation->replies as $reply)
-        <div class="row"><div>{{ $reply->sender?->name }}<small>{{ $reply->body }} · {{ $reply->created_at?->format('Y/m/d H:i') }}</small></div></div>
+        <div class="row"><div>{{ $reply->sender?->name }}<small>{{ $reply->body }} · {{ \App\Support\PersianDate::format($reply->created_at) }}</small></div></div>
     @endforeach
     @if (($consultation->replies_count ?? 0) > $consultation->replies->count())<p class="parent-thread-note">برای حفظ سرعت، فقط ۵۰ پاسخ اخیر نمایش داده شده‌اند.</p>@endif
     @if (auth()->user()->hasPermissionTo('consultations.create') && !in_array($consultation->status, ['done', 'cancelled'], true))

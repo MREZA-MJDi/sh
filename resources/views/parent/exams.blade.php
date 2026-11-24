@@ -2,7 +2,7 @@
 @section('title', 'آزمون‌ها')
 @section('content')
 @php $subj = collect($subjects ?? []); @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">ارزیابی آموزشی</span><h1>آزمون‌ها و نمرات</h1><p>نتایج ثبت‌شده و قابل مشاهده برای فرزند انتخاب‌شده</p></div></div>
+<x-portal.page-head icon="chart" tone="tracking" title="آزمون‌ها و نمرات"/>
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>نمره ثبت‌شده به تفکیک درس</h3>

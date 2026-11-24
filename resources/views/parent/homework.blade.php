@@ -4,7 +4,7 @@
 
 @section('content')
 @php $t = $hwTotals ?? []; @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">پیگیری تکالیف</span><h1>تکالیف {{ data_get($kid ?? null, 'name') }}</h1><p>وضعیت تکالیف منتشرشده و روند ارسال شش ماه اخیر</p></div></div>
+<x-portal.page-head icon="check" tone="tracking" :title="'تکالیف '.($kid?->name ?? '')"/>
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>وضعیت کل تکالیف</h3>

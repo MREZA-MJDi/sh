@@ -12,7 +12,7 @@
         ['l' => 'غیبت موجه', 'v' => (int) ($att['excused'] ?? 0), 'c' => '--bl'],
     ];
 @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">گزارش آموزشی</span><h1>حضور و غیاب {{ data_get($kid ?? null, 'name') }}</h1><p>سوابق حضور فرزند را به تفکیک ماه بررسی کنید.</p></div></div>
+<x-portal.page-head icon="calendar" tone="tracking" :title="'حضور و غیاب '.($kid?->name ?? '')"/>
 @include('parent.partials.kid-picker')
 <form method="GET" action="{{ route('guardian.attendance') }}" class="parent-month-filter">
     <input type="hidden" name="child" value="{{ $kid?->id }}">

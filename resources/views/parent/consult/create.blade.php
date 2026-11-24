@@ -2,7 +2,7 @@
 @section('title', 'درخواست مشاوره جدید')
 @section('content')
 @php $kids = $children; $kid = $selected_child; @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">پشتیبانی آموزشی</span><h1>درخواست مشاوره جدید</h1><p>نوع درخواست و اطلاعات تماس را با دقت وارد کنید.</p></div></div>
+<x-portal.page-head icon="message" tone="communication" title="درخواست مشاوره جدید" :back="route('guardian.consultations.index', ['child' => $selected_child?->id])"/>
 @include('parent.partials.kid-picker')
 <section class="c">
     <form method="POST" action="{{ route('guardian.consultations.store') }}" class="parent-simple-form">
