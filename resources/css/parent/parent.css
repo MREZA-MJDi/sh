@@ -499,6 +499,12 @@ nav .on {
   color:var(--am);
 }
 
+.dc.e {
+  background:var(--bls);
+  border-color:transparent;
+  color:var(--bl);
+}
+
 .dc.off,.dc.future {
   background:var(--bg);
   color:var(--mu);
