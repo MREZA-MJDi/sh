@@ -27,6 +27,6 @@
 <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.resources') }}">پاک‌کردن</a>
 </form>
 @forelse($resources as $resource)<div class="teacher-list-card"><div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? '—' }}@if($resource->course?->grade) · پایه {{ $resource->course->grade }}@endif @if($resource->course?->season) · {{ $seasonLabels[$resource->course->season] ?? $resource->course->season }}@endif · {{ $resource->classroom?->name ?? 'کل دوره' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif</small></div><div class="teacher-list-meta"><span>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</span><span>{{ ['published' => 'منتشرشده', 'draft' => 'پیش‌نویس', 'archived' => 'بایگانی‌شده'][$resource->status] ?? 'در حال بررسی' }}</span>@if($resource->file_path && $resource->downloadable)<a href="{{ route('teacher.resources.download',$resource) }}">دریافت فایل</a>@endif</div></div>
-@empty<p>هنوز منبعی برای دوره‌ها و کلاس‌های شما ثبت نشده است.</p>@endforelse
+@empty<x-portal.empty-state icon="file" title="هنوز منبعی برای دوره‌ها و کلاس‌های شما ثبت نشده است."/>@endforelse
 {{ $resources->links() }}</section></div>
 @endsection
