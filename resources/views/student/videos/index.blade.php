@@ -11,14 +11,14 @@
                     <div class="th"><svg class="i"><use href="#i-video"/></svg></div>
                     <h3>{{ $video->title }}</h3>
                     <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif</p>
-                    @if(filled($video->file_path))
+                    @if(filled($video->file_path) && blank($video->external_id))
                         <a class="btn s" href="{{ route('student.videos.show', $video) }}">مشاهده ویدئو</a>
                     @else
-                        <span class="tag">ویدئوی متصل به SpotPlayer؛ اتصال سرویس در انتظار قرارداد رسمی</span>
+                        <a class="btn s" href="{{ route('public.courses.show', $video->course->slug) }}">مشاهده در صفحه دوره</a>
                     @endif
                 </article>
             @empty
-                <p>هنوز ویدئوی منتشرشده‌ای برای دوره‌ها و کلاس‌های فعال شما ثبت نشده است.</p>
+                <x-portal.empty-state icon="video" title="هنوز ویدئویی برای شما منتشر نشده است." description="ویدئوهای آماده و تأییدشده کلاس‌های مجاز در همین صفحه نمایش داده می‌شوند."><a class="btn s" href="{{ route('student.courses.index') }}">مشاهده دوره‌های من</a></x-portal.empty-state>
             @endforelse
         </div>
         {{ $videos->links() }}
