@@ -111,7 +111,6 @@ final class SpotPlayerChunkUploadTest extends TestCase
         $this->postJson(route('admin.uploads.resume'), [
             'upload_id' => $uploadId,
             'classroom_id' => $classroom->id,
-            'title' => 'جلسه قابل ادامه',
         ])->assertOk()
             ->assertJsonPath('status', 'completed')
             ->assertJsonPath('received_chunks.0', 0);
