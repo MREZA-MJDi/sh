@@ -384,8 +384,8 @@
 .adm-stat-ico .adm-icon{width:22px;height:22px;display:block}
 .adm-stat-copy{display:grid;gap:3px;min-width:0}
 .adm-stat-copy>span{font-size:12px;color:var(--muted)}
-.adm-stat-copy>strong{font-size:25px;line-height:1.2;color:var(--ink)}
-.adm-stat-copy>small{font-size:10px;color:var(--muted)}
+.adm-stat-copy>strong{font-size:clamp(18px,2.1vw,25px);line-height:1.35;color:var(--ink);overflow-wrap:anywhere}
+.adm-stat-copy>small{font-size:11px;line-height:1.65;color:var(--muted);overflow-wrap:anywhere}
 [data-theme=dark] .adm-welcome-aside.adm-sales-overview{background:linear-gradient(145deg,#132e2a 0%,#172b38 55%,#1d2947 100%);border-color:#285247}
 [data-theme=dark] .adm-dash-donut::before{background:#131d31}
 [data-theme=dark] .adm-dash-donut strong{color:#e5f7ef}
