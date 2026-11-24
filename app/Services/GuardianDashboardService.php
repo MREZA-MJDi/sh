@@ -70,6 +70,7 @@ final class GuardianDashboardService
             ->with(['submissions' => fn ($query) => $query
                 ->where('student_id', $student->id)
                 ->orderByDesc('submitted_at')
+                ->with('reviewer:id,name')
                 ->limit(1)])
             ->withCount([
                 'submissions as selected_student_submission_count' => fn (Builder $query) => $query
