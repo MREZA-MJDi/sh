@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StartVideoUploadRequest;
 use App\Jobs\Learning\FinalizeChunkUpload;
 use App\Models\Course;
 use App\Models\ClassSession;
@@ -22,17 +23,9 @@ final class ChunkUploadController extends Controller
 {
     private const EXTENSIONS = ['mp4', 'mov', 'mkv', 'webm', 'm4v'];
 
-    public function start(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
+    public function start(StartVideoUploadRequest $request, ClassroomWorkspaceService $workspace): JsonResponse
     {
-        $data = $request->validate([
-            'target' => ['required', 'in:teaser,spotplayer_video'],
-            'target_id' => ['required', 'integer', 'exists:courses,id'],
-            'total_bytes' => ['required', 'integer', 'min:1', 'max:2147483647'],
-            'title' => ['required_if:target,spotplayer_video', 'nullable', 'string', 'max:180'],
-            'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
-            'class_session_id' => ['nullable', 'integer', 'exists:class_sessions,id'],
-            'external_id' => ['nullable', 'string', 'max:190'],
-        ]);
+        $data = $request->validated();
 
         $course = $this->authorizeTarget($request, $data['target'], (int) $data['target_id'], $data, $workspace);
 
@@ -199,7 +192,7 @@ final class ChunkUploadController extends Controller
                 'expires_at' => now()->addHours((int) config('learning.upload_session_ttl_hours', 24)),
             ]);
 
-            return $locked->refresh();
+            return $locked;
         });
 
         return response()->json(['ok' => true, 'bytes_uploaded' => $session->bytes_uploaded]);
@@ -216,6 +209,7 @@ final class ChunkUploadController extends Controller
         ]);
 
         $existing = $this->findUploadSession($data['upload_id'], $request);
+        $this->authorizeTarget($request, $existing->target, (int) $existing->target_id, $existing->metadata ?? [], $workspace);
 
         if ($existing->status === 'completed') {
             $existingVideo = isset($existing->metadata['result_video_id'])
@@ -246,8 +240,6 @@ final class ChunkUploadController extends Controller
         }
 
         abort_unless($existing->status === 'uploading' && $existing->expires_at->isFuture(), 409);
-        $this->authorizeTarget($request, $existing->target, (int) $existing->target_id, $existing->metadata ?? [], $workspace);
-
         $expectedChunks = (int) ($existing->metadata['total_chunks'] ?? 0);
         abort_unless($expectedChunks === (int) $data['total'], 422, 'تعداد تکه‌ها با اطلاعات شروع آپلود سازگار نیست.');
 
@@ -274,9 +266,11 @@ final class ChunkUploadController extends Controller
 
             abort_unless($locked, 410, 'نشست آپلود پیدا نشد.');
 
-            if ($locked->status !== 'uploading' || ! $locked->expires_at->isFuture()) {
+            if (in_array($locked->status, ['processing', 'completed'], true)) {
                 return [$locked, false];
             }
+
+            abort_unless($locked->status === 'uploading' && $locked->expires_at->isFuture(), 409);
 
             $locked->update([
                 'status' => 'processing',
@@ -407,15 +401,14 @@ final class ChunkUploadController extends Controller
     {
         $data = $request->validate(['upload_id' => ['required', 'uuid']]);
         $session = $this->findUploadSession($data['upload_id'], $request);
-        $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
+        $course = $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
 
         if ($session->target === 'teaser') {
-            $course = Course::query()->findOrFail($session->target_id);
 
             return response()->json([
                 'status' => $course->teaser_status,
                 'error' => $course->teaser_error,
-            ]);
+            ])->header('Cache-Control', 'private, no-store');
         }
 
         $video = isset($session->metadata['result_video_id'])
@@ -436,7 +429,8 @@ final class ChunkUploadController extends Controller
             },
             'error' => $video?->processing_error ?? ($session->metadata['finalization_error'] ?? null),
             'video_id' => $video?->id,
-        ]);
+            'approval_status' => $video?->approval_status,
+        ])->header('Cache-Control', 'private, no-store');
     }
 
     public function cancel(Request $request, ClassroomWorkspaceService $workspace): JsonResponse

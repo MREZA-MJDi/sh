@@ -57,6 +57,11 @@ final class CourseTeaserUploadTest extends TestCase
             'total_bytes' => 64,
         ])->assertStatus(409);
 
+        $this->from(route('admin.courses.edit', $course))
+            ->delete(route('admin.courses.teaser.destroy', $course))
+            ->assertRedirect(route('admin.courses.edit', $course))
+            ->assertSessionHasErrors('teaser');
+
         $this->assertDatabaseCount('video_upload_sessions', 1);
         $this->assertSame('uploading', $course->fresh()->teaser_status);
     }

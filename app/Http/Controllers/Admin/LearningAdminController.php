@@ -10,6 +10,7 @@ use App\Models\CourseLesson;
 use App\Models\CourseLicense;
 use App\Models\VideoUploadSession;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -33,29 +34,44 @@ class LearningAdminController extends Controller
 
     public function destroyTeaser(Course $course)
     {
-        if ($course->teaser_status === 'processing') {
-            return back()->withErrors(['teaser' => 'تا پایان پردازش، حذف تیزر مجاز نیست.']);
+        $paths = DB::transaction(function () use ($course): ?array {
+            $locked = Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+
+            $uploadInProgress = VideoUploadSession::query()
+                ->where('target', 'teaser')
+                ->where('target_id', $locked->id)
+                ->where(fn ($query) => $query->where('status', 'processing')
+                    ->orWhere(fn ($uploading) => $uploading->where('status', 'uploading')->where('expires_at', '>', now())))
+                ->exists();
+
+            if ($locked->teaser_status === 'processing' || $uploadInProgress) {
+                return null;
+            }
+
+            $paths = [
+                'public' => array_filter([$locked->teaser_path, $locked->teaser_poster_path]),
+                'local' => array_filter([$locked->teaser_original_path]),
+            ];
+            $locked->update([
+                'teaser_path' => null,
+                'teaser_poster_path' => null,
+                'teaser_original_path' => null,
+                'teaser_status' => 'none',
+                'teaser_error' => null,
+            ]);
+
+            return $paths;
+        });
+
+        if ($paths === null) {
+            return back()->withErrors(['teaser' => 'تا پایان بارگذاری یا پردازش، حذف تیزر مجاز نیست.']);
         }
 
-        VideoUploadSession::query()->where('target', 'teaser')->where('target_id', $course->id)
-            ->where('status', 'uploading')->get()->each(function (VideoUploadSession $session): void {
-                Storage::disk('local')->deleteDirectory('chunks/'.$session->upload_id);
-                $session->update(['status' => 'cancelled']);
-            });
-
-        foreach (['teaser_path', 'teaser_poster_path'] as $col) {
-            if ($course->{$col}) {
-                Storage::disk('public')->delete($course->{$col});
+        foreach ($paths as $disk => $files) {
+            if ($files !== []) {
+                Storage::disk($disk)->delete($files);
             }
         }
-        if ($course->teaser_original_path) {
-            Storage::disk('local')->delete($course->teaser_original_path);
-        }
-
-        $course->update([
-            'teaser_path' => null, 'teaser_poster_path' => null, 'teaser_original_path' => null,
-            'teaser_status' => 'none', 'teaser_error' => null,
-        ]);
 
         return back()->with('status', 'تیزر حذف شد.');
     }
