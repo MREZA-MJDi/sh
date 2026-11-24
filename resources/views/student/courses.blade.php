@@ -9,7 +9,7 @@
    @php $progress = $progressByCourse->get($course->id); @endphp
    <div class="card cc"><div class="th"><svg class="i"><use href="#i-book"/></svg></div><h3>{{ $course->title }}</h3><p>{{ $course->teacher?->name ?? 'مدرس' }} · {{ $course->subject }} · {{ $course->grade }} @if($course->season) · {{ \App\Models\Course::SEASONS[$course->season] ?? '' }} @endif @if($course->academic_year) · {{ $course->academic_year }} @endif</p>
     @if ($course->type === 'free')
-     <span class="tag">دسترسی رایگان</span>
+     <span class="tag">رایگان · دسترسی فعال برای دانش‌آموزان</span>
      <div class="prog"><i style="width:{{ (int) data_get($progress, 'progress_percent', 0) }}%"></i></div>
      <p style="margin:6px 0 0">{{ (int) data_get($progress, 'progress_percent', 0) }}٪ تکمیل</p>
      <a class="btn s" href="{{ route('student.courses.show', $course) }}">شروع یادگیری</a>

@@ -52,7 +52,7 @@
       @endif
     @endcan
     @if(($recentEnrollmentCount ?? 0) > 0)
-      <a class="adm-work-item" data-tone="users" href="{{ route('admin.enrollments.index') }}"><span><x-admin.icon name="users"/></span><div><b>ثبت‌نام‌های جدید در ۷ روز اخیر</b><small>آخرین درخواست‌ها و وضعیت دسترسی را بررسی کن</small></div><strong>{{ number_format($recentEnrollmentCount) }}</strong></a>
+      <a class="adm-work-item" data-tone="shop" href="{{ route('admin.enrollments.index') }}"><span><x-admin.icon name="users"/></span><div><b>ثبت‌نام‌های جدید در ۷ روز اخیر</b><small>آخرین درخواست‌ها و وضعیت دسترسی را بررسی کن</small></div><strong>{{ number_format($recentEnrollmentCount) }}</strong></a>
     @endif
     @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
       @if(($upcomingSessions ?? collect())->isNotEmpty())
@@ -84,7 +84,7 @@
       @foreach($upcomingSessions as $session)
         <a class="adm-action-tile" href="{{ route('admin.classes.sessions.index', $session->classroom_id) }}">
           <span><x-admin.icon name="cal"/></span>
-          <div><b>{{ $session->title }} · {{ $session->classroom?->name }}</b><small>{{ $session->starts_at?->translatedFormat('l j F، H:i') }}</small></div>
+          <div><b>{{ $session->title }} · {{ $session->classroom?->name }}</b><small>{{ \App\Support\PersianDate::format($session->starts_at, 'l j F، H:i') }}</small></div>
           <x-admin.icon name="chev"/>
         </a>
       @endforeach

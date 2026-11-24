@@ -45,7 +45,7 @@ final class GuardianDashboardService
             return $this->emptyDashboard($children);
         }
 
-        $student = User::query()->findOrFail($selectedChild->id);
+        $student = User::query()->with('roles')->findOrFail($selectedChild->id);
         $classroomIds = $this->learningAccess->activeClassroomIds($student);
         $courseIds = $this->learningAccess->activeCourseIds($student);
         $assignmentClassroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
@@ -124,22 +124,22 @@ final class GuardianDashboardService
 
             if ($section === 'homework') {
                 return $context + ['homeworks' => $homeworks, 'homework_trend' => $homeworkTrend];
-        }
+            }
 
-        $reviewedHomework = HomeworkSubmission::query()
-            ->where('student_id', $student->id)
-            ->whereNotNull('reviewed_at')
-            ->whereHas('homework', fn (Builder $homework) => $homework
-                ->where('status', 'published')
-                ->whereIn('classroom_id', clone $assignmentClassroomIds))
-            ->with([
-                'homework:id,title,classroom_id',
-                'homework.classroom:id,name',
-                'reviewer:id,name',
-            ])
-            ->latest('reviewed_at')
-            ->limit(8)
-            ->get();
+            $reviewedHomework = HomeworkSubmission::query()
+                ->where('student_id', $student->id)
+                ->whereNotNull('reviewed_at')
+                ->whereHas('homework', fn (Builder $homework) => $homework
+                    ->where('status', 'published')
+                    ->whereIn('classroom_id', clone $assignmentClassroomIds))
+                ->with([
+                    'homework:id,title,classroom_id',
+                    'homework.classroom:id,name',
+                    'reviewer:id,name',
+                ])
+                ->latest('reviewed_at')
+                ->limit(8)
+                ->get();
 
         }
 
