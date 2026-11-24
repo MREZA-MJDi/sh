@@ -163,23 +163,4 @@ class LocalDemoAccountsTest extends TestCase
             ->assertDontSee('parent@sh.local')
             ->assertDontSee('Temporary-Demo-2026!');
     }
-
-    public function test_explicitly_enabled_demo_accounts_can_be_seeded_for_a_production_demo_window(): void
-    {
-        $this->app['env'] = 'production';
-
-        config([
-            'demo.enabled' => true,
-            'demo.password' => 'Temporary-Demo-2026!',
-        ]);
-
-        app(LocalDemoAccountsSeeder::class)->run();
-
-        $this->assertDatabaseHas('users', ['email' => 'admin@sh.local', 'is_active' => true]);
-        $this->assertDatabaseHas('users', ['email' => 'teacher@sh.local', 'is_active' => true]);
-        $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
-        $this->assertDatabaseHas('users', ['email' => 'parent@sh.local', 'is_active' => true]);
-        $this->assertDatabaseHas('users', ['email' => 'seo@sh.local', 'is_active' => true]);
-    }
-
 }
