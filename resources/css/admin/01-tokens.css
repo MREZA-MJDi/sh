@@ -4,13 +4,13 @@
   --side-w:272px;
 
   /* surfaces */
-  --bg:#f4f2ef; --surface:#fff; --surface-2:#faf8f6; --surface-3:#f1eeea;
-  --ink:#1b2536; --ink-2:#3b475c; --muted:#6b778b;
-  --line:#e7e2db; --line-strong:#d4ccc1;
+  --bg:#f5f6f8; --surface:#fff; --surface-2:#f8fafc; --surface-3:#eef1f5;
+  --ink:#182338; --ink-2:#40506a; --muted:#5f6e84;
+  --line:#e6eaf0; --line-strong:#d5dce6;
 
   /* brand */
-  --primary:#3b5bdb; --primary-hover:#324ec0; --primary-ink:#fff; --primary-soft:#e7ecfd;
-  --gold:#c99a4b;
+  --primary:#3156c9; --primary-hover:#2748ad; --primary-ink:#fff; --primary-soft:#edf1ff;
+  --gold:#b98b43;
 
   /* status */
   --ok:#12805c;   --ok-soft:#dcf3ea;
@@ -22,19 +22,19 @@
   --side:#14233a; --side-2:#0e1a2c; --side-ink:#bcc7dc; --side-muted:#7e8cab;
 
   /* shape */
-  --r-lg:16px; --r:12px; --r-sm:9px;
-  --shadow:0 1px 2px rgba(20,30,50,.05),0 10px 28px -18px rgba(20,30,50,.28);
+  --r-lg:18px; --r:13px; --r-sm:10px;
+  --shadow:0 2px 8px rgba(22,34,56,.035),0 12px 32px -24px rgba(22,34,56,.24);
   --shadow-pop:0 30px 80px -24px rgba(8,14,28,.5);
 }
 
 /* Category tones. Same five groups as the sidebar and the client's role diagram:
-   users(orange) · education(yellow) · tracking(blue) · communication(pink) · shop(green) */
-:root,[data-tone=home]{--tone:#3b5bdb;--tone-soft:#e7ecfd;--tone-lt:#8ea2f5}
-[data-tone=users]{--tone:#bf5a1c;--tone-soft:#fcebdd;--tone-lt:#f3a06a}
-[data-tone=edu]{--tone:#9a7015;--tone-soft:#fbf0d2;--tone-lt:#e8bd55}
-[data-tone=track]{--tone:#0284c7;--tone-soft:#e0f2fe;--tone-lt:#38bdf8}
-[data-tone=comm]{--tone:#9333ea;--tone-soft:#f3e8fd;--tone-lt:#c084fc}
-[data-tone=shop]{--tone:#28776d;--tone-soft:#dff1ee;--tone-lt:#62c7b6}
+   users(orange) · education(gold) · tracking(blue) · communication(violet) · shop(teal) */
+:root,[data-tone=home]{--tone:#3156c9;--tone-soft:#edf1ff;--tone-lt:#8ea2f5}
+[data-tone=users]{--tone:#99501f;--tone-soft:#fbf1e9;--tone-lt:#e6b28f}
+[data-tone=edu]{--tone:#805c1d;--tone-soft:#f8f2e5;--tone-lt:#d9bc7b}
+[data-tone=track]{--tone:#345aa5;--tone-soft:#edf2fc;--tone-lt:#9bb2e5}
+[data-tone=comm]{--tone:#674d95;--tone-soft:#f2eff8;--tone-lt:#b5a6d3}
+[data-tone=shop]{--tone:#326d62;--tone-soft:#edf6f3;--tone-lt:#9ac9be}
 
 [data-theme=dark]{
   --bg:#0b1220; --surface:#131d31; --surface-2:#18243c; --surface-3:#1d2b47;
