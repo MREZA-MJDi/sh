@@ -44,6 +44,12 @@ final class ProcessCourseRecordingVideo implements ShouldQueue
             return;
         }
 
+        // Previously queued provider-bound files must never be transcoded locally.
+        if (filled($video->external_id)) {
+            $video->update(['status' => 'waiting_contract', 'processing_error' => null]);
+            return;
+        }
+
         $disk = Storage::disk('local');
 
         if (! $disk->exists($video->file_path)) {
