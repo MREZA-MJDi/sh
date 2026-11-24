@@ -139,6 +139,27 @@ final class GuardianPanelExperienceTest extends TestCase
             ->assertSee('null,null,null,null,null,null', false);
     }
 
+    public function test_resources_section_does_not_query_unrelated_learning_modules(): void
+    {
+        $guardian = $this->userWithRole('parent');
+        $child = $this->userWithRole('student');
+        $guardian->children()->attach($child);
+
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+        try {
+            $data = app(\App\Services\GuardianDashboardService::class)->build($guardian, $child->id, null, 'resources');
+            $queries = collect(\Illuminate\Support\Facades\DB::getQueryLog())->pluck('query')->implode(' ');
+        } finally {
+            \Illuminate\Support\Facades\DB::disableQueryLog();
+        }
+
+        $this->assertArrayHasKey('resources', $data);
+        $this->assertArrayNotHasKey('homeworks', $data);
+        foreach (['homeworks', 'exam_results', 'attendances', 'parent_meetings'] as $table) {
+            $this->assertStringNotContainsString($table, $queries);
+        }
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);

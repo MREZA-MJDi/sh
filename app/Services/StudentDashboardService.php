@@ -173,19 +173,20 @@ final class StudentDashboardService
 
     public function buildSummary(User $student): array
     {
-        // The dashboard is a notification hub: fetch aggregate counts only.
+        // Fetch aggregate counts and a single upcoming session for the dashboard.
         // Full records stay on their dedicated, independently paginated pages.
         $classroomIds = $this->learningAccess->activeClassroomIds($student);
         $assignmentClassroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
 
         $classroomCount = (clone $classroomIds)->count();
 
-        $upcomingSessionCount = ClassSession::query()
+        $upcomingQuery = ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
             ->where('status', 'scheduled')
             ->whereNotNull('ends_at')
-            ->where('ends_at', '>=', now())
-            ->count();
+            ->where('ends_at', '>=', now());
+        $upcomingSessionCount = (clone $upcomingQuery)->count();
+        $nextSession = $upcomingQuery->orderBy('starts_at')->first(['id', 'title', 'starts_at']);
 
         $homeworkQuery = Homework::query()
             ->whereIn('classroom_id', clone $assignmentClassroomIds)
@@ -203,6 +204,7 @@ final class StudentDashboardService
         return [
             'classroom_count' => $classroomCount,
             'upcoming_session_count' => $upcomingSessionCount,
+            'next_session' => $nextSession,
             'homework_count' => $homeworkCount,
             'pending_homework_count' => $pendingHomeworkCount,
             'result_count' => $resultCount,

@@ -1,17 +1,20 @@
 @extends('student.layouts.app')
 @section('title', 'آزمون‌ها')
 @section('content')
-<section class="page" id="exams"><div class="card"><div class="chead"><h2>آزمون‌های من</h2><span class="pill">{{ $exams->total() }} آزمون</span></div>
- <div class="tw"><table class="tbl"><tr><th>آزمون</th><th>درس / کلاس</th><th>زمان</th><th>وضعیت</th><th></th></tr>
- @forelse ($exams as $exam)
-  <tr><td>{{ $exam->title }}@if($exam->provider === 'quiz24' && $exam->integration_status !== 'active')<small class="tag">نسخه داخلی؛ اتصال Quiz24 در انتظار سرویس</small>@endif</td><td>{{ $exam->course?->title ?? $exam->classroom?->name ?? '—' }}</td><td>{{ $exam->starts_at?->format('Y/m/d H:i') ?? 'طبق برنامه مدرس' }}</td><td><span class="tag">{{ $exam->status }}</span></td><td>
-   <a class="btn s" href="{{ route('student.exams.show', $exam) }}">جزئیات</a>
-   @if ($exam->status === 'published')
-    <form method="POST" action="{{ route('student.exams.start', $exam) }}" class="inline">@csrf<button class="btn s" type="submit">شروع آزمون</button></form>
-   @endif
-  </td></tr>
+<section class="page" id="exams">
+ <x-portal.page-head title="آزمون‌های من" icon="check" tone="tracking"><span class="tag">{{ $exams->total() }} آزمون</span></x-portal.page-head>
+ <div class="portal-action-grid">
+ @forelse($exams as $exam)
+  <article class="portal-exam-card">
+   <div class="chead"><h3>{{ $exam->title }}</h3><x-portal.status domain="exam" :value="$exam->status"/></div>
+   <small>{{ $exam->course?->title ?? $exam->classroom?->name ?? '—' }}</small>
+   @if($exam->provider === 'quiz24' && $exam->integration_status !== 'active')<span class="tag">نسخه داخلی؛ اتصال Quiz24 در انتظار سرویس</span>@endif
+   <div class="portal-metrics"><div class="portal-metric"><small>سؤال</small><strong>{{ $exam->questions_count }}</strong></div><div class="portal-metric"><small>زمان شروع</small><strong>{{ $exam->starts_at ? \App\Support\PersianDate::format($exam->starts_at,'Y/m/d H:i') : 'طبق برنامه مدرس' }}</strong></div></div>
+   <x-portal.exam-actions :exam="$exam"/>
+  </article>
  @empty
-  <tr><td colspan="5">آزمونی برای شما منتشر نشده است.</td></tr>
+  <x-portal.empty-state title="آزمونی برای شما منتشر نشده است." icon="check" tone="tracking"/>
  @endforelse
- </table></div>{{ $exams->links() }}</div></section>
+ </div>{{ $exams->links() }}
+</section>
 @endsection
