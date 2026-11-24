@@ -1,17 +1,4 @@
 /* Experience layer: task-first patterns shared across admin screens. */
-:root{
-  --bg:#f5f6f8;--surface:#fff;--surface-2:#f8fafc;--surface-3:#eef1f5;
-  --ink:#182338;--ink-2:#40506a;--muted:#738097;--line:#e6eaf0;--line-strong:#d5dce6;
-  --primary:#3156c9;--primary-hover:#2748ad;--primary-soft:#edf1ff;
-  --gold:#b98b43;--r-lg:18px;--r:13px;--r-sm:10px;
-  --shadow:0 2px 8px rgba(22,34,56,.035),0 12px 32px -24px rgba(22,34,56,.24);
-}
-[data-tone=users]{--tone:#bd7446;--tone-soft:#fbf1e9;--tone-lt:#e6b28f}
-[data-tone=edu]{--tone:#a17a36;--tone-soft:#f8f2e5;--tone-lt:#d9bc7b}
-[data-tone=track]{--tone:#4269bd;--tone-soft:#edf2fc;--tone-lt:#9bb2e5}
-[data-tone=comm]{--tone:#7861a8;--tone-soft:#f2eff8;--tone-lt:#b5a6d3}
-[data-tone=shop]{--tone:#43877c;--tone-soft:#edf6f3;--tone-lt:#9ac9be}
-
 /* Shared page rhythm */
 .adm-container{gap:24px;padding-top:28px}
 .adm-pagehead{margin-bottom:2px}
