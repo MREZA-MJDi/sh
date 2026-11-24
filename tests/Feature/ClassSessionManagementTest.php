@@ -56,6 +56,16 @@ final class ClassSessionManagementTest extends TestCase
         $this->assertDatabaseMissing('class_sessions', ['id' => $session->id]);
     }
 
+    public function test_invalid_calendar_date_returns_validation_error(): void
+    {
+        [$teacher, $classroom] = $this->teacherWithClassroom('invalid-date');
+
+        $this->actingAs($teacher)
+            ->getJson(route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => '2026-13-40']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('date');
+    }
+
     public function test_end_time_must_be_after_start_time(): void
     {
         [$teacher, $classroom] = $this->teacherWithClassroom('range');
