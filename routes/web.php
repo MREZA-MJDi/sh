@@ -329,6 +329,7 @@ Route::middleware(['auth', 'role:student', 'permission:dashboard.view'])
         Route::post('/exams/{exam}/start', [StudentExamController::class, 'start'])->middleware('permission:exams.attempt')->name('exams.start');
         Route::post('/exam-attempts/{attempt}/submit', [StudentExamController::class, 'submit'])->middleware('permission:exams.attempt')->name('exam-attempts.submit');
         Route::middleware('permission:homework.submit')->group(function (): void {
+            Route::get('/homework/{homework}/attachment', [StudentHomeworkSubmissionController::class, 'downloadAttachment'])->name('homework.attachment');
             Route::post('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'store'])->name('homework.submissions.store');
             Route::delete('/homework/{homework}/submissions', [StudentHomeworkSubmissionController::class, 'destroy'])->name('homework.submissions.destroy');
             Route::get('/homework-submission-files/{file}/download', [StudentHomeworkSubmissionController::class, 'downloadFile'])->name('homework.submission-files.download');

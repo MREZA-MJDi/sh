@@ -61,6 +61,21 @@ final class StudentHomeworkTextAttachmentTest extends TestCase
             'created_by' => $teacher->id,
         ]);
 
+        Storage::disk('local')->put('private/homework/instructions.txt', 'test instructions');
+        $homework->update(['attachment_path' => 'private/homework/instructions.txt']);
+
+        $this->actingAs($student)->get(route('student.homework.index'))
+            ->assertOk()
+            ->assertSee('assignment-card', false)
+            ->assertDontSee('assignment-table', false)
+            ->assertSee('پاسخ را در فایل متنی ارسال کنید.')
+            ->assertSee(route('student.homework.attachment', $homework))
+            ->assertSee(route('student.homework.submissions.store', $homework));
+
+        $this->get(route('student.homework.attachment', $homework))->assertOk();
+        $outsider = $this->userWithRole('student');
+        $this->actingAs($outsider)->get(route('student.homework.attachment', $homework))->assertNotFound();
+
         $this->actingAs($student)
             ->post(route('student.homework.submissions.store', $homework), [
                 'answer' => null,

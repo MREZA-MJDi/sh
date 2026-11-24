@@ -129,6 +129,15 @@ final class HomeworkSubmissionController extends Controller
         return back()->with('status', 'پاسخ تکلیف حذف شد.');
     }
 
+    public function downloadAttachment(Request $request, Homework $homework): StreamedResponse
+    {
+        $homework = $this->availableHomework($request->user(), $homework);
+
+        abort_unless($homework->attachment_path && Storage::disk('local')->exists($homework->attachment_path), 404);
+
+        return Storage::disk('local')->download($homework->attachment_path);
+    }
+
     public function downloadFile(
         Request $request,
         HomeworkSubmissionFile $file

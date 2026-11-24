@@ -1,77 +1,84 @@
 @extends('student.layouts.app')
 @section('title', 'تکالیف')
+@section('hide-topbar-title', '1')
 @section('content')
 <section class="page" id="assignments">
-<x-portal.page-head icon="check" tone="tracking" title="تکالیف"/>
-
- <div class="card">
-  <div class="chead">
-   <h2>تکالیف</h2>
-   <span class="pill">{{ number_format($homeworks->total()) }} تکلیف</span>
-  </div>
-  <div class="tw">
-   <table class="tbl assignment-table">
-    <thead><tr><th>تکلیف</th><th>درس / کلاس</th><th>مهلت</th><th>وضعیت</th><th>پاسخ و پیوست</th></tr></thead>
-    <tbody>
-    @forelse ($homeworks as $homework)
-     @php
-      $submission = $homework->submissions->first();
-      $reviewed = $submission && ($submission->reviewed_at || in_array($submission->status, ['reviewed', 'graded'], true));
-     @endphp
-     <tr>
-      <td data-label="تکلیف"><span class="assignment-title">{{ $homework->title }}</span></td>
-      <td data-label="درس / کلاس">{{ $homework->classroom?->name ?? '—' }}</td>
-      <td data-label="مهلت">{{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</td>
-      <td data-label="وضعیت">
-       @if($reviewed)
-        <span class="tag d">بررسی‌شده</span>
-       @elseif($submission)
-        <span class="tag">ارسال‌شده · در انتظار بررسی</span>
+ <x-portal.page-head icon="check" tone="tracking" title="تکالیف">
+  <span class="pill">{{ number_format($homeworks->total()) }} تکلیف</span>
+ </x-portal.page-head>
+ <div class="assignment-list">
+  @forelse($homeworks as $homework)
+   @php
+    $submission = $homework->submissions->first();
+    $reviewed = $submission && ($submission->reviewed_at || in_array($submission->status, ['reviewed','graded'], true));
+    $late = $homework->due_at && $homework->due_at->isPast();
+    $state = $reviewed ? 'reviewed' : ($submission ? 'submitted' : ($late ? 'late' : 'pending'));
+    $remaining = max(0, 5 - ($submission?->files->count() ?? 0));
+    $restore = (string) old('homework_context') === (string) $homework->id;
+   @endphp
+   <article class="card assignment-card" id="homework-{{ $homework->id }}">
+    <header class="assignment-heading">
+     <span class="portal-state-icon"><x-portal.icon name="file"/></span>
+     <div class="assignment-copy"><h2>{{ $homework->title }}</h2><small>{{ $homework->classroom?->name ?? 'کلاس آموزشی' }}</small></div>
+     <x-portal.status domain="homework" :value="$state"/>
+    </header>
+    <div class="portal-metrics assignment-metrics">
+     <div class="portal-metric"><small><x-portal.icon name="clock"/> مهلت ارسال</small><strong>{{ $homework->due_at ? \App\Support\PersianDate::format($homework->due_at, 'Y/m/d H:i') : 'بدون مهلت' }}</strong></div>
+     @if($submission)<div class="portal-metric"><small><x-portal.icon name="calendar"/> زمان ارسال</small><strong>{{ $submission->submitted_at ? \App\Support\PersianDate::format($submission->submitted_at, 'Y/m/d H:i') : '—' }}</strong></div>@endif
+     @if($reviewed && $submission->score !== null)<div class="portal-metric"><small><x-portal.icon name="chart"/> نمره</small><strong>نمره: {{ $submission->score }} از ۲۰</strong></div>@endif
+    </div>
+    @if(filled($homework->instructions))
+     <div class="assignment-description"><h3>شرح تکلیف</h3><p>{{ html_entity_decode(strip_tags(preg_replace('/<\s*(?:br\s*\/?|\/p|\/li|\/div)\s*>/i', "\n", $homework->instructions)), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}</p></div>
+    @endif
+    @if($homework->attachment_path)
+     <a class="pill assignment-download" href="{{ route('student.homework.attachment', $homework) }}"><x-portal.icon name="file"/> دریافت فایل تکلیف</a>
+    @endif
+    @if($submission?->answer)
+     <div class="assignment-description"><h3>پاسخ شما</h3><p>{{ $submission->answer }}</p></div>
+    @endif
+    @if($submission?->files->isNotEmpty())
+     <div class="assignment-files">
+      @foreach($submission->files as $file)
+       <div class="assignment-file">
+        <a href="{{ route('student.homework.submission-files.download', $file) }}"><x-portal.icon name="file"/><span>{{ $file->original_name }}</span></a>
+        @unless($reviewed)
+         <form method="POST" action="{{ route('student.homework.submission-files.destroy', $file) }}">@csrf @method('DELETE')<button class="pill" type="submit" data-confirm="این فایل از پاسخ تکلیف حذف شود؟">حذف فایل</button></form>
+        @endunless
+       </div>
+      @endforeach
+     </div>
+    @endif
+    @if($reviewed && filled($submission->feedback))
+     <div class="assignment-feedback"><h3>بازخورد مدرس</h3><p>{{ html_entity_decode(strip_tags($submission->feedback), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}</p></div>
+    @endif
+    @unless($reviewed)
+     <details class="assignment-editor" name="student-homework" @if($restore && $errors->any()) open @endif>
+      <summary class="btn s"><x-portal.icon name="{{ $submission ? 'file' : 'plus' }}"/>{{ $submission ? 'ویرایش پاسخ' : 'ارسال پاسخ' }}</summary>
+      <form class="assignment-form" method="POST" action="{{ route('student.homework.submissions.store', $homework) }}" enctype="multipart/form-data">
+       @csrf
+       <input type="hidden" name="homework_context" value="{{ $homework->id }}">
+       <label for="answer-{{ $homework->id }}">متن پاسخ</label>
+       <textarea class="fld" id="answer-{{ $homework->id }}" name="answer" rows="4" maxlength="12000" placeholder="متن پاسخ را بنویسید...">{{ $restore ? old('answer', $submission?->answer) : $submission?->answer }}</textarea>
+       @if($remaining > 0)
+        <label class="assignment-upload" for="files-{{ $homework->id }}">
+         <x-portal.icon name="file"/><strong>افزودن فایل</strong><small>حداکثر {{ $remaining }} فایل دیگر · هر فایل ۱۰ مگابایت</small>
+         <input id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.txt">
+        </label>
        @else
-        <span class="tag w">در انتظار ارسال</span>
+        <small class="assignment-meta">ظرفیت ۵ فایل تکمیل است؛ برای افزودن فایل، یکی از پیوست‌ها را حذف کنید.</small>
        @endif
-       @if($submission?->score !== null)
-        <span class="assignment-meta">نمره: {{ $submission->score }} از ۲۰</span>
-       @endif
-      </td>
-      <td class="assignment-action" data-label="پاسخ و پیوست">
-       @if($submission?->files->isNotEmpty())
-        <div class="assignment-files">
-         @foreach($submission->files as $file)
-          <a class="pill" href="{{ route('student.homework.submission-files.download', $file) }}">{{ $file->original_name }}</a>
-          @if(!$reviewed)
-           <form method="POST" action="{{ route('student.homework.submission-files.destroy', $file) }}">@csrf @method('DELETE')<button class="pill" type="submit" data-confirm="این فایل از پاسخ تکلیف حذف شود؟">حذف فایل</button></form>
-          @endif
-         @endforeach
-        </div>
-       @endif
-       @if($submission?->feedback)
-        <div class="assignment-feedback"><b>بازخورد مدرس:</b> {{ $submission->feedback }}</div>
-       @endif
-       @if(!$reviewed)
-        <details>
-         <summary class="btn s">{{ $submission ? 'ویرایش پاسخ' : 'ارسال پاسخ' }}</summary>
-         <form class="assignment-form" method="POST" action="{{ route('student.homework.submissions.store', $homework) }}" enctype="multipart/form-data">
-          @csrf
-          <label for="answer-{{ $homework->id }}">متن پاسخ</label>
-          <textarea class="fld" id="answer-{{ $homework->id }}" name="answer" rows="3" maxlength="12000" placeholder="متن پاسخ را بنویسید...">{{ old('answer', $submission?->answer) }}</textarea>
-          <label for="files-{{ $homework->id }}">افزودن فایل (حداکثر ۵ فایل، هر فایل ۱۰ مگابایت)</label>
-          <input id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.txt">
-          <button class="btn s" type="submit">ثبت پاسخ</button>
-         </form>
-        </details>
-       @else
-        <span class="assignment-meta">پس از بررسی مدرس، پاسخ قابل ویرایش نیست.</span>
-       @endif
-      </td>
-     </tr>
-    @empty
-     <tr><td colspan="5"><x-portal.empty-state icon="file" tone="tracking" title="تکلیفی برای کلاس‌های فعال شما ثبت نشده است." description="تکالیف منتشرشده و پاسخ‌های شما در این بخش قابل پیگیری‌اند."/></td></tr>
-    @endforelse
-    </tbody>
-   </table>
-  </div>
-  <div class="chead">{{ $homeworks->links() }}</div>
+       @if($late)<small class="assignment-meta">ارسال پس از مهلت مقرر ثبت می‌شود.</small>@endif
+       <div class="assignment-form-actions"><button class="btn s" type="submit"><x-portal.icon name="check"/> ثبت پاسخ</button></div>
+      </form>
+     </details>
+    @else
+     <span class="assignment-meta">پس از بررسی مدرس، پاسخ قابل ویرایش نیست.</span>
+    @endunless
+   </article>
+  @empty
+   <x-portal.empty-state icon="file" tone="tracking" title="تکلیفی برای کلاس‌های فعال شما ثبت نشده است."/>
+  @endforelse
  </div>
+ {{ $homeworks->links() }}
 </section>
 @endsection
