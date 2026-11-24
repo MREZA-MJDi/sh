@@ -22,7 +22,7 @@ final class StartVideoUploadRequest extends FormRequest
             'title' => ['required_if:target,spotplayer_video', 'nullable', 'string', 'max:180'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'class_session_id' => ['nullable', 'integer', 'exists:class_sessions,id'],
-            'external_id' => ['nullable', 'string', 'max:190'],
+            'external_id' => ['prohibited'],
         ];
     }
 
