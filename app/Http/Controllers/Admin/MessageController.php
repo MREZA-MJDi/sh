@@ -7,9 +7,8 @@ use App\Http\Requests\Admin\ReplyMessageRequest;
 use App\Models\Message;
 use App\Models\Consultation;
 use App\Models\MessageInternalNote;
-use App\Models\MessageReply;
+use App\Services\Messaging\MessageReplyService;
 use App\Models\User;
-use App\Notifications\MessageActivityNotification;
 use App\Services\Admin\MessageWorkspaceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,8 +41,7 @@ class MessageController extends Controller
                     ->orWhereHas('recipient', fn ($recipient) => $recipient->where('name', 'like', "%{$term}%"))
                     ->orWhereHas('replies', fn ($replies) => $replies->where('body', 'like', "%{$term}%"));
             }))
-            ->when(($filters['status'] ?? '') === 'closed', fn ($query) => $query->whereNotNull('closed_at'))
-            ->when(($filters['status'] ?? '') !== '' && ($filters['status'] ?? '') !== 'closed', fn ($query) => $query->whereNull('closed_at')->where('status', $filters['status']))
+            ->when(filled($filters['status'] ?? null), fn ($query) => $query->withConversationStatus($filters['status']))
             ->when(($filters['category'] ?? '') === 'parents', fn ($query) => $query->where(fn ($q) => $q->whereHas('sender.roles', fn ($r) => $r->where('name', 'parent'))->orWhereHas('recipient.roles', fn ($r) => $r->where('name', 'parent'))))
             ->when(($filters['category'] ?? '') === 'students', fn ($query) => $query->where(fn ($q) => $q->whereHas('sender.roles', fn ($r) => $r->where('name', 'student'))->orWhereHas('recipient.roles', fn ($r) => $r->where('name', 'student'))))
             ->when(($filters['category'] ?? '') === 'teachers', fn ($query) => $query->where(fn ($q) => $q->whereHas('sender.roles', fn ($r) => $r->where('name', 'teacher'))->orWhereHas('recipient.roles', fn ($r) => $r->where('name', 'teacher'))))
@@ -86,24 +84,11 @@ class MessageController extends Controller
     public function reply(
         ReplyMessageRequest $request,
         Message $message,
-        MessageWorkspaceService $workspace
+        MessageWorkspaceService $workspace,
+        MessageReplyService $replies
     ): RedirectResponse {
         $message = $workspace->findVisible($request->user(), $message->id);
-        abort_if($message->closed_at !== null, 422, 'گفت‌وگوی بسته‌شده قابل پاسخ‌گویی نیست.');
-
-        MessageReply::create([
-            'message_id' => $message->id,
-            'sender_id' => $request->user()->id,
-            'body' => $request->validated('body'),
-        ]);
-
-        $message->update(['status' => 'answered', 'replied_at' => now()]);
-        $otherParticipantId = (int) $message->sender_id === (int) $request->user()->id
-            ? $message->recipient_id
-            : $message->sender_id;
-        User::query()->find($otherParticipantId)?->notify(
-            new MessageActivityNotification($message, 'پاسخ جدیدی در گفت‌وگوی شما ثبت شد.')
-        );
+        $replies->reply($message, $request->user(), $request->validated('body'), markAnswered: true);
 
         return redirect()->route('admin.messages.index', ['message' => $message->id])
             ->with('success', 'پاسخ در کارتابل پیام ثبت شد.');
@@ -112,7 +97,7 @@ class MessageController extends Controller
     public function markRead(Request $request, Message $message, MessageWorkspaceService $workspace): RedirectResponse
     {
         $message = $workspace->findVisible($request->user(), $message->id);
-        if ($message->closed_at === null) {
+        if ($message->acceptsReplies()) {
             $message->update(['status' => 'read']);
         }
 
@@ -130,7 +115,11 @@ class MessageController extends Controller
     public function reopen(Request $request, Message $message, MessageWorkspaceService $workspace): RedirectResponse
     {
         $message = $workspace->findVisible($request->user(), $message->id);
-        $message->forceFill(['closed_at' => null])->save();
+        $updates = ['closed_at' => null];
+        if ($message->status === 'closed') {
+            $updates['status'] = $message->replied_at ? 'answered' : 'open';
+        }
+        $message->forceFill($updates)->save();
 
         return back()->with('success', 'گفت‌وگو دوباره باز شد.');
     }

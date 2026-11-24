@@ -122,6 +122,19 @@ final class MessagingWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee($reply);
         Notification::assertSentTo($guardian, MessageActivityNotification::class);
+
+        $this->actingAs($this->userWithRole('admin'))
+            ->post(route('admin.messages.close', $message))->assertRedirect();
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.messages.reply', $message), ['body' => $reply])->assertUnprocessable();
+        $this->actingAs($guardian)
+            ->get(route('guardian.messages.index', ['status' => 'closed']))
+            ->assertOk()
+            ->assertSee($payload['subject'])
+            ->assertDontSee(route('guardian.messages.reply', $message), false);
+        $this->post(route('guardian.messages.reply', $message), ['body' => $reply])->assertUnprocessable();
+        $this->assertDatabaseCount('message_replies', 1);
     }
 
     public function test_teacher_inbox_only_contains_threads_for_students_in_assigned_active_classes(): void

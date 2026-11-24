@@ -9,7 +9,7 @@ use App\Http\Requests\Portal\UpdatePortalMessageRequest;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Message;
-use App\Models\MessageReply;
+use App\Services\Messaging\MessageReplyService;
 use App\Models\User;
 use App\Notifications\MessageActivityNotification;
 use App\Services\Learning\LearningAccessService;
@@ -38,7 +38,7 @@ final class MessageController extends Controller
                 $search->where('subject', 'like', '%'.$filters['q'].'%')
                     ->orWhere('body', 'like', '%'.$filters['q'].'%');
             }))
-            ->when(filled($filters['status'] ?? null), fn (Builder $query) => $query->where('status', $filters['status']))
+            ->when(filled($filters['status'] ?? null), fn (Builder $query) => $query->withConversationStatus($filters['status']))
             ->where(function (Builder $participants) use ($request): void {
                 $participants->where('sender_id', $request->user()->id)
                     ->orWhere('recipient_id', $request->user()->id);
@@ -148,23 +148,11 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function reply(ReplyPortalMessageRequest $request, Message $message): RedirectResponse
+    public function reply(ReplyPortalMessageRequest $request, Message $message, MessageReplyService $replies): RedirectResponse
     {
         $message = $this->accessibleMessage($request, $message);
 
-        abort_if(in_array($message->status, ['closed', 'deleted'], true), 422, 'این گفتگو بسته شده است.');
-
-        MessageReply::query()->create([
-            'message_id' => $message->id,
-            'sender_id' => $request->user()->id,
-            'body' => $request->validated('body'),
-        ]);
-
-        $message->update(['replied_at' => now()]);
-        $otherParticipantId = (int) $message->sender_id === (int) $request->user()->id
-            ? $message->recipient_id
-            : $message->sender_id;
-        User::query()->find($otherParticipantId)?->notify(new MessageActivityNotification($message, 'پاسخ جدیدی در گفت‌وگوی شما ثبت شد.'));
+        $replies->reply($message, $request->user(), $request->validated('body'));
 
         return back()->with('status', 'پاسخ شما در گفتگو ثبت شد.');
     }
@@ -174,7 +162,7 @@ final class MessageController extends Controller
         $message = $this->accessibleMessage($request, $message);
 
         abort_unless($message->sender_id === $request->user()->id, 403);
-        abort_if($message->status !== 'open' || $message->replies()->exists(), 422, 'پس از پاسخ‌گرفتن، ویرایش پیام ممکن نیست.');
+        abort_if(! $message->acceptsReplies() || $message->status !== 'open' || $message->replies()->exists(), 422, 'پس از پاسخ‌گرفتن، ویرایش پیام ممکن نیست.');
 
         $message->update($request->validated());
 
@@ -186,7 +174,7 @@ final class MessageController extends Controller
         $message = $this->accessibleMessage($request, $message);
 
         abort_unless($message->sender_id === $request->user()->id, 403);
-        abort_if($message->status !== 'open' || $message->replies()->exists(), 422, 'این پیام دیگر قابل حذف نیست.');
+        abort_if(! $message->acceptsReplies() || $message->status !== 'open' || $message->replies()->exists(), 422, 'این پیام دیگر قابل حذف نیست.');
 
         $message->delete();
 
