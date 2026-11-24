@@ -27,6 +27,7 @@
                     <strong>{{ data_get($h, 'title') }}</strong>
                     <small>مهلت: {{ data_get($h, 'due') }}</small>
                     
+                    @if(data_get($h, 'submitted_late'))<small>ارسال با تأخیر</small>@endif
                     @if(data_get($h, 'score') !== null)
                         <small class="parent-homework-score">نمره: {{ data_get($h, 'score') }} از ۲۰</small>
                     @endif
