@@ -27,7 +27,7 @@
     <div class="adm-alert adm-alert-success" role="status" style="margin-bottom:16px">{{ session('success') }}</div>
 @endif
 
-<section class="adm-notice-intro" data-tone="shop">
+<section class="adm-notice-intro" data-tone="comm">
   <span class="adm-notice-intro-icon"><x-admin.icon name="bell"/></span>
   <div><b>این بخش برای اطلاع‌رسانی عمومی است</b><p>اطلاعیه‌های منتشرشده در فید سایت و پنل‌های کاربران نمایش داده می‌شوند. برای پیام فوری به زنگوله یک گروه مشخص، از «اعلان‌های درون‌پنلی» استفاده کن.</p></div>
   @if(auth()->user()?->hasPermissionTo('notifications.manage'))
