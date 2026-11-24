@@ -41,6 +41,13 @@
                     <input type="hidden" name="grade" value="{{ request('grade') }}">
                 @endif
 
+                <h4>سال تحصیلی</h4>
+                <select class="inp" name="academic_year" onchange="this.form.submit()">
+                    <option value="">همه سال‌ها</option>
+                    @foreach($academicYears as $year)
+                        <option value="{{ $year }}" @selected((string) request('academic_year') === (string) $year)>{{ $year }}–{{ $year + 1 }}</option>
+                    @endforeach
+                </select>
                 <h4>فصل آموزشی</h4>
                 <select class="inp" name="season" onchange="this.form.submit()">
                     <option value="">همه فصل‌ها</option>
@@ -86,7 +93,7 @@
 
                 <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px">
                     <button class="btn s" type="submit" style="width:100%">اعمال فیلتر</button>
-                    @if(request()->hasAny(['q', 'subject', 'grade', 'season', 'price', 'sort']))
+                    @if(request()->hasAny(['q', 'subject', 'grade', 'season', 'academic_year', 'price', 'sort']))
                         <a class="btn s o" href="{{ route('public.courses.index') }}" style="width:100%;text-align:center;color:var(--mute)">
                             پاک کردن فیلترها
                         </a>
@@ -104,7 +111,7 @@
                 <div style="display:flex;align-items:center;gap:8px">
                     <span style="font-size:13px;color:var(--mute)">مرتب‌سازی:</span>
                     <select class="inp" style="width:auto;margin:0;padding:8px 12px;font-size:13px" 
-                            name="sort" onchange="location.href = '{{ route('public.courses.index', array_merge(request()->except(['sort', 'page']))) }}' + (this.value ? (location.search ? '&' : '?') + 'sort=' + this.value : '')">
+                            name="sort" onchange="const url = new URL(window.location.href); url.searchParams.set('sort', this.value); url.searchParams.delete('page'); window.location.assign(url.toString());">
                         <option value="latest" @selected(request('sort', 'latest') === 'latest')>جدیدترین</option>
                         <option value="popular" @selected(request('sort') === 'popular')>پرطرفدارترین</option>
                         <option value="price_asc" @selected(request('sort') === 'price_asc')>ارزان‌ترین</option>
