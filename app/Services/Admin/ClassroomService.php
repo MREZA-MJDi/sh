@@ -51,6 +51,15 @@ final class ClassroomService
             $classroom = $this->workspace->queryFor($actor)->lockForUpdate()->findOrFail($classroom->id);
             $previousCourseId = $classroom->course_id;
 
+            // A historical classroom belongs to its original course; moving it
+            // would reinterpret attendance, recordings and assessment history.
+            if ((int) $previousCourseId !== (int) ($data['course_id'] ?? null)
+                && $this->hasEducationalHistory($classroom)) {
+                throw ValidationException::withMessages([
+                    'course_id' => 'این گروه دارای سابقه آموزشی است؛ برای دوره دیگر گروه جدید بسازید.',
+                ]);
+            }
+
             $classroom->update([
                 'name' => $data['name'],
                 'course_id' => $data['course_id'] ?? null,
@@ -128,22 +137,29 @@ final class ClassroomService
 
     public function delete(User $actor, Classroom $classroom): void
     {
-        $classroom = $this->workspace->queryFor($actor)->findOrFail($classroom->id);
+        DB::transaction(function () use ($actor, $classroom): void {
+            $classroom = $this->workspace->queryFor($actor)->lockForUpdate()->findOrFail($classroom->id);
 
-        if (
-            $classroom->homeworks()->exists()
+            if ($this->hasEducationalHistory($classroom)) {
+                throw ValidationException::withMessages([
+                    'classroom' => 'کلاس دارای سوابق آموزشی یا اعضای ثبت‌نام‌شده است؛ آن را بایگانی کنید.',
+                ]);
+            }
+
+            $classroom->delete();
+        }, 3);
+    }
+
+    private function hasEducationalHistory(Classroom $classroom): bool
+    {
+        return $classroom->sessions()->exists()
+            || $classroom->homeworks()->exists()
             || $classroom->attendances()->exists()
-            || DB::table('classroom_student')->where('classroom_id', $classroom->id)->exists()
+            || $classroom->students()->exists()
             || $classroom->membershipHistory()->exists()
             || $classroom->exams()->exists()
             || $classroom->learningResources()->exists()
-            || $classroom->spotPlayerVideos()->exists()
-        ) {
-            throw ValidationException::withMessages([
-                'classroom' => 'کلاس دارای سوابق آموزشی یا اعضای ثبت‌نام‌شده است؛ آن را بایگانی کنید.',
-            ]);
-        }
-
-        DB::transaction(fn () => $classroom->delete(), 3);
+            || $classroom->spotPlayerVideos()->exists();
     }
+
 }
