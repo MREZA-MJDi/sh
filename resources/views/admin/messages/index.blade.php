@@ -23,10 +23,19 @@
     <option value="">همه پیام‌ها</option><option value="parents" @selected(($filters['category']??'')==='parents')>پیام اولیا</option><option value="students" @selected(($filters['category']??'')==='students')>پیام دانش‌آموز</option><option value="teachers" @selected(($filters['category']??'')==='teachers')>پیام معلم</option><option value="teacher_student" @selected(($filters['category']??'')==='teacher_student')>گفتگوی معلم و دانش‌آموز</option>
    </select>
    <select class="ib-filter-select" name="sort" aria-label="مرتب‌سازی"><option value="latest" @selected(($filters['sort']??'latest')==='latest')>جدیدترین</option><option value="oldest" @selected(($filters['sort']??'')==='oldest')>قدیمی‌ترین</option></select>
+   <input type="hidden" name="status" value="{{ $filters['status'] ?? '' }}">
    <button class="ib-btn p" type="submit">اعمال فیلتر</button>
   </form>
-  <div class="ib-chips">@foreach($messages->getCollection()->map(fn($m)=>$personFor($m)?->roles?->first()?->name)->filter()->unique() as $role)<button type="button" class="ib-chip" data-role-filter="{{ $role }}">{{ $labels[$role]??$role }}</button>@endforeach<button type="button" class="ib-chip on" data-role-filter="">همه</button></div>
-  <div class="ib-chips" style="padding-top:0"><button type="button" class="ib-chip on" data-status-filter="">همه وضعیت‌ها</button><button type="button" class="ib-chip" data-status-filter="open">باز</button><button type="button" class="ib-chip" data-status-filter="answered">در انتظار پاسخ</button><button type="button" class="ib-chip" data-status-filter="closed">بسته‌شده</button></div>
+  <div class="ib-chips" aria-label="نوع گفتگو">
+   @foreach(['' => 'همه', 'parents' => 'ولی', 'students' => 'دانش‌آموز', 'teachers' => 'مدرس', 'teacher_student' => 'مدرس و دانش‌آموز'] as $category => $label)
+    <a class="ib-chip {{ ($filters['category'] ?? '') === $category ? 'on' : '' }}" href="{{ route('admin.messages.index', array_merge($filters, ['category' => $category])) }}" @if(($filters['category'] ?? '') === $category) aria-current="true" @endif>{{ $label }}</a>
+   @endforeach
+  </div>
+  <div class="ib-chips" style="padding-top:0" aria-label="وضعیت گفتگو">
+   @foreach(['' => 'همه وضعیت‌ها', 'open' => 'باز', 'read' => 'خوانده‌شده', 'answered' => 'در انتظار پاسخ', 'closed' => 'بسته‌شده'] as $status => $label)
+    <a class="ib-chip {{ ($filters['status'] ?? '') === $status ? 'on' : '' }}" href="{{ route('admin.messages.index', array_merge($filters, ['status' => $status])) }}" @if(($filters['status'] ?? '') === $status) aria-current="true" @endif>{{ $label }}</a>
+   @endforeach
+  </div>
   <div class="ib-list">
    @forelse($messages as $message)
     @php($person=$personFor($message))
@@ -35,7 +44,7 @@
      <div class="ib-av">@if($avatar($person))<img src="{{ $avatar($person) }}" alt="">@else{{ mb_substr($person?->name??'؟',0,1) }}@endif</div>
      <div class="m"><div class="r"><b>{{ $person?->name??'کاربر' }}</b><small>{{ \App\Support\PersianDate::format(($message->replies->last()?->created_at??$message->created_at), 'H:i') }}</small></div>
       <p>{{ $message->replies->last()?->body??$message->body }}</p><span class="ib-tag">{{ $labels[$role]??'کاربر' }} · {{ $message->subject?:'گفت‌وگوی بدون موضوع' }}</span>
-     </div>@if($message->status==='open')<span class="ib-cnt">جدید</span>@endif
+     </div>@if($message->conversationStatus()==='open')<span class="ib-cnt">جدید</span>@endif
     </a>
    @empty<div class="ib-empty">گفتگویی در محدوده دسترسی شما پیدا نشد.</div>@endforelse
   </div><div class="ib-list-pager">{{ $messages->links() }}</div>
