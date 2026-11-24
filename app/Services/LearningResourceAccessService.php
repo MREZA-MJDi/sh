@@ -2,15 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\Classroom;
-use App\Models\CourseEnrollment;
 use App\Models\Course;
 use App\Models\LearningResource;
 use App\Models\User;
+use App\Services\Learning\LearningAccessService;
 use Illuminate\Database\Eloquent\Builder;
 
 final class LearningResourceAccessService
 {
+    public function __construct(private readonly LearningAccessService $access) {}
+
     public function resolveStudent(User $actor, ?int $childId = null): User
     {
         if ($actor->hasRole('student')) {
@@ -66,27 +67,19 @@ final class LearningResourceAccessService
 
     private function authorizePortalScope(User $student, LearningResource $resource): void
     {
+        abort_unless($student->is_active && $student->hasRole('student'), 404);
+
         if ($resource->classroom_id) {
-            $classroom = Classroom::query()
+            $classroom = $this->access->activeClassroomIds($student, 'resources')
                 ->whereKey($resource->classroom_id)
-                ->where('status', 'active')
-                ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
-                ->firstOrFail();
+                ->addSelect('classrooms.course_id')->firstOrFail();
 
-            if ($resource->course_id) {
-                abort_unless((int) $resource->course_id === (int) $classroom->course_id, 404);
-            }
-
-            $courseId = $resource->course_id ?: $classroom->course_id;
-            if ($courseId) {
-                abort_unless($this->hasActiveCourseAccess($student, (int) $courseId), 404);
-            }
-
+            abort_unless(! $resource->course_id || (int) $resource->course_id === (int) $classroom->course_id, 404);
             return;
         }
 
         if ($resource->course_id) {
-            abort_unless($this->hasActiveCourseAccess($student, (int) $resource->course_id), 404);
+            abort_unless($this->access->activeCourseIds($student, 'resources')->whereKey($resource->course_id)->exists(), 404);
             return;
         }
 
@@ -112,36 +105,5 @@ final class LearningResourceAccessService
             $course = Course::query()->whereKey($resource->course_id)->where('status', 'published')->first();
             abort_unless($course && $course->featureEnabled('resources'), 404);
         }
-    }
-
-    private function hasActiveCourseAccess(User $student, int $courseId): bool
-    {
-        $freeCourseIsAvailable = Course::query()
-            ->whereKey($courseId)
-            ->where('status', 'published')
-            ->where('type', 'free')
-            ->where(fn (Builder $features) => $features
-                ->whereNull('learning_features')
-                ->orWhereNull('learning_features->resources')
-                ->orWhere('learning_features->resources', true))
-            ->exists();
-
-        if ($student->is_active && $student->hasRole('student') && $freeCourseIsAvailable) {
-            return true;
-        }
-
-        return CourseEnrollment::query()
-            ->where('student_id', $student->id)
-            ->where('course_id', $courseId)
-            ->where('status', 'active')
-            ->where(fn (Builder $expiry) => $expiry
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>', now()))
-            ->whereHas('course', fn (Builder $course) => $course
-                ->where('status', 'published')
-                ->where(fn (Builder $features) => $features
-                    ->whereNull('learning_features')
-                    ->orWhere('learning_features->resources', true)))
-            ->exists();
     }
 }
