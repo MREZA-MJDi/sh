@@ -53,7 +53,9 @@ final class ClientAcceptanceSeeder extends Seeder
 
         // A second invocation must not recreate edited/deleted fixtures.
         if (User::query()->where('email', 'like', 'qa.acceptance.%@example.test')->exists()
-            || Course::query()->where('slug', 'like', 'qa-acceptance-%')->exists()) {
+            || Course::query()->where('slug', 'like', 'qa-acceptance-%')->exists()
+            || User::query()->where('email', 'like', '%@academy.example.test')->exists()
+            || Course::query()->where('slug', 'like', 'demo-academy-%')->exists()) {
             $this->command?->warn('QA fixtures already exist. No records were modified.');
             return;
         }
@@ -67,16 +69,16 @@ final class ClientAcceptanceSeeder extends Seeder
             throw new RuntimeException('Initialize academy roles before running acceptance fixtures.');
         }
 
-        $pdfPath = 'private/resources/qa-acceptance-'.Str::uuid().'.pdf';
-        $productPath = 'private/resources/qa-acceptance-'.Str::uuid().'.pdf';
+        $pdfPath = 'private/resources/demo-academy-'.Str::uuid().'.pdf';
+        $productPath = 'private/resources/demo-academy-'.Str::uuid().'.pdf';
         $disk = Storage::disk('local');
         try {
             DB::transaction(function () use ($password, $roles, $admin, $disk, $pdfPath, $productPath): void {
                 $grade = AcademicGrade::query()->where('is_active', true)->orderBy('sort_order')->firstOrFail();
                 $account = function (string $key, string $name, string $role) use ($password, $roles, $grade): User {
                     $user = User::query()->create([
-                        'email' => 'qa.acceptance.'.$key.'@example.test',
-                        'name' => 'آزمایشی | '.$name,
+                        'email' => $key.'@academy.example.test',
+                        'name' => $name,
                         'password' => $password,
                         'is_active' => true,
                         'grade' => $role === 'student' ? $grade->name : null,
@@ -87,18 +89,18 @@ final class ClientAcceptanceSeeder extends Seeder
                 };
 
                 $teachers = [
-                    $account('teacher1', 'مدرس ریاضی', 'teacher'),
-                    $account('teacher2', 'مدرس فیزیک', 'teacher'),
+                    $account('amir.rad', 'امیر رادمنش', 'teacher'),
+                    $account('sara.nouri', 'سارا نوریان', 'teacher'),
                 ];
                 $students = [
-                    $account('student1', 'دانش‌آموز گروه اول', 'student'),
-                    $account('student2', 'دانش‌آموز دوم گروه اول', 'student'),
-                    $account('student3', 'دانش‌آموز گروه دوم', 'student'),
-                    $account('empty', 'دانش‌آموز بدون ثبت‌نام', 'student'),
+                    $account('armin.mehri', 'آرمین مهری', 'student'),
+                    $account('nima.mehri', 'نیما مهری', 'student'),
+                    $account('helia.karimi', 'هلیا کریمیان', 'student'),
+                    $account('parsa.rostami', 'پارسا رستمی', 'student'),
                 ];
                 $parents = [
-                    $account('parent1', 'ولی گروه اول', 'parent'),
-                    $account('parent2', 'ولی گروه دوم', 'parent'),
+                    $account('maryam.mehri', 'مریم مهری', 'parent'),
+                    $account('reza.karimi', 'رضا کریمیان', 'parent'),
                 ];
                 $parents[0]->children()->attach([$students[0]->id, $students[1]->id]);
                 $parents[1]->children()->attach($students[2]->id);
@@ -111,8 +113,8 @@ final class ClientAcceptanceSeeder extends Seeder
                     $teacher = $teachers[$i];
                     $members = $i === 0 ? [$students[0], $students[1]] : [$students[2]];
                     $course = Course::query()->create([
-                        'slug' => 'qa-acceptance-course-'.($i + 1), 'title' => 'آزمایشی | '.$subject,
-                        'description' => 'نمونه پذیرش برای مدیریت کلاس، تکلیف، منابع و آزمون.',
+                        'slug' => 'demo-academy-'.($i === 0 ? 'math-problem-solving' : 'physics-concepts'), 'title' => $subject,
+                        'description' => $i === 0 ? 'آموزش مفهومی ریاضی، حل تمرین‌های طبقه‌بندی‌شده و آمادگی آزمون پایان فصل.' : 'آموزش مفاهیم فیزیک با مثال‌های کاربردی، تمرین و تحلیل مسئله.',
                         'subject' => $subject, 'teacher_id' => $teacher->id,
                         'grade' => $grade->name, 'academic_grade_id' => $grade->id, 'season' => 'autumn',
                         'type' => 'free', 'price' => 0, 'delivery_type' => 'skyroom',
@@ -121,15 +123,15 @@ final class ClientAcceptanceSeeder extends Seeder
                     ]);
                     $class = Classroom::query()->create([
                         'course_id' => $course->id, 'teacher_id' => $teacher->id,
-                        'name' => 'آزمایشی | گروه '.($i + 1), 'status' => 'active',
-                        'schedule' => ['days' => ['sat', 'mon'], 'time' => '17:00', 'duration_minutes' => 60],
+                        'name' => $i === 0 ? 'ریاضی تکمیلی ـ گروه الف' : 'فیزیک مفهومی ـ گروه ب', 'status' => 'active',
+                        'schedule' => [['day' => 'شنبه', 'start' => '17:00', 'end' => '18:00', 'label' => 'آموزش و حل تمرین']],
                         'created_by' => $admin->id,
                     ]);
                     $class->students()->attach(array_map(fn (User $user) => $user->id, $members), ['assigned_by' => $admin->id]);
                     app(CourseEnrollmentService::class)->syncClassroomRoster($class);
 
                     $section = CourseSection::query()->create([
-                        'course_id' => $course->id, 'title' => 'آزمایشی | فصل اول',
+                        'course_id' => $course->id, 'title' => 'فصل اول ـ مفاهیم پایه',
                         'sort_order' => 1, 'status' => 'published',
                     ]);
                     Lesson::query()->create([
@@ -138,15 +140,15 @@ final class ClientAcceptanceSeeder extends Seeder
                         'duration_minutes' => 20, 'sort_order' => 1, 'status' => 'published',
                     ]);
                     $past = ClassSession::query()->create([
-                        'classroom_id' => $class->id, 'title' => 'آزمایشی | جلسه برگزارشده',
+                        'classroom_id' => $class->id, 'title' => 'مرور مفاهیم و حل مثال',
                         'session_type' => 'onsite', 'starts_at' => $now->copy()->subDays(2),
                         'ends_at' => $now->copy()->subDays(2)->addHour(),
                         'status' => 'completed', 'created_by' => $teacher->id,
                     ]);
-                    foreach (['جلسه آینده', 'جلسه قابل لغو یا حذف'] as $j => $title) {
+                    foreach (['حل تمرین‌های فصل اول', 'رفع اشکال و مرور هفتگی'] as $j => $title) {
                         $start = $now->copy()->addDays($j + 1);
                         ClassSession::query()->create([
-                            'classroom_id' => $class->id, 'title' => 'آزمایشی | '.$title,
+                            'classroom_id' => $class->id, 'title' => $title,
                             'session_type' => 'online', 'meeting_provider' => 'skyroom',
                             'meeting_url' => null, 'starts_at' => $start, 'ends_at' => $start->copy()->addHour(),
                             'status' => 'scheduled', 'created_by' => $teacher->id,
@@ -161,7 +163,7 @@ final class ClientAcceptanceSeeder extends Seeder
                     }
 
                     $homework = Homework::query()->create([
-                        'classroom_id' => $class->id, 'title' => 'آزمایشی | تمرین حل مسئله',
+                        'classroom_id' => $class->id, 'title' => 'تمرین‌های مفهومی فصل اول',
                         'instructions' => 'پاسخ متنی یا فایل تصویر، PDF و Word ارسال کنید.',
                         'due_at' => $now->copy()->addDays(4), 'status' => 'published', 'created_by' => $teacher->id,
                     ]);
@@ -180,13 +182,13 @@ final class ClientAcceptanceSeeder extends Seeder
                         ]);
                     }
                     Homework::query()->create([
-                        'classroom_id' => $class->id, 'title' => 'آزمایشی | تکلیف قابل حذف',
-                        'instructions' => 'پیش‌نویس بدون پاسخ.', 'status' => 'draft', 'created_by' => $teacher->id,
+                        'classroom_id' => $class->id, 'title' => 'تمرین تکمیلی آخر هفته',
+                        'instructions' => 'تمرین‌های تکمیلی پس از جلسه رفع اشکال منتشر می‌شوند.', 'status' => 'draft', 'created_by' => $teacher->id,
                     ]);
 
                     $exam = Exam::query()->create([
                         'classroom_id' => $class->id, 'course_id' => $course->id,
-                        'created_by' => $teacher->id, 'title' => 'آزمایشی | آزمون پایان فصل',
+                        'created_by' => $teacher->id, 'title' => 'آزمون پایان فصل اول',
                         'provider' => 'internal', 'starts_at' => $now->copy()->subDays(3),
                         'duration_minutes' => 30, 'attempts_allowed' => 1, 'show_to_guardians' => true,
                         'status' => 'closed', 'integration_status' => 'not_required',
@@ -194,11 +196,11 @@ final class ClientAcceptanceSeeder extends Seeder
                     ExamResult::query()->create([
                         'exam_id' => $exam->id, 'student_id' => $members[0]->id,
                         'score' => 17 + $i, 'max_score' => 20,
-                        'synced_at' => $now->copy()->subDays(2), 'feedback' => 'نتیجه نمونه پذیرش.',
+                        'synced_at' => $now->copy()->subDays(2), 'feedback' => 'تسلط خوب بر مفاهیم؛ تمرین‌های ترکیبی بیشتر مرور شوند.',
                     ]);
                     $draft = Exam::query()->create([
                         'classroom_id' => $class->id, 'course_id' => $course->id,
-                        'created_by' => $teacher->id, 'title' => 'آزمایشی | آزمون قابل ویرایش و انتشار',
+                        'created_by' => $teacher->id, 'title' => 'آزمون جمع‌بندی ماهانه',
                         'provider' => 'internal', 'starts_at' => $now->copy()->addDays(5),
                         'duration_minutes' => 20, 'attempts_allowed' => 1, 'show_to_guardians' => true,
                         'status' => 'draft', 'integration_status' => 'not_required',
@@ -216,19 +218,19 @@ final class ClientAcceptanceSeeder extends Seeder
                     ParentMeeting::query()->create([
                         'classroom_id' => $class->id, 'course_id' => $course->id,
                         'student_id' => $members[0]->id, 'guardian_id' => $parent->id,
-                        'created_by' => $parent->id, 'title' => 'آزمایشی | درخواست جلسه اولیا',
+                        'created_by' => $parent->id, 'title' => 'جلسه بررسی روند تحصیلی',
                         'message' => 'درخواست بررسی روند آموزشی.', 'preferred_at' => $now->copy()->addDays(3),
                         'status' => 'requested',
                     ]);
                     Consultation::query()->create([
                         'requester_id' => $parent->id, 'student_id' => $members[0]->id,
                         'teacher_id' => $teacher->id, 'type' => 'ticket',
-                        'topic' => 'آزمایشی | برنامه پیشرفت تحصیلی', 'notes' => 'درخواست بررسی تمرین‌ها.',
+                        'topic' => 'برنامه‌ریزی و پیشرفت تحصیلی', 'notes' => 'درخواست بررسی تمرین‌ها.',
                         'status' => 'pending',
                     ]);
                     $message = Message::query()->create([
                         'sender_id' => $parent->id, 'recipient_id' => $teacher->id,
-                        'student_id' => $members[0]->id, 'subject' => 'آزمایشی | پیگیری تکلیف',
+                        'student_id' => $members[0]->id, 'subject' => 'پیگیری تمرین‌های این هفته',
                         'body' => 'لطفاً وضعیت تکلیف را بررسی کنید.', 'status' => 'answered',
                         'replied_at' => $now->copy()->subMinutes(10),
                     ]);
@@ -238,7 +240,7 @@ final class ClientAcceptanceSeeder extends Seeder
                     ]);
                     Message::query()->create([
                         'sender_id' => $parent->id, 'recipient_id' => $admin->id,
-                        'student_id' => $members[0]->id, 'subject' => 'آزمایشی | پیام به مدیریت',
+                        'student_id' => $members[0]->id, 'subject' => 'هماهنگی برنامه کلاس',
                         'body' => 'درخواست بررسی برنامه کلاس.', 'status' => 'open',
                     ]);
 
@@ -248,8 +250,8 @@ final class ClientAcceptanceSeeder extends Seeder
                         }
                         LearningResource::query()->create([
                             'course_id' => $course->id, 'classroom_id' => $class->id,
-                            'uploaded_by' => $teacher->id, 'title' => 'آزمایشی | جزوه خصوصی گروه اول',
-                            'description' => 'فایل واقعی PDF برای آزمون دسترسی و دانلود.',
+                            'uploaded_by' => $teacher->id, 'title' => 'جزوه مفاهیم پایه و حل مسئله',
+                            'description' => 'مرور نکته‌های اصلی فصل و راهنمای حل تمرین برای اعضای کلاس.',
                             'kind' => 'pdf', 'is_free' => true, 'price' => 0, 'visibility' => 'enrolled',
                             'downloadable' => true, 'file_path' => $pdfPath, 'status' => 'published',
                         ]);
@@ -258,33 +260,33 @@ final class ClientAcceptanceSeeder extends Seeder
                         }
                         LearningResource::query()->create([
                             'course_id' => $course->id, 'classroom_id' => $class->id,
-                            'uploaded_by' => $teacher->id, 'title' => 'آزمایشی | کتاب تمرین پولی',
-                            'description' => 'محصول نمونه برای بررسی خرید و عدم دریافت بدون تایید پرداخت.',
+                            'uploaded_by' => $teacher->id, 'title' => 'دفتر تمرین ریاضی و حل مسئله',
+                            'description' => 'مجموعه تمرین‌های طبقه‌بندی‌شده برای مرور و آمادگی آزمون.',
                             'kind' => 'pdf', 'is_free' => false, 'price' => 25000, 'visibility' => 'enrolled',
                             'downloadable' => true, 'file_path' => $productPath, 'status' => 'published',
                         ]);
                         SpotPlayerVideo::query()->create([
                             'course_id' => $course->id, 'classroom_id' => $class->id,
-                            'created_by' => $teacher->id, 'title' => 'آزمایشی | نمونه بدون فایل',
+                            'created_by' => $teacher->id, 'title' => 'آموزش مفاهیم پایه ـ جلسه اول',
                             'status' => 'draft',
                         ]);
                     }
                 }
 
                 Course::query()->create([
-                    'slug' => 'qa-acceptance-edit-delete', 'title' => 'آزمایشی | دوره خالی قابل حذف',
+                    'slug' => 'demo-academy-study-skills', 'title' => 'مهارت‌های مطالعه و مدیریت زمان',
                     'type' => 'paid', 'price' => 150000, 'delivery_type' => 'onsite',
                     'status' => 'draft', 'learning_features' => $features,
                 ]);
                 Announcement::query()->create([
-                    'created_by' => $admin->id, 'title' => 'آزمایشی | برنامه آموزشی جدید',
-                    'body' => 'این اطلاعیه صرفاً برای آزمون پذیرش است.',
+                    'created_by' => $admin->id, 'title' => 'برنامه کلاس‌های هفته آینده',
+                    'body' => 'برنامه جلسات هفته آینده در کارتابل آموزشی قابل مشاهده است. لطفاً پیش از هر جلسه تمرین‌های مربوط را مرور کنید.',
                     'audience' => 'students', 'status' => 'published',
                     'priority' => 'normal', 'published_at' => $now,
                 ]);
                 Announcement::query()->create([
-                    'created_by' => $admin->id, 'title' => 'آزمایشی | پیش‌نویس اطلاعیه قابل حذف',
-                    'body' => 'نمونه بدون انتشار.', 'audience' => 'all', 'status' => 'draft',
+                    'created_by' => $admin->id, 'title' => 'زمان‌بندی آزمون‌های ماه آینده',
+                    'body' => 'جزئیات زمان‌بندی پس از نهایی شدن برنامه مدرسین منتشر خواهد شد.', 'audience' => 'all', 'status' => 'draft',
                 ]);
             });
         } catch (Throwable $exception) {
@@ -292,13 +294,13 @@ final class ClientAcceptanceSeeder extends Seeder
             throw $exception;
         }
 
-        $this->command?->info('QA fixtures created. Use the qa.acceptance.*@example.test accounts with your supplied password.');
+        $this->command?->info('Academy sample records created. Use the @academy.example.test accounts with your supplied password.');
     }
 
     /** Valid one-page PDF, including cross-reference offsets; no external download. */
     private function samplePdf(): string
     {
-        $stream = "BT /F1 18 Tf 50 750 Td (Sheykhan QA - Private learning resource) Tj ET\n";
+        $stream = "BT /F1 18 Tf 50 750 Td (Mathematics - Concepts and practice) Tj ET\n";
         $objects = [
             '<< /Type /Catalog /Pages 2 0 R >>',
             '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
