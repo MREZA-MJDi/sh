@@ -300,10 +300,22 @@ final class ChunkUploadController extends Controller
 
     public function resume(Request $request, ClassroomWorkspaceService $workspace): JsonResponse
     {
-        $data = $request->validate(['upload_id' => ['required', 'uuid']]);
+        $data = $request->validate([
+            'upload_id' => ['required', 'uuid'],
+            'classroom_id' => ['sometimes', 'nullable', 'integer'],
+            'external_id' => ['sometimes', 'nullable', 'string', 'max:190'],
+            'title' => ['sometimes', 'required', 'string', 'max:180'],
+        ]);
         $session = $this->findUploadSession($data['upload_id'], $request);
 
         $this->authorizeTarget($request, $session->target, (int) $session->target_id, $session->metadata ?? [], $workspace);
+
+        foreach (['classroom_id', 'external_id', 'title'] as $field) {
+            if (array_key_exists($field, $data)) {
+                abort_unless((string) $data[$field] === (string) ($session->metadata[$field] ?? null),
+                    409, 'مقصد یا عنوان این فایل با نشست قبلی مطابقت ندارد.');
+            }
+        }
 
         $total = (int) ($session->metadata['total_chunks'] ?? 0);
         if (in_array($session->status, ['processing', 'completed'], true)) {

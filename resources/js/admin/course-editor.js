@@ -372,7 +372,11 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       return;
     }
 
-    const resumeKey = ['sh-video-upload', target, courseId, classSessionId || 0, file.name, file.size, file.lastModified].join(':');
+    const classroomId = Number(classroomSelect?.value || 0);
+    const externalId = widget.querySelector('[data-upload-external]')?.value?.trim() || '';
+    const legacyResumeKey = ['sh-video-upload', target, courseId, classSessionId, file.name, file.size, file.lastModified].join(':');
+    const resumeKey = target === 'teaser' ? legacyResumeKey
+      : JSON.stringify([legacyResumeKey, classroomId, externalId, title]);
     activeUploads.add(widget);
     setControlsDisabled(true, courseSelect, classroomSelect, sessionSelect);
     let started = null;
@@ -383,10 +387,23 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     setStatus('در حال آماده‌سازی آپلود امن…');
 
     try {
-      const savedUploadId = widget.dataset.resumeUrl ? uploadStorage('getItem', resumeKey) : null;
+      const savedUploadId = widget.dataset.resumeUrl
+        ? uploadStorage('getItem', resumeKey) || uploadStorage('getItem', legacyResumeKey)
+        : null;
       if (savedUploadId) {
         try {
-          started = await jsonRequest(widget.dataset.resumeUrl, {upload_id: savedUploadId});
+          started = await jsonRequest(widget.dataset.resumeUrl, {
+            upload_id: savedUploadId,
+            ...(target === 'teaser' ? {} : {
+              classroom_id: classroomId || null,
+              external_id: externalId || null,
+              title,
+            }),
+          });
+          if (legacyResumeKey !== resumeKey && uploadStorage('getItem', legacyResumeKey) === savedUploadId) {
+            uploadStorage('setItem', resumeKey, savedUploadId);
+            uploadStorage('removeItem', legacyResumeKey);
+          }
           (started.received_chunks || []).forEach((index) => receivedChunks.add(Number(index)));
           setStatus('نشست قبلی پیدا شد؛ ادامه آپلود از بخش‌های باقی‌مانده…');
         } catch (resumeError) {
@@ -404,8 +421,6 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         };
         if (target === 'spotplayer_video') {
           startPayload.title = title;
-          const classroomId = classroomSelect?.value;
-          const externalId = widget.querySelector('[data-upload-external]')?.value?.trim();
           if (classroomId) startPayload.classroom_id = Number(classroomId);
           if (classSessionId) startPayload.class_session_id = classSessionId;
           if (externalId) startPayload.external_id = externalId;

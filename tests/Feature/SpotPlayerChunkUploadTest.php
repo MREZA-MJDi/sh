@@ -103,8 +103,16 @@ final class SpotPlayerChunkUploadTest extends TestCase
 
         // If the browser lost the completion response, resuming must not create
         // a second video; the completed upload can be safely finalized again.
-        $this->postJson(route('admin.uploads.resume'), ['upload_id' => $uploadId])
-            ->assertOk()
+        $this->postJson(route('admin.uploads.resume'), [
+            'upload_id' => $uploadId,
+            'classroom_id' => null,
+        ])->assertConflict();
+
+        $this->postJson(route('admin.uploads.resume'), [
+            'upload_id' => $uploadId,
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه قابل ادامه',
+        ])->assertOk()
             ->assertJsonPath('status', 'completed')
             ->assertJsonPath('received_chunks.0', 0);
 
