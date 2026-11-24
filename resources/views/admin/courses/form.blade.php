@@ -3,7 +3,7 @@
 
 @section('content')
 @php
-  $seasons = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
+  $seasons = \App\Models\Course::SEASONS;
   $statuses = ['draft' => 'پیش‌نویس', 'published' => 'انتشار در سایت', 'archived' => 'بایگانی'];
   $featureLabels = [
     'recorded_video' => 'ویدیوهای آموزشی',
@@ -54,9 +54,10 @@
       <x-admin.panel id="course-basics" title="۱. اطلاعات اصلی دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." data-tone="edu">
         <div class="adm-form">
           <x-admin.input label="عنوان اصلی دوره" name="title" :value="old('title', $course->title)" placeholder="مثلاً شیمی دوازدهم؛ آموزش مفهومی و مسئله‌محور" wide required/>
-          <x-admin.input label="موضوع یا درس" name="subject" :value="old('subject', $course->subject)" placeholder="مثلاً شیمی، زیست‌شناسی، ریاضی"/>
+          <x-admin.input label="درس تخصصی" name="subject" :value="old('subject', $course->subject)" placeholder="مثلاً شیمی، زیست‌شناسی، ریاضی"/>
           <x-admin.select label="پایه تحصیلی" name="academic_grade_id" :options="$grades->pluck('name', 'id')->all()" :selected="old('academic_grade_id', $course->academic_grade_id ?: \App\Models\AcademicGrade::resolveIdFromLegacyName($course->grade))" placeholder="انتخاب پایه" required/>
           <x-admin.select label="فصل دوره" name="season" :options="$seasons" :selected="old('season', $course->season)" placeholder="انتخاب فصل" required/>
+          <x-admin.input label="سال شروع سال تحصیلی (شمسی)" name="academic_year" type="number" min="1300" max="1500" :value="old('academic_year', $course->academic_year)" placeholder="مثلاً ۱۴۰۵"/>
           <x-admin.select label="مدرس دوره" name="teacher_id" :options="$teachers->pluck('name', 'id')->all()" :selected="old('teacher_id', $course->teacher_id)" placeholder="انتخاب مدرس"/>
           <x-admin.textarea label="توضیح کوتاه زیر عنوان" name="description" :value="old('description', $course->description)" wide rows="4" placeholder="این متن در سربرگ و معرفی دوره نمایش داده می‌شود."/>
           <div class="adm-field wide">
@@ -198,7 +199,7 @@
 
       @include('admin.courses.partials.curriculum')
 
-      <x-admin.panel id="course-classes" title="۷. گروه‌های آموزشی این دوره" desc="کلاس یعنی گروهی از دانش‌آموزان که با یک مدرس و برنامه مشخص درس می‌خوانند." data-tone="edu">
+      <x-admin.panel id="course-classes" title="۷. گروه‌های آموزشی این درس" desc="کلاس یعنی گروهی از دانش‌آموزان که با یک مدرس و برنامه مشخص درس می‌خوانند." data-tone="edu">
         <div class="adm-grid adm-cols-2">
           @forelse($classrooms as $classroom)
             @php
