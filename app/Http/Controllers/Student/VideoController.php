@@ -16,7 +16,7 @@ use Illuminate\View\View;
 
 final class VideoController extends Controller
 {
-    public function index(Request $request, LearningAccessService $access): RedirectResponse|View
+    public function index(Request $request, LearningAccessService $access): View
     {
         $videos = $this->accessibleVideos($request->user(), $access)
             ->where('status', '!=', 'waiting_contract')
@@ -31,10 +31,6 @@ final class VideoController extends Controller
             ->latest('created_at')
             ->paginate(12)
             ->withQueryString();
-
-        if ($videos->total() === 0) {
-            return redirect()->route('student.courses.index');
-        }
 
         return view('student.videos.index', compact('videos'));
     }
@@ -181,14 +177,7 @@ final class VideoController extends Controller
             ->where(function (Builder $delivery): void {
                 $delivery->whereNotNull('file_path')->orWhereNotNull('external_id');
             })
-            ->whereHas('course', fn (Builder $course) => $course
-                ->where('status', 'published')
-                ->where(function (Builder $videoDelivery): void {
-                    $videoDelivery->where(function (Builder $legacy): void {
-                        $legacy->whereNull('learning_features->recorded_video')->where('delivery_type', 'spotplayer');
-                    })->orWhere('learning_features->recorded_video', true);
-                })
-                ->whereIn('courses.id', clone $activeCourseIds))
+            ->whereIn('course_id', $activeCourseIds)
             ->where(function (Builder $scope) use ($activeClassroomIds): void {
                 $scope->whereNull('classroom_id')
                     ->orWhere(function (Builder $classScope) use ($activeClassroomIds): void {
