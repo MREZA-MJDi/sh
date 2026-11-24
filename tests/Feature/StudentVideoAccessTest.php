@@ -116,6 +116,37 @@ final class StudentVideoAccessTest extends TestCase
             ->assertHeader('Content-Range', 'bytes */19');
     }
 
+    public function test_nginx_offload_requires_the_same_course_and_classroom_access(): void
+    {
+        config(['learning.nginx_private_video' => true]);
+        $student = $this->userWithRole('student');
+        $outsider = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        [$course, $classroom] = $this->courseAndClassroom($teacher, 'video-nginx-offload');
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $path = 'private/course-videos/authorized.mp4';
+        Storage::disk('local')->put($path, 'video-data');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id, 'classroom_id' => $classroom->id,
+            'created_by' => $teacher->id, 'title' => 'ضبط جلسه',
+            'status' => 'active', 'approval_status' => 'approved',
+            'file_path' => $path, 'file_mime_type' => 'video/mp4',
+        ]);
+
+        $this->actingAs($student)->get(route('student.videos.stream', $video))
+            ->assertOk()
+            ->assertHeader('X-Accel-Redirect', '/_protected_course_video/authorized.mp4');
+        $this->actingAs($outsider)->get(route('student.videos.stream', $video))
+            ->assertNotFound()
+            ->assertHeaderMissing('X-Accel-Redirect');
+
+        config(['learning.nginx_private_video' => false]);
+        $this->actingAs($student)->get(route('student.videos.stream', $video))
+            ->assertOk()->assertHeaderMissing('X-Accel-Redirect');
+    }
+
     public function test_video_is_not_visible_to_students_outside_its_course_or_class(): void
     {
         $student = $this->userWithRole('student');
