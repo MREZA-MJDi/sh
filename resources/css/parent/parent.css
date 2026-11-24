@@ -1,5 +1,6 @@
 @import "../shared/calendar.css";
 @import "../shared/phone-number.css";
+@import "../shared/pagination.css";
 @import "../shared/announcements.css";
 @import "../panels/role-dashboards.css";
 @import "../panels/workspace-base.css";
@@ -881,9 +882,6 @@ details[open] .parent-profile-chevron{transform:rotate(180deg)}
 .field-error{color:var(--rd);font-size:11px}
 .field-hint{color:var(--mu);font-size:11px}
 .parent-form :focus-visible,.parent-resource-card :focus-visible{outline:2px solid var(--pri);outline-offset:2px}
-.parent-pagination nav{position:static;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 0;margin-top:14px;border-top:1px solid var(--ln)}
-.parent-pagination nav a,.parent-pagination nav span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:34px;padding:5px 10px;border:1px solid var(--ln);border-radius:9px;background:var(--sf);color:var(--tx);text-decoration:none;font-size:12px}
-.parent-pagination nav [aria-current=page] span{background:var(--pri);border-color:var(--pri);color:#fff}
 
 @media(max-width:860px){
   .parent-topbar .topbar-center{display:none}
@@ -965,12 +963,9 @@ details[open] .parent-profile-chevron{transform:rotate(180deg)}
 .parent-resource-card form label{font-size:12px;font-weight:700}
 .parent-resource-card p{color:var(--mu);font-size:12px}
 .parent-resource-card .tag{padding:8px;border-radius:9px;background:var(--bg);color:var(--mu);font-size:11px}
-.parent-pagination nav{position:static;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 0;margin-top:14px;border-top:1px solid var(--ln)}
-.parent-pagination nav a,.parent-pagination nav span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:34px;padding:5px 10px;border:1px solid var(--ln);border-radius:9px;background:var(--sf);color:var(--tx);text-decoration:none;font-size:12px}
-.parent-pagination nav [aria-current=page] span{background:var(--pri);border-color:var(--pri);color:#fff}
 .parent-alert{line-height:1.9}
 .parent-alert ul{margin:6px 0 0;padding-inline-start:22px}
-@media(max-width:650px){.parent-inbox-filters{grid-template-columns:1fr}.parent-inbox-filters .b{grid-column:auto}.parent-pagination nav{justify-content:center}}
+@media(max-width:650px){.parent-inbox-filters{grid-template-columns:1fr}.parent-inbox-filters .b{grid-column:auto}}
 
 .teacher-page-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 16px}
 .teacher-page-head h1{margin:2px 0 4px;font-size:clamp(21px,2.4vw,28px);line-height:1.45}

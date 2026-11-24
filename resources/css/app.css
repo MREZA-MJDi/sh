@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './auth.css';
 @import './shared/phone-number.css';
+@import './shared/pagination.css';
 @import './shared/announcements.css';
 @import './shared/registration-ticket.css';
 @import './panels/role-dashboards.css';

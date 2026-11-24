@@ -1,5 +1,6 @@
 @import "../shared/calendar.css";
 @import "../shared/phone-number.css";
+@import "../shared/pagination.css";
 @import "../shared/announcements.css";
 /* Admin panel — entry. Load with @vite('resources/css/admin/app.css') */
 @import "./01-tokens.css";
