@@ -65,6 +65,15 @@ final class PublicSiteController extends Controller
     public function courses(Request $request): View
     {
         $settings = SeoSetting::current();
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'subject' => ['nullable', 'string', 'max:100'],
+            'grade' => ['nullable', 'string', 'max:50'],
+            'season' => ['nullable', 'in:'.implode(',', array_keys(Course::SEASONS))],
+            'academic_year' => ['nullable', 'integer', 'between:1300,1500'],
+            'price' => ['nullable', 'in:free,paid'],
+            'sort' => ['nullable', 'in:latest,popular,price_asc,price_desc'],
+        ]);
         $query = Course::query()->where('status', 'published')
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
@@ -89,7 +98,8 @@ final class PublicSiteController extends Controller
         }
         if ($subject = $request->query('subject')) $query->where('subject', $subject);
         if ($grade = $request->query('grade')) $query->where('grade', $grade);
-        if ($season = $request->query('season')) $query->where('season', $season);
+        if ($season = $filters['season'] ?? null) $query->where('season', $season);
+        if ($year = $filters['academic_year'] ?? null) $query->where('academic_year', $year);
         if ($request->query('price') === 'free') $query->where('type', 'free');
         if ($request->query('price') === 'paid') $query->where('type', 'paid');
 
@@ -105,9 +115,10 @@ final class PublicSiteController extends Controller
             ->where('subject', '<>', '')->distinct()->orderBy('subject')->pluck('subject');
         $grades = Course::query()->where('status', 'published')->whereNotNull('grade')
             ->distinct()->orderBy('grade')->pluck('grade');
-        $seasons = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
+        $seasons = Course::SEASONS;
+        $academicYears = Course::query()->where('status', 'published')->whereNotNull('academic_year')->distinct()->orderByDesc('academic_year')->pluck('academic_year');
 
-        return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades', 'seasons'));
+        return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades', 'seasons', 'academicYears'));
     }
 
     public function course(
