@@ -2,6 +2,8 @@
 @section('title', 'ویدئوهای ضبط‌شده')
 @section('content')
 <section class="page">
+<x-portal.page-head icon="video" tone="education" title="ویدئوهای ضبط‌شده"/>
+
     <div class="card">
         <div class="chead"><h2>ویدئوهای ضبط‌شده کلاس‌های من</h2><span class="pill">{{ number_format($videos->total()) }} ویدئو</span></div>
         <p>فقط ویدئوهای دوره‌ها و کلاس‌هایی نمایش داده می‌شوند که دسترسی آموزشی فعال دارید.</p>

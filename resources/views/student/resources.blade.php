@@ -2,6 +2,8 @@
 @section('title', 'جزوه‌ها و منابع')
 @section('content')
 <section class="page" id="resources">
+<x-portal.page-head icon="book" tone="education" title="جزوه‌ها و منابع"/>
+
     <div class="card">
         <div class="chead">
             <h2>جزوه‌ها، کتاب‌ها و محصولات آموزشی</h2>

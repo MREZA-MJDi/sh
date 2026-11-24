@@ -2,6 +2,8 @@
 @section('title', 'جلسات با اولیا')
 @section('content')
 <section class="page">
+<x-portal.page-head icon="calendar" tone="communication" title="جلسات با اولیا"/>
+
     <div class="card">
         <div class="chead"><h2>جلسات با اولیا و آموزشگاه</h2><span class="pill">{{ number_format($meetings->total()) }} جلسه</span></div>
         @php

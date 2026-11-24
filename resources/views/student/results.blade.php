@@ -10,6 +10,8 @@
  ];
 @endphp
 <section class="page" id="results">
+<x-portal.page-head icon="chart" tone="tracking" title="نمرات و عملکرد"/>
+
  <div class="stats">
   <div class="st s1"><div class="ic"><svg class="i"><use href="#i-chart"/></svg></div><small>میانگین نمرات</small><b>{{ $averageScore === null ? '—' : number_format($averageScore, 1) }}</b><span>از ۲۰</span></div>
   <div class="st s2"><div class="ic"><svg class="i"><use href="#i-trophy"/></svg></div><small>بالاترین نمره</small><b>{{ $highestScore === null ? '—' : number_format($highestScore, 1) }}</b><span>از ۲۰</span></div>

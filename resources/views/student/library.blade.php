@@ -3,7 +3,9 @@
 @section('title', 'کتابخانه و خریدها')
 
 @section('content')
-<section class="page" id="library"><div class="card"><div class="chead"><h2>کتابخانه و خریدهای من</h2><a class="pill" href="{{ url('/courses') }}">فروشگاه دوره‌ها</a></div>
+<section class="page" id="library">
+<x-portal.page-head icon="wallet" tone="commerce" title="کتابخانه و خریدهای من"><a class="btn s" href="{{ route('public.courses.index') }}">فروشگاه دوره‌ها</a></x-portal.page-head>
+<div class="card"><div class="chead"><h2>پرداخت‌های دوره</h2></div>
  <div class="g3">
   @forelse ($purchases as $purchase)
    <div class="card cc">

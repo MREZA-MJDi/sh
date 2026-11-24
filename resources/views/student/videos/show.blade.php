@@ -2,13 +2,15 @@
 @section('title', $video->title)
 @section('content')
 <section class="page">
+<x-portal.page-head icon="video" :title="$video->title" :back="route('student.videos.index')" back-label="بازگشت به ویدئوها"/>
+
     <div class="card">
         <div class="chead">
-            <h2>{{ $video->title }}</h2>
-            <a class="btn s" href="{{ route('student.videos.index') }}">بازگشت به ویدئوها</a>
+            <h2>پخش ویدئو</h2>
+            
         </div>
         <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif</p>
-        @if(filled($video->file_path))
+        @if($video->status === 'active' && filled($video->file_path) && blank($video->external_id))
             <video controls controlsList="nodownload" disablepictureinpicture playsinline preload="metadata"
                    style="display:block;width:100%;max-height:72vh;background:#0b1220;border-radius:16px">
                 <source src="{{ route('student.videos.stream', $video) }}">

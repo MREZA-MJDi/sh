@@ -2,6 +2,8 @@
 @section('title', 'تکالیف')
 @section('content')
 <section class="page" id="assignments">
+<x-portal.page-head icon="check" tone="tracking" title="تکالیف"/>
+
  <div class="card">
   <div class="chead">
    <h2>تکالیف</h2>
