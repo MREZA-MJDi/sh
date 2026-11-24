@@ -22,8 +22,7 @@ ffprobe -version | head -n 1
 ```bash
 (
   set -e
-  export QA_RUN="$(date +%Y%m%d%H%M%S)-$(od -An -N3 -tx1 /dev/urandom | tr -d ' 
-')"
+  export QA_RUN="$(date +%Y%m%d%H%M%S)-$(od -An -N3 -tx1 /dev/urandom | tr -d '[:space:]')"
   read -r -s -p 'Temporary QA password: ' QA_PASSWORD
   printf '\n'
   export QA_PASSWORD
