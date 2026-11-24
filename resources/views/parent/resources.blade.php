@@ -28,7 +28,7 @@
             @endif
         </article>
     @empty
-        <div class="parent-empty-state"><strong>منبعی برای این فرزند منتشر نشده است.</strong><span>به‌محض انتشار منبع جدید، در همین بخش نمایش داده می‌شود.</span></div>
+        <x-portal.empty-state icon="file" title="منبعی برای این فرزند منتشر نشده است." description="به‌محض انتشار منبع جدید، در همین بخش نمایش داده می‌شود."/>
     @endforelse
 </div>
 <div class="parent-pagination">{{ $resources->links() }}</div>
