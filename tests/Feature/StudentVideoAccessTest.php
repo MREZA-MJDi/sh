@@ -51,7 +51,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.videos.index'))
-            ->assertRedirect(route('student.courses.index'));
+            ->assertOk()->assertSee('هنوز ویدئویی برای شما منتشر نشده است.')->assertDontSee('ضبط جلسه فیزیک');
 
         $this->get(route('student.videos.show', $video))
             ->assertRedirect(route('public.courses.show', $course->slug));
