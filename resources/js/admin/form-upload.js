@@ -4,7 +4,11 @@ const uploadForms = 'form[enctype="multipart/form-data"]';
 
 document.addEventListener('submit', (event) => {
   const form = event.target.closest(uploadForms);
-  if (!form || form.dataset.uploading === 'true') return;
+  if (!form) return;
+  if (form.dataset.uploading === 'true') {
+    event.preventDefault();
+    return;
+  }
 
   const files = [...form.querySelectorAll('input[type="file"]')].filter((input) => input.files?.length);
   if (!files.length) return;

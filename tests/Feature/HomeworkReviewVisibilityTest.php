@@ -87,6 +87,10 @@ final class HomeworkReviewVisibilityTest extends TestCase
             ->assertSee('نتایج بررسی تکالیف')
             ->assertSee('بازخورد نهایی مدرس برای این تکلیف')
             ->assertSee('تمرین فیزیک');
+
+        $this->actingAs($guardian)
+            ->get(route('guardian.homework', ['child' => $student->id]))
+            ->assertOk()->assertSee('بازخورد نهایی مدرس برای این تکلیف')->assertSee('نمره: 18');
     }
 
     private function userWithRole(string $role): User

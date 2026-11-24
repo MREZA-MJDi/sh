@@ -29,6 +29,16 @@ final class CourseTeaserUploadTest extends TestCase
         Queue::fake();
     }
 
+    public function test_private_upload_storage_supports_php_fpm_and_worker_group_access(): void
+    {
+        $disk = config('filesystems.disks.local');
+
+        $this->assertSame('private', $disk['visibility']);
+        $this->assertSame('private', $disk['directory_visibility']);
+        $this->assertSame(0660, $disk['permissions']['file']['private']);
+        $this->assertSame(0770, $disk['permissions']['dir']['private']);
+    }
+
     public function test_new_teaser_upload_is_blocked_while_an_existing_session_is_finalizing(): void
     {
         $admin = $this->admin();

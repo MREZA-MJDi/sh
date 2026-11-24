@@ -101,17 +101,28 @@ final class ParentMeetingController extends Controller
         ]);
     }
 
-    public function store(Request $request, ClassroomWorkspaceService $workspace): RedirectResponse
+    public function store(Request $request, ClassroomWorkspaceService $workspace, ParentMeetingScheduler $scheduler): RedirectResponse
     {
         $data = $request->validate([
-            'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
-            'student_id' => ['required', 'integer', 'exists:users,id'],
-            'guardian_id' => ['required', 'integer', 'exists:users,id'],
+            'audience' => ['nullable', 'in:individual,classroom'],
+            'classroom_id' => ['nullable', 'required_if:audience,classroom', 'integer', 'exists:classrooms,id'],
+            'student_id' => ['required_unless:audience,classroom', 'prohibited_if:audience,classroom', 'nullable', 'integer', 'exists:users,id'],
+            'guardian_id' => ['required_unless:audience,classroom', 'prohibited_if:audience,classroom', 'nullable', 'integer', 'exists:users,id'],
             'title' => ['required', 'string', 'min:3', 'max:180'],
             'message' => ['nullable', 'string', 'max:2000'],
             'starts_at' => ['required', 'date', 'after:now'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);
+
+        if (($data['audience'] ?? 'individual') === 'classroom') {
+            abort_unless($request->user()->hasRole('admin'), 403);
+            $classroom = $workspace->queryFor($request->user())->where('status', 'active')->findOrFail($data['classroom_id']);
+            $meeting = $scheduler->scheduleClassroom($classroom, $request->user(), $data);
+            $scheduler->notifyParticipants($meeting, 'جلسه سراسری اولیای کلاس شما زمان‌بندی شد.', 'جلسه سراسری اولیای کلاس شما زمان‌بندی شد.');
+            $classroom->teacher?->notify(new ParentMeetingNotification($meeting, 'جلسه سراسری اولیای کلاس شما زمان‌بندی شد.'));
+
+            return back()->with('success', 'جلسه سراسری ثبت شد و به خانواده‌های مرتبط اطلاع داده شد.');
+        }
 
         abort_unless(! $workspace->isTeacher($request->user()) || ! empty($data['classroom_id']), 422, 'مدرس باید کلاس مرتبط با جلسه را انتخاب کند.');
 
@@ -189,10 +200,8 @@ final class ParentMeetingController extends Controller
             (int) $request->user()->id,
         );
 
-        $record->loadMissing(['guardian', 'student', 'classroom.teacher']);
-        $notification = new ParentMeetingNotification($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.');
-        $record->guardian?->notify($notification);
-        $record->student?->notify(new ParentMeetingNotification($record, 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.'));
+        $record->loadMissing('classroom.teacher');
+        $scheduler->notifyParticipants($record, 'وضعیت درخواست یا زمان جلسه شما به‌روزرسانی شد.', 'وضعیت جلسه مرتبط با شما به‌روزرسانی شد.');
         $record->classroom?->teacher?->notify(new ParentMeetingNotification(
             $record,
             'وضعیت جلسه یکی از دانش‌آموزان کلاس شما تغییر کرد.'

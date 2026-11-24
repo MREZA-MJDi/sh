@@ -8,7 +8,7 @@
 </x-admin.page-head>
 
 <div class="adm-stack">
-  <x-admin.panel title="فرایندهای دوره">
+  <x-admin.panel title="فرایندهای دوره" desc="مسیرهای اصلی مدیریت و پیگیری دوره" data-tone="edu">
     <p>{{ $course->teacher?->name ?? 'مدرس هنوز مشخص نشده است.' }} · {{ $course->sections_count }} فصل در برنامهٔ آموزشی</p>
     <div class="adm-actions">
       @foreach($links as $link)
@@ -18,7 +18,7 @@
   </x-admin.panel>
 
   @if($classrooms)
-    <x-admin.panel title="کلاس‌ها و جلسات">
+    <x-admin.panel title="کلاس‌ها و جلسات" desc="دسترسی مستقیم به برنامه، تکالیف و سوابق حضور" data-tone="edu">
       <div class="adm-side-list">
         @forelse($classrooms as $classroom)
           <div>
@@ -32,7 +32,7 @@
             @endif
           </div>
         @empty
-          <x-admin.empty text="برای این دوره هنوز کلاسی ثبت نشده است."/>
+          <x-admin.empty icon="cls" text="برای این دوره هنوز کلاسی ثبت نشده است."/>
         @endforelse
       </div>
       <x-slot:footer>{{ $classrooms->links() }}</x-slot:footer>

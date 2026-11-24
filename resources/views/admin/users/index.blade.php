@@ -38,7 +38,7 @@
   <x-admin.stat tone="users" icon="user" label="نقش" :value="$roleLabel"/>
 </div>
 
-<x-admin.panel flush>
+<x-admin.panel flush data-tone="users">
   <form class="adm-toolbar" method="GET" action="{{ request()->url() }}">
     <label class="adm-search-field"><x-admin.icon name="search"/><input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="جستجوی نام، ایمیل یا شماره تماس…" aria-label="جستجوی کاربران"></label>
     <select class="adm-input" name="status" aria-label="وضعیت حساب">
@@ -126,7 +126,7 @@
     @endforelse
   </div>
   @if($users->isEmpty())
-    <x-admin.empty text="حسابی در این نقش ثبت نشده است."/>
+    <x-admin.empty icon="users" text="حسابی در این نقش ثبت نشده است."/>
   @else
     <x-admin.empty data-empty class="adm-hide" text="کاربری با این مشخصات پیدا نشد."/>
   @endif

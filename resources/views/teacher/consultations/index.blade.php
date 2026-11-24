@@ -12,13 +12,7 @@
     ];
     $typeLabels = ['ticket' => 'پیام و تیکت', 'phone' => 'تماس تلفنی', 'in_person' => 'حضوری'];
 @endphp
-<div class="teacher-page-head">
-    <div>
-        <span class="teacher-eyebrow">هماهنگی آموزشی</span>
-        <h1>درخواست‌های مشاوره</h1>
-        <p>درخواست‌های ثبت‌شده توسط شما و والدین دانش‌آموزان کلاس‌های تحت مسئولیتتان.</p>
-    </div>
-</div>
+<x-portal.page-head icon="message" tone="communication" title="درخواست‌های مشاوره"/>
 <div class="g g2">
     <section class="c">
         <h3>ثبت درخواست جدید</h3>

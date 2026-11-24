@@ -124,7 +124,7 @@ final class DashboardController extends Controller
         [$year, $month] = array_map('intval', explode('-', $monthKey));
         abort_if($year < 1300 || $year > 1500, 422, 'ماه انتخاب‌شده معتبر نیست.');
 
-        $data = $this->build($request, $dashboard, $monthKey);
+        $data = $this->build($request, $dashboard, $monthKey, 'attendance');
         $start = JalaliDate::toGregorian($year, $month, 1);
         $monthDays = JalaliDate::daysInMonth($year, $month);
         $todayJalali = JalaliDate::fromGregorian(now());
@@ -139,7 +139,7 @@ final class DashboardController extends Controller
             $statuses = $dayRecords->pluck('status');
             $status = $statuses->contains('absent') ? 'a'
                 : ($statuses->contains('late') ? 'l'
-                : ($statuses->contains('present') ? 'p' : 'future'));
+                : ($statuses->contains('present') ? 'p' : ($statuses->contains('excused') ? 'e' : 'future')));
             return ['day' => $day, 'status' => $status, 'today' => $todayJalaliDay > 0 && $day === $todayJalaliDay];
         });
 
@@ -149,6 +149,7 @@ final class DashboardController extends Controller
             'present' => (int) $monthBreakdown->get('present', 0),
             'late' => (int) $monthBreakdown->get('late', 0),
             'absent' => (int) $monthBreakdown->get('absent', 0),
+            'excused' => (int) $monthBreakdown->get('excused', 0),
             'percent' => $monthTotal > 0 ? (int) round((($monthBreakdown->get('present', 0) + $monthBreakdown->get('late', 0)) / $monthTotal) * 100) : null,
         ];
 
@@ -173,7 +174,7 @@ final class DashboardController extends Controller
 
     public function exams(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
+        $data = $this->build($request, $dashboard, null, 'exams');
         $results = $data['exam_results'];
         $resultDates = $results->getCollection()->mapWithKeys(fn ($result) => [
             $result->id => $result->created_at ? JalaliDate::format($result->created_at) : '—',
@@ -194,19 +195,21 @@ final class DashboardController extends Controller
 
     public function homework(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
+        $data = $this->build($request, $dashboard, null, 'homework');
         $homeworkPaginator = $data['homeworks'];
         $homework = $homeworkPaginator->getCollection()->map(function ($item): array {
             $submission = $item->submissions->first();
             $late = $submission && $item->due_at && $submission->submitted_at && $submission->submitted_at->gt($item->due_at);
             $missing = ! $submission && $item->due_at && $item->due_at->isPast();
+            $reviewed = $submission && ($submission->reviewed_at || in_array($submission->status, ['reviewed', 'graded'], true));
             return [
                 'title' => $item->title,
                 'due' => $item->due_at ? JalaliDate::format($item->due_at, true) : 'بدون مهلت',
-                'status' => $submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار'),
-                'tone' => $submission ? ($late ? 'am' : 'gn') : ($missing ? 'rd' : 'bl'),
-                'score' => $submission?->score,
-                'feedback' => $submission?->feedback,
+                'status' => $reviewed ? 'بررسی‌شده' : ($submission ? ($late ? 'ارسال با تأخیر' : 'ارسال‌شده') : ($missing ? 'ارسال‌نشده' : 'در انتظار')),
+                'submitted_late' => $late,
+                'tone' => $reviewed ? 'gn' : ($submission ? ($late ? 'am' : 'bl') : ($missing ? 'rd' : 'am')),
+                'score' => $reviewed ? $submission->score : null,
+                'feedback' => $reviewed ? $submission->feedback : null,
                 'reviewed_at' => $submission?->reviewed_at ? JalaliDate::format($submission->reviewed_at, true) : null,
                 'reviewer' => $submission?->reviewer?->name,
             ];
@@ -226,7 +229,7 @@ final class DashboardController extends Controller
 
     public function resources(Request $request, GuardianDashboardService $dashboard): View
     {
-        $data = $this->build($request, $dashboard);
+        $data = $this->build($request, $dashboard, null, 'resources');
 
         return view('parent.resources', [
             'kids' => $data['children'],
@@ -235,13 +238,14 @@ final class DashboardController extends Controller
         ]);
     }
 
-    private function build(Request $request, GuardianDashboardService $dashboard, ?string $attendanceMonthKey = null): array
+    private function build(Request $request, GuardianDashboardService $dashboard, ?string $attendanceMonthKey = null, string $section = 'all'): array
     {
         $validated = $request->validate(['child' => ['nullable', 'integer', 'min:1']]);
         return $dashboard->build(
             $request->user(),
             isset($validated['child']) ? (int) $validated['child'] : null,
-            $attendanceMonthKey
+            $attendanceMonthKey,
+            $section
         );
     }
 

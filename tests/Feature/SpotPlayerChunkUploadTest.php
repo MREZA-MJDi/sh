@@ -205,6 +205,52 @@ final class SpotPlayerChunkUploadTest extends TestCase
         Queue::assertPushed(ProcessCourseRecordingVideo::class, fn ($job) => $job->videoId === $video->id);
     }
 
+    public function test_local_upload_rejects_external_provider_identifier_before_creating_session(): void
+    {
+        Queue::fake();
+        $admin = $this->userWithRole('admin');
+        $course = Course::query()->create([
+            'title' => 'دوره ویدیویی',
+            'slug' => 'local-external-separation',
+            'type' => 'free',
+            'price' => 0,
+            'delivery_type' => 'spotplayer',
+            'status' => 'published',
+        ]);
+
+        $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'spotplayer_video',
+            'target_id' => $course->id,
+            'total_bytes' => 128,
+            'title' => 'جلسه',
+            'external_id' => 'provider-video-id',
+        ])->assertUnprocessable()->assertJsonValidationErrors('external_id');
+
+        $this->assertDatabaseCount('video_upload_sessions', 0);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_legacy_provider_bound_recording_is_not_encoded_locally(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $course = Course::query()->create([
+            'title' => 'دوره دارای لایسنس', 'slug' => 'provider-video-separation',
+            'type' => 'paid', 'price' => 10000, 'delivery_type' => 'spotplayer', 'status' => 'published',
+        ]);
+        $path = 'private/course-videos/provider-source.mov';
+        Storage::disk('local')->put($path, 'provider-source');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id, 'created_by' => $admin->id,
+            'title' => 'ویدیوی سرویس خارجی', 'external_id' => 'provider-video',
+            'file_path' => $path, 'status' => 'processing',
+        ]);
+
+        (new ProcessCourseRecordingVideo($video->id))->handle();
+
+        $this->assertSame('waiting_contract', $video->fresh()->status);
+        Storage::disk('local')->assertExists($path);
+    }
+
     public function test_admin_can_upload_course_video_when_feature_matrix_is_enabled_without_legacy_delivery_type(): void
     {
         $admin = $this->userWithRole('admin');

@@ -124,7 +124,7 @@
         </div>
       </article>
     @empty
-      <x-admin.empty text="هنوز ویدیویی برای این محدوده ثبت نشده است."/>
+      <x-admin.empty icon="video" text="هنوز ویدیویی برای این محدوده ثبت نشده است."/>
     @endforelse
   </div>
   <x-slot:footer>{{ $videos->links() }}</x-slot:footer>
@@ -155,7 +155,7 @@
     @endif
   </x-admin.panel>
 
-  <x-admin.panel title="لایسنس‌های صادرشده / در انتظار" flush>
+  <x-admin.panel title="لایسنس‌های صادرشده / در انتظار" flush data-tone="edu">
     <div class="adm-grid adm-cols-2">
       @forelse($licenses as $license)
         @php $status = $licenseStatus[$license->status] ?? ['mute', $license->status]; @endphp
@@ -179,13 +179,13 @@
           </div>
         </article>
       @empty
-        <x-admin.empty text="هنوز لایسنسی ثبت نشده است."/>
+        <x-admin.empty icon="lock" text="هنوز لایسنسی ثبت نشده است."/>
       @endforelse
     </div>
     <x-slot:footer>{{ $licenses->links() }}</x-slot:footer>
   </x-admin.panel>
 
-  <x-admin.panel title="تاریخچه عملیات یکپارچه‌سازی" flush>
+  <x-admin.panel title="تاریخچه عملیات یکپارچه‌سازی" flush data-tone="shop">
     <div class="adm-table-wrap"><table class="adm-table">
       <thead><tr><th>عملیات</th><th>شناسه پیگیری</th><th>وضعیت</th><th>زمان</th></tr></thead>
       <tbody>

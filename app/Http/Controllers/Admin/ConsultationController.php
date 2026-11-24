@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateConsultationRequest;
 use App\Models\Consultation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ConsultationController extends Controller
@@ -54,33 +55,42 @@ class ConsultationController extends Controller
             'completed' => 'done',
             default => $data['status'],
         };
-        $currentStatus = match ($consultation->status) {
-            'approved' => 'scheduled',
-            'completed' => 'done',
-            default => $consultation->status,
-        };
+        DB::transaction(function () use ($consultation, $data, $nextStatus): void {
+            $consultation = Consultation::query()->lockForUpdate()->findOrFail($consultation->id);
+            $currentStatus = match ($consultation->status) {
+                'approved' => 'scheduled',
+                'completed' => 'done',
+                default => $consultation->status,
+            };
 
-        $allowedTransitions = match ($currentStatus) {
-            'pending' => ['pending', 'scheduled', 'cancelled'],
-            'scheduled' => ['scheduled', 'done', 'cancelled'],
-            'done' => ['done'],
-            'cancelled' => ['cancelled'],
-            default => [],
-        };
+            $allowedTransitions = match ($currentStatus) {
+                'pending' => ['pending', 'scheduled', 'cancelled'],
+                'scheduled' => ['scheduled', 'done', 'cancelled'],
+                'done' => ['done'],
+                'cancelled' => ['cancelled'],
+                default => [],
+            };
 
-        abort_unless(in_array($nextStatus, $allowedTransitions, true), 422, 'وضعیت این درخواست قابل تغییر نیست.');
+            abort_unless(in_array($nextStatus, $allowedTransitions, true), 422, 'وضعیت این درخواست قابل تغییر نیست.');
 
-        $updates = [
-            'status' => $nextStatus,
-            'handled_by' => auth()->id(),
-        ];
-        if (array_key_exists('scheduled_at', $data)) {
-            $updates['scheduled_at'] = $data['scheduled_at'];
-        }
-        if (array_key_exists('notes', $data)) {
-            $updates['notes'] = $data['notes'];
-        }
-        $consultation->update($updates);
+            $updates = [
+                'status' => $nextStatus,
+                'handled_by' => auth()->id(),
+            ];
+            if (array_key_exists('scheduled_at', $data)) {
+                $updates['scheduled_at'] = $data['scheduled_at'];
+            }
+            if (array_key_exists('notes', $data)) {
+                $updates['notes'] = $data['notes'];
+            }
+            if ($nextStatus === 'scheduled' && blank(array_key_exists('scheduled_at', $updates) ? $updates['scheduled_at'] : $consultation->scheduled_at)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'scheduled_at' => 'زمان مشاوره باید مشخص باشد.',
+                ]);
+            }
+
+            $consultation->update($updates);
+        }, 3);
 
         return back()->with('success', 'وضعیت درخواست مشاوره به‌روزرسانی شد.');
     }

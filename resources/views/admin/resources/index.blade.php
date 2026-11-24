@@ -38,7 +38,7 @@
   </form>
 </x-admin.panel>
 
-<x-admin.panel flush>
+<x-admin.panel title="فهرست منابع و محصولات" desc="وضعیت انتشار و فایل هر منبع را بررسی کنید." flush data-tone="shop">
   <div class="adm-grid adm-cols-2">
     @forelse($resources as $resource)
       @php
@@ -84,7 +84,7 @@
         </div>
       </article>
     @empty
-      <x-admin.empty text="هنوز منبعی ثبت نشده است."/>
+      <x-admin.empty icon="file" text="هنوز منبعی ثبت نشده است."/>
     @endforelse
   </div>
   <x-slot:footer>{{ $resources->links() }}</x-slot:footer>

@@ -2,7 +2,7 @@
 @section('title', 'آزمون‌ها')
 @section('content')
 @php $subj = collect($subjects ?? []); @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">ارزیابی آموزشی</span><h1>آزمون‌ها و نمرات</h1><p>نتایج ثبت‌شده و قابل مشاهده برای فرزند انتخاب‌شده</p></div></div>
+<x-portal.page-head icon="chart" tone="tracking" title="آزمون‌ها و نمرات"/>
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>نمره ثبت‌شده به تفکیک درس</h3>
@@ -20,7 +20,7 @@
                 <i class="bd pk">{{ $result->score }} از {{ $result->max_score }}</i>
             </div>
         @empty
-            <div class="parent-empty-state"><strong>هنوز نتیجه‌ای برای نمایش وجود ندارد.</strong><span>نتایج پس از ثبت و تأیید مدرس در این بخش قرار می‌گیرند.</span></div>
+            <x-portal.empty-state icon="file" tone="tracking" title="هنوز نتیجه‌ای برای نمایش وجود ندارد." description="نتایج پس از ثبت و تأیید مدرس در این بخش قرار می‌گیرند."/>
         @endforelse
         <div class="parent-pagination">{{ $results->links() }}</div>
     </section>

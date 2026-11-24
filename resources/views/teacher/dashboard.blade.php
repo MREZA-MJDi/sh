@@ -21,7 +21,7 @@
                     <span class="teacher-subject-tag">{{ data_get($teacher ?? auth()->user(), 'subject') }}</span>
                 @endif
             </div>
-            <h1>سلام {{ data_get($teacher ?? auth()->user(), 'name') }} 👋</h1>
+            <h1>سلام {{ data_get($teacher ?? auth()->user(), 'name') }}</h1>
             <p>کلاس‌ها، محتوا و ارتباط با خانواده‌ها را از یک محیط مدیریت کنید.</p>
         </div>
     </div>
@@ -34,7 +34,7 @@
         </div>
     @endif
 </div>
-<section class="teacher-dashboard-focus" aria-label="اولویت‌های کاری امروز"><div class="teacher-section-head"><div><h2>اولویت‌های کاری</h2><p>برای شروع سریع، موارد نیازمند پیگیری را باز کنید.</p></div></div><div class="teacher-focus-items">@if(auth()->user()->hasPermissionTo('homework.view.assigned'))<a href="{{ route('teacher.homework') }}" class="teacher-focus-item"><span class="teacher-focus-symbol">✎</span><span><strong>بررسی پاسخ تکالیف</strong><small>{{ $stats['homework_review'] }} پاسخ منتظر بررسی</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif @if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a href="{{ route('teacher.messages.index') }}" class="teacher-focus-item"><span class="teacher-focus-symbol">✉</span><span><strong>پیام‌های تازه</strong><small>{{ $stats['new_messages'] }} گفت‌وگوی باز</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif @if(auth()->user()->hasPermissionTo('attendance.view.assigned'))<a href="{{ route('teacher.attendance') }}" class="teacher-focus-item"><span class="teacher-focus-symbol">✓</span><span><strong>حضور و غیاب</strong><small>{{ $stats['absent_today'] }} غیبت امروز</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif</div></section>
+<section class="teacher-dashboard-focus" aria-label="اولویت‌های کاری امروز"><div class="teacher-section-head"><div><h2>اولویت‌های کاری</h2><p>برای شروع سریع، موارد نیازمند پیگیری را باز کنید.</p></div></div><div class="teacher-focus-items">@if(auth()->user()->hasPermissionTo('homework.view.assigned'))<a href="{{ route('teacher.homework') }}" class="teacher-focus-item"><span class="teacher-focus-symbol"><x-portal.icon name="file"/></span><span><strong>بررسی پاسخ تکالیف</strong><small>{{ $stats['homework_review'] }} پاسخ منتظر بررسی</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif @if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a href="{{ route('teacher.messages.index') }}" class="teacher-focus-item"><span class="teacher-focus-symbol"><x-portal.icon name="message"/></span><span><strong>پیام‌های تازه</strong><small>{{ $stats['new_messages'] }} گفت‌وگوی باز</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif @if(auth()->user()->hasPermissionTo('attendance.view.assigned'))<a href="{{ route('teacher.attendance') }}" class="teacher-focus-item"><span class="teacher-focus-symbol"><x-portal.icon name="check"/></span><span><strong>حضور و غیاب</strong><small>{{ $stats['absent_today'] }} غیبت امروز</small></span><span class="teacher-focus-arrow" aria-hidden="true">←</span></a>@endif</div></section>
 <div class="g g4 teacher-stat-grid">
     <div class="st am"><b>{{ $stats['classes_today'] }}</b><span>کلاس‌های تحت مدیریت</span><small>کلاس‌های فعال تخصیص‌یافته</small></div>
     <div class="st bl"><b>{{ $stats['homework_review'] }}</b><span>پاسخ در انتظار بررسی</span><small>نیازمند رسیدگی مدرس</small></div>
@@ -42,10 +42,10 @@
     <div class="st"><b>{{ $stats['new_messages'] }}</b><span>پیام‌های باز</span><small>گفت‌وگوهای نیازمند پاسخ</small></div>
 </div>
 <section class="teacher-action-grid" aria-label="ابزارهای آموزشی">
-@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="teacher-action-card" href="{{ route('teacher.videos') }}"><span class="teacher-action-icon">▶</span><strong>بارگذاری ویدئو</strong><small>برای دوره یا کلاس تخصیص‌یافته</small></a>@endif
-@if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="teacher-action-card" href="{{ route('teacher.resources') }}"><span class="teacher-action-icon">▤</span><strong>منابع و جزوه‌ها</strong><small>ثبت PDF، کتاب و فایل آموزشی</small></a>@endif
-@if(auth()->user()->hasPermissionTo('homework.manage.assigned'))<a class="teacher-action-card" href="{{ route('teacher.homework') }}"><span class="teacher-action-icon">✎</span><strong>تعریف تکلیف</strong><small>متن تمرین یا فایل PDF</small></a>@endif
-@if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a class="teacher-action-card" href="{{ route('teacher.messages.create') }}"><span class="teacher-action-icon">✉</span><strong>مکاتبه با اولیا</strong><small>فقط خانواده‌های دانش‌آموزان مرتبط</small></a>@endif
+@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="teacher-action-card" href="{{ route('teacher.videos') }}"><span class="teacher-action-icon"><x-portal.icon name="video"/></span><strong>بارگذاری ویدئو</strong><small>برای دوره یا کلاس تخصیص‌یافته</small></a>@endif
+@if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="teacher-action-card" href="{{ route('teacher.resources') }}"><span class="teacher-action-icon"><x-portal.icon name="book"/></span><strong>منابع و جزوه‌ها</strong><small>ثبت PDF، کتاب و فایل آموزشی</small></a>@endif
+@if(auth()->user()->hasPermissionTo('homework.manage.assigned'))<a class="teacher-action-card" href="{{ route('teacher.homework') }}"><span class="teacher-action-icon"><x-portal.icon name="file"/></span><strong>تعریف تکلیف</strong><small>متن تمرین یا فایل PDF</small></a>@endif
+@if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a class="teacher-action-card" href="{{ route('teacher.messages.create') }}"><span class="teacher-action-icon"><x-portal.icon name="message"/></span><strong>مکاتبه با اولیا</strong><small>فقط خانواده‌های دانش‌آموزان مرتبط</small></a>@endif
 </section>
 <section class="c teacher-calendar-card"><div class="teacher-section-head"><div><h2>برنامه هفت روز آینده</h2><p>جلسه‌های ثبت‌شده در کلاس‌های تحت مدیریت شما</p></div>@if(auth()->user()->hasPermissionTo('classes.view.assigned'))<a class="b s" href="{{ route('teacher.meetings') }}">جلسات با اولیا</a>@endif</div>
 <div class="teacher-week-calendar sh-calendar-grid" data-teacher-week-calendar>

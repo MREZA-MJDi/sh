@@ -1,7 +1,7 @@
 @extends('parent.layouts.app')
 @section('title', 'پیام جدید')
 @section('content')
-<div class="parent-page-heading"><div><span class="parent-eyebrow">ارتباط با مدرس</span><h1>ارسال پیام جدید</h1><p>گفت‌وگویی تازه درباره وضعیت آموزشی فرزندتان آغاز کنید.</p></div></div>
+<x-portal.page-head icon="message" tone="communication" title="ارسال پیام جدید" :back="route('guardian.messages.index', ['child' => $selected_child?->id])"/>
 @include('parent.partials.kid-picker')
 
 <section class="c parent-message-card">
@@ -13,11 +13,7 @@
         @csrf
         <div class="parent-field">
             <label for="student_id">فرزند</label>
-            <select id="student_id" name="student_id" required>
-                @foreach ($children as $child)
-                    <option value="{{ $child->id }}" @selected((string) old('student_id', $selected_child?->id) === (string) $child->id)>{{ $child->name }}</option>
-                @endforeach
-            </select>
+            <input type="hidden" name="student_id" value="{{ $selected_child?->id }}"><strong>{{ $selected_child?->name }}</strong>
             @error('student_id')<small class="field-error">{{ $message }}</small>@enderror
         </div>
         <div class="parent-field">

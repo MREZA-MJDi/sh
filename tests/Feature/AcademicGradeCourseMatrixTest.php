@@ -263,6 +263,38 @@ final class AcademicGradeCourseMatrixTest extends TestCase
             ->assertDontSee('ریاضی پاییز');
     }
 
+    public function test_same_grade_and_season_in_different_years_are_filtered_independently(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $grade = AcademicGrade::query()->where('code', '6')->firstOrFail();
+
+        foreach ([1404, 1405] as $year) {
+            $this->actingAs($admin)->post(route('admin.courses.store'), [
+                'title' => 'ریاضی پاییز '.$year,
+                'subject' => 'ریاضی',
+                'academic_grade_id' => $grade->id,
+                'season' => 'autumn',
+                'academic_year' => $year,
+                'type' => 'free',
+                'delivery_type' => 'onsite',
+                'status' => 'published',
+            ])->assertRedirect()->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('courses', [
+                'academic_grade_id' => $grade->id,
+                'season' => 'autumn',
+                'academic_year' => $year,
+                'title' => 'ریاضی پاییز '.$year,
+            ]);
+        }
+
+        $this->get(route('admin.courses.index', ['season' => 'autumn', 'academic_year' => 1405]))
+            ->assertOk()->assertSee('ریاضی پاییز 1405')->assertDontSee('ریاضی پاییز 1404');
+
+        $this->get(route('public.courses.index', ['season' => 'autumn', 'academic_year' => 1404]))
+            ->assertOk()->assertSee('ریاضی پاییز 1404')->assertDontSee('ریاضی پاییز 1405');
+    }
+
     private function userWithRole(string $role, array $attributes = []): User
     {
         $user = User::factory()->create($attributes);

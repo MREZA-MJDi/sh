@@ -7,12 +7,10 @@ use App\Http\Requests\Portal\ReplyPortalMessageRequest;
 use App\Http\Requests\Portal\StorePortalMessageRequest;
 use App\Http\Requests\Portal\UpdatePortalMessageRequest;
 use App\Models\Classroom;
-use App\Models\Course;
 use App\Models\Message;
 use App\Services\Messaging\MessageReplyService;
 use App\Models\User;
 use App\Notifications\MessageActivityNotification;
-use App\Services\Learning\LearningAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -76,13 +74,13 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function create(Request $request, LearningAccessService $access): View
+    public function create(Request $request): View
     {
         [$student, $children, $selectedChild] = $this->context($request);
 
         abort_if(! $student, 403, 'برای ارسال پیام، ابتدا دانش‌آموزی به این حساب متصل کنید.');
 
-        $recipients = $this->availableRecipients($student, $access);
+        $recipients = $this->availableRecipients($student);
 
         return view($request->user()->hasRole('parent') ? 'parent.message-create' : 'student.message-create', [
             'student' => $student,
@@ -94,13 +92,13 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function store(StorePortalMessageRequest $request, LearningAccessService $access): RedirectResponse
+    public function store(StorePortalMessageRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $student = $this->resolveStudent($request, (int) $data['student_id']);
 
         abort_unless(
-            $this->availableRecipients($student, $access)->contains('id', (int) $data['recipient_id']),
+            $this->availableRecipients($student)->contains('id', (int) $data['recipient_id']),
             403,
             'گیرنده‌ی انتخاب‌شده برای این دانش‌آموز مجاز نیست.'
         );
@@ -220,24 +218,21 @@ final class MessageController extends Controller
             ->firstOrFail();
     }
 
-    private function availableRecipients(User $student, LearningAccessService $access): Collection
+    private function availableRecipients(User $student): Collection
     {
-        $classroomIds = $access->activeClassroomIds($student);
-        $visibleClassrooms = Classroom::query()
-            ->whereIn('id', clone $classroomIds)
-            ->get(['id', 'course_id', 'teacher_id']);
+        // Communication is based on assigned active groups, not payment status.
+        // A parent must be able to ask the assigned teacher about enrollment.
+        $classroomIds = Classroom::query()->where('status', 'active')
+            ->whereHas('students', fn (Builder $students) => $students->whereKey($student->id))
+            ->where(fn (Builder $scope) => $scope->whereNull('course_id')
+                ->orWhereHas('course', fn (Builder $course) => $course->where('status', 'published')))
+            ->select('classrooms.id');
+        $visibleClassrooms = Classroom::query()->whereIn('id', $classroomIds)
+            ->with('course:id,teacher_id')->get(['id', 'course_id', 'teacher_id']);
 
-        $courseIds = $visibleClassrooms->pluck('course_id')->filter()->unique();
-        $teacherIds = $visibleClassrooms->pluck('teacher_id')
-            ->filter()
-            ->merge(
-                Course::query()
-                    ->whereIn('id', $courseIds)
-                    ->whereNotNull('teacher_id')
-                    ->pluck('teacher_id')
-            )
-            ->unique()
-            ->values();
+        $teacherIds = $visibleClassrooms
+            ->map(fn (Classroom $classroom) => $classroom->teacher_id ?: $classroom->course?->teacher_id)
+            ->filter()->unique()->values();
 
         return User::query()
             ->where('is_active', true)

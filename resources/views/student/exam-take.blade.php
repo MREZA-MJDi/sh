@@ -2,9 +2,11 @@
 @section('title', 'آزمون آنلاین')
 @section('content')
 <section class="page" id="exam-take">
+<x-portal.page-head icon="check" tone="tracking" :title="$exam->title"/>
+
  <form class="card q" id="exam" method="POST" action="{{ route('student.exam-attempts.submit', $attempt) }}" data-seconds="{{ $remainingSeconds ?? '' }}">
   @csrf
-  <div class="chead"><h2>{{ $exam->title }}</h2>
+  <div class="chead"><h2>{{ $questions->count() }} سؤال</h2>
    @if ($remainingSeconds !== null)<span class="tag w">زمان باقی‌مانده: <b id="examTimer" dir="ltr">--:--</b></span>@endif
   </div>
   <p>{{ $exam->description }}</p>
@@ -17,7 +19,7 @@
    <section class="q-item">
     <h3>{{ $loop->iteration }}. {{ $question->question }} <small>({{ $question->score }} نمره)</small></h3>
     @if ($question->type === 'text')
-     <textarea name="answers[{{ $question->id }}]" rows="4" placeholder="پاسخ تشریحی">{{ $saved }}</textarea>
+     <textarea aria-label="پاسخ سؤال {{ $loop->iteration }}" name="answers[{{ $question->id }}]" rows="4" placeholder="پاسخ تشریحی">{{ $saved }}</textarea>
     @elseif ($question->type === 'multiple')
      @foreach ($options as $key => $option)
       <label><input type="checkbox" name="answers[{{ $question->id }}][]" value="{{ $key }}" @checked(in_array((string) $key, array_map('strval', $savedValues), true))> {{ $option }}</label>

@@ -3,13 +3,14 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\User;
+use App\Models\Course;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreCourseRequest extends FormRequest
 {
-    public function authorize(): bool { return $this->user()?->hasPermissionTo('courses.manage') ?? false; }
+    public function authorize(): bool { return $this->user()?->hasRole('admin') && $this->user()->hasPermissionTo('courses.manage'); }
 
     protected function prepareForValidation(): void
     {
@@ -42,7 +43,8 @@ class StoreCourseRequest extends FormRequest
             'subject' => ['nullable', 'string', 'max:100'],
             'grade' => ['nullable', 'string', 'max:50'],
             'academic_grade_id' => ['nullable', 'integer', 'exists:academic_grades,id'],
-            'season' => ['nullable', Rule::in(['spring', 'summer', 'autumn', 'winter'])],
+            'season' => ['nullable', Rule::in(array_keys(Course::SEASONS))],
+            'academic_year' => ['nullable', 'integer', 'between:1300,1500'],
             'teacher_id' => ['nullable', 'integer', 'exists:users,id'],
             'type' => ['required', Rule::in(['free', 'paid'])],
             'price' => ['nullable', 'integer', 'min:0', 'max:1000000000'],

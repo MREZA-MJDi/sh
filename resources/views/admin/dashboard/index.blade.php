@@ -52,7 +52,7 @@
       @endif
     @endcan
     @if(($recentEnrollmentCount ?? 0) > 0)
-      <a class="adm-work-item" data-tone="users" href="{{ route('admin.enrollments.index') }}"><span><x-admin.icon name="users"/></span><div><b>ثبت‌نام‌های جدید در ۷ روز اخیر</b><small>آخرین درخواست‌ها و وضعیت دسترسی را بررسی کن</small></div><strong>{{ number_format($recentEnrollmentCount) }}</strong></a>
+      <a class="adm-work-item" data-tone="shop" href="{{ route('admin.enrollments.index') }}"><span><x-admin.icon name="users"/></span><div><b>ثبت‌نام‌های جدید در ۷ روز اخیر</b><small>آخرین درخواست‌ها و وضعیت دسترسی را بررسی کن</small></div><strong>{{ number_format($recentEnrollmentCount) }}</strong></a>
     @endif
     @canany(['classes.manage', 'classes.manage.assigned', 'classes.view.assigned'])
       @if(($upcomingSessions ?? collect())->isNotEmpty())
@@ -73,7 +73,7 @@
       <a class="adm-work-item" data-tone="comm" href="{{ route('admin.consultations.index') }}"><span><x-admin.icon name="chat"/></span><div><b>درخواست‌های مشاوره جدید</b><small>برای درخواست‌ها زمان‌بندی تعیین کن</small></div><strong>{{ number_format($pendingConsultations) }}</strong></a>
     @endif
     @if(($publishedAnnouncementCount ?? 0) > 0)
-      <a class="adm-work-item" data-tone="edu" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
+      <a class="adm-work-item" data-tone="comm" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
     @endif
     @if(($pendingPaymentReviewCount ?? 0) === 0 && ($recentEnrollmentCount ?? 0) === 0 && ($upcomingSessions ?? collect())->isEmpty() && $pendingHomework === 0 && $openMessages === 0 && $pendingConsultations === 0 && ($publishedAnnouncementCount ?? 0) === 0)
       <div class="adm-queue-empty"><x-admin.icon name="check"/><b>مورد فوری تازه‌ای ثبت نشده است</b><span>فعلاً صف پیگیری خالی است؛ می‌توانی وضعیت دوره‌ها و کلاس‌ها را مرور کنی.</span></div>
@@ -84,7 +84,7 @@
       @foreach($upcomingSessions as $session)
         <a class="adm-action-tile" href="{{ route('admin.classes.sessions.index', $session->classroom_id) }}">
           <span><x-admin.icon name="cal"/></span>
-          <div><b>{{ $session->title }} · {{ $session->classroom?->name }}</b><small>{{ $session->starts_at?->translatedFormat('l j F، H:i') }}</small></div>
+          <div><b>{{ $session->title }} · {{ $session->classroom?->name }}</b><small>{{ \App\Support\PersianDate::format($session->starts_at, 'l j F، H:i') }}</small></div>
           <x-admin.icon name="chev"/>
         </a>
       @endforeach

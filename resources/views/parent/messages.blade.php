@@ -1,10 +1,9 @@
 @extends('parent.layouts.app')
 @section('title', 'مرکز پیام‌ها')
 @section('content')
-<div class="teacher-page-head">
-    <div><span class="teacher-eyebrow">ارتباطات خانواده</span><h1>مرکز پیام‌ها</h1><p>گفت‌وگوهای مربوط به فرزند انتخاب‌شده را یکجا ببینید.</p></div>
-    @if(auth()->user()->hasPermissionTo('messages.send.own'))<a class="b" href="{{ route('guardian.messages.create', ['child' => $selected_child?->id]) }}">پیام جدید</a>@endif
-</div>
+<x-portal.page-head icon="message" tone="communication" title="مرکز پیام‌ها">
+ @if(auth()->user()->hasPermissionTo('messages.send.own') && $selected_child)<a class="b" href="{{ route('guardian.messages.create', ['child' => $selected_child->id]) }}"><x-portal.icon name="plus"/> پیام جدید</a>@endif
+</x-portal.page-head>
 @include('parent.partials.kid-picker')
 <div class="teacher-inbox">
     <aside class="teacher-inbox-list c">
@@ -20,7 +19,7 @@
             <a class="teacher-inbox-item {{ $selectedMessage?->id === $item->id ? 'is-active' : '' }}" href="{{ route('guardian.messages.index', ['child' => $selected_child?->id, 'message' => $item->id, 'q' => $filters['q'] ?? null, 'status' => $filters['status'] ?? null, 'sort' => $filters['sort'] ?? null]) }}">
                 <span class="teacher-inbox-avatar">{{ mb_substr($item->recipient?->name ?? $item->sender?->name ?? 'م', 0, 1) }}</span>
                 <span class="teacher-inbox-copy"><strong>{{ $item->subject ?: 'بدون موضوع' }}</strong><small>{{ $item->sender?->name }} · {{ \App\Support\JalaliDate::format($item->created_at, true) }}</small></span>
-                <i class="bd {{ $item->conversationStatus() === 'open' ? 'am' : 'gn' }}">{{ ['open' => 'باز', 'answered' => 'پاسخ‌داده‌شده', 'closed' => 'بسته', 'deleted' => 'حذف‌شده'][$item->conversationStatus()] ?? 'در جریان' }}</i>
+                <x-portal.status :value="$item->conversationStatus()"/>
             </a>
         @empty
             <p class="teacher-inbox-empty">برای این فرزند گفت‌وگویی ثبت نشده است.</p>

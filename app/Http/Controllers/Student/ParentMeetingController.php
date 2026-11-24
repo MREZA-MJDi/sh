@@ -12,7 +12,7 @@ final class ParentMeetingController extends Controller
     public function index(Request $request): View
     {
         $meetings = ParentMeeting::query()
-            ->where('student_id', $request->user()->id)
+            ->forStudent($request->user()->id)
             ->with(['guardian:id,name', 'classroom:id,name', 'course:id,title', 'creator:id,name', 'responder:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')

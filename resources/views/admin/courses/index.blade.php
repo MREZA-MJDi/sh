@@ -3,7 +3,7 @@
 
 @section('content')
 @php
-  $seasons = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
+  $seasons = \App\Models\Course::SEASONS;
   $statuses = [
     'draft' => ['warn', 'پیش‌نویس'],
     'published' => ['ok', 'منتشرشده'],
@@ -55,6 +55,18 @@
         <option value="{{ $grade }}" @selected(($filters['grade'] ?? '') === $grade)>{{ $label }}</option>
       @endforeach
     </select>
+    <select class="adm-select" name="season" aria-label="فصل آموزشی">
+      <option value="">همه فصل‌ها</option>
+      @foreach($seasons as $key => $label)
+        <option value="{{ $key }}" @selected(($filters['season'] ?? '') === $key)>{{ $label }}</option>
+      @endforeach
+    </select>
+    <select class="adm-select" name="academic_year" aria-label="سال تحصیلی">
+      <option value="">همه سال‌ها</option>
+      @foreach($academicYears as $year)
+        <option value="{{ $year }}" @selected((string) ($filters['academic_year'] ?? '') === (string) $year)>{{ $year }}–{{ $year + 1 }}</option>
+      @endforeach
+    </select>
     <select class="adm-select" name="status" aria-label="وضعیت انتشار">
       <option value="">همه وضعیت‌ها</option>
       @foreach($statuses as $key => $status)
@@ -99,7 +111,7 @@
             <h3>{{ $course->title }}</h3>
             <p>{{ $course->subject ?: 'موضوع ثبت نشده' }} · {{ $teacherName }}</p>
           </div>
-          <span class="adm-course-season">{{ $seasons[$course->season] ?? 'بدون فصل' }}</span>
+          <span class="adm-course-season">{{ $seasons[$course->season] ?? 'بدون فصل' }} @if($course->academic_year) · {{ $course->academic_year }} @endif</span>
         </div>
         <div class="adm-course-facts">
           <span><x-admin.icon name="users"/>{{ number_format($course->active_enrollments_count) }} دانش‌آموز</span>

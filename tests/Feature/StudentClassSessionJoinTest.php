@@ -84,6 +84,22 @@ final class StudentClassSessionJoinTest extends TestCase
         $this->assertDatabaseCount('class_session_join_logs', 0);
     }
 
+    public function test_skyroom_session_can_use_a_manually_configured_classroom_link(): void
+    {
+        [$student, $classroom] = $this->studentWithClassroom();
+        $session = $this->makeSession($classroom, now()->addMinutes(5), now()->addHour());
+        $session->update(['meeting_provider' => 'skyroom', 'meeting_url' => null]);
+
+        $this->actingAs($student)
+            ->post(route('student.class-sessions.join', $session))
+            ->assertRedirect('https://meet.example.test/room');
+
+        $this->assertDatabaseHas('class_session_join_logs', [
+            'class_session_id' => $session->id,
+            'user_id' => $student->id,
+        ]);
+    }
+
     private function studentWithClassroom(bool $attach = true): array
     {
         $student = User::factory()->create();

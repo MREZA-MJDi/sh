@@ -11,7 +11,7 @@ class EnsureUserHasPermission
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         $user = $request->user();
-        $allowed = $user && collect($permissions)->contains(
+        $allowed = $user && $user->is_active && collect($permissions)->contains(
             fn (string $permission): bool => $user->hasPermissionTo($permission)
         );
 
