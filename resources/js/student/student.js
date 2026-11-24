@@ -57,7 +57,7 @@ import '../shared/iranian-locale.js';
       if (e.defaultPrevented || f.target === '_blank') return;
       if (f.dataset.busy) { e.preventDefault(); return; }
       f.dataset.busy = '1';
-      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+      $$('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         // Preserve the clicked submitter so name/value fields remain in the request.
         if (button !== e.submitter) button.disabled = true;
       });
@@ -66,7 +66,7 @@ import '../shared/iranian-locale.js';
   window.addEventListener('pageshow', function () {
     $$('form[data-busy]').forEach(function (f) {
       delete f.dataset.busy;
-      $('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
+      $$('button[type="submit"],input[type="submit"]', f).forEach(function (button) {
         button.disabled = false;
       });
     });

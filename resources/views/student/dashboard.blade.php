@@ -9,7 +9,7 @@
  <div class="card">
   <div class="chead"><h2>برنامه و تکالیف</h2></div>
   <div class="portal-action-grid">
-   <x-portal.action-card :href="route('student.live-classes')" title="جلسات پیش‌رو" icon="calendar" :value="number_format($upcoming_session_count)" :hint="($next_session ?? null)?->title ?: 'مشاهده برنامه جلسات'"/>
+   <x-portal.action-card :href="route('student.live-classes')" title="جلسات و کلاس‌های آنلاین" icon="calendar" :value="number_format($upcoming_session_count)" :hint="($next_session ?? null)?->starts_at ? \App\Support\PersianDate::format($next_session->starts_at, 'Y/m/d H:i') : 'مشاهده برنامه جلسات'"/>
    @if($student->hasPermissionTo('homework.submit'))<x-portal.action-card :href="route('student.homework.index')" title="تکالیف من" hint="در انتظار ارسال" icon="check" tone="tracking" :value="number_format($pending_homework_count)"/>@endif
    @if($student->hasPermissionTo('lessons.view'))<x-portal.action-card :href="route('student.courses.index')" title="کلاس‌های فعال" icon="book" :value="number_format($classroom_count)"/>@endif
    @if($student->hasPermissionTo('exams.view.own'))<x-portal.action-card :href="route('student.exams.index')" title="آزمون‌ها و کارنامه" icon="chart" tone="tracking" :value="number_format($result_count)" hint="نتایج ثبت‌شده"/>@endif
