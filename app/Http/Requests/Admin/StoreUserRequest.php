@@ -12,6 +12,11 @@ class StoreUserRequest extends FormRequest
 {
     private const ROLES = ['student', 'teacher', 'parent'];
 
+    public function messages(): array
+    {
+        return ['phone.required' => 'وارد کردن شماره تماس مدرس الزامی است.'];
+    }
+
     protected function prepareForValidation(): void
     {
         $digits = strtr((string) $this->input('phone', ''), [

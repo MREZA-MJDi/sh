@@ -44,11 +44,11 @@ final class DashboardController extends Controller
         $monthRecords = Attendance::query()
             ->where('student_id', $student->id)
             ->whereIn('classroom_id', clone $classroomIds)
-            ->whereBetween('session_date', [$start->toDateString(), $now->toDateString()])
-            ->with(['classroom:id,name', 'session:id,starts_at'])
+            ->where('session_date', '>=', $start->toDateString())
+            ->where('session_date', '<', $now->copy()->addDay()->toDateString())
             ->get();
         $records = $monthRecords->groupBy(
-            fn ($record) => JalaliDate::fromGregorian($record->session_date)['day']
+            fn (Attendance $record) => JalaliDate::fromGregorian($record->session_date)['day']
         );
 
         $calendar = collect(range(1, $monthDays))->map(function (int $day) use ($records): array {
@@ -57,7 +57,8 @@ final class DashboardController extends Controller
                 'day' => $day,
                 'status' => $statuses->contains('absent') ? 'absent'
                     : ($statuses->contains('late') ? 'late'
-                    : ($statuses->contains('present') ? 'present' : 'none')),
+                    : ($statuses->contains('present') ? 'present'
+                    : ($statuses->contains('excused') ? 'excused' : 'none'))),
             ];
         });
 
@@ -69,7 +70,7 @@ final class DashboardController extends Controller
             'calendar' => $calendar,
             'monthOffset' => ($start->dayOfWeek + 1) % 7,
             'monthTitle' => JalaliDate::monthLabel($jalaliYear, $jalaliMonth),
-            'attendance_count' => $total,
+            'attendance_count' => $monthRecords->count(),
             'attendance_rate' => $rate,
         ]);
     }

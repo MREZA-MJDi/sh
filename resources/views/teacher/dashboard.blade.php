@@ -1,7 +1,8 @@
 @extends('teacher.layouts.app')
 @section('title', 'داشبورد')
 @section('content')
-@include("components.announcement-feed", ["announcements" => $announcements ?? collect()])\n<div class="teacher-page-head teacher-dashboard-hero">
+@include("components.announcement-feed", ["announcements" => $announcements ?? collect()])
+<div class="teacher-page-head teacher-dashboard-hero">
     <div class="teacher-dashboard-identity">
         <div class="teacher-dashboard-avatar">
             @if(($teacher ?? auth()->user())->avatarUrl())
