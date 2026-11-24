@@ -67,7 +67,6 @@
         <h2>بارگذاری امن فایل جلسه</h2>
         <div
             data-course-upload
-            data-learning-scope
             data-target="spotplayer_video"
             data-course-id="0"
             data-start-url="{{ route('teacher.uploads.start') }}"
@@ -113,9 +112,6 @@
                     @endforeach
                 @endforeach
             </select>
-
-            <label>شناسه خارجی SpotPlayer (اختیاری)</label>
-            <input data-upload-external maxlength="190" placeholder="در صورت نیاز به اتصال بعدی">
 
             <label>فایل ویدیوی جلسه</label>
             <input type="file" data-upload-file accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v">

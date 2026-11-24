@@ -48,7 +48,7 @@
     <form method="POST" action="{{ $formAction }}" class="adm-stack" enctype="multipart/form-data">
       @csrf
       @if($isEditing) @method('PATCH') @endif
-      <input type="hidden" name="delivery_type" value="onsite">
+      <input type="hidden" name="delivery_type" value="{{ $course->delivery_type ?: 'onsite' }}">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
       <x-admin.panel id="course-basics" title="۱. اطلاعات اصلی دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." data-tone="edu">
@@ -79,7 +79,7 @@
 
       <x-admin.panel id="course-enrollment" title="۲. ثبت‌نام و قیمت" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
         <div class="adm-form">
-          <x-admin.select label="نوع دوره" name="file" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
+          <x-admin.select label="نوع دوره" name="type" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
           <x-admin.input label="قیمت به تومان" name="price" :value="old('price', $course->price)" inputmode="numeric" type="number" min="0" max="1000000000" placeholder="برای دوره رایگان صفر"/>
           <x-admin.select label="وضعیت نمایش در سایت" name="status" :options="$statuses" :selected="old('status', $course->status ?: 'draft')" required/>
         </div>
@@ -107,7 +107,7 @@
           <video controls preload="metadata" style="display:block;width:100%;max-height:360px;border-radius:14px;background:#0f172a" src="{{ route('admin.courses.teaser', $course) }}"></video>
         @elseif($course->teaser_status === 'processing')
           <x-admin.badge tone="warn">در حال پردازش تریلر</x-admin.badge>
-          <p class="adm-muted">پس از پایان پردازش، پیش‌نمایش ویدیو در همین قسمت نمایش داده می‌شود.</p>
+          <p class="adm-muted">پس از پایان پردازش، فهرست را به‌روزرسانی کن تا پیش‌نمایش را ببینی.</p>
         @elseif($course->teaser_status === 'failed')
           <x-admin.badge tone="bad">پردازش ناموفق</x-admin.badge>
           <p class="adm-muted">{{ $course->teaser_error ?: 'پردازش تریلر کامل نشد؛ فایل را دوباره بارگذاری کنید.' }}</p>
@@ -147,7 +147,7 @@
               <label class="adm-field">
                 <span class="adm-label">جلسه مشخص</span>
                 <select class="adm-select" name="class_session_id" data-upload-session>
-                  <option value="">ابتدا جلسه را انتخاب کنید</option>
+                  <option value="">بدون اتصال به جلسه</option>
                   @foreach($classrooms as $classroom)
                     @foreach($classroom->sessions as $session)
                       <option value="{{ $session->id }}" data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: 'جلسه' }} · {{ $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>
@@ -185,7 +185,7 @@
                     'active' => ['ok', 'آماده پخش'],
                     'processing' => ['warn', 'در حال پردازش'],
                     'failed' => ['bad', 'پردازش ناموفق'],
-                    'waiting_contract' => ['warn', 'در حال آماده‌سازی پخش'],
+                    'waiting_contract' => ['warn', 'در انتظار قرارداد SpotPlayer'],
                     default => ['mute', 'در انتظار بررسی'],
                   };
                 @endphp

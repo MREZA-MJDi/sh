@@ -34,6 +34,7 @@ final class AdminCourseWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('سربرگ صفحه عمومی دوره')
             ->assertSee('ثبت‌نام و قیمت')
+            ->assertSee('name="type"', false)
             ->assertSee('امکاناتی که دانش‌آموز در صفحه دوره می‌بیند');
 
         $course = $this->course();
