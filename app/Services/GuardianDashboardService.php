@@ -133,7 +133,6 @@ final class GuardianDashboardService
             ->get();
 
         $attendanceQuery = Attendance::query()->visibleToStudent($student, clone $classroomIds);
-            });
 
         $attendanceTotal = (clone $attendanceQuery)
             ->whereIn('status', ['present', 'late', 'absent'])
