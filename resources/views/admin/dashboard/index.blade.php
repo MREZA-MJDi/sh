@@ -73,7 +73,7 @@
       <a class="adm-work-item" data-tone="comm" href="{{ route('admin.consultations.index') }}"><span><x-admin.icon name="chat"/></span><div><b>درخواست‌های مشاوره جدید</b><small>برای درخواست‌ها زمان‌بندی تعیین کن</small></div><strong>{{ number_format($pendingConsultations) }}</strong></a>
     @endif
     @if(($publishedAnnouncementCount ?? 0) > 0)
-      <a class="adm-work-item" data-tone="edu" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
+      <a class="adm-work-item" data-tone="comm" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
     @endif
     @if(($pendingPaymentReviewCount ?? 0) === 0 && ($recentEnrollmentCount ?? 0) === 0 && ($upcomingSessions ?? collect())->isEmpty() && $pendingHomework === 0 && $openMessages === 0 && $pendingConsultations === 0 && ($publishedAnnouncementCount ?? 0) === 0)
       <div class="adm-queue-empty"><x-admin.icon name="check"/><b>مورد فوری تازه‌ای ثبت نشده است</b><span>فعلاً صف پیگیری خالی است؛ می‌توانی وضعیت دوره‌ها و کلاس‌ها را مرور کنی.</span></div>
