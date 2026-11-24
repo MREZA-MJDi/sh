@@ -28,16 +28,17 @@ class CourseEnrollmentService
      */
     public function syncCourseRoster(Course $course): void
     {
-        $studentIds = DB::table('classroom_student')
-            ->join('classrooms', 'classrooms.id', '=', 'classroom_student.classroom_id')
-            ->where('classrooms.course_id', $course->id)
-            ->where('classrooms.status', 'active')
-            ->distinct()
-            ->pluck('classroom_student.student_id')
-            ->map(static fn ($id): int => (int) $id)
-            ->values();
+        DB::transaction(function () use ($course): void {
+            $course = Course::query()->lockForUpdate()->findOrFail($course->id);
+            $studentIds = DB::table('classroom_student')
+                ->join('classrooms', 'classrooms.id', '=', 'classroom_student.classroom_id')
+                ->where('classrooms.course_id', $course->id)
+                ->where('classrooms.status', 'active')
+                ->distinct()
+                ->pluck('classroom_student.student_id')
+                ->map(static fn ($id): int => (int) $id)
+                ->values();
 
-        DB::transaction(function () use ($course, $studentIds): void {
             if ($course->status !== 'published') {
                 CourseEnrollment::query()
                     ->where('course_id', $course->id)
@@ -125,16 +126,21 @@ class CourseEnrollmentService
             throw ValidationException::withMessages(['student' => 'حساب دانش‌آموز فعال و معتبر نیست.']);
         }
 
-        if ($course->type !== 'paid' || $course->status !== 'published') {
-            throw ValidationException::withMessages(['course' => 'دسترسی پرداختی فقط برای دوره پولی منتشرشده ایجاد می‌شود.']);
-        }
-
         return DB::transaction(function () use ($student, $course, $paymentReference): CourseEnrollment {
+            $course = Course::query()->lockForUpdate()->findOrFail($course->id);
+            if ($course->type !== 'paid' || $course->status !== 'published') {
+                throw ValidationException::withMessages(['course' => 'دسترسی پرداختی فقط برای دوره پولی منتشرشده ایجاد می‌شود.']);
+            }
+
             $enrollment = CourseEnrollment::query()
                 ->where('course_id', $course->id)
                 ->where('student_id', $student->id)
                 ->lockForUpdate()
                 ->first();
+
+            if ($enrollment?->source === 'payment' && $enrollment->source_reference === $paymentReference) {
+                return $enrollment;
+            }
 
             if (! $enrollment) {
                 $enrollment = new CourseEnrollment([
@@ -162,11 +168,12 @@ class CourseEnrollmentService
             throw ValidationException::withMessages(['student' => 'فقط دانش‌آموز فعال می‌تواند در دوره ثبت‌نام کند.']);
         }
 
-        if ($course->status !== 'published' || $course->type !== 'free') {
-            throw ValidationException::withMessages(['course' => 'ثبت‌نام مستقیم فقط برای دوره رایگان منتشرشده فعال است.']);
-        }
-
         return DB::transaction(function () use ($student, $course): CourseEnrollment {
+            $course = Course::query()->lockForUpdate()->findOrFail($course->id);
+            if ($course->status !== 'published' || $course->type !== 'free') {
+                throw ValidationException::withMessages(['course' => 'ثبت‌نام مستقیم فقط برای دوره رایگان منتشرشده فعال است.']);
+            }
+
             $enrollment = CourseEnrollment::query()
                 ->where('course_id', $course->id)
                 ->where('student_id', $student->id)
@@ -209,11 +216,12 @@ class CourseEnrollmentService
             throw ValidationException::withMessages(['student_id' => 'فقط دانش‌آموز فعال می‌تواند ثبت‌نام شود.']);
         }
 
-        if ($course->status !== 'published') {
-            throw ValidationException::withMessages(['course_id' => 'ثبت‌نام دستی فقط برای دوره منتشرشده انجام می‌شود.']);
-        }
-
         return DB::transaction(function () use ($student, $course, $actor, $expiresAt): CourseEnrollment {
+            $course = Course::query()->lockForUpdate()->findOrFail($course->id);
+            if ($course->status !== 'published') {
+                throw ValidationException::withMessages(['course_id' => 'ثبت‌نام دستی فقط برای دوره منتشرشده انجام می‌شود.']);
+            }
+
             $enrollment = CourseEnrollment::query()
                 ->where('course_id', $course->id)
                 ->where('student_id', $student->id)

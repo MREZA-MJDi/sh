@@ -18,11 +18,16 @@ class ExamController extends Controller
     public function index(Request $request, ClassroomWorkspaceService $classrooms, ExamWorkspaceService $exams): View
     {
         $filters = $request->validate([
+            'course_id' => ['nullable', 'integer', 'min:1'],
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
         $user = $request->user();
         $examQuery = $exams->queryFor($user)
+            ->when($filters['course_id'] ?? null, fn ($query, $id) => $query
+                ->where(fn ($scope) => $scope->where('course_id', $id)
+                    ->orWhere(fn ($classOnly) => $classOnly->whereNull('course_id')
+                        ->whereHas('classroom', fn ($classroom) => $classroom->where('course_id', $id)))))
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '>=', $date))
             ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('starts_at', '<=', $date));
 

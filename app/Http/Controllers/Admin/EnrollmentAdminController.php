@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 final class EnrollmentAdminController extends Controller
@@ -56,10 +57,20 @@ final class EnrollmentAdminController extends Controller
 
     public function revoke(CourseEnrollment $enrollment): RedirectResponse
     {
-        if ($enrollment->status === 'revoked') {
+        $changed = DB::transaction(function () use ($enrollment): bool {
+            Course::query()->lockForUpdate()->findOrFail($enrollment->course_id);
+            $current = CourseEnrollment::query()->lockForUpdate()->findOrFail($enrollment->id);
+
+            if ($current->status === 'revoked') {
+                return false;
+            }
+
+            return $current->update(['status' => 'revoked']);
+        }, 3);
+
+        if (! $changed) {
             return back()->with('status', 'این ثبت‌نام قبلاً لغو شده است.');
         }
-        $enrollment->update(['status' => 'revoked']);
 
         return back()->with('success', 'ثبت‌نام لغو شد و سابقه آن حفظ گردید.');
     }

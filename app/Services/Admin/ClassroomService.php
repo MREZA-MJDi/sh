@@ -45,12 +45,11 @@ final class ClassroomService
 
     public function update(User $actor, Classroom $classroom, array $data): Classroom
     {
-        $classroom = $this->workspace->queryFor($actor)->findOrFail($classroom->id);
         $teacherId = $this->workspace->isTeacher($actor) ? $actor->id : (int) $data['teacher_id'];
-        $previousCourseId = $classroom->course_id;
 
-        return DB::transaction(function () use ($classroom, $data, $actor, $teacherId, $previousCourseId): Classroom {
-            $classroom = Classroom::query()->lockForUpdate()->findOrFail($classroom->id);
+        return DB::transaction(function () use ($classroom, $data, $actor, $teacherId): Classroom {
+            $classroom = $this->workspace->queryFor($actor)->lockForUpdate()->findOrFail($classroom->id);
+            $previousCourseId = $classroom->course_id;
 
             $classroom->update([
                 'name' => $data['name'],
@@ -85,8 +84,6 @@ final class ClassroomService
     /**
      * Keep the live pivot limited to current members. Every removal is written
      * to an append-only history table, so a student may later rejoin the class.
-     * Keep the live pivot limited to current members. Removals are append-only
-     * history rows, allowing a student to leave and later rejoin safely.
      */
     private function syncRoster(Classroom $classroom, array $requestedStudentIds, User $actor): void
     {

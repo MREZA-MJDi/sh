@@ -14,7 +14,7 @@
 
 <section class="adm-homework-focus" data-tone="track">
   <div><span>کارتابل بررسی تکالیف</span><b>{{ number_format($pendingSubmissionCount) }} پاسخ در انتظار بررسی است</b><small>پاسخ‌ها را بررسی کن، نمره بده و بازخورد را برای دانش‌آموز و ولی ارسال کن.</small></div>
-  <x-admin.btn size="sm" icon="check" :href="route('admin.homework.index').'#homework-review-queue'">رفتن به صف بررسی</x-admin.btn>
+  <x-admin.btn size="sm" icon="check" :href="route('admin.homework.index', $filters).'#homework-review-queue'">رفتن به صف بررسی</x-admin.btn>
 </section>
 
 <div class="adm-stats">

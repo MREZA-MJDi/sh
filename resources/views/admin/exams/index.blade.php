@@ -38,6 +38,7 @@
 
 <x-admin.panel title="تقویم آزمون‌ها" desc="بازه شروع آزمون‌ها را از تقویم انتخاب کنید." data-tone="track">
   <form method="GET" action="{{ url()->current() }}" class="adm-toolbar">
+    <x-admin.select label="دوره" name="course_id" :options="$courseOptions" :selected="$filters['course_id'] ?? null" placeholder="همه دوره‌های مجاز"/>
     <label class="adm-label">از تاریخ <input class="adm-input" type="date" name="from" value="{{ $filters['from'] ?? '' }}"></label>
     <label class="adm-label">تا تاریخ <input class="adm-input" type="date" name="to" value="{{ $filters['to'] ?? '' }}"></label>
     <div class="adm-toolbar-end"><x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn><x-admin.btn :href="url()->current()" variant="line" size="sm">پاک‌کردن</x-admin.btn></div>
