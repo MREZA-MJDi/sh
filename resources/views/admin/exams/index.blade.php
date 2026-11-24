@@ -14,7 +14,7 @@
       'published' => 'منتشرشده',
       'closed' => 'بسته‌شده',
   ];
-  $statusTones = ['draft' => 'warn', 'scheduled' => 'info', 'published' => 'ok', 'closed' => 'muted'];
+  $statusTones = ['draft' => 'warn', 'scheduled' => 'info', 'published' => 'ok', 'closed' => 'mute'];
   $statusLabels = ['draft' => 'پیش‌نویس', 'scheduled' => 'زمان‌بندی‌شده', 'published' => 'منتشرشده', 'closed' => 'بسته‌شده'];
 @endphp
 
@@ -102,7 +102,7 @@
         </div>
       </article>
     @empty
-      <x-admin.empty text="هنوز آزمونی برای این محدوده دسترسی ثبت نشده است."/>
+      <x-admin.empty icon="exam" text="هنوز آزمونی برای این محدوده دسترسی ثبت نشده است."/>
     @endforelse
   </div>
   <x-admin.empty data-empty class="adm-hide" text="آزمونی با این مشخصات پیدا نشد."/>
