@@ -131,16 +131,7 @@ final class GuardianDashboardService
             ->limit(8)
             ->get();
 
-        $attendanceQuery = Attendance::query()
-            ->where('student_id', $student->id)
-            ->whereIn('classroom_id', clone $classroomIds)
-            ->where(function (Builder $query): void {
-                $query->whereNull('attendances.class_session_id')
-                    ->orWhereHas('session', function (Builder $session): void {
-                        $session->where('status', '!=', 'cancelled')
-                            ->where('starts_at', '<=', now())
-                            ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
-                    });
+        $attendanceQuery = Attendance::query()->visibleToStudent($student, clone $classroomIds);
             });
 
         $attendanceTotal = (clone $attendanceQuery)
