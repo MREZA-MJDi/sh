@@ -16,7 +16,7 @@
     <section class="c"><h3>درخواست‌های جدید</h3>
         @forelse ($requests as $meeting)
             <div class="row">
-                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ ($meeting->starts_at ?? $meeting->preferred_at) ? \App\Support\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
+                <div>{{ $meeting->audience === 'classroom' ? 'جلسه سراسری اولیا' : ($meeting->guardian?->name.' · '.$meeting->student?->name) }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ ($meeting->starts_at ?? $meeting->preferred_at) ? \App\Support\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
                 <i class="bd am">{{ ['requested' => 'درخواست جدید', 'proposed' => 'پیشنهادشده', 'scheduled' => 'زمان‌بندی‌شده', 'declined' => 'ردشده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده'][$meeting->status] ?? $meeting->status }}</i>
                 @if(auth()->user()->hasPermissionTo('classes.manage.assigned'))
                     <form method="POST" action="{{ route('teacher.meetings.update', $meeting) }}" class="teacher-meeting-actions">
@@ -31,13 +31,13 @@
                 @endif
             </div>
         @empty
-            <p>درخواست جدیدی ثبت نشده است. ✅</p>
+            <x-portal.empty-state icon="calendar" tone="communication" title="درخواست جدیدی ثبت نشده است." description="درخواست اولیا و پیشنهادهای جلسه در این بخش نمایش داده می‌شوند."/>
         @endforelse
     </section>
     <section class="c"><h3>جلسه‌های تأییدشده</h3>
         @forelse ($scheduled as $meeting)
             <div class="row">
-                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ $meeting->starts_at?->format('Y-m-d H:i') }}">{{ $meeting->starts_at ? \App\Support\PersianDate::format($meeting->starts_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
+                <div>{{ $meeting->audience === 'classroom' ? 'جلسه سراسری اولیا' : ($meeting->guardian?->name.' · '.$meeting->student?->name) }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ $meeting->starts_at?->format('Y-m-d H:i') }}">{{ $meeting->starts_at ? \App\Support\PersianDate::format($meeting->starts_at, 'Y/m/d H:i') : 'زمان تعیین نشده' }}</time></small></div>
                 <i class="bd gn">تأیید</i>
                 @if(auth()->user()->hasPermissionTo('classes.manage.assigned'))
                     <form method="POST" action="{{ route('teacher.meetings.update', $meeting) }}" class="teacher-meeting-actions">
@@ -50,18 +50,18 @@
                 @endif
             </div>
         @empty
-            <p>جلسه‌ی تأییدشده‌ای ثبت نشده است.</p>
+            <x-portal.empty-state icon="calendar" tone="communication" title="جلسه تأییدشده‌ای ثبت نشده است."/>
         @endforelse
     </section>
     <section class="c">
         <h3>سوابق و سایر وضعیت‌ها</h3>
         @forelse ($otherMeetings as $meeting)
             <div class="row">
-                <div>{{ $meeting->guardian?->name }} · {{ $meeting->student?->name }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y/m/d H:i') }}</time></small></div>
+                <div>{{ $meeting->audience === 'classroom' ? 'جلسه سراسری اولیا' : ($meeting->guardian?->name.' · '.$meeting->student?->name) }}<small>{{ $meeting->classroom?->name }} · {{ $meeting->title }} · <time data-jalali-display="{{ ($meeting->starts_at ?? $meeting->preferred_at)?->format('Y-m-d H:i') }}">{{ \App\Support\PersianDate::format($meeting->starts_at ?? $meeting->preferred_at, 'Y/m/d H:i') }}</time></small></div>
                 <i class="bd {{ $meeting->status === 'completed' ? 'gn' : 'am' }}">{{ ['declined' => 'ردشده', 'completed' => 'برگزارشده', 'cancelled' => 'لغوشده'][$meeting->status] ?? $meeting->status }}</i>
             </div>
         @empty
-            <p>سابقه دیگری برای نمایش وجود ندارد.</p>
+            <x-portal.empty-state icon="calendar" tone="communication" title="سابقه دیگری وجود ندارد."/>
         @endforelse
     </section>
 </div>
