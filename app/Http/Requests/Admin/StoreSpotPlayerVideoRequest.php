@@ -23,7 +23,7 @@ class StoreSpotPlayerVideoRequest extends FormRequest
             'course_id' => ['required', 'integer', 'exists:courses,id'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'external_id' => ['nullable', 'required_without:file', 'string', 'max:190'],
-            'file' => ['nullable', 'required_without:external_id', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:'.((int) config('learning.max_lesson_mb') * 1024)],
+            'file' => ['nullable', 'required_without:external_id', 'prohibits:external_id', 'file', 'mimes:mp4,mov,m4v,webm,mkv', 'max:'.((int) config('learning.max_lesson_mb') * 1024)],
             'status' => ['required', Rule::in(['draft', 'waiting_contract'])],
         ];
     }
