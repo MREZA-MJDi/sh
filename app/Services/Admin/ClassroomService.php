@@ -159,7 +159,8 @@ final class ClassroomService
             || $classroom->membershipHistory()->exists()
             || $classroom->exams()->exists()
             || $classroom->learningResources()->exists()
-            || $classroom->spotPlayerVideos()->exists();
+            || $classroom->spotPlayerVideos()->exists()
+            || $classroom->parentMeetings()->exists();
     }
 
 }
