@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\CourseEnrollment;
 use App\Models\Payment;
+use App\Models\ResourcePurchase;
 use App\Services\Learning\LearningAccessService;
 use App\Services\StudentDashboardService;
 use App\Support\JalaliDate;
@@ -135,9 +136,17 @@ final class DashboardController extends Controller
             ->currentlyActive()
             ->with('course:id,title,slug,subject,grade')
             ->latest('granted_at')
-            ->get();
+            ->paginate(12, ['*'], 'accesses')
+            ->withQueryString();
 
-        return view('student.library', compact('purchases', 'accesses'));
+        $resourcePurchases = ResourcePurchase::query()
+            ->where('student_id', $student->id)
+            ->with('resource:id,title,kind,status')
+            ->latest('created_at')
+            ->paginate(12, ['*'], 'products')
+            ->withQueryString();
+
+        return view('student.library', compact('purchases', 'accesses', 'resourcePurchases'));
     }
 
 }
