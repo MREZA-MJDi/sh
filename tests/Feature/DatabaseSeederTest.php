@@ -49,34 +49,22 @@ final class DatabaseSeederTest extends TestCase
         $this->assertDatabaseCount('guardian_student', 1);
     }
 
-    public function test_production_demo_seed_requires_both_explicit_flags_and_is_repeatable(): void
+    public function test_production_seed_skips_demo_accounts_and_content(): void
     {
         $this->app['env'] = 'production';
-
         config([
             'demo.enabled' => true,
-            'demo.seed_academic_content' => true,
             'demo.password' => 'Production-Demo-Only-2026!',
         ]);
 
         app(DatabaseSeeder::class)->run();
-        app(DatabaseSeeder::class)->run();
+        app(\Database\Seeders\LocalDemoAccountsSeeder::class)->run();
 
-        $this->assertDatabaseHas('users', ['email' => 'teacher@sh.local', 'is_active' => true]);
-        $this->assertDatabaseHas('users', ['email' => 'student@sh.local', 'is_active' => true]);
-        $this->assertDatabaseHas('courses', ['slug' => 'riyazi-takmili-nomre']);
-        $this->assertDatabaseHas('courses', ['slug' => 'riyazi-pishrafte-dore-pooli']);
-        $this->assertDatabaseHas('courses', ['slug' => 'video-only-demo-course']);
-        $this->assertDatabaseHas('courses', ['slug' => 'hybrid-live-demo-course']);
-        $this->assertDatabaseHas('seo_articles', ['slug' => 'how-to-choose-online-course']);
-        $this->assertDatabaseCount('courses', 51);
-        $grade = AcademicGrade::query()->where('code', '10')->firstOrFail();
-        $this->assertDatabaseHas('courses', [
-            'slug' => 'hybrid-live-demo-course',
-            'academic_grade_id' => $grade->id,
-            'season' => 'autumn',
-        ]);
-        $this->assertDatabaseCount('classrooms', 4);
+        $this->assertDatabaseMissing('users', ['email' => 'teacher@sh.local']);
+        $this->assertDatabaseMissing('users', ['email' => 'student@sh.local']);
+        $this->assertDatabaseMissing('courses', ['slug' => 'video-only-demo-course']);
+        $this->assertDatabaseCount('classrooms', 0);
+        $this->assertDatabaseHas('academic_grades', ['code' => '10']);
     }
 
     public function test_academic_demo_seeder_never_attaches_fixtures_to_unrelated_local_users(): void

@@ -33,14 +33,13 @@ final class DemoLoginCardsTest extends TestCase
             'demo.enabled' => true,
             'demo.login_cards_enabled' => false,
             'demo.password' => 'Shikhan-Demo-2026!',
-            'demo.login_cards_key' => str_repeat('k', 48),
         ]);
 
         $this->get(route('login'))
             ->assertOk()
             ->assertDontSee('admin@sh.local')
             ->assertDontSee('Shikhan-Demo-2026!')
-            ->assertDontSee('login.demo.unlock');
+            ->assertDontSee('/login/demo-access');
     }
 
     public function test_production_has_no_demo_unlock_and_ignores_demo_flags(): void
