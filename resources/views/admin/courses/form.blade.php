@@ -155,10 +155,6 @@
                   @endforeach
                 </select>
               </label>
-              <details class="adm-advanced wide">
-                <summary>تنظیمات بیشتر (اختیاری)</summary>
-                <x-admin.input label="شناسه ویدیو در سرویس قبلی" name="external_id" placeholder="فقط در صورت داشتن شناسه قبلی" data-upload-external/>
-              </details>
               <label class="adm-upload adm-upload-wide">
                 <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v" data-upload-file>
                 <span class="adm-upload-icon"><x-admin.icon name="video"/></span>
@@ -195,7 +191,7 @@
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
             @endforelse
           </div>
-          <p class="adm-muted">فایل بارگذاری‌شده از داخل سایت پخش می‌شود و نیازی به لینک جداگانه ندارد. اگر ویدیو را از قبل در سرویس دیگری داری، شناسه آن را در تنظیمات بیشتر وارد کن.</p>
+          <p class="adm-muted">فایل محلی از داخل سایت پخش می‌شود. ویدیوهای دارای لایسنس SpotPlayer را از بخش مدیریت ویدیوها با شناسه خارجی ثبت کن؛ نیازی به بارگذاری مجدد فایل نیست.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @endif
