@@ -94,11 +94,13 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
         try {
             $encode = new Process([
                 'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
+                '-threads', (string) config('learning.video_threads', 1),
+                '-filter_threads', (string) config('learning.video_threads', 1),
                 '-i', $input,
                 '-map', '0:v:0',
                 '-map', '0:a:0?',
                 '-vf', 'scale=-2:min(720\,ih)',
-                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '26',
+                '-c:v', 'libx264', '-threads:v', (string) config('learning.video_threads', 1), '-preset', 'veryfast', '-crf', '26',
                 '-pix_fmt', 'yuv420p',
                 '-c:a', 'aac', '-b:a', '96k',
                 '-movflags', '+faststart',
@@ -140,8 +142,10 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
             foreach (['1', '0'] as $second) {
                 $posterProcess = new Process([
                     'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
+                    '-threads', (string) config('learning.video_threads', 1),
+                    '-filter_threads', (string) config('learning.video_threads', 1),
                     '-ss', $second, '-i', $input,
-                    '-frames:v', '1', '-q:v', '4',
+                    '-frames:v', '1', '-threads:v', (string) config('learning.video_threads', 1), '-q:v', '4',
                     $public->path($posterTemp),
                 ]);
                 $posterProcess->setTimeout(120)->run();
