@@ -7,7 +7,7 @@
   <x-admin.btn :href="route('admin.courses.create')" icon="plus">ساخت دوره</x-admin.btn>
 </x-admin.page-head>
 
-<x-admin.panel title="دوره‌های آموزشی">
+<x-admin.panel title="دوره‌های آموزشی" desc="دوره موردنظر را پیدا کنید و وارد فضای مدیریت آن شوید." data-tone="edu">
   <form method="GET" action="{{ route('admin.lms.index') }}" class="adm-form">
     <x-admin.input label="جست‌وجوی عنوان دوره" name="q" :value="$filters['q'] ?? null"/>
     <x-admin.select label="وضعیت" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']" :selected="$filters['status'] ?? null" placeholder="همه وضعیت‌ها"/>
@@ -28,7 +28,7 @@
         <x-admin.btn variant="line" :href="route('admin.lms.show', $course)">باز کردن دوره</x-admin.btn>
       </div>
     @empty
-      <x-admin.empty text="دوره‌ای با این فیلترها پیدا نشد."/>
+      <x-admin.empty icon="book" text="دوره‌ای با این فیلترها پیدا نشد."/>
     @endforelse
   </div>
   <x-slot:footer>{{ $courses->links() }}</x-slot:footer>
