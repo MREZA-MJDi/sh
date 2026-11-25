@@ -44,7 +44,7 @@
             <div class="contact-hero-highlights">
                 <div class="contact-highlight-pill">
                     <svg class="i"><use href="#user"/></svg>
-                    <span>{{ number_format($course->enrollments_count ?? 0) }} دانش‌آموز · {{ number_format($course->active_classrooms_count ?? 0) }} کلاس فعال</span>
+                    <span>{{ number_format($course->enrollments_count ?? 0) }} دانش‌آموز · {{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال@if(($features['live_class'] ?? false) || $upcomingOnlineSessionCount > 0) · {{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو @endif</span>
                 </div>
                 <div class="contact-highlight-pill">
                     <svg class="i"><use href="#clock"/></svg>
@@ -56,7 +56,7 @@
                         @php
                             $heroTags = [];
                             if ($features['recorded_video'] ?? false) $heroTags[] = 'آموزش ویدیویی';
-                            if ($features['live_class'] ?? false) $heroTags[] = 'کلاس زنده';
+                            if ($features['live_class'] ?? false) $heroTags[] = 'آموزش زنده';
                             if ($features['resources'] ?? false) $heroTags[] = 'جزوه و منابع';
                             if ($features['exams'] ?? false) $heroTags[] = 'آزمون و کوییز';
                         @endphp
