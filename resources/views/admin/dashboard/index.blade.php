@@ -26,6 +26,9 @@
       @can('classes.manage')
         <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">گروه‌های آموزشی</x-admin.btn>
       @endcan
+      @can('seo.manage')
+        <x-admin.btn variant="line" icon="image" :href="route('admin.seo.banners.index', ['placement' => 'home_hero'])">اسلایدر صفحه اصلی</x-admin.btn>
+      @endcan
     </div>
   </div>
   <aside class="adm-welcome-aside adm-sales-overview" aria-label="خلاصه فروش دوره‌ها">

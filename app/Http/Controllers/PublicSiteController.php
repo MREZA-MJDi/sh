@@ -29,7 +29,7 @@ final class PublicSiteController extends Controller
         $settings = SeoSetting::current();
         $homeContent = is_array($settings->home_sections) ? $settings->home_sections : SeoSetting::defaultHomeSections();
         $homeBanners = SeoBanner::query()->active()->where('placement', 'home_hero')
-            ->orderBy('sort_order')->orderBy('id')->limit(3)->get();
+            ->orderBy('sort_order')->orderBy('id')->get();
         $homeQuizTotal = HomeQuizQuestion::published()->count();
 
         $courseQuery = Course::query()->where('status', 'published')
@@ -40,6 +40,10 @@ final class PublicSiteController extends Controller
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
         $popularCourses = (clone $courseQuery)->orderByDesc('enrollments_count')->latest()->limit(6)->get();
+        $recommendedCourses = (clone $courseQuery)->where('is_recommended', true)->latest()->limit(3)->get();
+        if ($recommendedCourses->isEmpty()) {
+            $recommendedCourses = $popularCourses->take(3);
+        }
 
         $teachers = User::query()->where('is_active', true)
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
@@ -59,7 +63,7 @@ final class PublicSiteController extends Controller
             'enrollments' => CourseEnrollment::query()->currentlyActive()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
-        return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'homeQuizTotal', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
+        return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'homeQuizTotal', 'courses', 'popularCourses', 'recommendedCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
     }
 
     public function courses(Request $request): View

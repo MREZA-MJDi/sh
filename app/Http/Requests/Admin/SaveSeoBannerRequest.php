@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\SeoBanner;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
-use App\Models\SeoBanner;
 
 class SaveSeoBannerRequest extends FormRequest
 {
@@ -19,10 +19,18 @@ class SaveSeoBannerRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:180'],
             'alt_text' => ['required', 'string', 'max:180'],
-            'image' => [$this->isMethod('post') ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'subtitle' => ['nullable', 'string', 'max:1000'],
+            'badge' => ['nullable', 'string', 'max:120'],
+            'image' => [$this->isMethod('post') ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
             'image_position' => ['nullable', 'regex:/^(100|[1-9]?\d)%\s+(100|[1-9]?\d)%$/'],
+            'bg_color' => ['nullable', 'string', 'max:120'],
+            'text_color' => ['nullable', 'string', 'max:50'],
+            'layout_type' => ['nullable', Rule::in(['side_image', 'full_background'])],
             'placement' => ['required', Rule::in(['home_hero', 'articles_top', 'articles_sidebar', 'sitewide'])],
             'target_url' => ['nullable', 'string', 'max:2048'],
+            'button_text' => ['nullable', 'string', 'max:100'],
+            'secondary_button_text' => ['nullable', 'string', 'max:100'],
+            'secondary_button_url' => ['nullable', 'string', 'max:2048'],
             'open_in_new_tab' => ['sometimes', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0', 'max:100000'],
             'starts_at' => ['nullable', 'date'],
@@ -34,10 +42,22 @@ class SaveSeoBannerRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            $url = trim((string) $this->input('target_url'));
-            $isInternalPath = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, chr(92));
-            $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
-            $isSafeExternalUrl = filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true);
+            $validateUrl = function (string $field, string $label) use ($validator) {
+                $url = trim((string) $this->input($field));
+                if ($url === '') {
+                    return;
+                }
+                $isInternalPath = str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, chr(92));
+                $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+                $isSafeExternalUrl = filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true);
+
+                if (! $isInternalPath && ! $isSafeExternalUrl) {
+                    $validator->errors()->add($field, "{$label} باید یک مسیر داخلی (مانند /courses) یا نشانی کامل اینترنتی معتبر باشد.");
+                }
+                if (preg_match('/^(javascript|data|vbscript):/i', $url)) {
+                    $validator->errors()->add($field, "{$label} مجاز نیست.");
+                }
+            };
 
             if ($this->input('placement') === 'home_hero') {
                 $bannerId = $this->route('banner')?->id;
@@ -51,12 +71,8 @@ class SaveSeoBannerRequest extends FormRequest
                 }
             }
 
-            if ($url !== '' && ! $isInternalPath && ! $isSafeExternalUrl) {
-                $validator->errors()->add('target_url', 'نشانی مقصد باید یک مسیر داخلی یا نشانی کامل HTTP/HTTPS معتبر باشد.');
-            }
-            if (preg_match('/^(javascript|data|vbscript):/i', $url)) {
-                $validator->errors()->add('target_url', 'نشانی مقصد مجاز نیست.');
-            }
+            $validateUrl('target_url', 'نشانی مقصد');
+            $validateUrl('secondary_button_url', 'نشانی دکمه دوم');
         }];
     }
 }

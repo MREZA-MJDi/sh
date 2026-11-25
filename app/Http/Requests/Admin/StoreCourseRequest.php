@@ -26,6 +26,7 @@ class StoreCourseRequest extends FormRequest
         $features = $this->input('learning_features', []);
 
         $this->merge([
+            'is_recommended' => $this->boolean('is_recommended'),
             'learning_features' => array_replace(
                 $legacyDefaults,
                 is_array($features) ? array_intersect_key($features, array_flip($allowed)) : []
@@ -58,6 +59,7 @@ class StoreCourseRequest extends FormRequest
             'learning_features.projects' => ['required', 'boolean'],
             'spotplayer_course_id' => ['nullable', 'string', 'max:190'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
+            'is_recommended' => ['sometimes', 'boolean'],
         ];
     }
 
