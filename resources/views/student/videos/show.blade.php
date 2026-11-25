@@ -11,12 +11,12 @@
         </div>
         <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif</p>
         @if($video->status === 'active' && filled($video->file_path) && blank($video->external_id))
-            <video controls controlsList="nodownload" disablepictureinpicture playsinline preload="metadata"
+            <video controls controlsList="nodownload noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-video playsinline preload="metadata"
                    style="display:block;width:100%;max-height:72vh;background:#0b1220;border-radius:16px">
                 <source src="{{ route('student.videos.stream', $video) }}">
                 مرورگر شما از پخش این ویدئو پشتیبانی نمی‌کند.
             </video>
-            <p class="tag">پخش از مسیر احراز هویت‌شده و فقط برای دانش‌آموز دارای دسترسی فعال</p>
+            <p class="tag">تماشای آنلاین در شیخان</p>
         @else
             <div class="card cc">
                 <h3>پلیر SpotPlayer هنوز فعال نشده است</h3>
