@@ -10,6 +10,7 @@ use App\Services\Skyroom\UnavailableSkyroomGateway;
 use App\Services\SpotPlayer\Contracts\SpotPlayerGateway;
 use App\Services\SpotPlayer\UnavailableSpotPlayerGateway;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -29,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Paginator::defaultView('pagination.shared');
+        Paginator::defaultSimpleView('pagination.shared');
+
         foreach ([
             'start' => 20,
             'resume' => 60,
