@@ -2,7 +2,36 @@
 @section('title',($settings->home_sections['teachers_page_title'] ?? 'مدرسان شیخان').$settings->title_separator.$settings->site_name)
 @section('description',$settings->home_sections['teachers_page_description'] ?? $settings->default_description)
 @section('content')
-<header class="ac-page-head"><div class="ac-wrap"><div style="font-size:13px;color:#9fb0d8"><a href="{{ route('home') }}">خانه</a> ‹ مدرسان</div><h1>{{ $settings->home_sections['teachers_page_title'] ?? 'مدرسان شیخان' }}</h1><p>{{ $settings->home_sections['teachers_page_description'] ?? $settings->default_description }}</p></div></header>
+<section class="contact-hero-wrap">
+    <div class="c">
+        <header class="contact-hero">
+            <div class="contact-hero-copy">
+                <div class="contact-breadcrumb">
+                    <a href="{{ route('home') }}">خانه</a>
+                    <span>‹</span>
+                    <span>مدرسان</span>
+                </div>
+                <h1>{{ $settings->home_sections['teachers_page_title'] ?? 'مدرسان شیخان' }}</h1>
+                <p>{{ $settings->home_sections['teachers_page_description'] ?? $settings->default_description }}</p>
+            </div>
+
+            <div class="contact-hero-highlights">
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#user"/></svg>
+                    <span>اساتید مجرب و متخصص هر پایه و درس</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cap"/></svg>
+                    <span>مشاهده رزومه و دوره‌های هر مدرس</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#msg"/></svg>
+                    <span>پشتیبانی و رفع اشکال مستمر</span>
+                </div>
+            </div>
+        </header>
+    </div>
+</section>
 <section class="ac-section"><div class="ac-wrap">
 <form method="GET" action="{{ route('public.teachers.index') }}" class="ac-card" style="display:flex;gap:10px;flex-wrap:wrap;padding:16px;margin-bottom:22px">
 <input class="ac-field" style="flex:1;min-width:190px;margin:0" type="search" name="q" value="{{ request('q') }}" placeholder="جستجوی نام مدرس یا درس">

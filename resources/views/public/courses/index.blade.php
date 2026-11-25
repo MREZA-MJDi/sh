@@ -4,15 +4,36 @@
 @section('description', $settings->home_sections['courses_page_description'] ?? $settings->default_description)
 
 @section('content')
-<div class="pgh">
+<section class="contact-hero-wrap">
     <div class="c">
-        <div class="bc">
-            <a href="{{ route('home') }}">خانه</a> ‹ <span>دوره‌ها</span>
-        </div>
-        <h1>{{ $settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی' }}</h1>
-        <p>{{ $settings->home_sections['courses_page_description'] ?? $settings->default_description }}</p>
+        <header class="contact-hero">
+            <div class="contact-hero-copy">
+                <div class="contact-breadcrumb">
+                    <a href="{{ route('home') }}">خانه</a>
+                    <span>‹</span>
+                    <span>دوره‌ها</span>
+                </div>
+                <h1>{{ $settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی' }}</h1>
+                <p>{{ $settings->home_sections['courses_page_description'] ?? $settings->default_description }}</p>
+            </div>
+
+            <div class="contact-hero-highlights">
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cap"/></svg>
+                    <span>تفکیک بر اساس پایه تحصیلی و درس</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cam"/></svg>
+                    <span>دوره‌های ویدیویی، آنلاین و ترکیبی</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#check"/></svg>
+                    <span>دسترسی فوری پس از ثبت‌نام</span>
+                </div>
+            </div>
+        </header>
     </div>
-</div>
+</section>
 
 <div class="c">
     {{-- چیپ‌های دسترسی سریع به پایه‌ها --}}

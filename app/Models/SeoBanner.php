@@ -9,8 +9,26 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SeoBanner extends Model
 {
     protected $fillable = [
-        'created_by', 'title', 'alt_text', 'image_path', 'image_position', 'placement', 'target_url',
-        'open_in_new_tab', 'sort_order', 'starts_at', 'ends_at', 'status',
+        'created_by',
+        'title',
+        'alt_text',
+        'subtitle',
+        'badge',
+        'image_path',
+        'image_position',
+        'bg_color',
+        'text_color',
+        'layout_type',
+        'placement',
+        'target_url',
+        'button_text',
+        'secondary_button_text',
+        'secondary_button_url',
+        'open_in_new_tab',
+        'sort_order',
+        'starts_at',
+        'ends_at',
+        'status',
     ];
 
     protected function casts(): array

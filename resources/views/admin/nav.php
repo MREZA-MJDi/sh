@@ -36,7 +36,7 @@ return [
         ['label' => 'محتوا و بهینه‌سازی', 'tone' => 'shop', 'items' => [
             ['label' => 'مرکز مدیریت سئو', 'url' => 'admin/seo', 'icon' => 'search'],
             ['label' => 'مقاله‌ها', 'url' => 'admin/seo/articles', 'icon' => 'file'],
-            ['label' => 'بنرها', 'url' => 'admin/seo/banners', 'icon' => 'file'],
+            ['label' => 'اسلایدر و بنرها', 'url' => 'admin/seo/banners', 'icon' => 'image'],
             ['label' => 'نظرات دانش‌آموزان', 'url' => 'admin/seo/testimonials', 'icon' => 'check'],
         ]],
     ],

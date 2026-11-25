@@ -83,6 +83,7 @@
           <x-admin.select label="نوع دوره" name="type" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
           <x-admin.input label="قیمت به تومان" name="price" :value="old('price', $course->price)" inputmode="numeric" type="number" min="0" max="1000000000" placeholder="برای دوره رایگان صفر"/>
           <x-admin.select label="وضعیت نمایش در سایت" name="status" :options="$statuses" :selected="old('status', $course->status ?: 'draft')" required/>
+          <x-admin.switch label="نمایش در بخش «دوره‌های پیشنهادی» صفحه اصلی" name="is_recommended" :checked="(bool) old('is_recommended', $course->is_recommended)" hint="اگر فعال باشد، این دوره در بخش دوره‌های پیشنهادی آکادمی شیخان در لندینگ نمایش داده می‌شود (حداکثر ۳ دوره)." wide/>
         </div>
       </x-admin.panel>
 

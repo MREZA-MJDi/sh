@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title>ورود و ثبت‌نام | آکادمی شیخان</title>
+    @include('public.partials.theme-init')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
     @vite(['resources/css/app.css','resources/css/public-academy.css','resources/js/app.js'])
@@ -31,7 +32,7 @@
             @endif
 
             @if($errors->any())
-                <div class="ac-alert" role="alert" style="background:#fee2e2;color:#b91c1c">
+                <div class="ac-alert auth-alert-error" role="alert">
                     @foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach
                 </div>
             @endif

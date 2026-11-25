@@ -16,6 +16,7 @@
         $bannersCollection = collect($homeBanners ?? []);
         $coursesCollection = collect($courses ?? []);
         $popularCoursesCollection = collect($popularCourses ?? []);
+        $recommendedCoursesCollection = collect($recommendedCourses ?? $popularCourses ?? []);
         $categoriesCollection = collect($categories ?? []);
         $teachersCollection = collect($teachers ?? []);
         $testimonialsCollection = collect($testimonials ?? []);
@@ -109,128 +110,211 @@
     @endif
 
     {{-- =========================================================
-         HERO / BANNERS
+         HERO / SLIDER (Inspired by modern card design)
     ========================================================= --}}
 
-    <header class="hero" id="homeHero">
+    <section class="hero-wrap">
+        <div class="c">
+            <header class="hero" id="homeHero" aria-label="اسلایدر ویژه آکادمی">
 
-        @if($bannersCollection->count() > 1)
-            <button class="arr r" type="button" data-hero-dir="1" aria-label="بعدی">
-                <svg class="i"><use href="#arrr"/></svg>
-            </button>
+                @if($bannersCollection->count() > 1)
+                    <button class="arr prev" type="button" data-hero-dir="-1" aria-label="اسلاید قبلی">
+                        <svg class="i"><use href="#arrr"/></svg>
+                    </button>
 
-            <button class="arr l" type="button" data-hero-dir="-1" aria-label="قبلی">
-                <svg class="i"><use href="#arrl"/></svg>
-            </button>
-        @endif
+                    <button class="arr next" type="button" data-hero-dir="1" aria-label="اسلاید بعدی">
+                        <svg class="i"><use href="#arrl"/></svg>
+                    </button>
+                @endif
 
-        @if($bannersCollection->isNotEmpty())
+                @if($bannersCollection->isNotEmpty())
 
-            @foreach($bannersCollection as $index => $banner)
+                    @foreach($bannersCollection as $index => $banner)
+                        @php
+                            $slideBg = $banner->bg_color ?: ($index % 2 === 1 ? 'linear-gradient(135deg, #4c1d95, #7c3aed)' : 'linear-gradient(135deg, #5b21b6, #8b5cf6)');
+                            $isFullBg = ($banner->layout_type ?? 'side_image') === 'full_background';
+                            $hasImage = filled($banner->image_path ?? null);
+                            $badgeText = $banner->badge ?: $contentValue('hero_badge');
+                            $subtitleText = $banner->subtitle ?: $contentValue('hero_description');
+                            $primaryBtnText = $banner->button_text ?: $contentValue('hero_primary_label', 'مشاهده دوره‌ها');
+                            $primaryBtnUrl = $banner->target_url ?: route('public.courses.index');
+                            $secondaryBtnText = $banner->secondary_button_text ?: $contentValue('hero_secondary_label', 'مشاوره رایگان');
+                            $secondaryBtnUrl = $banner->secondary_button_url ?: route('public.contact');
+                        @endphp
 
-                <div
-                        class="sl {{ $index === 0 ? 'on' : '' }} {{ filled($banner->image_path ?? null) ? 'has-banner-image' : '' }}"
-                        style="{{ $index % 2 === 1 ? '--a:#f97316;--b:#7c3aed' : '--a:#0d9488;--b:#1e40af' }}"
-                >
-
-                    @if(filled($banner->image_path ?? null))
-                        <img
-                                class="sl-banner-bg"
-                                src="{{ Storage::disk('public')->url($banner->image_path) }}"
-                                style="object-position:{{ $banner->image_position ?? '50% 50%' }}"
-                                alt="{{ $banner->alt_text ?: ($banner->title ?? '') }}"
+                        <div
+                            class="sl {{ $index === 0 ? 'on' : '' }} {{ $isFullBg ? 'layout-full-bg' : 'layout-card' }} {{ $hasImage ? 'has-banner-image' : '' }}"
+                            style="--banner-bg: {{ $slideBg }}; {{ $banner->text_color ? '--banner-text:' . $banner->text_color . ';' : '' }}"
+                            data-slide-index="{{ $index }}"
                         >
-                    @endif
 
-                    <div style="position:relative;z-index:2">
+                            @if($isFullBg && $hasImage)
+                                <img
+                                    class="sl-banner-bg"
+                                    src="{{ Storage::disk('public')->url($banner->image_path) }}"
+                                    style="object-position:{{ $banner->image_position ?? '50% 50%' }}"
+                                    alt="{{ $banner->alt_text ?: ($banner->title ?? '') }}"
+                                >
+                            @endif
 
-                    <span class="bd">
-                        {{ $contentValue('hero_badge') }}
-                    </span>
+                            <div class="sl-content">
+                                @if(filled($badgeText))
+                                    <span class="sl-badge">
+                                        <svg class="i" style="width:14px;height:14px"><use href="#award"/></svg>
+                                        {{ $badgeText }}
+                                    </span>
+                                @endif
 
-                        <h1>{{ $banner->title }}</h1>
+                                <h1>{{ $banner->title }}</h1>
 
-                        <p>{{ $contentValue('hero_description') }}</p>
+                                @if(filled($subtitleText))
+                                    <p>{{ $subtitleText }}</p>
+                                @endif
 
-                        <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-
-                            @if(filled($banner->target_url ?? null))
-
-                                <a
-                                        class="btn"
-                                        href="{{ $banner->target_url }}"
+                                <div class="sl-actions">
+                                    <a
+                                        class="sl-btn-primary"
+                                        href="{{ $primaryBtnUrl }}"
                                         @if($banner->open_in_new_tab ?? false)
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         @endif
-                                >
-                                    {{ $contentValue('hero_primary_label') }}
-                                    <svg class="i"><use href="#arrl"/></svg>
-                                </a>
+                                    >
+                                        <span>{{ $primaryBtnText }}</span>
+                                        <svg class="i"><use href="#arrl"/></svg>
+                                    </a>
 
-                            @else
+                                    @if(filled($secondaryBtnText))
+                                        <a class="sl-btn-secondary" href="{{ $secondaryBtnUrl }}">
+                                            <span>{{ $secondaryBtnText }}</span>
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
 
-                                <a class="btn" href="{{ route('public.courses.index') }}">
-                                    {{ $contentValue('hero_primary_label') }}
-                                    <svg class="i"><use href="#arrl"/></svg>
-                                </a>
-
+                            @if(!$isFullBg)
+                                <div class="sl-media">
+                                    @if($hasImage)
+                                        <img
+                                            class="sl-banner-bg"
+                                            src="{{ Storage::disk('public')->url($banner->image_path) }}"
+                                            style="object-position:{{ $banner->image_position ?? '50% 50%' }}"
+                                            alt="{{ $banner->alt_text ?: ($banner->title ?? '') }}"
+                                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                                        >
+                                    @else
+                                        <div class="vis">
+                                            <i class="m"><svg class="i"><use href="#cap"/></svg></i>
+                                            <i class="t1"><svg class="i"><use href="#rocket"/></svg></i>
+                                            <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
+                                        </div>
+                                    @endif
+                                </div>
                             @endif
 
-                            <a class="btn o" href="{{ route('public.contact') }}">
-                                {{ $contentValue('hero_secondary_label') }}
-                            </a>
+                        </div>
 
+                    @endforeach
+
+                @else
+
+                    <div
+                        class="sl on layout-card"
+                        style="--banner-bg: linear-gradient(135deg, #4c1d95, #7c3aed);"
+                        data-slide-index="0"
+                    >
+                        <div class="sl-content">
+                            @if(filled($contentValue('hero_badge')))
+                                <span class="sl-badge">
+                                    <svg class="i" style="width:14px;height:14px"><use href="#award"/></svg>
+                                    {{ $contentValue('hero_badge') }}
+                                </span>
+                            @endif
+
+                            <h1>{{ $settings->site_name ?? 'آموزشگاه شیخان' }}</h1>
+
+                            <p>{{ $contentValue('hero_description', 'آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای آموزشی.') }}</p>
+
+                            <div class="sl-actions">
+                                <a class="sl-btn-primary" href="{{ route('public.courses.index') }}">
+                                    <span>{{ $contentValue('hero_primary_label', 'مشاهده دوره‌ها') }}</span>
+                                    <svg class="i"><use href="#arrl"/></svg>
+                                </a>
+
+                                <a class="sl-btn-secondary" href="{{ route('public.contact') }}">
+                                    <span>{{ $contentValue('hero_secondary_label', 'مشاوره رایگان') }}</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="sl-media">
+                            <div class="vis">
+                                <i class="m"><svg class="i"><use href="#cap"/></svg></i>
+                                <i class="t1"><svg class="i"><use href="#rocket"/></svg></i>
+                                <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="vis" style="position:relative;z-index:2">
-                        <i class="m"><svg class="i"><use href="#cap"/></svg></i>
-                        <i class="t1"><svg class="i"><use href="#rocket"/></svg></i>
-                        <i class="t2"><svg class="i"><use href="#chart"/></svg></i>
-                    </div>
+                @endif
 
+                <div
+                    class="dots"
+                    id="heroDots"
+                    @if($bannersCollection->count() < 2) hidden @endif
+                ></div>
+
+            </header>
+        </div>
+    </section>
+
+
+    {{-- =========================================================
+         DIRECTOR / FOUNDER MESSAGE (Inspired by Gold-Accent Card)
+    ========================================================= --}}
+
+    @php
+        $academyName = $settings->site_name ?? 'آکادمی شیخان';
+        $directorName = $contentValue('director_name') ?: ($settings->organization_name ?: 'مدیریت ' . $academyName);
+        $directorRole = $contentValue('director_role') ?: 'مدیر و موسس آموزشگاه';
+        $directorPortrait = !empty($settings->organization_logo_path)
+            ? Storage::disk('public')->url($settings->organization_logo_path)
+            : null;
+        $directorMessage = $contentValue('director_message') ?: (
+            'آموزش هدفمند را دوست داریم؛ نه فقط به خاطر کتاب‌ها، بلکه به خاطر ساختن مسیر آینده دانش‌آموزان. بچه‌های عزیز، اگر بخواهیم در مسیر یادگیری موفق شویم، باید فرهنگ تلاش، سخت‌کوشی، هدف‌گذاری، تمرکز و برنامه‌ریزی اصولی را یاد بگیریم. در ' . $academyName . ' کنار شما هستیم تا با آموزش مفهومی، تمرین مستمر و همراهی اساتید مجرب، یادگیری عمیق و لذت‌بخش را تجربه کنید و با اعتمادبه‌نفس کامل به اهداف تحصیلی خود برسید.'
+        );
+    @endphp
+
+    <section class="director-section" id="directorMessage">
+        <div class="c">
+            <div class="director-grid">
+                <div class="director-card-wrap">
+                    <span class="director-orb top" aria-hidden="true"></span>
+                    <span class="director-orb bottom" aria-hidden="true"></span>
+
+                    <div class="director-card">
+                        <span class="director-watermark" aria-hidden="true">«</span>
+                        <h2 class="director-name">{{ $directorName }}</h2>
+                        <span class="director-role">{{ $directorRole }}</span>
+
+                        <div class="director-portrait">
+                            @if($directorPortrait)
+                                <img src="{{ $directorPortrait }}" alt="{{ $directorName }}" loading="lazy">
+                            @else
+                                <span class="director-portrait-monogram" aria-hidden="true">
+                                    {{ mb_substr($directorName, 0, 1) }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
-            @endforeach
-
-        @else
-
-            <div class="sl on">
-                <div style="position:relative;z-index:2">
-
-                <span class="bd">
-                    {{ $contentValue('hero_badge') }}
-                </span>
-
-                    <h1>{{ $settings->site_name ?? 'آکادمی شیخان' }}</h1>
-
-                    <p>{{ $contentValue('hero_description') }}</p>
-
-                    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:inherit">
-
-                        <a class="btn" href="{{ route('public.courses.index') }}">
-                            {{ $contentValue('hero_primary_label') }}
-                            <svg class="i"><use href="#arrl"/></svg>
-                        </a>
-
-                        <a class="btn o" href="{{ route('public.contact') }}">
-                            {{ $contentValue('hero_secondary_label') }}
-                        </a>
-
-                    </div>
+                <div>
+                    <p class="director-copy">{{ $directorMessage }}</p>
                 </div>
             </div>
-
-        @endif
-
-        <div
-                class="dots"
-                id="heroDots"
-                @if($bannersCollection->count() < 2) hidden @endif
-        ></div>
-
-    </header>
+        </div>
+    </section>
 
 
     {{-- =========================================================
@@ -399,7 +483,7 @@
             font-size: clamp(23px, 4vw, 34px);
             font-weight: 900;
             margin: 10px 0;
-            color: var(--txt, #172033);
+            color: var(--ink, #172033);
         }
 
         .home-quiz-heading p {
@@ -781,6 +865,115 @@
     </style>
 
     {{-- =========================================================
+         RECOMMENDED COURSES (Inspired by clean 3-col cards + tabs)
+    ========================================================= --}}
+
+    @if($recommendedCoursesCollection->isNotEmpty())
+        <section class="rec-section" id="recommendedCourses">
+            <div class="c">
+                <div class="rec-head">
+                    <div class="rec-head-top">
+                        <div class="rec-title-wrap">
+                            <span class="rec-accent-bar" aria-hidden="true"></span>
+                            <h2>{{ $contentValue('recommended_courses_title', 'دوره‌های پیشنهادی آکادمی شیخان') }}</h2>
+                        </div>
+
+                        <a class="rec-all-link" href="{{ route('public.courses.index') }}">
+                            مشاهده همه دوره‌ها
+                            <svg class="i"><use href="#arrl"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                @php
+                    $recCoverPalettes = [
+                        'linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #0d9488 100%)',
+                        'linear-gradient(135deg, #111827 0%, #312e81 60%, #6d28d9 100%)',
+                        'linear-gradient(135deg, #090d16 0%, #0f4c5c 60%, #0284c7 100%)',
+                        'linear-gradient(135deg, #18181b 0%, #4c1d95 60%, #db2777 100%)',
+                        'linear-gradient(135deg, #0f172a 0%, #065f46 60%, #0d9488 100%)',
+                        'linear-gradient(135deg, #1e1b4b 0%, #1d4ed8 60%, #0ea5e9 100%)',
+                    ];
+                @endphp
+
+                @foreach(['popular' => $recommendedCoursesCollection->take(3)] as $tabKey => $tabCourses)
+                    <div class="rec-panel {{ $tabKey === 'popular' ? 'is-active' : '' }}" data-rec-panel="{{ $tabKey }}">
+                        <div class="rec-grid">
+                            @foreach($tabCourses as $cIndex => $recCourse)
+                                @php
+                                    $recSubject = $recCourse->subject ?? '';
+                                    $recStyle = $courseStyles[$recSubject] ?? $defaultCourseStyle;
+                                    $recCover = $recCourse->coverImageUrl ?: $recCourse->teaserPosterUrl;
+                                    $recLessonsCount = (int) ($recCourse->sections?->sum('lessons_count') ?? 0);
+                                    $recIsFree = ($recCourse->type ?? '') === 'free' || (int) $recCourse->price === 0;
+                                    $recPalette = $recCoverPalettes[$cIndex % count($recCoverPalettes)];
+                                    $recBadgeLabel = $recIsFree
+                                        ? 'رایگان'
+                                        : (($recCourse->grade ?? null) ? 'پایه '.$recCourse->grade : ($recSubject ?: 'ویژه'));
+                                    $recMetaLabel = $recLessonsCount > 0
+                                        ? $recLessonsCount.' درس'
+                                        : ($recCourse->season ? (\App\Models\Course::SEASONS[$recCourse->season] ?? $recCourse->season) : 'دوره جامع');
+                                @endphp
+                                <a class="rec-card" href="{{ route('public.courses.show', $recCourse->slug) }}">
+                                    <div class="rec-thumb" style="background:{{ $recPalette }}">
+                                        @if($recCover)
+                                            <img
+                                                src="{{ $recCover }}"
+                                                alt="تصویر دوره {{ $recCourse->title }}"
+                                                loading="lazy"
+                                                decoding="async"
+                                            >
+                                        @else
+                                            <div class="rec-thumb-fallback">
+                                                <span class="rec-thumb-fallback-icon">
+                                                    <svg class="i"><use href="#{{ $recStyle[1] }}"/></svg>
+                                                </span>
+                                                <span class="rec-thumb-fallback-title">{{ \Illuminate\Support\Str::limit($recCourse->title, 48) }}</span>
+                                                @if($recSubject)
+                                                    <span class="rec-thumb-fallback-sub">{{ $recSubject }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        <span class="rec-badge {{ $recIsFree ? 'is-free' : '' }}">
+                                            {{ $recBadgeLabel }}
+                                        </span>
+                                    </div>
+
+                                    <div class="rec-body">
+                                        <h3 class="rec-title" title="{{ $recCourse->title }}">{{ $recCourse->title }}</h3>
+
+                                        <div class="rec-teacher">
+                                            <svg class="i"><use href="#user"/></svg>
+                                            <span>{{ $recCourse->teacher?->name ?? 'اساتیـد آکادمی' }}</span>
+                                        </div>
+
+                                        <div class="rec-foot">
+                                            <span class="rec-price">
+                                                @if($recIsFree)
+                                                    رایگان
+                                                @else
+                                                    {{ number_format((int) $recCourse->price) }}
+                                                    <small>تومان</small>
+                                                @endif
+                                            </span>
+
+                                            <span class="rec-meta-info">
+                                                <svg class="i"><use href="#clock"/></svg>
+                                                <span>{{ $recMetaLabel }}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    {{-- =========================================================
          CATEGORIES
     ========================================================= --}}
 
@@ -879,152 +1072,117 @@
 
 
     {{-- =========================================================
-         LATEST COURSES
+         LATEST COURSES (Unified 3-Col Card Design)
     ========================================================= --}}
 
-    <section style="padding:32px 0 64px">
+    <section class="rec-section" style="padding:32px 0 64px">
         <div class="c">
 
-            <div class="sh">
+            <div class="rec-head">
+                <div class="rec-head-top">
+                    <div class="rec-title-wrap">
+                        <span class="rec-accent-bar" aria-hidden="true"></span>
+                        <div>
+                            <h2>{{ $contentValue('latest_courses_title', 'دوره‌های تازه') }}</h2>
+                            @if(filled($contentValue('latest_courses_description')))
+                                <p style="margin:4px 0 0;color:var(--mute);font-size:13px">{{ $contentValue('latest_courses_description') }}</p>
+                            @endif
+                        </div>
+                    </div>
 
-                <div>
-                <span class="eyebrow">
-                    {{ $contentValue('latest_courses_eyebrow') }}
-                </span>
-
-                    <h2>{{ $contentValue('latest_courses_title') }}</h2>
-
-                    <p>{{ $contentValue('latest_courses_description') }}</p>
+                    <a class="rec-all-link" href="{{ route('public.courses.index') }}">
+                        مشاهده همه
+                        <svg class="i"><use href="#arrl"/></svg>
+                    </a>
                 </div>
-
-                <a class="btn o s" style="color:var(--pri)" href="{{ route('public.courses.index') }}">
-                    مشاهده همه
-                </a>
-
             </div>
 
-            <div class="g4">
+            <div class="rec-grid">
 
                 @if($coursesCollection->isNotEmpty())
-                    @foreach($coursesCollection as $homeCourse)
-
                     @php
-                        $subject = $homeCourse->subject ?? '';
-
-                        $courseStyle = $courseStyles[$subject] ?? $defaultCourseStyle;
-
-                        $lessonsCount = (int) (
-                            $homeCourse->sections?->sum('lessons_count') ?? 0
-                        );
-
-                        $isFree = ($homeCourse->type ?? '') === 'free';
+                        $latestCoverPalettes = [
+                            'linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #0d9488 100%)',
+                            'linear-gradient(135deg, #111827 0%, #312e81 60%, #6d28d9 100%)',
+                            'linear-gradient(135deg, #090d16 0%, #0f4c5c 60%, #0284c7 100%)',
+                        ];
                     @endphp
+                    @foreach($coursesCollection->take(3) as $lIndex => $homeCourse)
+                        @php
+                            $subject = $homeCourse->subject ?? '';
+                            $courseStyle = $courseStyles[$subject] ?? $defaultCourseStyle;
+                            $courseImageUrl = $homeCourse->coverImageUrl ?: $homeCourse->teaserPosterUrl;
+                            $lessonsCount = (int) ($homeCourse->sections?->sum('lessons_count') ?? 0);
+                            $isFree = ($homeCourse->type ?? '') === 'free' || (int) $homeCourse->price === 0;
+                            $latestPalette = $latestCoverPalettes[$lIndex % count($latestCoverPalettes)];
+                            $latestBadgeLabel = $isFree
+                                ? 'رایگان'
+                                : (($homeCourse->grade ?? null) ? 'پایه '.$homeCourse->grade : ($subject ?: 'ویژه'));
+                            $latestMetaLabel = $lessonsCount > 0
+                                ? $lessonsCount.' درس'
+                                : ($homeCourse->season ? (\App\Models\Course::SEASONS[$homeCourse->season] ?? $homeCourse->season) : 'دوره جامع');
+                        @endphp
+                        <a class="rec-card" href="{{ route('public.courses.show', $homeCourse->slug) }}">
+                            <div class="rec-thumb" style="background:{{ $latestPalette }}">
+                                @if($courseImageUrl)
+                                    <img
+                                        src="{{ $courseImageUrl }}"
+                                        alt="تصویر دوره {{ $homeCourse->title }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
+                                @else
+                                    <div class="rec-thumb-fallback">
+                                        <span class="rec-thumb-fallback-icon">
+                                            <svg class="i"><use href="#{{ $courseStyle[1] }}"/></svg>
+                                        </span>
+                                        <span class="rec-thumb-fallback-title">{{ \Illuminate\Support\Str::limit($homeCourse->title, 48) }}</span>
+                                        @if($subject)
+                                            <span class="rec-thumb-fallback-sub">{{ $subject }}</span>
+                                        @endif
+                                    </div>
+                                @endif
 
-                    @php
-                        $courseImageUrl = $homeCourse->coverImageUrl ?: $homeCourse->teaserPosterUrl;
-                    @endphp
-                    <article class="card cc">
-
-                        <a
-                                class="th"
-                                href="{{ route('public.courses.show', $homeCourse->slug) }}"
-                                style="position:relative;overflow:hidden;background:{{ $courseStyle[0] }}"
-                                aria-label="مشاهده {{ $homeCourse->title }}"
-                        >
-                            @if($courseImageUrl)
-                                <img
-                                    src="{{ $courseImageUrl }}"
-                                    alt="تصویر دوره {{ $homeCourse->title }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
-                                >
-                            @else
-                                <svg class="i" aria-hidden="true">
-                                    <use href="#{{ $courseStyle[1] }}"/>
-                                </svg>
-                            @endif
-
-                            <span class="bd {{ $isFree ? 'bd-free' : '' }}" style="position:relative;z-index:1">
-                            {{ $isFree ? 'رایگان' : (($homeCourse->grade ?? null) ? 'پایه '.$homeCourse->grade : ($subject ?: 'ویژه')) }}
-                        </span>
-
-                        </a>
-
-                        <div class="cb">
-
-                            <h3>
-                                <a href="{{ route('public.courses.show', $homeCourse->slug) }}">
-                                    {{ $homeCourse->title }}
-                                </a>
-                            </h3>
-
-                            @if($homeCourse->teacher)
-
-                                <small style="color:var(--mute);margin-bottom:8px;display:block">
-                                    مدرس: {{ $homeCourse->teacher->name }}
-                                </small>
-
-                            @endif
-
-                            <div class="mt">
-
-                            <span>
-                                <svg class="i"><use href="#clock"/></svg>
-                                {{ $lessonsCount > 0 ? $lessonsCount.' درس' : 'دوره آموزشی' }}
-                            </span>
-
-                                <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ number_format((int) ($homeCourse->enrollments_count ?? 0)) }}
-                                ثبت‌نام فعال
-                            </span>
-
+                                <span class="rec-badge {{ $isFree ? 'is-free' : '' }}">
+                                    {{ $latestBadgeLabel }}
+                                </span>
                             </div>
 
-                            <div class="pr">
+                            <div class="rec-body">
+                                <h3 class="rec-title" title="{{ $homeCourse->title }}">{{ $homeCourse->title }}</h3>
 
-                                <div>
-
-                                    @if($isFree)
-
-                                        <b style="color:var(--pri)">رایگان</b>
-
-                                    @else
-
-                                        <b>{{ number_format((int) $homeCourse->price) }}</b>
-                                        <small>تومان</small>
-
-                                    @endif
-
+                                <div class="rec-teacher">
+                                    <svg class="i"><use href="#user"/></svg>
+                                    <span>{{ $homeCourse->teacher?->name ?? 'اساتید آکادمی' }}</span>
                                 </div>
 
-                                <a class="btn s" href="{{ route('public.courses.show', $homeCourse->slug) }}">
-                                    مشاهده
-                                </a>
+                                <div class="rec-foot">
+                                    <span class="rec-price">
+                                        @if($isFree)
+                                            رایگان
+                                        @else
+                                            {{ number_format((int) $homeCourse->price) }}
+                                            <small>تومان</small>
+                                        @endif
+                                    </span>
 
+                                    <span class="rec-meta-info">
+                                        <svg class="i"><use href="#clock"/></svg>
+                                        <span>{{ $latestMetaLabel }}</span>
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-
-                    </article>
-
-                @endforeach
+                        </a>
+                    @endforeach
                 @else
 
                     <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
-
                         <p style="margin:0;color:var(--mute)">
                             در حال حاضر دوره‌ای برای نمایش منتشر نشده است.
                         </p>
-
-                        <a
-                                class="btn s"
-                                style="margin-top:12px"
-                                href="{{ route('public.courses.index') }}"
-                        >
+                        <a class="btn s" style="margin-top:12px" href="{{ route('public.courses.index') }}">
                             مشاهده فهرست دوره‌ها
                         </a>
-
                     </div>
 
                 @endif
@@ -1035,116 +1193,8 @@
 
 
     {{-- =========================================================
-         POPULAR COURSES
+         STATISTICS
     ========================================================= --}}
-
-    <section style="background:var(--sf);padding:64px 0">
-        <div class="c">
-
-            <div class="sh">
-
-                <div>
-                <span class="eyebrow">
-                    {{ $contentValue('popular_courses_eyebrow') }}
-                </span>
-
-                    <h2>{{ $contentValue('popular_courses_title') }}</h2>
-
-                    <p>{{ $contentValue('popular_courses_description') }}</p>
-                </div>
-
-                <a
-                        class="btn o s"
-                        style="color:var(--pri)"
-                        href="{{ route('public.courses.index', ['sort' => 'popular']) }}"
-                >
-                    مشاهده پرفروش‌ترین‌ها
-                </a>
-
-            </div>
-
-            <div class="g3">
-
-                @if($popularCoursesCollection->isNotEmpty())
-                    @foreach($popularCoursesCollection as $index => $popularCourse)
-
-                    @php
-                        $subject = $popularCourse->subject ?? '';
-
-                        $popularStyle = $courseStyles[$subject] ?? $defaultCourseStyle;
-
-                        $isFree = ($popularCourse->type ?? '') === 'free';
-                    @endphp
-
-                    <a class="card pop" href="{{ route('public.courses.show', $popularCourse->slug) }}">
-
-                        <span class="n">{{ $index + 1 }}</span>
-
-                        <div class="th" style="position:relative;overflow:hidden;background:{{ $popularStyle[0] }}">
-                            @if($popularCourse->coverImageUrl ?: $popularCourse->teaserPosterUrl)
-                                <img
-                                    src="{{ $popularCourse->coverImageUrl ?: $popularCourse->teaserPosterUrl }}"
-                                    alt="تصویر دوره {{ $popularCourse->title }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
-                                >
-                            @else
-                                <svg class="i" aria-hidden="true">
-                                    <use href="#{{ $popularStyle[1] }}"/>
-                                </svg>
-                            @endif
-                        </div>
-
-                        <div style="flex:1">
-
-                            <h3>{{ $popularCourse->title }}</h3>
-
-                            <div class="mt" style="margin-bottom:4px">
-
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                            </span>
-
-                                <span>
-                                <svg class="i"><use href="#user"/></svg>
-                                {{ number_format((int) ($popularCourse->enrollments_count ?? 0)) }}
-                                دانشجو
-                            </span>
-
-                            </div>
-
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-
-                            <span style="font-size:13px;color:var(--mute)">
-                                {{ $popularCourse->teacher?->name ?? 'آموزشگاه شیخان' }}
-                            </span>
-
-                                <span style="font-weight:700;color:var(--pri);font-size:14px">
-
-                                {{ $isFree ? 'رایگان' : number_format((int) $popularCourse->price).' ت' }}
-
-                            </span>
-
-                            </div>
-                        </div>
-
-                    </a>
-
-                    @endforeach
-                @else
-
-                    <div class="card" style="grid-column:1/-1;padding:24px;text-align:center">
-                        <p style="margin:0;color:var(--mute)">
-                            هنوز دوره محبوبی برای نمایش وجود ندارد.
-                        </p>
-                    </div>
-
-                @endif
-
-            </div>
-        </div>
-    </section>
 
 
     {{-- Registration announcement replaces the static learning-steps section. --}}
@@ -1221,156 +1271,185 @@
 
 
     {{-- =========================================================
-         TESTIMONIALS
+         TESTIMONIALS / STUDENT STORIES (5-Col Vertical Reel Cards)
     ========================================================= --}}
 
     @if($testimonialsCollection->isNotEmpty())
 
-        <section style="padding:64px 0">
+        <section class="story-section" id="homeStories">
             <div class="c">
+                <div class="rec-head">
+                    <div class="rec-head-top">
+                        <div class="rec-title-wrap">
+                            <span class="rec-accent-bar" aria-hidden="true"></span>
+                            <h2>{{ $contentValue('testimonials_title', 'تجربه و موفقیت دانش‌آموزان آکادمی شیخان') }}</h2>
+                        </div>
 
-                <div class="sh">
-                    <div>
-                    <span class="eyebrow">
-                        {{ $contentValue('testimonials_eyebrow') }}
-                    </span>
-
-                        <h2>{{ $contentValue('testimonials_title') }}</h2>
+                        <a class="rec-all-link" href="{{ route('public.courses.index') }}">
+                            شروع یادگیری در آکادمی
+                            <svg class="i"><use href="#arrl"/></svg>
+                        </a>
                     </div>
                 </div>
 
-                <div class="g3">
+                @php
+                    $storyPalettes = [
+                        'linear-gradient(160deg, #312e81 0%, #4c1d95 55%, #0f172a 100%)',
+                        'linear-gradient(160deg, #0f172a 0%, #1e3a8a 55%, #0d9488 100%)',
+                        'linear-gradient(160deg, #3b0764 0%, #831843 55%, #1e1b4b 100%)',
+                        'linear-gradient(160deg, #064e3b 0%, #0f766e 55%, #0f172a 100%)',
+                        'linear-gradient(160deg, #7c2d12 0%, #9a3412 55%, #1e1b4b 100%)',
+                    ];
+                    $featuredStories = $testimonialsCollection->take(5);
+                    $latestStories = $testimonialsCollection->sortByDesc('id')->values()->take(5);
+                @endphp
 
-                    @foreach($testimonialsCollection as $testimonial)
+                @foreach(['featured' => $featuredStories, 'latest' => $latestStories] as $sTabKey => $sTabList)
+                    <div class="rec-panel {{ $sTabKey === 'featured' ? 'is-active' : '' }}" data-story-panel="{{ $sTabKey }}">
+                        <div class="story-grid">
+                            @foreach($sTabList as $sIndex => $testimonial)
+                                @php
+                                    $rating = min(5, max(1, (int) ($testimonial->rating ?? 5)));
+                                    $sPalette = $storyPalettes[$sIndex % count($storyPalettes)];
+                                @endphp
+                                <button
+                                    type="button"
+                                    class="story-card"
+                                    style="--story-bg: {{ $sPalette }}"
+                                    data-story-open
+                                    data-story-name="{{ $testimonial->name }}"
+                                    data-story-role="{{ $testimonial->role ?? 'دانش‌آموز آکادمی شیخان' }}"
+                                    data-story-quote="{{ $testimonial->quote }}"
+                                    data-story-rating="{{ $rating }}"
+                                    aria-label="مشاهده تجربه {{ $testimonial->name }}"
+                                >
+                                    <div class="story-top">
+                                        <span class="story-brand">{{ $settings->site_name ?? 'آکادمی شیخان' }}</span>
+                                        <span class="story-stars" aria-label="{{ $rating }} از ۵">{{ str_repeat('★', $rating) }}</span>
+                                    </div>
 
-                        @php
-                            $rating = min(5, max(0, (int) ($testimonial->rating ?? 5)));
-                        @endphp
+                                    <div class="story-quote-body">
+                                        <span class="story-quote-mark" aria-hidden="true">«</span>
+                                        <p class="story-excerpt">{{ $testimonial->quote }}</p>
+                                    </div>
 
-                        <article class="card ts">
-
-                            <div class="stars" aria-label="{{ $rating }} از ۵ ستاره">
-                                {{ str_repeat('★', $rating) }}{{ str_repeat('☆', 5 - $rating) }}
-                            </div>
-
-                            <p>«{{ $testimonial->quote }}»</p>
-
-                            <div class="who">
-
-                                <div class="av">
-                                    {{ mb_substr($testimonial->name ?? '', 0, 1) }}
-                                </div>
-
-                                <div>
-                                    <b>{{ $testimonial->name }}</b>
-
-                                    @if(filled($testimonial->role ?? null))
-                                        <small style="color:var(--mute);display:block">
-                                            {{ $testimonial->role }}
-                                        </small>
-                                    @endif
-                                </div>
-
-                            </div>
-
-                        </article>
-
-                    @endforeach
-
-                </div>
+                                    <div class="story-bottom">
+                                        <span class="story-avatar-badge" aria-hidden="true">{{ mb_substr($testimonial->name ?? 'ش', 0, 1) }}</span>
+                                        <div>
+                                            <span class="story-name">{{ $testimonial->name }}</span>
+                                            @if(filled($testimonial->role ?? null))
+                                                <span class="story-role">{{ $testimonial->role }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </section>
+
+        <dialog class="story-modal" id="storyModal" aria-labelledby="storyModalName">
+            <div class="story-modal-head">
+                <div>
+                    <b id="storyModalName" style="display:block;font-size:17px"></b>
+                    <small id="storyModalRole" style="opacity:.88;font-size:12px"></small>
+                </div>
+                <button type="button" class="story-modal-close" id="storyModalClose" aria-label="بستن">×</button>
+            </div>
+            <div class="story-modal-body">
+                <div id="storyModalStars" style="color:#f59e0b;font-size:15px;margin-bottom:10px"></div>
+                <p class="story-modal-quote" id="storyModalQuote"></p>
+                <a class="btn" href="{{ route('public.courses.index') }}" style="width:100%">
+                    مشاهده دوره‌های آموزشی آکادمی
+                    <svg class="i"><use href="#arrl"/></svg>
+                </a>
+            </div>
+        </dialog>
 
     @endif
 
 
     {{-- =========================================================
-         TEACHERS
+         TEACHERS (Inspired by Mentor Cards Showcase)
     ========================================================= --}}
 
     @if($teachersCollection->isNotEmpty())
 
-        <section style="background:var(--sf);padding:64px 0">
+        <section class="tmentor-section" id="homeTeachers">
             <div class="c">
-
-                <div class="sh">
-
-                    <div>
-                    <span class="eyebrow">
-                        {{ $contentValue('teachers_eyebrow') }}
-                    </span>
-
-                        <h2>{{ $contentValue('teachers_title') }}</h2>
-
-                        <p>{{ $contentValue('teachers_description') }}</p>
-                    </div>
-
-                    <a
-                            class="btn o s"
-                            style="color:var(--pri)"
-                            href="{{ route('public.teachers.index') }}"
-                    >
-                        همه مدرسان
-                    </a>
-
-                </div>
-
-                <div class="g4">
-
-                    @foreach($teachersCollection as $teacher)
-
-                        <div class="card tcard">
-
-                            <div
-                                    class="av"
-                                    style="background:linear-gradient(135deg,var(--pri),var(--acc));overflow:hidden"
-                            >
-                                @if($teacher->avatarUrl())
-                                    <img
-                                        src="{{ $teacher->avatarUrl() }}"
-                                        alt="تصویر {{ $teacher->name }}"
-                                        loading="lazy"
-                                        decoding="async"
-                                        style="width:100%;height:100%;object-fit:cover;border-radius:inherit"
-                                    >
-                                @else
-                                    <span aria-hidden="true">{{ mb_substr($teacher->name ?? '', 0, 1) }}</span>
-                                @endif
-                            </div>
-
-                            <h3>{{ $teacher->name }}</h3>
-
-                            <span class="bd">
-                            مدرس {{ $teacher->subject ?: 'تخصصی' }}
-                        </span>
-
-                            <div class="mt">
-
-                            <span style="color:#f59e0b">
-                                <svg class="i"><use href="#star"/></svg>
-                            </span>
-
-                                <span>
-                                <svg class="i"><use href="#cam"/></svg>
-                                {{ $teacher->published_courses_count ?? 1 }}
-                                دوره
-                            </span>
-
-                            </div>
-
-                            <a
-                                    class="btn o s"
-                                    style="color:var(--pri);width:100%"
-                                    href="{{ route('public.teachers.show', $teacher->id) }}"
-                            >
-                                مشاهده پروفایل
-                            </a>
-
+                <div class="rec-head">
+                    <div class="rec-head-top">
+                        <div class="rec-title-wrap">
+                            <span class="rec-accent-bar" style="background:linear-gradient(180deg, #be123c, #f43f5e)" aria-hidden="true"></span>
+                            <h2>{{ $contentValue('teachers_title', 'اساتید برتر آکادمی شیخان') }}</h2>
                         </div>
 
-                    @endforeach
-
+                        <a class="rec-all-link" style="color:#be123c" href="{{ route('public.teachers.index') }}">
+                            مشاهده همه مدرسان
+                            <svg class="i"><use href="#arrl"/></svg>
+                        </a>
+                    </div>
                 </div>
+
+                @php
+                    $allTeachers = $teachersCollection->take(4);
+                    $topTeachers = $teachersCollection->sortByDesc('published_courses_count')->values()->take(4);
+                @endphp
+
+                @foreach(['all' => $allTeachers, 'top' => $topTeachers] as $tTabKey => $tTabList)
+                    <div class="rec-panel {{ $tTabKey === 'all' ? 'is-active' : '' }}" data-tmentor-panel="{{ $tTabKey }}">
+                        <div class="tmentor-grid">
+                            @foreach($tTabList as $teacher)
+                                @php
+                                    $teacherDisplayName = str_starts_with(trim((string) $teacher->name), 'استاد')
+                                        ? $teacher->name
+                                        : 'استاد ' . $teacher->name;
+                                @endphp
+                                <a class="tmentor-card" href="{{ route('public.teachers.show', $teacher->id) }}">
+                                    <span class="tmentor-corner-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%">
+                                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+                                        </svg>
+                                    </span>
+
+                                    <div class="tmentor-frame">
+                                        @if($teacher->avatarUrl())
+                                            <img
+                                                src="{{ $teacher->avatarUrl() }}"
+                                                alt="تصویر {{ $teacherDisplayName }}"
+                                                loading="lazy"
+                                                decoding="async"
+                                            >
+                                        @else
+                                            <span class="tmentor-monogram" aria-hidden="true">
+                                                {{ mb_substr($teacher->name ?? 'م', 0, 1) }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <h3 class="tmentor-name">{{ $teacherDisplayName }}</h3>
+
+                                    <span class="tmentor-sub">
+                                        {{ $teacher->subject ? 'مدرس '.$teacher->subject : 'مدرس تخصصی آکادمی' }}
+                                        @if(($teacher->published_courses_count ?? 0) > 0)
+                                            · {{ $teacher->published_courses_count }} دوره
+                                        @endif
+                                    </span>
+
+                                    <span class="tmentor-cta">
+                                        <span>دیدن رزومه</span>
+                                        <svg class="i"><use href="#arrl"/></svg>
+                                    </span>
+
+                                    <span class="tmentor-bottom-bar" aria-hidden="true"></span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </section>
 
@@ -1582,57 +1661,6 @@
 
 
     {{-- =========================================================
-         FAMILY / STUDENT GUIDANCE
-    ========================================================= --}}
-
-    <section aria-labelledby="home-guidance-title" style="padding:28px 0 12px">
-        <div class="c">
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:22px;align-items:center;padding:clamp(24px,4vw,42px);border-radius:24px;background:linear-gradient(125deg,#102b55,#155e75 62%,#0f766e);color:#fff;box-shadow:0 18px 45px rgba(15,45,80,.16)">
-                <div>
-                    <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.1);font-size:12px;font-weight:800">راهنمای شروع</span>
-                    <h2 id="home-guidance-title" style="font-size:clamp(22px,3vw,30px);line-height:1.7;margin:12px 0 8px;color:#fff">برای انتخاب دوره مناسب مطمئن نیستید؟</h2>
-                    <p style="margin:0;max-width:620px;color:rgba(255,255,255,.86);line-height:2">
-                        اگر به‌عنوان والد یا دانش‌آموز درباره انتخاب درس، سطح کلاس، ثبت‌نام یا شیوه آموزش سؤال دارید، پیام بگذارید تا راهنمایی‌تان کنیم.
-                    </p>
-                </div>
-                <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start">
-                    <a class="btn w" href="{{ route('public.contact') }}" style="min-height:46px;display:inline-flex;align-items:center;justify-content:center">
-                        دریافت راهنمایی و مشاوره
-                        <svg class="i" aria-hidden="true"><use href="#arrl"/></svg>
-                    </a>
-                    <a href="{{ route('public.courses.index') }}" style="min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border:1px solid rgba(255,255,255,.55);border-radius:12px;color:#fff;font-weight:800;text-decoration:none">
-                        دیدن دوره‌ها
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- =========================================================
-         CALL TO ACTION
-    ========================================================= --}}
-
-    <section style="padding:64px 0">
-        <div class="c">
-
-            <div class="cta">
-
-                <h2>{{ $contentValue('cta_title') }}</h2>
-
-                <p>{{ $contentValue('cta_body') }}</p>
-
-                <a class="btn w" href="{{ route('public.courses.index') }}">
-                    {{ $contentValue('cta_label') }}
-                    <svg class="i"><use href="#arrl"/></svg>
-                </a>
-
-            </div>
-
-        </div>
-    </section>
-
-
-    {{-- =========================================================
          FAQ
     ========================================================= --}}
 
@@ -1691,6 +1719,34 @@
 
                 </div>
 
+            </div>
+        </div>
+    </section>
+
+
+    {{-- =========================================================
+         FAMILY / STUDENT GUIDANCE (Final CTA)
+    ========================================================= --}}
+
+    <section aria-labelledby="home-guidance-title" style="padding:36px 0 64px">
+        <div class="c">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:22px;align-items:center;padding:clamp(24px,4vw,42px);border-radius:24px;background:linear-gradient(125deg,#102b55,#155e75 62%,#0f766e);color:#fff;box-shadow:0 18px 45px rgba(15,45,80,.16)">
+                <div>
+                    <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.1);font-size:12px;font-weight:800">راهنمای شروع</span>
+                    <h2 id="home-guidance-title" style="font-size:clamp(22px,3vw,30px);line-height:1.7;margin:12px 0 8px;color:#fff">برای انتخاب دوره مناسب مطمئن نیستید؟</h2>
+                    <p style="margin:0;max-width:620px;color:rgba(255,255,255,.86);line-height:2">
+                        اگر به‌عنوان والد یا دانش‌آموز درباره انتخاب درس، سطح کلاس، ثبت‌نام یا شیوه آموزش سؤال دارید، پیام بگذارید تا راهنمایی‌تان کنیم.
+                    </p>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:flex-start">
+                    <a class="btn w" href="{{ route('public.contact') }}" style="min-height:46px;display:inline-flex;align-items:center;justify-content:center">
+                        دریافت راهنمایی و مشاوره
+                        <svg class="i" aria-hidden="true"><use href="#arrl"/></svg>
+                    </a>
+                    <a href="{{ route('public.courses.index') }}" style="min-height:46px;display:inline-flex;align-items:center;justify-content:center;padding:0 18px;border:1px solid rgba(255,255,255,.55);border-radius:12px;color:#fff;font-weight:800;text-decoration:none">
+                        دیدن دوره‌ها
+                    </a>
+                </div>
             </div>
         </div>
     </section>
@@ -2198,33 +2254,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
             const hero = document.getElementById('homeHero');
-
-            if (!hero) {
-                return;
-            }
+            if (!hero) return;
 
             const slides = Array.from(hero.querySelectorAll('.sl'));
             const dotsContainer = document.getElementById('heroDots');
 
-            if (slides.length <= 1 || !dotsContainer) {
-                return;
-            }
+            if (slides.length <= 1) return;
 
             let currentIndex = 0;
             let timer = null;
 
-            dotsContainer.innerHTML = '';
+            if (dotsContainer) {
+                dotsContainer.innerHTML = '';
+            }
 
-            const dots = slides.map((slide, index) => {
-
+            const dots = dotsContainer ? slides.map((slide, index) => {
                 const dot = document.createElement('i');
-
-                if (index === 0) {
-                    dot.classList.add('on');
-                }
-
+                if (index === 0) dot.classList.add('on');
                 dot.setAttribute('role', 'button');
                 dot.setAttribute('tabindex', '0');
                 dot.setAttribute('aria-label', 'نمایش اسلاید ' + (index + 1));
@@ -2243,12 +2290,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 dotsContainer.appendChild(dot);
-
                 return dot;
-            });
+            }) : [];
 
             function goToSlide(index) {
-
                 currentIndex = (index + slides.length) % slides.length;
 
                 slides.forEach(function (slide, slideIndex) {
@@ -2261,31 +2306,19 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             hero.querySelectorAll('[data-hero-dir]').forEach(function (button) {
-
-                button.addEventListener('click', function () {
-
-                    const direction = parseInt(
-                        button.getAttribute('data-hero-dir'),
-                        10
-                    ) || 1;
-
+                button.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const direction = parseInt(button.getAttribute('data-hero-dir'), 10) || 1;
                     goToSlide(currentIndex + direction);
-
                     resetAutoplay();
                 });
-
             });
 
             function startAutoplay() {
-
-                if (timer !== null) {
-                    clearInterval(timer);
-                }
-
+                if (timer !== null) clearInterval(timer);
                 timer = setInterval(function () {
                     goToSlide(currentIndex + 1);
-                }, 6500);
-
+                }, 5500);
             }
 
             function resetAutoplay() {
@@ -2300,30 +2333,156 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             hero.addEventListener('mouseleave', function () {
-                if (timer === null) {
-                    startAutoplay();
-                }
+                if (timer === null) startAutoplay();
             });
 
+            // Touch Swipe Support for mobile devices
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchEndX = 0;
+
+            hero.addEventListener('touchstart', function (e) {
+                if (!e.touches || e.touches.length === 0) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            hero.addEventListener('touchend', function (e) {
+                if (!e.changedTouches || e.changedTouches.length === 0) return;
+                touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+
+                // Only consider horizontal swipes (ignore vertical scrolling)
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+                    if (diffX < 0) {
+                        // Swiped left (in RTL, forward)
+                        goToSlide(currentIndex + 1);
+                    } else {
+                        // Swiped right (in RTL, back)
+                        goToSlide(currentIndex - 1);
+                    }
+                    resetAutoplay();
+                }
+            }, { passive: true });
+
             document.addEventListener('visibilitychange', function () {
-
                 if (document.hidden) {
-
                     if (timer !== null) {
                         clearInterval(timer);
                         timer = null;
                     }
-
                 } else if (timer === null) {
-
                     startAutoplay();
-
                 }
-
             });
 
             startAutoplay();
+        });
+    </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const recSection = document.getElementById('recommendedCourses');
+            if (!recSection) return;
+
+            const tabs = Array.from(recSection.querySelectorAll('[data-rec-tab]'));
+            const panels = Array.from(recSection.querySelectorAll('[data-rec-panel]'));
+
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    const target = tab.getAttribute('data-rec-tab');
+
+                    tabs.forEach(function (t) {
+                        const active = t.getAttribute('data-rec-tab') === target;
+                        t.classList.toggle('is-active', active);
+                        t.setAttribute('aria-selected', active ? 'true' : 'false');
+                    });
+
+                    panels.forEach(function (p) {
+                        p.classList.toggle('is-active', p.getAttribute('data-rec-panel') === target);
+                    });
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const teacherSection = document.getElementById('homeTeachers');
+            if (!teacherSection) return;
+
+            const tTabs = Array.from(teacherSection.querySelectorAll('[data-tmentor-tab]'));
+            const tPanels = Array.from(teacherSection.querySelectorAll('[data-tmentor-panel]'));
+
+            tTabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    const target = tab.getAttribute('data-tmentor-tab');
+
+                    tTabs.forEach(function (t) {
+                        const active = t.getAttribute('data-tmentor-tab') === target;
+                        t.classList.toggle('is-active', active);
+                        t.setAttribute('aria-selected', active ? 'true' : 'false');
+                    });
+
+                    tPanels.forEach(function (p) {
+                        p.classList.toggle('is-active', p.getAttribute('data-tmentor-panel') === target);
+                    });
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const storySection = document.getElementById('homeStories');
+            if (!storySection) return;
+
+            const sTabs = Array.from(storySection.querySelectorAll('[data-story-tab]'));
+            const sPanels = Array.from(storySection.querySelectorAll('[data-story-panel]'));
+
+            sTabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    const target = tab.getAttribute('data-story-tab');
+
+                    sTabs.forEach(function (t) {
+                        const active = t.getAttribute('data-story-tab') === target;
+                        t.classList.toggle('is-active', active);
+                        t.setAttribute('aria-selected', active ? 'true' : 'false');
+                    });
+
+                    sPanels.forEach(function (p) {
+                        p.classList.toggle('is-active', p.getAttribute('data-story-panel') === target);
+                    });
+                });
+            });
+
+            const modal = document.getElementById('storyModal');
+            const modalName = document.getElementById('storyModalName');
+            const modalRole = document.getElementById('storyModalRole');
+            const modalStars = document.getElementById('storyModalStars');
+            const modalQuote = document.getElementById('storyModalQuote');
+            const modalClose = document.getElementById('storyModalClose');
+
+            if (modal && modalName && modalRole && modalStars && modalQuote) {
+                storySection.querySelectorAll('[data-story-open]').forEach(function (card) {
+                    card.addEventListener('click', function () {
+                        const rating = parseInt(card.getAttribute('data-story-rating'), 10) || 5;
+                        modalName.textContent = card.getAttribute('data-story-name') || '';
+                        modalRole.textContent = card.getAttribute('data-story-role') || '';
+                        modalStars.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                        modalQuote.textContent = '«' + (card.getAttribute('data-story-quote') || '') + '»';
+                        modal.showModal();
+                    });
+                });
+
+                if (modalClose) {
+                    modalClose.addEventListener('click', function () {
+                        modal.close();
+                    });
+                }
+
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) modal.close();
+                });
+            }
         });
     </script>
 

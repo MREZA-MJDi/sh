@@ -67,30 +67,38 @@
 
 @section('content')
     {{-- Top Header Section --}}
-    <div class="pgh">
+    <section class="contact-hero-wrap">
         <div class="c">
-            <div class="bc">
-                <a href="{{ route('home') }}">خانه</a> ‹
-                <a href="{{ route('seo.articles.index') }}">مقالات</a> ‹
-                <span>{{ !empty($article->keywords) ? $article->keywords[0] : 'یادگیری' }}</span>
-            </div>
-            <h1>{{ $article->title }}</h1>
-            <div class="mt" style="color:#cbd5f1">
-                <span>
-                    <svg class="i" style="width:14px;height:14px;vertical-align:middle;margin-left:4px"><use href="#clock"/></svg>
-                    {{ $article->published_at ? $article->published_at->format('Y/m/d') : 'امروز' }}
-                </span>
-                <span>
-                    <svg class="i" style="width:14px;height:14px;vertical-align:middle;margin-left:4px"><use href="#clock"/></svg>
-                    {{ $readingMinutes }} دقیقه مطالعه
-                </span>
-                <span>
-                    <svg class="i" style="width:14px;height:14px;vertical-align:middle;margin-left:4px"><use href="#user"/></svg>
-                    نویسنده: {{ $article->author->name ?? ($settings->site_name ?? 'شیخان') }}
-                </span>
-            </div>
+            <header class="contact-hero">
+                <div class="contact-hero-copy">
+                    <div class="contact-breadcrumb">
+                        <a href="{{ route('home') }}">خانه</a> ‹
+                        <a href="{{ route('seo.articles.index') }}">مقالات</a> ‹
+                        <span>{{ !empty($article->keywords) ? $article->keywords[0] : 'یادگیری' }}</span>
+                    </div>
+                    <h1>{{ $article->title }}</h1>
+                    @if($article->excerpt)
+                        <p>{{ \Illuminate\Support\Str::limit(strip_tags($article->excerpt), 180) }}</p>
+                    @endif
+                </div>
+
+                <div class="contact-hero-highlights">
+                    <div class="contact-highlight-pill">
+                        <svg class="i"><use href="#clock"/></svg>
+                        <span>تاریخ انتشار: {{ $article->published_at ? $article->published_at->format('Y/m/d') : 'امروز' }}</span>
+                    </div>
+                    <div class="contact-highlight-pill">
+                        <svg class="i"><use href="#pen"/></svg>
+                        <span>زمان مطالعه: {{ $readingMinutes }} دقیقه</span>
+                    </div>
+                    <div class="contact-highlight-pill">
+                        <svg class="i"><use href="#user"/></svg>
+                        <span>نویسنده: {{ $article->author->name ?? ($settings->site_name ?? 'شیخان') }}</span>
+                    </div>
+                </div>
+            </header>
         </div>
-    </div>
+    </section>
 
     {{-- Main Article & Sticky Sidebar Layout --}}
     <div class="c">

@@ -50,7 +50,9 @@
     @if(!empty($settings->twitter_handle))<meta name="twitter:site" content="{{ '@'.ltrim($settings->twitter_handle, '@') }}">@endif
     @if(!empty($organizationData))
         <script type="application/ld+json">{!! json_encode($organizationData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
-    @endif    @vite(['resources/css/app.css', 'resources/css/public-academy.css', 'resources/css/shared/typography.css', 'resources/js/app.js'])
+    @endif
+    @include('public.partials.theme-init')
+    @vite(['resources/css/app.css', 'resources/css/public-academy.css', 'resources/css/shared/typography.css', 'resources/js/app.js'])
     @stack('head')
 </head>
 <body class="academy">
@@ -134,6 +136,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('hq');
     const panelBtn = document.getElementById('pb');
     const panelMenu = document.getElementById('pm');
+    const themeToggle = document.getElementById('publicThemeToggle');
+
+    function syncThemeIcon() {
+        if (!themeToggle) return;
+        const explicit = document.documentElement.dataset.theme;
+        const isDark = explicit === 'dark' || (!explicit && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const sun = themeToggle.querySelector('[data-theme-icon="sun"]');
+        const moon = themeToggle.querySelector('[data-theme-icon="moon"]');
+        if (sun) sun.style.display = isDark ? 'inline-block' : 'none';
+        if (moon) moon.style.display = isDark ? 'none' : 'inline-block';
+        themeToggle.setAttribute('aria-label', isDark ? 'تغییر به تم روشن' : 'تغییر به تم تیره');
+        themeToggle.setAttribute('title', isDark ? 'تغییر به تم روشن' : 'تغییر به تم تیره');
+    }
+
+    if (themeToggle) {
+        syncThemeIcon();
+        themeToggle.addEventListener('click', function () {
+            const explicit = document.documentElement.dataset.theme;
+            const currentlyDark = explicit === 'dark' || (!explicit && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const nextTheme = currentlyDark ? 'light' : 'dark';
+            document.documentElement.dataset.theme = nextTheme;
+            try { localStorage.setItem('public-theme', nextTheme); } catch (e) {}
+            syncThemeIcon();
+        });
+    }
 
     if (burgerBtn && linksNav) {
         burgerBtn.addEventListener('click', function (e) {
