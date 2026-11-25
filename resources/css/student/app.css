@@ -226,27 +226,39 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .student-alert ul{margin:6px 0 0;padding-inline-start:22px}
 .student-alert.is-success{border-color:rgba(22,137,90,.35);color:var(--gn,#16895a)}
 .student-alert.is-error{border-color:rgba(200,55,45,.4);color:#b8322a;background:rgba(255,235,232,.82)}
-.assignment-form{display:grid;gap:10px;min-width:0;margin-top:10px;padding:12px;border:1px solid var(--panel-b);border-radius:14px;background:var(--panel)}
-.assignment-form textarea,.assignment-form input[type=file]{width:100%;min-width:0;padding:10px 12px;border:1px solid var(--panel-b);border-radius:12px;background:var(--panel);color:var(--text);font:inherit}
-.assignment-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.assignment-files a,.assignment-files button{font-size:12px}
-.assignment-feedback{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(63,142,156,.14);line-height:1.8}
-.assignment-table td{vertical-align:top}
-.assignment-table .assignment-action{min-width:220px}
-.assignment-table .assignment-title{font-weight:700}
-.assignment-table .assignment-meta{display:block;color:var(--muted);font-size:12px}
-@media(max-width:640px){
- .assignment-table thead{display:none}
- .assignment-table,.assignment-table tbody,.assignment-table tr,.assignment-table td{display:block;width:100%}
- .assignment-table tr{padding:12px 0;border-top:1px solid var(--panel-b)}
- .assignment-table td{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;padding:7px 4px;border:0}
- .assignment-table td:before{content:attr(data-label);font-size:12px;font-weight:700;color:var(--muted)}
- .assignment-table td.assignment-action{display:block;min-width:0}
- .assignment-table td.assignment-action:before{display:block;margin-bottom:8px}
- .assignment-form .btn{width:100%}
-}
-
-
+.top-spacer{margin-inline-end:auto}
+.assignment-list{display:grid;gap:14px;min-width:0}
+.assignment-card{display:grid;gap:14px;min-width:0;border-radius:18px}
+.assignment-heading{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.assignment-heading .portal-state-icon{--state-accent:#a66c17;flex:none}
+.assignment-copy{flex:1 1 140px;min-width:0}
+.assignment-copy h2{font-size:16px;font-weight:700;margin:0 0 4px;overflow-wrap:anywhere}
+.assignment-copy small,.assignment-meta{font-size:12px;color:var(--muted)}
+.assignment-metrics{margin:0}
+.assignment-metrics .portal-icon{width:15px;height:15px}
+.assignment-metrics strong{font-size:13px}
+.assignment-description,.assignment-feedback{min-width:0;overflow-wrap:anywhere;padding:12px;border:1px solid var(--panel-b);border-radius:12px}
+.assignment-description h3,.assignment-feedback h3{font-size:13px;margin:0 0 5px}
+.assignment-description p,.assignment-feedback p{margin:0;font-size:13px;line-height:1.9;white-space:pre-wrap}
+.assignment-feedback{background:rgba(63,142,156,.14)}
+.assignment-files{display:grid;gap:8px;min-width:0}
+.assignment-file{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:8px 12px;border:1px solid var(--panel-b);border-radius:12px;min-width:0}
+.assignment-file a{display:flex;align-items:center;gap:8px;min-width:0;overflow-wrap:anywhere}
+.assignment-file form{flex:none}
+.assignment-download{justify-self:start;display:inline-flex;align-items:center;gap:6px}
+.assignment-editor{min-width:0}
+.assignment-editor summary{list-style:none;width:max-content;max-width:100%}
+.assignment-editor summary::-webkit-details-marker{display:none}
+.assignment-editor summary:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.assignment-form{display:grid;gap:12px;min-width:0;margin-top:14px;padding:16px;border:1px solid var(--panel-b);border-radius:14px;background:var(--panel)}
+.assignment-form textarea{min-height:110px;resize:vertical}
+.assignment-upload{display:grid;justify-items:center;gap:8px;padding:16px;border:1px dashed var(--teal);border-radius:12px;text-align:center;min-width:0}
+.assignment-upload small{font-size:12px;color:var(--muted)}
+.assignment-upload input{width:100%;max-width:100%;min-width:0;font:inherit;color:var(--text)}
+.assignment-upload input::file-selector-button{font:inherit;padding:7px 12px;border:1px solid var(--panel-b);border-radius:8px;background:var(--panel);color:var(--text);cursor:pointer}
+.assignment-form-actions{display:flex;justify-content:flex-end}
+@media(max-width:520px){.assignment-card{padding:14px}.assignment-form{padding:12px}.assignment-editor summary,.assignment-form-actions .btn{width:100%}.assignment-heading .portal-status{margin-inline-start:58px}}
+ 
 /* Student message composer: structured, accessible and responsive. */
 .student-message-page{display:grid;gap:16px;max-width:920px;margin-inline:auto}
 .student-message-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}

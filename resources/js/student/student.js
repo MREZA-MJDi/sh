@@ -46,7 +46,7 @@ import '../shared/iranian-locale.js';
   var s = $('#globalSearch');
   if (s) s.addEventListener('input', function () {
     var q = s.value.trim().toLowerCase();
-    $$('.page .trk, .page .tbl tr:not(:first-child), .page .cc, .page .note, .page .medal, .page .portal-action-card, .page .portal-exam-card').forEach(function (el) {
+    $$('.page .trk, .page .tbl tr:not(:first-child), .page .cc, .page .note, .page .medal, .page .portal-action-card, .page .portal-exam-card, .page .assignment-card').forEach(function (el) {
       el.hidden = !!q && el.textContent.toLowerCase().indexOf(q) === -1;
     });
   });
