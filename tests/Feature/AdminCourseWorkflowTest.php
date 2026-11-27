@@ -33,9 +33,10 @@ final class AdminCourseWorkflowTest extends TestCase
             ->get(route('admin.courses.create'))
             ->assertOk()
             ->assertSee('سربرگ صفحه عمومی دوره')
-            ->assertSee('ثبت‌نام و قیمت')
+            ->assertSee('قیمت و انتشار')
             ->assertSee('name="type"', false)
-            ->assertSee('امکاناتی که دانش‌آموز در صفحه دوره می‌بیند');
+            ->assertSee('امکانات آموزشی دوره')
+            ->assertSee('دسته‌بندی و مدرس');
 
         $course = $this->course();
         $course->update(['learning_features' => ['recorded_video' => true]]);
@@ -43,8 +44,8 @@ final class AdminCourseWorkflowTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.courses.edit', $course))
             ->assertOk()
-            ->assertSee('ویدیوی معرفی / تریلر دوره')
-            ->assertSee('ویدیوهای آموزشی دوره')
+            ->assertSee('تریلر دوره')
+            ->assertSee('ویدیوهای آموزشی')
             ->assertSee('مدیریت فصل‌ها و متن درس‌ها')
             ->assertSee(route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]));
     }

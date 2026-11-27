@@ -69,6 +69,7 @@ Route::get('/cart', [PublicSiteController::class, 'cart'])->name('public.cart');
 Route::post('/cart/{course}/add', [PublicSiteController::class, 'addToCart'])->name('public.cart.add');
 Route::delete('/cart/{course}', [PublicSiteController::class, 'removeFromCart'])->name('public.cart.remove');
 Route::get('/courses/{slug}', [PublicSiteController::class, 'course'])->name('public.courses.show');
+Route::get('/courses/{slug}/teaser', \App\Http\Controllers\CourseTeaserController::class)->middleware('auth')->name('public.courses.teaser');
 Route::get('/courses/{slug}/videos/{video}/play', [PublicSiteController::class, 'playCourseVideo'])
     ->middleware('auth')->whereNumber('video')->name('public.courses.videos.play');
 Route::get('/resources/{resource}/download', [PublicLearningResourceController::class, 'download'])->middleware('throttle:20,1')->name('public.resources.download');

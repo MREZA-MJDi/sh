@@ -14,13 +14,18 @@
 @if(!($teacherView ?? false))
   <x-admin.select label="مدرس مسئول" name="teacher_id" :options="$teacherOptions" required/>
 @endif
-<x-admin.select label="وضعیت کلاس" name="status" :options="$statusOptions" required/>
+<x-admin.select label="وضعیت کلاس" name="status" :options="$statusOptions" :selected="'active'" required/>
+<details class="adm-history-panel wide" @if($errors->hasAny(['meeting_url','schedule_days','schedule_days.*','schedule_time','duration_minutes'])) open @endif>
+  <summary>برنامه هفتگی و لینک کلاس <x-admin.icon name="chev"/></summary>
+  <div class="adm-form">
 <x-admin.input label="لینک پیش‌فرض جلسه (اختیاری)" name="meeting_url" placeholder="لینک ورود به کلاس آنلاین" wide/>
 <x-admin.legend title="روزها و ساعت معمول کلاس"/>
 <x-admin.chips label="روزهای برگزاری" name="schedule_days" :options="$days" hint="اگر روز ثابتی ندارد، خالی بگذار."/>
 <x-admin.input label="ساعت شروع معمول" name="schedule_time" type="time"/>
 <x-admin.input label="مدت هر جلسه" name="duration_minutes" type="number" min="15" max="300" addon="دقیقه"/>
 <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
+</div>
+</details>
 @if(isset($studentOptions))
   <input type="hidden" name="student_ids_present" value="1">
   <x-admin.legend title="اعضای کلاس"/>

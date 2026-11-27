@@ -33,7 +33,7 @@ class Course extends Model
 
     public function getTeaserUrlAttribute(): ?string
     {
-        return $this->teaser_path ? Storage::disk('public')->url($this->teaser_path) : null;
+        return $this->teaser_path ? route('public.courses.teaser', $this->slug) : null;
     }
 
     public function getTeaserPosterUrlAttribute(): ?string

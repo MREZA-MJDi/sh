@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\CourseTeaserController;
 use App\Jobs\Learning\IssueSpotPlayerLicense;
 use App\Jobs\Learning\SendLessonVideoToProvider;
 use App\Models\Course;
@@ -12,19 +13,13 @@ use App\Models\VideoUploadSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LearningAdminController extends Controller
 {
-    public function teaser(Course $course): StreamedResponse
+    public function teaser(Course $course): BinaryFileResponse
     {
-        abort_unless($course->teaser_status === 'ready' && filled($course->teaser_path), 404);
-
-        $response = Storage::disk('public')->response($course->teaser_path);
-        $response->headers->set('Cache-Control', 'private, no-store, max-age=0');
-        $response->headers->set('X-Content-Type-Options', 'nosniff');
-
-        return $response;
+        return CourseTeaserController::video($course);
     }
 
     public function teaserStatus(Course $course): JsonResponse
@@ -50,7 +45,7 @@ class LearningAdminController extends Controller
 
             $paths = [
                 'public' => array_filter([$locked->teaser_path, $locked->teaser_poster_path]),
-                'local' => array_filter([$locked->teaser_original_path]),
+                'local' => array_filter([$locked->teaser_original_path, $locked->teaser_path]),
             ];
             $locked->update([
                 'teaser_path' => null,

@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'گروه‌های آموزشی')
+@section('title', 'کلاس‌ها')
 
 @section('content')
 @php
@@ -10,10 +10,10 @@
   $statusOptions = ['active' => 'فعال', 'paused' => 'متوقف', 'archived' => 'بایگانی'];
 @endphp
 
-<x-admin.page-head tone="edu" icon="cls" title="گروه‌های آموزشی" desc="کلاس‌ها را به‌صورت گروه آموزشی مدیریت کن؛ هر گروه مدرس، دانش‌آموزان و برنامه خودش را دارد.">
+<x-admin.page-head tone="edu" icon="cls" title="کلاس‌ها" desc="کلاس‌ها را به‌صورت گروه آموزشی مدیریت کن؛ هر گروه مدرس، دانش‌آموزان و برنامه خودش را دارد.">
   <x-admin.btn variant="line" icon="cal" :href="route('admin.online-classes.index')">همه جلسات آنلاین</x-admin.btn>
   @if($canManage)
-    <x-admin.btn icon="plus" data-modal-open="class-modal">گروه جدید</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="class-modal">ساخت کلاس</x-admin.btn>
   @endif
 </x-admin.page-head>
 
@@ -25,11 +25,11 @@
 </div>
 
 <div class="adm-stack">
-  <x-admin.panel title="پیدا کردن گروه آموزشی" desc="نام کلاس، دوره یا مدرس را جستجو کن؛ نتایج با فیلترهای انتخابی از سرور دریافت می‌شوند." flush data-tone="edu">
+  <x-admin.panel title="جست‌وجوی کلاس" desc="نام کلاس، دوره یا مدرس را جستجو کن؛ نتایج با فیلترهای انتخابی از سرور دریافت می‌شوند." flush data-tone="edu">
     <form method="GET" action="{{ route('admin.classes.index') }}" class="adm-course-filter-form" style="padding:16px">
       <label class="adm-course-search">
         <x-admin.icon name="search"/>
-        <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام گروه، دوره یا مدرس" aria-label="جستجوی گروه‌های آموزشی">
+        <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام گروه، دوره یا مدرس" aria-label="جستجوی کلاس‌ها">
       </label>
       @unless($teacherView)
         <select class="adm-select" name="teacher_id" aria-label="مدرس">

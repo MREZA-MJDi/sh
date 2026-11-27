@@ -126,12 +126,17 @@
 <div class="c">
     <div class="cr">
         <div>
-            {{-- تیزر عمومی دوره؛ فقط خروجی پردازش‌شده منتشر می‌شود --}}
-            @if ($course->teaser_status === 'ready' && $course->teaser_url)
+            @if (auth()->check() && $course->teaser_status === 'ready' && $course->teaser_url)
                 <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload" playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
-                    <source src="{{ $course->teaser_url }}" type="video/mp4">
+                    <source src="{{ !empty($isAdminPreview) ? route('admin.courses.teaser', $course) : $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>
+            @elseif ($course->teaser_status === 'ready' && $course->teaser_path)
+                <div class="card blk">
+                    <p>برای تماشای تریلر دوره وارد حساب کاربری شوید یا ثبت‌نام کنید.</p>
+                    <a class="btn s" href="{{ route('login') }}">ورود</a>
+                    <a class="btn o s" href="{{ route('register') }}">ثبت‌نام</a>
+                </div>
             @else
                 @if($course->coverImageUrl)
                     <img class="vd" src="{{ $course->coverImageUrl }}" alt="تصویر دوره {{ $course->title }}" loading="lazy" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover">

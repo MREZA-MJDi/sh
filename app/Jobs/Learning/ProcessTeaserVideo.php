@@ -15,7 +15,7 @@ use App\Services\Learning\LocalVideoProcessor;
 use Throwable;
 
 /**
- * Converts a private teaser source into a validated, public MP4.
+ * Converts a private teaser source into a validated, private MP4.
  *
  * The source is retained until the new output is validated and atomically
  * published in the course row. Old public assets are removed only afterwards.
@@ -84,6 +84,7 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
         }
 
         $dir = "courses/{$course->id}/teaser";
+        $local->makeDirectory($dir);
         $public->makeDirectory($dir);
 
         $name = (string) Str::uuid();
@@ -93,14 +94,14 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
         $poster = "{$dir}/{$name}.jpg";
 
         try {
-            $tempPath = $public->path($videoTemp);
+            $tempPath = $local->path($videoTemp);
             $processor->prepare($input, $tempPath, 720, 26, 96, 3200);
 
-            if (! rename($tempPath, $public->path($video))) {
+            if (! rename($tempPath, $local->path($video))) {
                 throw new RuntimeException('انتشار فایل پردازش‌شده تیزر ناموفق بود.');
             }
 
-            $hasPoster = $processor->poster($public->path($video), $public->path($posterTemp))
+            $hasPoster = $processor->poster($local->path($video), $public->path($posterTemp))
                 && rename($public->path($posterTemp), $public->path($poster));
 
             if (! $hasPoster) {
@@ -138,7 +139,8 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
             });
 
             if (! $published) {
-                $public->delete([$video, $poster, $posterTemp, $videoTemp]);
+                $local->delete([$video, $videoTemp]);
+                $public->delete([$poster, $posterTemp]);
                 return;
             }
 
@@ -153,6 +155,9 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
 
                 try {
                     $public->delete($oldPath);
+                    if ($oldPath === $oldVideo) {
+                        $local->delete($oldPath);
+                    }
                 } catch (Throwable $cleanupException) {
                     report($cleanupException);
                 }
@@ -165,7 +170,8 @@ final class ProcessTeaserVideo implements ShouldQueue, ShouldBeUnique
             }
         } catch (Throwable $exception) {
             if (! ($published ?? false)) {
-                $public->delete([$videoTemp, $video, $posterTemp, $poster]);
+                $local->delete([$videoTemp, $video]);
+                $public->delete([$posterTemp, $poster]);
             }
 
             throw $exception;

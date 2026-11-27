@@ -10,7 +10,12 @@
 <x-admin.input label="زمان شروع" name="starts_at" type="datetime-local" :value="$sessionDefaultDate" required/>
 <x-admin.input label="زمان پایان" name="ends_at" type="datetime-local"/>
 <p class="adm-muted adm-grid-note">برای جلسه آنلاین، زمان پایان الزامی است. اگر لینک اختصاصی وارد نکنی، لینک پیش‌فرض کلاس استفاده می‌شود.</p>
+<details class="adm-history-panel wide" @if($errors->hasAny(['meeting_provider','meeting_url','teacher_notes'])) open @endif>
+  <summary>لینک جلسه آنلاین و یادداشت مدرس <x-admin.icon name="chev"/></summary>
+  <div class="adm-form">
 <x-admin.select label="سرویس یا نوع لینک" name="meeting_provider" :options="$sessionProviderOptions" :selected="'skyroom'"/>
 <x-admin.input label="لینک ورود به جلسه (اختیاری)" name="meeting_url" wide placeholder="https://..."/>
 <p class="adm-muted adm-grid-note">اتاق Skyroom از تنظیمات کلاس خوانده می‌شود. برای سرویس‌های دیگر، لینک آماده را وارد کن؛ انتخاب نام سرویس به‌تنهایی اتاق جدیدی ایجاد نمی‌کند.</p>
 <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
+</div>
+</details>

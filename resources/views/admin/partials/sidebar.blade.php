@@ -23,7 +23,7 @@
     </a>
 
     @foreach ($nav['groups'] as $gi => $group)
-      <details class="adm-nav-group" data-tone="{{ $group['tone'] }}" open>
+      <details class="adm-nav-group" data-tone="{{ $group['tone'] }}">
         <summary data-admin-nav-group-toggle><span class="adm-nav-dot"></span>{{ $group['label'] }}<x-admin.icon name="chev"/></summary>
         <div class="adm-nav-items">
           @foreach ($group['items'] as $item)

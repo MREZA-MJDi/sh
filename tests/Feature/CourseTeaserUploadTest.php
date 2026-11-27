@@ -263,7 +263,7 @@ final class CourseTeaserUploadTest extends TestCase
             ->assertJsonPath('message', 'نشست آپلود پیدا نشد یا از سامانه حذف شده است؛ لطفاً بارگذاری را دوباره آغاز کنید.');
     }
 
-    public function test_ready_teaser_is_rendered_as_a_real_public_video_player(): void
+    public function test_ready_teaser_requires_an_account_but_does_not_require_enrollment(): void
     {
         $course = $this->course();
         Storage::disk('public')->put('teasers/ready-preview.mp4', 'fake-video-content');
@@ -272,11 +272,28 @@ final class CourseTeaserUploadTest extends TestCase
             'teaser_status' => 'ready',
         ]);
 
+        $url = route('public.courses.teaser', $course->slug);
+        $this->artisan('learning:privatize-teasers')->assertSuccessful();
+        $this->artisan('learning:privatize-teasers')->assertSuccessful();
+        Storage::disk('public')->assertMissing('teasers/ready-preview.mp4');
+
         $this->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee('برای تماشای تریلر دوره')
+            ->assertDontSee('<video', false);
+        $this->get($url)->assertRedirect(route('login'));
+
+        $this->actingAs($this->admin())->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSee('<video', false)
             ->assertSee('video/mp4')
-            ->assertSee('teasers/ready-preview.mp4');
+            ->assertSee($url)
+            ->assertDontSee('teasers/ready-preview.mp4');
+        $this->get($url, ['Range' => 'bytes=0-3'])
+            ->assertStatus(206)
+            ->assertHeader('Content-Type', 'video/mp4');
+        $course->update(['status' => 'draft']);
+        $this->get($url)->assertNotFound();
     }
 
     private function admin(): User

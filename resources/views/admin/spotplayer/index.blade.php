@@ -1,11 +1,19 @@
 @extends('admin.layouts.app')
 @section('title', 'ویدیوهای ضبط‌شده')
 
+@push('head')
+<style>
+  .adm-video-filters details[open] { grid-column: 1 / -1 }
+  @media (min-width: 1051px) {
+    .adm-video-filters { grid-template-columns: minmax(200px, 1.6fr) minmax(130px, .8fr) auto auto auto }
+  }
+</style>
+@endpush
+
 @section('content')
 @php
   $courseOptions = $courses->pluck('title', 'id')->all();
   $licenseCourseOptions = $courses->filter(fn ($course) => filled($course->spotplayer_course_id))->pluck('title', 'id')->all();
-  $classroomOptions = $classrooms->pluck('name', 'id')->all();
   $studentOptions = $students->pluck('name', 'id')->all();
   $licenseStatus = [
     'active' => ['ok', 'فعال'],
@@ -16,20 +24,18 @@
   ];
 @endphp
 
-<x-admin.page-head tone="edu" icon="video" title="ویدیوهای ضبط‌شده" desc="همه ویدیوهای دوره‌ها را از یک‌جا پیدا کن و وضعیت آماده‌سازی آن‌ها را ببین.">
+<x-admin.page-head tone="edu" icon="video" title="ویدیوهای آموزشی" desc="ویدیوهای دوره‌ها و وضعیت نمایش آن‌ها را اینجا مدیریت کن.">
   @unless($teacherView)
-    <x-admin.btn icon="plus" :href="route('admin.courses.index')">بارگذاری ویدیو در یک دوره</x-admin.btn>
+    @if($courseOptions)
+      <x-admin.btn icon="plus" data-modal-open="spot-video-modal">افزودن ویدیو از SpotPlayer</x-admin.btn>
+    @endif
+
+    <x-admin.btn variant="line" :href="route('admin.courses.index')">ویدیوهای هر دوره</x-admin.btn>
   @endunless
 </x-admin.page-head>
-
-<div class="adm-video-overview" data-tone="edu">
-  <x-admin.stat tone="edu" icon="video" label="همه ویدیوها" :value="number_format($videoStats['total'])" hint="در محدوده دسترسی تو"/>
-  <x-admin.stat tone="edu" icon="refresh" label="در حال آماده‌سازی" :value="number_format($videoStats['processing'])" hint="پس از پردازش قابل پخش می‌شوند"/>
-  <x-admin.stat tone="edu" icon="alert" label="نیازمند پیگیری" :value="number_format($videoStats['failed'])" hint="پردازش ناموفق"/>
-  @unless($teacherView)
-    <x-admin.stat tone="edu" icon="check" label="منتظر تأیید" :value="number_format($videoStats['review'])" hint="ویدیوهای ارسال‌شده از طرف مدرس"/>
-  @endunless
-</div>
+@if(!$teacherView && !$courseOptions)
+  <p class="adm-muted">برای افزودن ویدیو، «ویدیوهای آموزشی» را در امکانات یکی از دوره‌ها فعال کن.</p>
+@endif
 
 <x-admin.panel title="کتابخانه ویدیوها" desc="فایل‌های بارگذاری‌شده و ویدیوهای متصل به SpotPlayer در این فهرست دیده می‌شوند." flush data-tone="edu">
   <form method="GET" action="{{ route('admin.spotplayer.index') }}" class="adm-video-filters">
@@ -41,6 +47,9 @@
       <option value="failed" @selected(($filters['status'] ?? '') === 'failed')>پردازش ناموفق</option>
       <option value="waiting_contract" @selected(($filters['status'] ?? '') === 'waiting_contract')>در انتظار آماده‌سازی</option>
     </select>
+    <details class="adm-history-panel" @if(filled($filters['source'] ?? null) || filled($filters['approval'] ?? null)) open @endif>
+      <summary>فیلترهای بیشتر <x-admin.icon name="chev"/></summary>
+      <div class="adm-form">
     <select class="adm-select" name="source" aria-label="منبع ویدیو">
       <option value="">همه منابع</option>
       <option value="local" @selected(($filters['source'] ?? '') === 'local')>فایل بارگذاری‌شده</option>
@@ -52,12 +61,14 @@
       <option value="approved" @selected(($filters['approval'] ?? '') === 'approved')>تأییدشده</option>
       <option value="rejected" @selected(($filters['approval'] ?? '') === 'rejected')>نیازمند اصلاح</option>
     </select>
-    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">اعمال فیلتر</button>
+      </div>
+    </details>
+    <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">جست‌وجو</button>
     @if(collect($filters)->filter(fn ($value) => filled($value))->isNotEmpty())
       <a href="{{ route('admin.spotplayer.index') }}" class="adm-btn adm-btn-line adm-btn-sm">پاک‌کردن</a>
     @endif
   </form>
-  <div class="adm-video-results"><span>{{ number_format($videos->total()) }} ویدیو</span><span>برای افزودن فایل جدید، از صفحه همان دوره اقدام کن.</span></div>
+  <div class="adm-video-results"><span>{{ number_format($videos->total()) }} ویدیو</span></div>
   <div class="adm-grid adm-cols-2">
     @forelse($videos as $video)
       @php
@@ -131,8 +142,8 @@
 </x-admin.panel>
 
 @if(!$teacherView)
-  <details class="adm-video-advanced">
-  <summary><span><b>تنظیمات پیشرفته و SpotPlayer</b><small>لایسنس‌ها، وضعیت اتصال و ابزارهای مدیریتی؛ در کارهای روزمره نیازی به این بخش نیست.</small></span><x-admin.icon name="chev"/></summary>
+  <details class="adm-video-advanced" @if($errors->hasAny(['account_id','api_key','max_devices','mode','student_id'])) open @endif>
+  <summary><span><b>تنظیمات SpotPlayer و دسترسی دانش‌آموزان</b><small>لایسنس‌ها، وضعیت اتصال و ابزارهای مدیریتی؛ در کارهای روزمره نیازی به این بخش نیست.</small></span><x-admin.icon name="chev"/></summary>
   <div class="adm-video-advanced-body">
   <div class="adm-video-connection">
     <div><b>وضعیت اتصال SpotPlayer</b><p>{{ $health?->message ?? 'وضعیت اتصال سرویس در دسترس نیست.' }}</p></div>
@@ -140,7 +151,6 @@
   </div>
   <div class="adm-actions">
     <form method="POST" action="{{ route('admin.spotplayer.sync-courses') }}">@csrf<button type="submit" class="adm-btn adm-btn-line adm-btn-sm">درخواست همگام‌سازی دوره‌ها</button></form>
-    <button type="button" class="adm-btn adm-btn-line adm-btn-sm" data-modal-open="spot-video-modal">ثبت شناسه ویدیوی موجود در SpotPlayer</button>
   </div>
   <x-admin.panel title="درخواست لایسنس دانش‌آموز" desc="فقط برای دانش‌آموز دارای دسترسی معتبر به دوره درخواست ثبت کن." data-tone="edu">
     @if(count($licenseCourseOptions) && count($studentOptions))
@@ -223,13 +233,43 @@
 @endsection
 
 @push('modals')
-<x-admin.modal :demo="false" id="spot-video-modal" title="ثبت شناسه ویدیوی SpotPlayer" size="lg" :action="route('admin.spotplayer.videos.store')">
-  <x-admin.legend title="اطلاعات ویدیو"/>
+@if(!$teacherView && $courseOptions)
+<x-admin.modal :demo="false" id="spot-video-modal" title="افزودن ویدیو از SpotPlayer" :action="route('admin.spotplayer.videos.store')">
   <x-admin.input label="عنوان ویدیو" name="title" wide required/>
-  <x-admin.select label="دوره" name="course_id" :options="$courseOptions" required/>
-  <x-admin.select label="کلاس / گروه (اختیاری)" name="classroom_id" :options="$classroomOptions" placeholder="در سطح کل دوره"/>
+  <x-admin.select label="دوره" name="course_id" :options="$courseOptions" placeholder="انتخاب دوره" required/>
+  <x-admin.field label="کلاس (اختیاری)" name="classroom_id">
+    <select name="classroom_id" class="adm-select">
+      <option value="">کل دوره</option>
+      @foreach($classrooms as $classroom)
+        <option value="{{ $classroom->id }}" data-course-id="{{ $classroom->course_id }}" @selected((string) old('classroom_id') === (string) $classroom->id)>{{ $classroom->name }}</option>
+      @endforeach
+    </select>
+  </x-admin.field>
   <x-admin.input label="شناسه ویدیوی موجود در SpotPlayer" name="external_id" placeholder="شناسه خارجی" required/>
-  <x-admin.select label="وضعیت محلی" name="status" :options="['waiting_contract' => 'در انتظار قرارداد']" selected="waiting_contract"/>
-  <p class="adm-muted" style="grid-column:1/-1">این فرم فقط برای ثبت شناسه ویدیوی موجود در SpotPlayer است. برای بارگذاری فایل جدید، از صفحه ویرایش همان دوره و آپلود تکه‌ای استفاده کنید تا امکان ادامه آپلود و پردازش امن حفظ شود.</p>
+  <input type="hidden" name="status" value="waiting_contract">
+  <p class="adm-muted wide">شناسه را از صفحه همان ویدیو در SpotPlayer کپی کن. کلاس را فقط وقتی انتخاب کن که این ویدیو مخصوص یک کلاس باشد.</p>
 </x-admin.modal>
+@endif
+@endpush
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('spot-video-modal');
+    if (!modal) return;
+    const course = modal.querySelector('[name="course_id"]');
+    const classroom = modal.querySelector('[name="classroom_id"]');
+    const syncClassrooms = () => {
+      Array.from(classroom.options).slice(1).forEach((option) => {
+        option.disabled = option.hidden = option.dataset.courseId !== course.value;
+      });
+      if (classroom.selectedOptions[0]?.disabled) classroom.value = '';
+    };
+    course.addEventListener('change', syncClassrooms);
+    syncClassrooms();
+    @if(old('status') === 'waiting_contract' && $errors->hasAny(['title','course_id','classroom_id','external_id']))
+      document.querySelector('[data-modal-open="spot-video-modal"]')?.click();
+    @endif
+  });
+</script>
 @endpush

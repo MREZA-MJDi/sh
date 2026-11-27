@@ -120,8 +120,8 @@ class CourseService
                 Storage::disk('public')->delete($path);
             }
         }
-        if ($course->teaser_original_path) {
-            Storage::disk('local')->delete($course->teaser_original_path);
+        foreach (array_filter([$course->teaser_original_path, $course->teaser_path]) as $path) {
+            Storage::disk('local')->delete($path);
         }
 
         $course->delete();

@@ -4,6 +4,7 @@
     </IfModule>
 
     RewriteEngine On
+    RewriteRule ^storage/(courses/[0-9]+/teaser/|teasers/).*\.mp4$ - [R=404,L,NC]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

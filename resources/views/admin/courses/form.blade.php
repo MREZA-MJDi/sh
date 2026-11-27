@@ -1,6 +1,10 @@
 @extends('admin.layouts.app')
 @section('title', $isEditing ? 'ویرایش صفحه دوره' : 'ساخت دوره جدید')
 
+@push('head')
+<style>#course-enrollment .adm-field[hidden] { display: none }</style>
+@endpush
+
 @section('content')
 @php
   $seasons = \App\Models\Course::SEASONS;
@@ -27,38 +31,41 @@
   <x-admin.btn variant="line" :href="route('admin.courses.index')">بازگشت به دوره‌ها</x-admin.btn>
 </x-admin.page-head>
 
-<section class="adm-course-editor-guide" data-tone="edu">
-  <div class="adm-course-editor-guide-copy">
-    <span>راهنمای سریع</span>
-    <b>{{ $isEditing ? 'از هر بخشی که لازم داری ادامه بده.' : 'اول مشخصات دوره را ثبت کن.' }}</b>
-    <p>{{ $isEditing ? 'هر بخش مستقل ذخیره می‌شود؛ لازم نیست همه مراحل را یک‌جا انجام بدهی.' : 'بعد از ساخت دوره، بخش ویدیوها، فصل‌ها و کلاس‌ها در همین صفحه فعال می‌شوند.' }}</p>
-  </div>
-  <nav class="adm-course-editor-steps" aria-label="بخش‌های تکمیل دوره">
-    <a href="#course-basics"><i>۱</i><span>اطلاعات اصلی</span></a>
-    <a href="#course-enrollment"><i>۲</i><span>ثبت‌نام و امکانات</span></a>
-    @if($isEditing)
-      <a href="{{ $course->featureEnabled('recorded_video') ? '#course-videos' : '#course-curriculum' }}"><i>۳</i><span>محتوا و ویدیو</span></a>
-      <a href="#course-classes"><i>۴</i><span>کلاس‌ها و منابع</span></a>
+@if($isEditing)
+  <nav class="adm-actions" aria-label="بخش‌های دوره">
+    <a class="adm-btn adm-btn-line" href="#course-basics">مشخصات دوره</a>
+    <a class="adm-btn adm-btn-line" href="#course-media">ویدیو و تریلر</a>
+    <a class="adm-btn adm-btn-line" href="#course-lessons">درس‌ها</a>
+    <a class="adm-btn adm-btn-line" href="#course-classes">کلاس‌ها</a>
+    @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
+      <a class="adm-btn adm-btn-line" href="#course-files">جزوه و فایل</a>
     @endif
   </nav>
-</section>
+@else
+  <p class="adm-muted">نام دوره را وارد کن و پیش‌نویس را بساز. ویدیو، درس و کلاس را بعد از ذخیره اضافه کن.</p>
+@endif
 
-<div class="adm-split" style="align-items:start">
-  <main class="adm-stack">
+<div class="adm-stack">
+  <div class="adm-stack">
     <form method="POST" action="{{ $formAction }}" class="adm-stack" enctype="multipart/form-data">
       @csrf
       @if($isEditing) @method('PATCH') @endif
       <input type="hidden" name="delivery_type" value="{{ $course->delivery_type ?: 'onsite' }}">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
-      <x-admin.panel id="course-basics" title="۱. اطلاعات اصلی دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." data-tone="edu">
+      <x-admin.panel id="course-basics" title="مشخصات دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." data-tone="edu">
         <div class="adm-form">
           <x-admin.input label="عنوان اصلی دوره" name="title" :value="old('title', $course->title)" placeholder="مثلاً شیمی دوازدهم؛ آموزش مفهومی و مسئله‌محور" wide required/>
+          <details class="adm-history-panel wide" @if($errors->hasAny(['subject','academic_grade_id','season','academic_year','teacher_id'])) open @endif>
+            <summary>دسته‌بندی و مدرس <x-admin.icon name="chev"/></summary>
+            <div class="adm-form">
           <x-admin.input label="درس تخصصی" name="subject" :value="old('subject', $course->subject)" placeholder="مثلاً شیمی، زیست‌شناسی، ریاضی"/>
-          <x-admin.select label="پایه تحصیلی" name="academic_grade_id" :options="$grades->pluck('name', 'id')->all()" :selected="old('academic_grade_id', $course->academic_grade_id ?: \App\Models\AcademicGrade::resolveIdFromLegacyName($course->grade))" placeholder="انتخاب پایه" required/>
-          <x-admin.select label="فصل دوره" name="season" :options="$seasons" :selected="old('season', $course->season)" placeholder="انتخاب فصل" required/>
+          <x-admin.select label="پایه تحصیلی" name="academic_grade_id" :options="$grades->pluck('name', 'id')->all()" :selected="old('academic_grade_id', $course->academic_grade_id ?: \App\Models\AcademicGrade::resolveIdFromLegacyName($course->grade))" placeholder="انتخاب پایه"/>
+          <x-admin.select label="فصل دوره" name="season" :options="$seasons" :selected="old('season', $course->season)" placeholder="انتخاب فصل"/>
           <x-admin.input label="سال شروع سال تحصیلی (شمسی)" name="academic_year" type="number" min="1300" max="1500" :value="old('academic_year', $course->academic_year)" placeholder="مثلاً ۱۴۰۵"/>
           <x-admin.select label="مدرس دوره" name="teacher_id" :options="$teachers->pluck('name', 'id')->all()" :selected="old('teacher_id', $course->teacher_id)" placeholder="انتخاب مدرس"/>
+            </div>
+          </details>
           <x-admin.textarea label="توضیح کوتاه زیر عنوان" name="description" :value="old('description', $course->description)" wide rows="4" placeholder="این متن در سربرگ و معرفی دوره نمایش داده می‌شود."/>
           <div class="adm-field wide">
             <span class="adm-label">تصویر روی کارت و صفحه دوره</span>
@@ -78,7 +85,7 @@
         </div>
       </x-admin.panel>
 
-      <x-admin.panel id="course-enrollment" title="۲. ثبت‌نام و قیمت" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
+      <x-admin.panel id="course-enrollment" title="قیمت و انتشار" desc="قیمت و وضعیت انتشار دوره را مشخص کن." data-tone="shop">
         <div class="adm-form">
           <x-admin.select label="نوع دوره" name="type" :options="['free' => 'رایگان', 'paid' => 'پرداختی']" :selected="old('type', $course->type ?: 'free')" required/>
           <x-admin.input label="قیمت به تومان" name="price" :value="old('price', $course->price)" inputmode="numeric" type="number" min="0" max="1000000000" placeholder="برای دوره رایگان صفر"/>
@@ -87,7 +94,9 @@
         </div>
       </x-admin.panel>
 
-      <x-admin.panel id="course-features" title="۳. امکاناتی که دانش‌آموز در صفحه دوره می‌بیند" desc="فقط مواردی را روشن کن که واقعاً در این دوره ارائه می‌شوند." data-tone="edu">
+      <details class="adm-history-panel" id="course-feature-settings" @if($errors->has('learning_features.*')) open @endif>
+        <summary>امکانات آموزشی دوره <x-admin.icon name="chev"/></summary>
+      <x-admin.panel id="course-features" desc="امکاناتی را انتخاب کن که در این دوره ارائه می‌شوند." data-tone="edu">
         <div class="adm-form">
           @foreach($featureLabels as $key => $label)
             <x-admin.switch :label="$label" :name="'learning_features['.$key.']'" :checked="(bool) old('learning_features.'.$key, $course->featureEnabled($key))" wide/>
@@ -95,8 +104,10 @@
         </div>
       </x-admin.panel>
 
+      </details>
+
       <div class="adm-actions">
-        <button type="submit" class="adm-btn adm-btn-primary">{{ $isEditing ? 'ذخیره تغییرات صفحه دوره' : 'ساخت دوره و ادامه تکمیل صفحه' }}</button>
+        <button type="submit" class="adm-btn adm-btn-primary">{{ $isEditing ? 'ذخیره تغییرات صفحه دوره' : 'ساخت دوره' }}</button>
         @if($isEditing)
           <a class="adm-btn adm-btn-line" href="{{ route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]) }}" target="_blank" rel="noopener">دیدن نتیجه در صفحه عمومی</a>
         @endif
@@ -104,7 +115,9 @@
     </form>
 
     @if($isEditing)
-      <x-admin.panel id="course-teaser" title="۴. ویدیوی معرفی / تریلر دوره" desc="این ویدیو بالای صفحه دوره نمایش داده می‌شود. اگر اینترنت قطع شود، بارگذاری از همان‌جا ادامه پیدا می‌کند." data-tone="shop">
+      <details class="adm-history-panel" id="course-media">
+        <summary>ویدیو و تریلر <x-admin.icon name="chev"/></summary>
+      <x-admin.panel id="course-teaser" title="تریلر دوره" desc="کاربران پس از ورود، این ویدیو را بالای صفحه دوره می‌بینند." data-tone="shop">
         @if($course->teaser_status === 'ready')
           <video controls preload="metadata" style="display:block;width:100%;max-height:360px;border-radius:14px;background:#0f172a" src="{{ route('admin.courses.teaser', $course) }}"></video>
         @elseif($course->teaser_status === 'processing')
@@ -139,7 +152,7 @@
       </x-admin.panel>
 
       @if($course->featureEnabled('recorded_video'))
-        <x-admin.panel id="course-videos" title="۵. ویدیوهای آموزشی دوره" desc="ویدیو را انتخاب کن و در صورت تمایل به یک کلاس و جلسه وصلش کن. فایل در فضای امن نگهداری می‌شود." data-tone="edu">
+        <x-admin.panel id="course-videos" title="ویدیوهای آموزشی" desc="ویدیو را انتخاب کن. اگر برای یک کلاس یا جلسه خاص است، آن را هم مشخص کن." data-tone="edu">
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
             data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.uploads.status') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
@@ -196,11 +209,20 @@
           <p class="adm-muted">فایل محلی از داخل سایت پخش می‌شود. ویدیوهای دارای لایسنس SpotPlayer را از بخش مدیریت ویدیوها با شناسه خارجی ثبت کن؛ نیازی به بارگذاری مجدد فایل نیست.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
+      @else
+        <p class="adm-muted" style="padding:16px">برای افزودن ویدیوهای درس، <a href="#course-feature-settings">ویدیوهای آموزشی را در امکانات دوره فعال کن</a> و تغییرات را ذخیره کن.</p>
       @endif
 
-      @include('admin.courses.partials.curriculum')
+      </details>
 
-      <x-admin.panel id="course-classes" title="۷. گروه‌های آموزشی این درس" desc="کلاس یعنی گروهی از دانش‌آموزان که با یک مدرس و برنامه مشخص درس می‌خوانند." data-tone="edu">
+      <details class="adm-history-panel" id="course-lessons">
+        <summary>درس‌ها و سرفصل‌ها <x-admin.icon name="chev"/></summary>
+        @include('admin.courses.partials.curriculum')
+      </details>
+
+      <details class="adm-history-panel" id="course-classes">
+        <summary>کلاس‌ها و جلسه‌ها <x-admin.icon name="chev"/></summary>
+      <x-admin.panel title="۷. گروه‌های آموزشی این درس" desc="کلاس یعنی گروهی از دانش‌آموزان که با یک مدرس و برنامه مشخص درس می‌خوانند." data-tone="edu">
         <div class="adm-grid adm-cols-2">
           @forelse($classrooms as $classroom)
             @php
@@ -249,7 +271,11 @@
         <x-slot:footer><x-admin.btn icon="plus" data-modal-open="course-class-modal">ساخت کلاس برای این دوره</x-admin.btn></x-slot:footer>
       </x-admin.panel>
 
+      </details>
+
       @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
+        <details class="adm-history-panel" id="course-files">
+          <summary>جزوه و فایل‌های آموزشی <x-admin.icon name="chev"/></summary>
         <x-admin.panel id="course-resources" title="۸. جزوه و فایل‌های آموزشی" desc="فایل‌هایی که اینجا اضافه می‌کنی در بخش منابع دوره برای دانش‌آموزان مجاز نمایش داده می‌شوند." data-tone="shop">
           <div class="adm-grid adm-cols-2">
             @forelse($resources as $resource)
@@ -260,32 +286,45 @@
           </div>
           <x-slot:footer><x-admin.btn icon="plus" data-modal-open="course-resource-modal">افزودن جزوه یا فایل</x-admin.btn></x-slot:footer>
         </x-admin.panel>
+        </details>
       @endif
-    @else
-      <x-admin.panel title="ادامه ساخت دوره" desc="اول اطلاعات اصلی را ذخیره کن. بعد همین صفحه برایت باز می‌شود تا ویدیو، درس‌ها و کلاس‌ها را اضافه کنی.">
-        <p class="adm-muted">نیازی به ساخت همه چیز در یک مرحله نیست؛ می‌توانی دوره را پیش‌نویس ذخیره کنی و هر زمان خواستی تکمیلش کنی.</p>
-      </x-admin.panel>
     @endif
-  </main>
-
-  <aside class="adm-stack">
-    <x-admin.panel title="جایگاه اطلاعات در صفحه عمومی" desc="راهنمای ساده برای اینکه بدانید هر ورودی کجا دیده می‌شود." data-tone="edu">
-      <div class="adm-side-list">
-        <div><span class="adm-stat-ico"><x-admin.icon name="file"/></span><div class="adm-grow"><b>عنوان و توضیح کوتاه</b><small class="adm-muted">بالای صفحه عمومی، زیر مسیر راهنما</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="user"/></span><div class="adm-grow"><b>مدرس و موضوع</b><small class="adm-muted">کنار مشخصات دوره و بخش معرفی مدرس</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="video"/></span><div class="adm-grow"><b>تریلر</b><small class="adm-muted">بخش معرفی و پیش‌نمایش ویدیویی دوره</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="file"/></span><div class="adm-grow"><b>فصل‌ها و متن درس‌ها</b><small class="adm-muted">بخش سرفصل‌های آموزشی</small></div></div>
-        <div><span class="adm-stat-ico"><x-admin.icon name="card"/></span><div class="adm-grow"><b>نوع و قیمت</b><small class="adm-muted">کارت ثبت‌نام کنار صفحه دوره</small></div></div>
-      </div>
-    </x-admin.panel>
-    @if($isEditing)
-      <x-admin.panel title="پیش‌نمایش صفحه دوره" desc="قبل از انتشار، نتیجه را مثل دانش‌آموز ببین.">
-        <x-admin.btn icon="link" :href="route('public.courses.show', ['slug' => $course->slug, 'preview' => 1])" target="_blank">باز کردن پیش‌نمایش عمومی</x-admin.btn>
-      </x-admin.panel>
-    @endif
-  </aside>
+  </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  (() => {
+    const courseType = document.querySelector('#course-enrollment [name="type"]');
+    const price = document.querySelector('#course-enrollment [name="price"]');
+    if (courseType && price) {
+      const syncPrice = () => {
+        const paid = courseType.value === 'paid';
+        price.closest('.adm-field').hidden = !paid;
+        price.required = paid;
+      };
+      courseType.addEventListener('change', syncPrice);
+      syncPrice();
+    }
+
+    const openSection = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash.startsWith('course-')) return;
+      const section = document.getElementById(hash);
+      if (section instanceof HTMLDetailsElement) section.open = true;
+    };
+    openSection();
+    window.addEventListener('hashchange', openSection);
+    document.querySelectorAll('a[href^="#course-"]').forEach((link) => {
+      link.addEventListener('click', () => {
+        const section = document.getElementById(link.hash.slice(1));
+        if (section instanceof HTMLDetailsElement) section.open = true;
+      });
+    });
+  })();
+</script>
+@endpush
 
 @push('modals')
 @if($isEditing)
