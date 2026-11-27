@@ -18,14 +18,38 @@ final class LearningAccessService
 {
     public function activeCourseIds(User $student, ?string $feature = null): Builder
     {
-        $query = Course::query()->select('courses.id');
-        $this->applyPublishedFeatureScope($query, $feature);
-        $query->where(function (Builder $access) use ($student): void {
-            $access->where('type', 'free')
+        $courseScope = function (Builder $course) use ($feature): void {
+            $course->where('status', 'published');
+
+            if ($feature === null) {
+                return;
+            }
+
+            $course->where(function (Builder $featureScope) use ($feature): void {
+                $featureScope->where('learning_features->'.$feature, true)
+                    ->orWhere(function (Builder $legacy) use ($feature): void {
+                        $legacy->where(fn (Builder $missing) => $missing
+                            ->whereNull('learning_features')
+                            ->orWhereNull('learning_features->'.$feature));
+
+                        if ($feature === 'live_class') {
+                            $legacy->where('delivery_type', 'skyroom');
+                        } elseif ($feature === 'recorded_video') {
+                            $legacy->where('delivery_type', 'spotplayer');
+                        } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                            $legacy->whereRaw('1 = 0');
+                        }
+                    });
+            });
+        };
+
+        $query = Course::query()
+            ->where($courseScope)
+            ->where(fn (Builder $access) => $access->where('type', 'free')
                 ->orWhereHas('enrollments', fn (Builder $enrolled) => $enrolled
                     ->where('student_id', $student->id)
-                    ->currentlyActive());
-        });
+                    ->currentlyActive()))
+            ->select('courses.id as course_id');
 
         return $student->is_active && $student->hasRole('student')
             ? $query

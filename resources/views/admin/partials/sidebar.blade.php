@@ -1,10 +1,15 @@
 @php
   $sidebarUser = auth()->user();
-  $sidebarRole = $sidebarUser?->hasRole('admin') ? 'مدیر سامانه' : ($sidebarUser?->hasRole('teacher') ? 'مدرس' : 'کاربر');
+  $sidebarRole = match (true) {
+    $sidebarUser?->hasRole('admin') => 'مدیر سامانه',
+    $sidebarUser?->hasRole('seo') => 'کارشناس سئو',
+    $sidebarUser?->hasRole('teacher') => 'مدرس',
+    default => 'کاربر',
+  };
   $sidebarInitial = mb_substr($sidebarUser?->name ?? 'م', 0, 1);
 @endphp
 <aside class="adm-sidebar" id="adm-sidebar" aria-label="منوی اصلی">
-  <a class="adm-brand" href="{{ url('admin') }}">
+  <a class="adm-brand" href="{{ url($nav['home']['url']) }}">
     <span class="adm-brand-mark">ش</span>
     <span><strong>آکادمی شیخان</strong><small>{{ $sidebarRole }}</small></span>
   </a>
