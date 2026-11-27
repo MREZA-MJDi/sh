@@ -16,7 +16,7 @@ use Illuminate\View\View;
 
 final class VideoController extends Controller
 {
-    public function index(Request $request, LearningAccessService $access): RedirectResponse|View
+    public function index(Request $request, LearningAccessService $access): View
     {
         $videos = $this->accessibleVideos($request->user(), $access)
             ->where('status', '!=', 'waiting_contract')
@@ -31,10 +31,6 @@ final class VideoController extends Controller
             ->latest('created_at')
             ->paginate(12)
             ->withQueryString();
-
-        if ($videos->total() === 0) {
-            return redirect()->route('student.courses.index');
-        }
 
         return view('student.videos.index', compact('videos'));
     }
@@ -59,6 +55,23 @@ final class VideoController extends Controller
     {
         $recording = $this->findAccessibleVideo($request->user(), $video, $access);
 
+        $privacyHeaders = [
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'Pragma' => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'same-origin',
+            'Cross-Origin-Resource-Policy' => 'same-origin',
+            'X-Robots-Tag' => 'noindex, nofollow',
+        ];
+
+        // Fetch Metadata is a browser-level deterrent, not DRM or authentication.
+        // Keep compatibility with older browsers that omit these headers.
+        if ($request->header('Sec-Fetch-Mode') === 'navigate'
+            || in_array($request->header('Sec-Fetch-Dest'), ['document', 'iframe', 'frame', 'object', 'embed'], true)
+            || in_array($request->header('Sec-Fetch-Site'), ['cross-site', 'same-site'], true)) {
+            return response('برای تماشای ویدیو از پلیر دوره استفاده کنید.', 403, $privacyHeaders);
+        }
+
         if (
             $recording->status !== 'active'
             || blank($recording->file_path)
@@ -68,12 +81,7 @@ final class VideoController extends Controller
             return response(
                 'پخش این فایل تا زمان آماده‌شدن منبع ویدیو فعال نیست.',
                 409,
-                [
-                    'Cache-Control' => 'private, no-store, max-age=0',
-                    'Pragma' => 'no-cache',
-                    'X-Content-Type-Options' => 'nosniff',
-                    'Referrer-Policy' => 'same-origin',
-                ]
+                $privacyHeaders
             );
         }
 
@@ -91,11 +99,20 @@ final class VideoController extends Controller
         $headers = [
             'Content-Type' => $mimeType,
             'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'private, no-store, max-age=0',
-            'Pragma' => 'no-cache',
-            'X-Content-Type-Options' => 'nosniff',
-            'Referrer-Policy' => 'same-origin',
+            'Content-Disposition' => 'inline',
+            ...$privacyHeaders,
         ];
+
+        // PHP authorizes the request; Nginx sends the bytes and handles ranges.
+        // Only canonical processed recording paths may be internally redirected.
+        if (config('learning.nginx_private_video')
+            && preg_match('~^private/course-videos/[A-Za-z0-9_-]+\\.mp4$~D', $recording->file_path)
+            && realpath($path) === realpath(Storage::disk('local')->path('private/course-videos')).'/'.basename($path)) {
+            return response('', 200, [
+                ...$headers,
+                'X-Accel-Redirect' => '/_protected_course_video/'.rawurlencode(basename($path)),
+            ]);
+        }
 
         $range = $request->header('Range');
         if (filled($range)) {
@@ -170,14 +187,7 @@ final class VideoController extends Controller
             ->where(function (Builder $delivery): void {
                 $delivery->whereNotNull('file_path')->orWhereNotNull('external_id');
             })
-            ->whereHas('course', fn (Builder $course) => $course
-                ->where('status', 'published')
-                ->where(function (Builder $videoDelivery): void {
-                    $videoDelivery->where(function (Builder $legacy): void {
-                        $legacy->whereNull('learning_features->recorded_video')->where('delivery_type', 'spotplayer');
-                    })->orWhere('learning_features->recorded_video', true);
-                })
-                ->whereIn('courses.id', clone $activeCourseIds))
+            ->whereIn('course_id', $activeCourseIds)
             ->where(function (Builder $scope) use ($activeClassroomIds): void {
                 $scope->whereNull('classroom_id')
                     ->orWhere(function (Builder $classScope) use ($activeClassroomIds): void {

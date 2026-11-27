@@ -16,7 +16,7 @@
     'requested' => 'درخواست‌شده', 'proposed' => 'پیشنهادشده', 'completed' => 'تکمیل‌شده',
     'declined' => 'ردشده', 'cancelled' => 'لغوشده',
   ];
-  $typeIcons = ['messages' => 'msg', 'contacts' => 'msg', 'consultations' => 'chat', 'meetings' => 'calendar'];
+  $typeIcons = ['messages' => 'msg', 'contacts' => 'msg', 'consultations' => 'chat', 'meetings' => 'cal'];
 @endphp
 
 <x-admin.page-head tone="comm" icon="msg" title="مرکز ارتباطات" desc="پیام‌های کاربران، فرم تماس سایت، درخواست‌های مشاوره و جلسات اولیا را از یک نقطه پیگیری کن.">
@@ -28,7 +28,7 @@
   @endforeach
 </div>
 
-<x-admin.panel flush data-tone="comm">
+<x-admin.panel title="صف پیگیری ارتباطات" icon="msg" flush data-tone="comm">
   <form method="GET" action="{{ route('admin.communication-center.index') }}" class="adm-toolbar">
     <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="جستجوی موضوع، نام، شماره تماس یا متن پیام…" aria-label="جستجوی پیام‌ها" style="min-width:240px;flex:1">
     <select class="adm-select" name="type" aria-label="دسته پیام">
@@ -51,7 +51,7 @@
           <span class="adm-communication-topline"><strong>{{ $item['title'] }}</strong><small>{{ \App\Support\PersianDate::format($item['created_at'], 'Y/m/d H:i') }}</small></span>
           <span class="adm-communication-meta">{{ $item['label'] }} · {{ $item['sender'] }} @if($item['context']) · {{ $item['context'] }} @endif</span>
           <span class="adm-communication-direction" data-direction="{{ $item['direction'] }}">
-            <x-admin.icon :name="$item['direction'] === 'outgoing' ? 'msg' : 'msg'"/>
+            <x-admin.icon name="msg"/>
             {{ $item['direction_label'] }}
           </span>
           <span class="adm-communication-summary">{{ $item['summary'] }}</span>
@@ -59,7 +59,7 @@
         <x-admin.badge tone="{{ in_array($item['status'], ['resolved', 'done', 'completed', 'answered', 'read'], true) ? 'ok' : (in_array($item['status'], ['spam', 'declined', 'cancelled'], true) ? 'mute' : 'warn') }}">{{ $statusLabels[$item['status']] ?? $item['status'] }}</x-admin.badge>
       </a>
     @empty
-      <p class="adm-empty">پیامی با این فیلتر پیدا نشد.</p>
+      <x-admin.empty icon="msg" text="پیامی با این فیلتر پیدا نشد."/>
     @endforelse
   </div>
   <x-slot:footer><x-admin.pager :current="$items->currentPage()" :last="$items->lastPage()" :total="$items->total()" :per="$items->perPage()"/></x-slot:footer>

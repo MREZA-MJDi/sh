@@ -67,7 +67,7 @@ class MessageController extends Controller
                 ->where('message_id', $selected->id)->latest()->get()
             : collect();
 
-        $consultations = $selected
+        $consultations = $selected && ($selected->student_id || $partner) && $request->user()->hasPermissionTo('consultations.manage')
             ? Consultation::query()->with(['requester:id,name', 'student:id,name', 'teacher:id,name', 'replies.sender:id,name'])
                 ->where(function ($query) use ($selected, $partner): void {
                     if ($selected->student_id) {

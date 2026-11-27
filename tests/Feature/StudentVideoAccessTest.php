@@ -51,7 +51,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.videos.index'))
-            ->assertRedirect(route('student.courses.index'));
+            ->assertOk()->assertSee('هنوز ویدئویی برای شما منتشر نشده است.')->assertDontSee('ضبط جلسه فیزیک');
 
         $this->get(route('student.videos.show', $video))
             ->assertRedirect(route('public.courses.show', $course->slug));
@@ -114,6 +114,79 @@ final class StudentVideoAccessTest extends TestCase
             ->get(route('student.videos.stream', $video))
             ->assertStatus(416)
             ->assertHeader('Content-Range', 'bytes */19');
+    }
+
+    public function test_free_and_paid_video_streams_reject_browser_navigation_and_cross_origin_requests(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+
+        foreach (['free', 'paid'] as $type) {
+            [$course, $classroom] = $this->courseAndClassroom($teacher, 'playback-only-'.$type);
+            $course->update(['type' => $type, 'price' => $type === 'free' ? 0 : 100000]);
+            $classroom->students()->attach($student->id);
+            app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+            // Explicitly grant the paid entitlement to test an authorized paid viewer.
+            if ($type === 'paid') {
+                \App\Models\CourseEnrollment::query()->updateOrCreate(
+                    ['student_id' => $student->id, 'course_id' => $course->id],
+                    ['source' => 'manual', 'status' => 'active', 'granted_at' => now(), 'expires_at' => null]
+                );
+            }
+            $path = 'private/course-videos/playback-only-'.$type.'.mp4';
+            Storage::disk('local')->put($path, 'video-data');
+            $video = SpotPlayerVideo::query()->create([
+                'course_id' => $course->id, 'classroom_id' => $classroom->id,
+                'created_by' => $teacher->id, 'title' => 'ویدیو',
+                'status' => 'active', 'approval_status' => 'approved',
+                'file_path' => $path, 'file_mime_type' => 'video/mp4',
+            ]);
+            $url = route('student.videos.stream', $video);
+
+            $this->actingAs($student)->get(route('student.videos.show', $video))
+                ->assertOk()->assertSee('nodownload', false)->assertSee('data-protected-video', false);
+
+            $this->get($url, ['Sec-Fetch-Mode' => 'navigate', 'Sec-Fetch-Dest' => 'document', 'Sec-Fetch-Site' => 'none'])
+                ->assertForbidden()->assertHeaderMissing('X-Accel-Redirect');
+            $this->get($url, ['Sec-Fetch-Dest' => 'video', 'Sec-Fetch-Site' => 'cross-site'])
+                ->assertForbidden();
+            $this->get($url, ['Sec-Fetch-Dest' => 'video', 'Sec-Fetch-Site' => 'same-origin', 'Range' => 'bytes=0-4'])
+                ->assertStatus(206)
+                ->assertHeader('Content-Disposition', 'inline')
+                ->assertHeader('Cross-Origin-Resource-Policy', 'same-origin')
+                ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        }
+    }
+
+    public function test_nginx_offload_requires_the_same_course_and_classroom_access(): void
+    {
+        config(['learning.nginx_private_video' => true]);
+        $student = $this->userWithRole('student');
+        $outsider = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        [$course, $classroom] = $this->courseAndClassroom($teacher, 'video-nginx-offload');
+        $classroom->students()->attach($student->id);
+        app(CourseEnrollmentService::class)->syncClassroomRoster($classroom);
+
+        $path = 'private/course-videos/authorized.mp4';
+        Storage::disk('local')->put($path, 'video-data');
+        $video = SpotPlayerVideo::query()->create([
+            'course_id' => $course->id, 'classroom_id' => $classroom->id,
+            'created_by' => $teacher->id, 'title' => 'ضبط جلسه',
+            'status' => 'active', 'approval_status' => 'approved',
+            'file_path' => $path, 'file_mime_type' => 'video/mp4',
+        ]);
+
+        $this->actingAs($student)->get(route('student.videos.stream', $video))
+            ->assertOk()
+            ->assertHeader('X-Accel-Redirect', '/_protected_course_video/authorized.mp4');
+        $this->actingAs($outsider)->get(route('student.videos.stream', $video))
+            ->assertNotFound()
+            ->assertHeaderMissing('X-Accel-Redirect');
+
+        config(['learning.nginx_private_video' => false]);
+        $this->actingAs($student)->get(route('student.videos.stream', $video))
+            ->assertOk()->assertHeaderMissing('X-Accel-Redirect');
     }
 
     public function test_video_is_not_visible_to_students_outside_its_course_or_class(): void

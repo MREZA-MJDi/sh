@@ -15,7 +15,8 @@ final class ClassroomWorkspaceService
             ->when($this->isTeacher($user), function (Builder $query) use ($user): void {
                 $query->where(function (Builder $scope) use ($user): void {
                     $scope->where('teacher_id', $user->id)
-                        ->orWhereHas('course', fn (Builder $course) => $course->where('teacher_id', $user->id));
+                        ->orWhere(fn (Builder $unassigned) => $unassigned->whereNull('teacher_id')
+                            ->whereHas('course', fn (Builder $course) => $course->where('teacher_id', $user->id)));
                 });
             });
     }
@@ -33,9 +34,7 @@ final class ClassroomWorkspaceService
 
     public function owns(User $user, Classroom $classroom): bool
     {
-        return ! $this->isTeacher($user)
-            || $classroom->teacher_id === $user->id
-            || $classroom->course()->where('teacher_id', $user->id)->exists();
+        return $this->queryFor($user)->whereKey($classroom->id)->exists();
     }
 
     public function ownsCourse(User $user, Course $course): bool

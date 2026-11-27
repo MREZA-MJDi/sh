@@ -1,22 +1,22 @@
 @php
     $t = $teacher ?? auth()->user();
     $groups = [
-        ['label' => 'نمای کلی', 'items' => [['teacher.dashboard', 'داشبورد', '⌂', 'teacher']]],
+        ['label' => 'نمای کلی', 'items' => [['teacher.dashboard', 'داشبورد', 'home', 'teacher']]],
     ];
     $learning = [];
-    if ($t?->hasPermissionTo('classes.view.assigned')) $learning[] = ['teacher.classes', 'کلاس‌ها و دوره‌ها', '▦', 'teacher/classes'];
-    if ($t?->hasPermissionTo('classes.view.assigned')) $learning[] = ['teacher.live', 'کلاس آنلاین', '◉', 'teacher/live'];
-    if ($t?->hasPermissionTo('classes.view.assigned')) $learning[] = ['teacher.meetings', 'جلسات با اولیا', '◷', 'teacher/meetings'];
+    if ($t?->hasPermissionTo('classes.view.assigned')) $learning[] = ['teacher.classes', 'کلاس‌ها و دوره‌ها', 'book', 'teacher/classes'];
+    if ($t?->hasPermissionTo('classes.view.assigned')) $learning[] = ['teacher.live', 'کلاس آنلاین', 'video', 'teacher/live'];
+    if ($t?->hasPermissionTo('classes.view.assigned')) $learning[] = ['teacher.meetings', 'جلسات با اولیا', 'calendar', 'teacher/meetings'];
     if ($learning) $groups[] = ['label' => 'کلاس و برنامه', 'items' => $learning];
     $academic = [];
-    if ($t?->hasPermissionTo('homework.view.assigned')) $academic[] = ['teacher.homework', 'تکالیف و ارزیابی', '✓', 'teacher/homework'];
-    if ($t?->hasPermissionTo('attendance.view.assigned')) $academic[] = ['teacher.attendance', 'حضور و غیاب', '▤', 'teacher/attendance'];
-    if ($t?->hasPermissionTo('resources.manage.assigned')) $academic[] = ['teacher.resources', 'جزوه و منابع', '▧', 'teacher/resources'];
-    if ($t?->hasPermissionTo('videos.manage.assigned')) $academic[] = ['teacher.videos', 'ویدئوهای آموزشی', '▶', 'teacher/videos'];
+    if ($t?->hasPermissionTo('homework.view.assigned')) $academic[] = ['teacher.homework', 'تکالیف و ارزیابی', 'check', 'teacher/homework'];
+    if ($t?->hasPermissionTo('attendance.view.assigned')) $academic[] = ['teacher.attendance', 'حضور و غیاب', 'check', 'teacher/attendance'];
+    if ($t?->hasPermissionTo('resources.manage.assigned')) $academic[] = ['teacher.resources', 'جزوه و منابع', 'file', 'teacher/resources'];
+    if ($t?->hasPermissionTo('videos.manage.assigned')) $academic[] = ['teacher.videos', 'ویدئوهای آموزشی', 'video', 'teacher/videos'];
     if ($academic) $groups[] = ['label' => 'محتوای آموزشی', 'items' => $academic];
     $communication = [];
-    if ($t?->hasPermissionTo('messages.view.assigned')) $communication[] = ['teacher.messages.index', 'پیام‌ها و گفتگوها', '✉', 'teacher/messages'];
-    if ($t?->hasPermissionTo('consultations.create')) $communication[] = ['teacher.consultations.index', 'درخواست هماهنگی', '◌', 'teacher/consultations'];
+    if ($t?->hasPermissionTo('messages.view.assigned')) $communication[] = ['teacher.messages.index', 'پیام‌ها و گفتگوها', 'message', 'teacher/messages'];
+    if ($t?->hasPermissionTo('consultations.create')) $communication[] = ['teacher.consultations.index', 'درخواست هماهنگی', 'message', 'teacher/consultations'];
     if ($communication) $groups[] = ['label' => 'ارتباطات', 'items' => $communication];
 @endphp
 <aside class="teacher-sidebar" id="teacherSidebar" aria-label="منوی اصلی مدرس" tabindex="-1">
@@ -30,7 +30,7 @@
             <div class="teacher-sidebar-group"><span class="teacher-sidebar-group-label">{{ $group['label'] }}</span>
                 @foreach($group['items'] as [$routeName, $label, $icon, $path])
                     @php $active = request()->routeIs($routeName) || ($path !== 'teacher' && request()->is($path.'/*')); @endphp
-                    <a href="{{ route($routeName) }}" class="{{ $active ? 'on' : '' }}" @if($active) aria-current="page" @endif><span class="teacher-sidebar-icon" aria-hidden="true">{{ $icon }}</span><span class="teacher-sidebar-link-label">{{ $label }}</span></a>
+                    <a href="{{ route($routeName) }}" class="{{ $active ? 'on' : '' }}" @if($active) aria-current="page" @endif><span class="teacher-sidebar-icon" aria-hidden="true"><x-portal.icon :name="$icon"/></span><span class="teacher-sidebar-link-label">{{ $label }}</span></a>
                 @endforeach
             </div>
         @endforeach

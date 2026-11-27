@@ -8,6 +8,11 @@ return [
     'player_mode' => env('LEARNING_PLAYER_MODE', 'license'),
     'embed_url_template' => env('LEARNING_EMBED_URL'), // مثال: https://.../{video_id}
 
+    // Keep CPU-intensive video work bounded on shared VPS hosts.
+    'video_threads' => max(1, min(8, (int) env('LEARNING_VIDEO_THREADS', 1))),
+    // Enable only after the internal Nginx location has been installed and tested.
+    'nginx_private_video' => env('LEARNING_NGINX_PRIVATE_VIDEO', false),
+
     'max_teaser_mb' => 200,
     'max_lesson_mb' => 300,
     'chunk_mb' => max(1, (int) env('LEARNING_CHUNK_MB', 1)),

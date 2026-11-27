@@ -7,7 +7,9 @@
  $fullAttendance = $attendance_rate !== null && $attendance_rate >= 100;
  $strongResults = ($results ?? collect())->filter(fn ($result) => $result->max_score > 0 && ($result->score / $result->max_score) >= .9)->count();
 @endphp
-<section class="page" id="achievements"><div class="card"><div class="chead"><h2>دستاوردها</h2><span class="pill">{{ collect([$perfectExam, $completedCourse !== null, $fullAttendance, $strongResults > 0])->filter()->count() }} از ۴</span></div>
+<section class="page" id="achievements">
+<x-portal.page-head icon="chart" tone="tracking" title="دستاوردها"/>
+<div class="card"><div class="chead"><h2>دستاوردها</h2><span class="pill">{{ collect([$perfectExam, $completedCourse !== null, $fullAttendance, $strongResults > 0])->filter()->count() }} از ۴</span></div>
  <div class="g3">
   <div class="card medal {{ $strongResults ? '' : 'off' }}"><div class="pl"><svg class="i"><use href="#i-trophy"/></svg></div><b>عملکرد درخشان</b><p style="font-size:13px;color:var(--muted)">{{ $strongResults ? $strongResults.' نتیجه با امتیاز ۹۰٪ یا بیشتر' : 'هنوز نتیجه‌ای در این بازه ثبت نشده' }}</p></div>
   <div class="card medal {{ $fullAttendance ? '' : 'off' }}"><div class="pl"><svg class="i"><use href="#i-cal"/></svg></div><b>حضور کامل</b><p style="font-size:13px;color:var(--muted)">{{ $attendance_rate === null ? 'داده حضور ثبت نشده' : 'نرخ حضور '.$attendance_rate.'٪' }}</p></div>

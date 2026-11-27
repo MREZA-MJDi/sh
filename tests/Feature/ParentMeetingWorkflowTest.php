@@ -430,6 +430,49 @@ final class ParentMeetingWorkflowTest extends TestCase
         Notification::assertSentTo($teacher, ParentMeetingNotification::class);
     }
 
+    public function test_classroom_meeting_is_one_event_visible_only_to_invited_families(): void
+    {
+        Notification::fake();
+        $admin = $this->userWithRole('admin');
+        $teacher = $this->userWithRole('teacher');
+        $classroom = Classroom::query()->create(['teacher_id' => $teacher->id, 'name' => 'گروه ریاضی', 'status' => 'active']);
+        $students = [$this->userWithRole('student'), $this->userWithRole('student')];
+        $guardians = [$this->userWithRole('parent'), $this->userWithRole('parent')];
+        foreach ($students as $index => $student) {
+            $classroom->students()->attach($student->id);
+            $guardians[$index]->children()->attach($student->id);
+        }
+        $outsider = $this->userWithRole('student');
+        $otherGuardian = $this->userWithRole('parent');
+        $otherGuardian->children()->attach($outsider->id);
+
+        $payload = [
+            'audience' => 'classroom', 'classroom_id' => $classroom->id,
+            'title' => 'جلسه سراسری ریاضی', 'starts_at' => now()->addDays(2)->format('Y-m-d\TH:i'),
+        ];
+        $this->actingAs($teacher)->postJson(route('admin.parent-meetings.store'), $payload)->assertForbidden();
+        $this->actingAs($admin)->post(route('admin.parent-meetings.store'), $payload)
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('parent_meetings', 1);
+        $this->assertDatabaseCount('parent_meeting_attendees', 2);
+        $meeting = ParentMeeting::query()->sole();
+        foreach ($students as $index => $student) {
+            Notification::assertSentTo($student, ParentMeetingNotification::class);
+            Notification::assertSentTo($guardians[$index], ParentMeetingNotification::class);
+            $this->actingAs($student)->get(route('student.meetings.index'))->assertOk()->assertSee($meeting->title);
+            $this->actingAs($guardians[$index])->get(route('guardian.meetings.index', ['child' => $student->id]))
+                ->assertOk()->assertSee($meeting->title);
+        }
+        Notification::assertNotSentTo($otherGuardian, ParentMeetingNotification::class);
+        $this->actingAs($outsider)->get(route('student.meetings.index'))->assertOk()->assertDontSee($meeting->title);
+        $this->actingAs($otherGuardian)->get(route('guardian.meetings.index'))->assertOk()->assertDontSee($meeting->title);
+        $this->actingAs($admin)->patch(route('admin.parent-meetings.status', $meeting), ['status' => 'cancelled'])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('parent_meetings', 1);
+        $this->assertSame('cancelled', $meeting->fresh()->status);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

@@ -45,6 +45,23 @@ final class StudentFreeCourseDiscoveryTest extends TestCase
             ->assertDontSeeText('ویژه دانش‌آموزان ثبت‌نام‌شده');
     }
 
+    public function test_free_course_access_query_does_not_require_any_existing_enrollment(): void
+    {
+        $student = $this->userWithRole('student');
+        $teacher = $this->userWithRole('teacher');
+        $free = $this->course($teacher, ['type' => 'free', 'price' => 0]);
+        $paid = $this->course($teacher, ['type' => 'paid', 'price' => 100000]);
+        $access = app(\App\Services\Learning\LearningAccessService::class);
+
+        $this->assertDatabaseCount('course_enrollments', 0);
+        $this->assertSame([$free->id], $access->activeCourseIds($student)->pluck('courses.id')->all());
+        $this->assertFalse($access->hasCourseAccess($student, $paid));
+        $this->actingAs($student)->get(route('student.courses.show', $free))
+            ->assertRedirect(route('public.courses.show', $free->slug));
+
+        $this->assertFalse($access->activeCourseIds($student, 'recorded_video')->exists());
+    }
+
     public function test_student_can_enroll_in_a_published_free_course_from_the_course_list(): void
     {
         $student = $this->userWithRole('student');

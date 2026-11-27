@@ -4,29 +4,45 @@
 @section('canonical', route('public.teachers.show', $teacher))
 
 @section('content')
-<header class="ac-page-head">
-    <div class="ac-wrap">
-        <div style="font-size:13px;color:#9fb0d8">
-            <a href="{{ route('home') }}">خانه</a> ‹ <a href="{{ route('public.teachers.index') }}">مدرسان</a> ‹ {{ $teacher->name }}
-        </div>
-        <div style="display:flex;align-items:center;gap:22px;margin-top:18px;flex-wrap:wrap">
-            <div class="ac-avatar" style="width:96px;height:96px;font-size:38px;margin:0;box-shadow:0 10px 25px rgba(0,0,0,0.25);overflow:hidden">
-                @if($teacher->avatarUrl())
-                    <img src="{{ $teacher->avatarUrl() }}" alt="{{ $teacher->name }}" style="width:100%;height:100%;object-fit:cover">
-                @else
-                    {{ mb_substr($teacher->name, 0, 1) }}
-                @endif
-            </div>
-            <div>
-                <h1 style="margin:0 0 6px">{{ $teacher->name }}</h1>
-                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                    <span class="ac-pill">{{ $teacher->subject ?: 'مدرس آکادمی' }}</span>
-                    <span style="color:#cbd5f1;font-size:13px">مدرس رسمی آموزشگاه</span>
+<section class="contact-hero-wrap">
+    <div class="c">
+        <header class="contact-hero">
+            <div class="contact-hero-copy">
+                <div class="contact-breadcrumb">
+                    <a href="{{ route('home') }}">خانه</a> ‹ <a href="{{ route('public.teachers.index') }}">مدرسان</a> ‹ <span>{{ $teacher->name }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap">
+                    <div class="ac-avatar" style="width:84px;height:84px;font-size:34px;margin:0;border:3px solid rgba(255,255,255,0.45);box-shadow:0 10px 25px rgba(0,0,0,0.22);overflow:hidden">
+                        @if($teacher->avatarUrl())
+                            <img src="{{ $teacher->avatarUrl() }}" alt="{{ $teacher->name }}" style="width:100%;height:100%;object-fit:cover">
+                        @else
+                            {{ mb_substr($teacher->name, 0, 1) }}
+                        @endif
+                    </div>
+                    <div>
+                        <h1 style="margin:0 0 6px">{{ $teacher->name }}</h1>
+                        <p>{{ $teacher->subject ? 'مدرس تخصصی '.$teacher->subject : 'مدرس رسمی آکادمی' }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <div class="contact-hero-highlights">
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cap"/></svg>
+                    <span>{{ number_format($stats['courses_count']) }} دوره آموزشی منتشرشده</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#clock"/></svg>
+                    <span>{{ number_format($stats['lessons_count']) }} جلسه و درس آموزشی</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#user"/></svg>
+                    <span>{{ number_format($stats['enrollments_count']) }} دانش‌آموز فعال در دوره‌ها</span>
+                </div>
+            </div>
+        </header>
     </div>
-</header>
+</section>
 
 <section class="ac-stats">
     <div class="ac-wrap ac-grid ac-grid-3">

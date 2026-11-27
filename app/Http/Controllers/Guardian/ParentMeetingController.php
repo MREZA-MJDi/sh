@@ -27,8 +27,7 @@ final class ParentMeetingController extends Controller
         $selectedChild = $children->firstWhere('id', $request->integer('child')) ?? $children->first();
 
         $meetings = ParentMeeting::query()
-            ->where('guardian_id', $guardian->id)
-            ->where('student_id', $selectedChild?->id ?? 0)
+            ->forGuardian($guardian->id, $selectedChild?->id ?? 0)
             ->with(['student:id,name', 'classroom:id,name', 'course:id,title', 'creator:id,name', 'responder:id,name'])
             ->orderByRaw("CASE WHEN status IN ('requested', 'proposed') THEN 0 WHEN status = 'scheduled' THEN 1 ELSE 2 END")
             ->orderByRaw('COALESCE(starts_at, preferred_at) ASC')

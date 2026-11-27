@@ -4,7 +4,7 @@
 
 @section('content')
 @php $t = $hwTotals ?? []; @endphp
-<div class="parent-page-heading"><div><span class="parent-eyebrow">پیگیری تکالیف</span><h1>تکالیف {{ data_get($kid ?? null, 'name') }}</h1><p>وضعیت تکالیف منتشرشده و روند ارسال شش ماه اخیر</p></div></div>
+<x-portal.page-head icon="check" tone="tracking" :title="'تکالیف '.($kid?->name ?? '')"/>
 @include('parent.partials.kid-picker')
 <div class="g g2">
     <section class="c"><h3>وضعیت کل تکالیف</h3>
@@ -26,7 +26,8 @@
                 <div>
                     <strong>{{ data_get($h, 'title') }}</strong>
                     <small>مهلت: {{ data_get($h, 'due') }}</small>
-                    <small>وضعیت: {{ data_get($h, 'status') }}</small>
+                    
+                    @if(data_get($h, 'submitted_late'))<small>ارسال با تأخیر</small>@endif
                     @if(data_get($h, 'score') !== null)
                         <small class="parent-homework-score">نمره: {{ data_get($h, 'score') }} از ۲۰</small>
                     @endif
@@ -40,7 +41,7 @@
                 <i class="bd {{ data_get($h, 'tone', 'am') }}">{{ data_get($h, 'status') }}</i>
             </article>
         @empty
-            <div class="parent-empty-state"><strong>تکلیفی برای این فرزند ثبت نشده است.</strong><span>تکالیف جدید پس از انتشار در این قسمت دیده می‌شوند.</span></div>
+            <x-portal.empty-state icon="file" tone="tracking" title="تکلیفی برای این فرزند ثبت نشده است." description="تکالیف جدید پس از انتشار در این قسمت دیده می‌شوند."/>
         @endforelse
         <div class="parent-pagination">{{ $homeworkPaginator->links() }}</div>
     </section>

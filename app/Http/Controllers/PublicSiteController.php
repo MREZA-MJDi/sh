@@ -29,7 +29,7 @@ final class PublicSiteController extends Controller
         $settings = SeoSetting::current();
         $homeContent = is_array($settings->home_sections) ? $settings->home_sections : SeoSetting::defaultHomeSections();
         $homeBanners = SeoBanner::query()->active()->where('placement', 'home_hero')
-            ->orderBy('sort_order')->orderBy('id')->limit(3)->get();
+            ->orderBy('sort_order')->orderBy('id')->get();
         $homeQuizTotal = HomeQuizQuestion::published()->count();
 
         $courseQuery = Course::query()->where('status', 'published')
@@ -40,6 +40,10 @@ final class PublicSiteController extends Controller
 
         $courses = (clone $courseQuery)->latest()->limit(6)->get();
         $popularCourses = (clone $courseQuery)->orderByDesc('enrollments_count')->latest()->limit(6)->get();
+        $recommendedCourses = (clone $courseQuery)->where('is_recommended', true)->latest()->limit(3)->get();
+        if ($recommendedCourses->isEmpty()) {
+            $recommendedCourses = $popularCourses->take(3);
+        }
 
         $teachers = User::query()->where('is_active', true)
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'teacher'))
@@ -59,12 +63,21 @@ final class PublicSiteController extends Controller
             'enrollments' => CourseEnrollment::query()->currentlyActive()->whereHas('course', fn ($courses) => $courses->where('status', 'published'))->count(),
         ];
 
-        return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'homeQuizTotal', 'courses', 'popularCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
+        return view('public.home.index', compact('settings', 'homeContent', 'homeBanners', 'homeQuizTotal', 'courses', 'popularCourses', 'recommendedCourses', 'teachers', 'articles', 'categories', 'stats', 'testimonials'));
     }
 
     public function courses(Request $request): View
     {
         $settings = SeoSetting::current();
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'subject' => ['nullable', 'string', 'max:100'],
+            'grade' => ['nullable', 'string', 'max:50'],
+            'season' => ['nullable', 'in:'.implode(',', array_keys(Course::SEASONS))],
+            'academic_year' => ['nullable', 'integer', 'between:1300,1500'],
+            'price' => ['nullable', 'in:free,paid'],
+            'sort' => ['nullable', 'in:latest,popular,price_asc,price_desc'],
+        ]);
         $query = Course::query()->where('status', 'published')
             ->with(['teacher' => fn ($teacher) => $teacher->where('is_active', true)])
             ->withCount(['enrollments' => fn ($enrollments) => $enrollments->currentlyActive()]);
@@ -89,7 +102,8 @@ final class PublicSiteController extends Controller
         }
         if ($subject = $request->query('subject')) $query->where('subject', $subject);
         if ($grade = $request->query('grade')) $query->where('grade', $grade);
-        if ($season = $request->query('season')) $query->where('season', $season);
+        if ($season = $filters['season'] ?? null) $query->where('season', $season);
+        if ($year = $filters['academic_year'] ?? null) $query->where('academic_year', $year);
         if ($request->query('price') === 'free') $query->where('type', 'free');
         if ($request->query('price') === 'paid') $query->where('type', 'paid');
 
@@ -105,9 +119,10 @@ final class PublicSiteController extends Controller
             ->where('subject', '<>', '')->distinct()->orderBy('subject')->pluck('subject');
         $grades = Course::query()->where('status', 'published')->whereNotNull('grade')
             ->distinct()->orderBy('grade')->pluck('grade');
-        $seasons = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
+        $seasons = Course::SEASONS;
+        $academicYears = Course::query()->where('status', 'published')->whereNotNull('academic_year')->distinct()->orderByDesc('academic_year')->pluck('academic_year');
 
-        return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades', 'seasons'));
+        return view('public.courses.index', compact('settings', 'courses', 'subjects', 'grades', 'seasons', 'academicYears'));
     }
 
     public function course(

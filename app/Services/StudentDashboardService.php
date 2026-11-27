@@ -66,17 +66,7 @@ final class StudentDashboardService
             ->limit(8)
             ->get();
 
-        $attendanceQuery = Attendance::query()
-            ->where('student_id', $student->id)
-            ->whereIn('classroom_id', clone $classroomIds)
-            ->where(function (Builder $query): void {
-                $query->whereNull('attendances.class_session_id')
-                    ->orWhereHas('session', function (Builder $session): void {
-                        $session->where('status', '!=', 'cancelled')
-                            ->where('starts_at', '<=', now())
-                            ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
-                    });
-            });
+        $attendanceQuery = Attendance::query()->visibleToStudent($student, clone $classroomIds);
 
         $attendanceTotal = (clone $attendanceQuery)
             ->whereIn('status', ['present', 'late', 'absent'])
@@ -144,7 +134,7 @@ final class StudentDashboardService
 
         $resources = (clone $resourceQuery)
             ->with(['course:id,title', 'classroom:id,name', 'classSession:id,classroom_id,title,starts_at'])
-            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)])
+            ->with(['purchases' => fn ($query) => $query->where('student_id', $student->id)->latest()->limit(1)])
             ->latest()
             ->limit(5)
             ->get(['id', 'classroom_id', 'class_session_id', 'course_id', 'title', 'kind', 'is_free', 'price', 'file_path', 'downloadable', 'release_at', 'created_at']);
@@ -183,19 +173,20 @@ final class StudentDashboardService
 
     public function buildSummary(User $student): array
     {
-        // The dashboard is a notification hub: fetch aggregate counts only.
+        // Fetch aggregate counts and a single upcoming session for the dashboard.
         // Full records stay on their dedicated, independently paginated pages.
         $classroomIds = $this->learningAccess->activeClassroomIds($student);
         $assignmentClassroomIds = $this->learningAccess->activeClassroomIds($student, 'assignments');
 
         $classroomCount = (clone $classroomIds)->count();
 
-        $upcomingSessionCount = ClassSession::query()
+        $upcomingQuery = ClassSession::query()
             ->whereIn('classroom_id', clone $classroomIds)
             ->where('status', 'scheduled')
             ->whereNotNull('ends_at')
-            ->where('ends_at', '>=', now())
-            ->count();
+            ->where('ends_at', '>=', now());
+        $upcomingSessionCount = (clone $upcomingQuery)->count();
+        $nextSession = $upcomingQuery->orderBy('starts_at')->first(['id', 'title', 'starts_at']);
 
         $homeworkQuery = Homework::query()
             ->whereIn('classroom_id', clone $assignmentClassroomIds)
@@ -213,6 +204,7 @@ final class StudentDashboardService
         return [
             'classroom_count' => $classroomCount,
             'upcoming_session_count' => $upcomingSessionCount,
+            'next_session' => $nextSession,
             'homework_count' => $homeworkCount,
             'pending_homework_count' => $pendingHomeworkCount,
             'result_count' => $resultCount,
@@ -325,17 +317,7 @@ final class StudentDashboardService
         $classroomIds = $this->learningAccess->activeClassroomIds($student);
         $courseIds = $this->learningAccess->activeCourseIds($student);
 
-        $attendance = Attendance::query()
-            ->where('student_id', $student->id)
-            ->whereIn('classroom_id', clone $classroomIds)
-            ->where(function (Builder $query): void {
-                $query->whereNull('attendances.class_session_id')
-                    ->orWhereHas('session', function (Builder $session): void {
-                        $session->where('status', '!=', 'cancelled')
-                            ->where('starts_at', '<=', now())
-                            ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id');
-                    });
-            });
+        $attendance = Attendance::query()->visibleToStudent($student, clone $classroomIds);
         $attendanceTotal = (clone $attendance)->whereIn('status', ['present', 'late', 'absent'])->count();
         $attendancePresent = (clone $attendance)->whereIn('status', ['present', 'late'])->count();
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attendance extends Model
@@ -28,6 +29,20 @@ class Attendance extends Model
             'scheduled_minutes' => 'integer',
             'attended_minutes' => 'integer',
         ];
+    }
+
+    public function scopeVisibleToStudent(Builder $query, User $student, Builder $classroomIds): Builder
+    {
+        return $query->where('student_id', $student->id)
+            ->whereIn('classroom_id', $classroomIds)
+            ->where('session_date', '<', now()->addDay()->toDateString())
+            ->where(function (Builder $scope): void {
+                $scope->whereNull('attendances.class_session_id')
+                    ->orWhereHas('session', fn (Builder $session) => $session
+                        ->where('status', '!=', 'cancelled')
+                        ->where('starts_at', '<=', now())
+                        ->whereColumn('class_sessions.classroom_id', 'attendances.classroom_id'));
+            });
     }
 
     public function classroom(): BelongsTo

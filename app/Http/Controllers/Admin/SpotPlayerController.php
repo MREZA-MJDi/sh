@@ -230,14 +230,13 @@ class SpotPlayerController extends Controller
     public function approveVideo(Request $request, SpotPlayerVideo $video): RedirectResponse
     {
         abort_unless($request->user()->hasRole('admin'), 403);
-        abort_unless($video->approval_status === 'pending', 409, 'این ویدیو دیگر در صف بررسی نیست.');
-
-        $video->forceFill([
+        $changed = SpotPlayerVideo::query()->whereKey($video->id)->where('approval_status', 'pending')->update([
             'approval_status' => 'approved',
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
             'review_note' => null,
-        ])->save();
+        ]);
+        abort_unless($changed === 1, 409, 'این ویدیو دیگر در صف بررسی نیست.');
 
         return back()->with('success', 'ویدیو تأیید شد. پس از آماده‌شدن پردازش، برای دانش‌آموزان مجاز قابل مشاهده خواهد بود.');
     }
@@ -246,14 +245,13 @@ class SpotPlayerController extends Controller
     {
         abort_unless($request->user()->hasRole('admin'), 403);
         $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:2000']]);
-        abort_unless($video->approval_status === 'pending', 409, 'این ویدیو دیگر در صف بررسی نیست.');
-
-        $video->forceFill([
+        $changed = SpotPlayerVideo::query()->whereKey($video->id)->where('approval_status', 'pending')->update([
             'approval_status' => 'rejected',
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
             'review_note' => trim($data['reason']),
-        ])->save();
+        ]);
+        abort_unless($changed === 1, 409, 'این ویدیو دیگر در صف بررسی نیست.');
 
         return back()->with('success', 'ویدیو رد شد و دلیل بررسی ثبت شد.');
     }
@@ -265,7 +263,11 @@ class SpotPlayerController extends Controller
         abort_unless($video->approval_status === 'rejected', 409, 'فقط ویدیوهای ردشده امکان ارسال مجدد دارند.');
         abort_unless($workspace->coursesQueryFor($request->user())->whereKey($video->course_id)->exists(), 404);
 
-        $video->forceFill(['approval_status' => 'pending', 'reviewed_by' => null, 'reviewed_at' => null])->save();
+        $changed = SpotPlayerVideo::query()->whereKey($video->id)
+            ->where('approval_status', 'rejected')
+            ->update(['approval_status' => 'pending', 'reviewed_by' => null, 'reviewed_at' => null, 'review_note' => null]);
+        abort_unless($changed === 1, 409, 'وضعیت بررسی تغییر کرده است.');
+        $video->refresh();
         $notification = new CourseVideoSubmittedForReview($video->loadMissing('creator'));
         User::query()
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'admin'))

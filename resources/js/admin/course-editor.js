@@ -387,10 +387,9 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     }
 
     const classroomId = Number(classroomSelect?.value || 0);
-    const externalId = widget.querySelector('[data-upload-external]')?.value?.trim() || '';
     const legacyResumeKey = ['sh-video-upload', target, courseId, classSessionId, file.name, file.size, file.lastModified].join(':');
     const resumeKey = target === 'teaser' ? legacyResumeKey
-      : JSON.stringify([legacyResumeKey, classroomId, externalId, title]);
+      : JSON.stringify([legacyResumeKey, classroomId, '', title]);
     activeUploads.add(widget);
     setControlsDisabled(true, courseSelect, classroomSelect, sessionSelect);
     let started = null;
@@ -410,7 +409,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
             upload_id: savedUploadId,
             ...(target === 'teaser' ? {} : {
               classroom_id: classroomId || null,
-              external_id: externalId || null,
+              external_id: null,
               title,
             }),
           });
@@ -437,7 +436,6 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
           startPayload.title = title;
           if (classroomId) startPayload.classroom_id = Number(classroomId);
           if (classSessionId) startPayload.class_session_id = classSessionId;
-          if (externalId) startPayload.external_id = externalId;
         }
 
         started = await jsonRequest(widget.dataset.startUrl, startPayload);

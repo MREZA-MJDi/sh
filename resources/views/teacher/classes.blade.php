@@ -2,7 +2,7 @@
 @section('title', 'کلاس‌ها و فیلم‌ها')
 @section('content')
 @php($seasonLabels = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'])
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">آموزش و اجرا</span><h1>کلاس‌ها و فیلم‌ها</h1><p>محتوای آموزشی و جلسه‌های کلاس‌های تخصیص‌یافته را پیگیری کنید.</p></div><div class="teacher-head-actions">@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}">بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="b s" href="{{ route('teacher.resources') }}">افزودن جزوه</a>@endif</div></div>
+<x-portal.page-head icon="book" tone="education" title="کلاس‌ها و فیلم‌ها">@if(auth()->user()->hasPermissionTo('videos.manage.assigned'))<a class="b s" href="{{ route('teacher.videos') }}"><x-portal.icon name="video"/> بارگذاری ویدئو</a>@endif @if(auth()->user()->hasPermissionTo('resources.manage.assigned'))<a class="b s" href="{{ route('teacher.resources') }}"><x-portal.icon name="plus"/> افزودن جزوه</a>@endif</x-portal.page-head>
 <section class="c teacher-assigned-classes">
     <div class="teacher-section-head"><div><h2>دوره‌ها و گروه‌های تخصیص‌یافته</h2><p>پایه و فصل هر گروه از اطلاعات دوره‌ی مرتبط نمایش داده می‌شود.</p></div><span class="teacher-result-count">{{ $classrooms->total() }} کلاس</span></div>
     <form method="GET" action="{{ route('teacher.classes') }}" class="teacher-list-filters">

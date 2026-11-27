@@ -35,13 +35,13 @@ final class JoinClassSessionController extends Controller
         $url = $classSession->meeting_url;
         if (blank($url) && in_array($classSession->meeting_provider, ['skyroom', null, ''], true)) {
             $url = $classroom->meeting_url;
-            $health = $liveClasses->health();
+            if (blank($url)) {
+                if (! $liveClasses->health()->available) {
+                    return back()->with('status', 'جلسه زمان‌بندی شده است؛ اتصال Skyroom هنوز آماده نیست. پس از فعال‌سازی سرویس، لینک ورود در همین بخش فعال می‌شود.');
+                }
 
-            if (! $health->available) {
-                return back()->with('status', 'جلسه شما با موفقیت زمان‌بندی شده است؛ اتصال کلاس آنلاین در حال آماده‌سازی و در انتظار فعال‌سازی سرویس Skyroom است. پس از دریافت دسترسی ارائه‌دهنده، لینک ورود در همین بخش فعال می‌شود.');
+                $url = $liveClasses->joinUrl($student, $classroom);
             }
-
-            $url = $liveClasses->joinUrl($student, $classroom);
         }
 
         $scheme = is_string($url) ? parse_url($url, PHP_URL_SCHEME) : null;

@@ -62,9 +62,10 @@ img,svg{max-width:100%}
 .adm-icon[data-ic=box]{--ic:#f59e0b}
 .adm-icon[data-ic=send]{--ic:#3b82f6}
 .adm-icon[data-ic=refresh]{--ic:#0ea5e9}
-.adm-stat-ico .adm-icon,.adm-pagehead-ico .adm-icon,.adm-card-cover>.adm-icon,.adm-doc-ico .adm-icon,.adm-chapter-no .adm-icon{--ic:#fff!important}
+.adm-stat-ico .adm-icon,.adm-pagehead-ico .adm-icon{--ic:currentColor}
+.adm-card-cover>.adm-icon,.adm-doc-ico .adm-icon,.adm-chapter-no .adm-icon{--ic:#fff!important}
 .adm-btn-primary .adm-icon,.adm-btn:not([class*="adm-btn-"]) .adm-icon{--ic:var(--primary-ink)!important}
-.adm-stat-ico,.adm-pagehead-ico,.adm-doc-ico{background:linear-gradient(135deg,var(--tone),var(--tone-lt));color:#fff;box-shadow:0 6px 14px -8px var(--tone)}
+.adm-doc-ico{background:linear-gradient(135deg,var(--tone),var(--tone-lt));color:#fff;box-shadow:0 6px 14px -8px var(--tone)}
 .adm-flags{display:inline-flex;gap:4px}
 .adm-flag{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface-2);opacity:.3;filter:grayscale(1)}
 .adm-flag.is-on{opacity:1;filter:none}

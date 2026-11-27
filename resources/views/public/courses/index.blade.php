@@ -4,15 +4,36 @@
 @section('description', $settings->home_sections['courses_page_description'] ?? $settings->default_description)
 
 @section('content')
-<div class="pgh">
+<section class="contact-hero-wrap">
     <div class="c">
-        <div class="bc">
-            <a href="{{ route('home') }}">خانه</a> ‹ <span>دوره‌ها</span>
-        </div>
-        <h1>{{ $settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی' }}</h1>
-        <p>{{ $settings->home_sections['courses_page_description'] ?? $settings->default_description }}</p>
+        <header class="contact-hero">
+            <div class="contact-hero-copy">
+                <div class="contact-breadcrumb">
+                    <a href="{{ route('home') }}">خانه</a>
+                    <span>‹</span>
+                    <span>دوره‌ها</span>
+                </div>
+                <h1>{{ $settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی' }}</h1>
+                <p>{{ $settings->home_sections['courses_page_description'] ?? $settings->default_description }}</p>
+            </div>
+
+            <div class="contact-hero-highlights">
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cap"/></svg>
+                    <span>تفکیک بر اساس پایه تحصیلی و درس</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cam"/></svg>
+                    <span>دوره‌های ویدیویی، آنلاین و ترکیبی</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#check"/></svg>
+                    <span>دسترسی فوری پس از ثبت‌نام</span>
+                </div>
+            </div>
+        </header>
     </div>
-</div>
+</section>
 
 <div class="c">
     {{-- چیپ‌های دسترسی سریع به پایه‌ها --}}
@@ -41,6 +62,13 @@
                     <input type="hidden" name="grade" value="{{ request('grade') }}">
                 @endif
 
+                <h4>سال تحصیلی</h4>
+                <select class="inp" name="academic_year" onchange="this.form.submit()">
+                    <option value="">همه سال‌ها</option>
+                    @foreach($academicYears as $year)
+                        <option value="{{ $year }}" @selected((string) request('academic_year') === (string) $year)>{{ $year }}–{{ $year + 1 }}</option>
+                    @endforeach
+                </select>
                 <h4>فصل آموزشی</h4>
                 <select class="inp" name="season" onchange="this.form.submit()">
                     <option value="">همه فصل‌ها</option>
@@ -86,7 +114,7 @@
 
                 <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px">
                     <button class="btn s" type="submit" style="width:100%">اعمال فیلتر</button>
-                    @if(request()->hasAny(['q', 'subject', 'grade', 'season', 'price', 'sort']))
+                    @if(request()->hasAny(['q', 'subject', 'grade', 'season', 'academic_year', 'price', 'sort']))
                         <a class="btn s o" href="{{ route('public.courses.index') }}" style="width:100%;text-align:center;color:var(--mute)">
                             پاک کردن فیلترها
                         </a>
@@ -104,7 +132,7 @@
                 <div style="display:flex;align-items:center;gap:8px">
                     <span style="font-size:13px;color:var(--mute)">مرتب‌سازی:</span>
                     <select class="inp" style="width:auto;margin:0;padding:8px 12px;font-size:13px" 
-                            name="sort" onchange="location.href = '{{ route('public.courses.index', array_merge(request()->except(['sort', 'page']))) }}' + (this.value ? (location.search ? '&' : '?') + 'sort=' + this.value : '')">
+                            name="sort" onchange="const url = new URL(window.location.href); url.searchParams.set('sort', this.value); url.searchParams.delete('page'); window.location.assign(url.toString());">
                         <option value="latest" @selected(request('sort', 'latest') === 'latest')>جدیدترین</option>
                         <option value="popular" @selected(request('sort') === 'popular')>پرطرفدارترین</option>
                         <option value="price_asc" @selected(request('sort') === 'price_asc')>ارزان‌ترین</option>

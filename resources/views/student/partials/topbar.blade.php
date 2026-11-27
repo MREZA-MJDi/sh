@@ -1,5 +1,5 @@
 <header class="top">
-    <h1>@yield('title', 'مرکز یادگیری')</h1>
+    @hasSection('hide-topbar-title')<div class="top-spacer" aria-hidden="true"></div>@else<h1>@yield('title', 'مرکز یادگیری')</h1>@endif
     <label class="search">
         <svg class="i"><use href="#i-search"/></svg>
         <input type="search" id="globalSearch" aria-label="جست‌وجو در همین صفحه" placeholder="جست‌وجو در همین صفحه…" autocomplete="off">

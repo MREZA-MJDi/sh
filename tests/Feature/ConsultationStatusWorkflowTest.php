@@ -99,6 +99,31 @@ final class ConsultationStatusWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_scheduled_consultation_cannot_lose_its_scheduled_time(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $guardian = $this->userWithRole('parent');
+        $student = $this->userWithRole('student');
+        $consultation = Consultation::query()->create([
+            'requester_id' => $guardian->id,
+            'student_id' => $student->id,
+            'type' => 'ticket',
+            'status' => 'scheduled',
+            'scheduled_at' => now()->addDay(),
+        ]);
+
+        $this->actingAs($admin)
+            ->patchJson(route('admin.consultations.update', $consultation), [
+                'status' => 'scheduled',
+                'scheduled_at' => null,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('scheduled_at');
+
+        $this->assertSame('scheduled', $consultation->fresh()->status);
+        $this->assertNotNull($consultation->fresh()->scheduled_at);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

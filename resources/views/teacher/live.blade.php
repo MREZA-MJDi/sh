@@ -4,17 +4,14 @@
 @php
     $providerNames = ['skyroom' => 'اسکای‌روم', 'jitsi' => 'Jitsi Meet', 'bbb' => 'BigBlueButton', 'link' => 'لینک دستی'];
 @endphp
-<header class="teacher-page-head teacher-live-head">
-    <div><span class="teacher-eyebrow">آموزش زنده</span><h1>کلاس آنلاین</h1><p>جلسه‌های آنلاین دوره‌ها و کلاس‌هایی که به شما تخصیص داده شده‌اند.</p></div>
-    <a class="b s" href="{{ route('teacher.classes') }}">مشاهده کلاس‌های من</a>
-</header>
+<x-portal.page-head icon="video" tone="education" title="کلاس آنلاین"><a class="b s" href="{{ route('teacher.classes') }}">مشاهده کلاس‌های من</a></x-portal.page-head>
 @if (! $skyroomHealth->available)
 <section class="teacher-live-notice" role="status" aria-live="polite"><span class="teacher-live-notice-icon" aria-hidden="true">ⓘ</span><div><strong>اتصال Skyroom در انتظار فعال‌سازی است</strong><p>برنامه‌ریزی جلسه‌ها و لینک‌های دستی فعال‌اند. ورود خودکار Skyroom پس از ثبت API رسمی سرویس‌دهنده فعال می‌شود.</p></div></section>
 @endif
 <section class="teacher-live-stats" aria-label="خلاصه جلسه‌ها">
-    <article class="teacher-live-stat"><span class="teacher-live-stat-icon">●</span><div><strong>{{ $liveCount }}</strong><span>در حال برگزاری</span></div></article>
-    <article class="teacher-live-stat"><span class="teacher-live-stat-icon">◷</span><div><strong>{{ $upcomingCount }}</strong><span>جلسه پیش‌رو</span></div></article>
-    <article class="teacher-live-stat"><span class="teacher-live-stat-icon">↗</span><div><strong>{{ $waitingCount }}</strong><span>در انتظار لینک</span></div></article>
+    <article class="teacher-live-stat"><span class="teacher-live-stat-icon"><x-portal.icon name="video"/></span><div><strong>{{ $liveCount }}</strong><span>در حال برگزاری</span></div></article>
+    <article class="teacher-live-stat"><span class="teacher-live-stat-icon"><x-portal.icon name="clock"/></span><div><strong>{{ $upcomingCount }}</strong><span>جلسه پیش‌رو</span></div></article>
+    <article class="teacher-live-stat"><span class="teacher-live-stat-icon"><x-portal.icon name="calendar"/></span><div><strong>{{ $waitingCount }}</strong><span>در انتظار لینک</span></div></article>
 </section>
 <section class="c teacher-live-filter-card">
     <div class="teacher-section-head"><div><h2>فهرست جلسه‌ها</h2><p>فقط جلسه‌های آینده و جلسه‌های در حال برگزاری نمایش داده می‌شوند.</p></div></div>

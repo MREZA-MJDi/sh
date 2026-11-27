@@ -1,6 +1,7 @@
 @extends('public.layouts.academy')
-@section('title',($settings->home_sections['contact_page_title'] ?? 'تماس با ما').$settings->title_separator.$settings->site_name)
-@section('description',$settings->home_sections['contact_page_description'] ?? $settings->default_description)
+@section('title', ($settings->home_sections['contact_page_title'] ?? 'تماس با ما') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'آکادمی شیخان'))
+@section('description', $settings->home_sections['contact_page_description'] ?? $settings->default_description)
+
 @section('content')
 <header class="ac-page-head"><div class="ac-wrap"><div style="font-size:13px;color:#9fb0d8"><a href="{{ route('home') }}">خانه</a> ‹ تماس</div><h1>{{ $settings->home_sections['contact_page_title'] ?? 'تماس با ما' }}</h1><p>{{ $settings->home_sections['contact_page_description'] ?? $settings->default_description }}</p></div></header>
 <div class="ac-wrap ac-contact-grid">

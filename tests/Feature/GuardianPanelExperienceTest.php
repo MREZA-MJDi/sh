@@ -99,6 +99,11 @@ final class GuardianPanelExperienceTest extends TestCase
 
         $this->assertSame('1405/09/01 13:30', JalaliDate::format($date, true));
         $this->assertSame('1405/09/01', JalaliDate::format($date));
+        $this->assertSame('۱۴۰۵/۰۹/۰۱ ۱۳:۳۰', \App\Support\PersianDate::format($date));
+        $lastDay = CarbonImmutable::parse('2026-11-21 23:59:00', 'Asia/Tehran');
+        $this->assertSame('1405/08/30', JalaliDate::format($lastDay));
+        $this->assertSame('۱۴۰۵/۰۸/۳۰ ۲۳:۵۹', \App\Support\PersianDate::format($lastDay));
+        $this->assertSame('2026-11-22', JalaliDate::toGregorian(1405, 9, 1)->toDateString());
     }
 
     public function test_switching_children_clears_stale_message_and_pagination_query_parameters(): void
@@ -132,6 +137,27 @@ final class GuardianPanelExperienceTest extends TestCase
             ->assertOk()
             ->assertSee('data-chart-config=', false)
             ->assertSee('null,null,null,null,null,null', false);
+    }
+
+    public function test_resources_section_does_not_query_unrelated_learning_modules(): void
+    {
+        $guardian = $this->userWithRole('parent');
+        $child = $this->userWithRole('student');
+        $guardian->children()->attach($child);
+
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+        try {
+            $data = app(\App\Services\GuardianDashboardService::class)->build($guardian, $child->id, null, 'resources');
+            $queries = collect(\Illuminate\Support\Facades\DB::getQueryLog())->pluck('query')->implode(' ');
+        } finally {
+            \Illuminate\Support\Facades\DB::disableQueryLog();
+        }
+
+        $this->assertArrayHasKey('resources', $data);
+        $this->assertArrayNotHasKey('homeworks', $data);
+        foreach (['homeworks', 'exam_results', 'attendances', 'parent_meetings'] as $table) {
+            $this->assertStringNotContainsString($table, $queries);
+        }
     }
 
     private function userWithRole(string $role, array $attributes = []): User

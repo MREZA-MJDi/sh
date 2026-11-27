@@ -1,15 +1,15 @@
 @extends('teacher.layouts.app')
 @section('title', 'حضور و غیاب')
 @section('content')
-<div class="teacher-page-head"><div><span class="teacher-eyebrow">مدیریت کلاس</span><h1>حضور و غیاب</h1><p>ثبت وضعیت حضور دانش‌آموزان و مرور سوابق کلاس‌های تخصیص‌یافته.</p></div></div>
+<x-portal.page-head icon="calendar" tone="tracking" title="حضور و غیاب"/>
 <section class="c teacher-attendance-filter">
  @if($classrooms->isNotEmpty())
  <form method="GET" action="{{ route('teacher.attendance') }}" class="teacher-list-filters">
-  <label><span>کلاس</span><select name="classroom_id" onchange="this.form.submit()">
+  <label><span>کلاس</span><select name="classroom_id" onchange="this.form.elements.class_session_id.value = ''; this.form.requestSubmit()">
    @foreach ($classrooms as $item)<option value="{{ $item->id }}" @selected($classroom?->id === $item->id)>{{ $item->name }}</option>@endforeach
   </select></label>
-  <label><span>تاریخ جلسه</span><input type="date" name="date" value="{{ $dateIso }}" onchange="this.form.submit()"></label>
-  <label><span>جلسه برگزارشده</span><select name="class_session_id">
+  <label><span>تاریخ جلسه</span><input type="date" name="date" value="{{ $dateIso }}" onchange="this.form.elements.class_session_id.value = ''; this.form.requestSubmit()"></label>
+  <label><span>جلسه برگزارشده</span><select name="class_session_id"><option value="">انتخاب جلسه</option>
    @foreach ($sessions as $item)<option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} · {{ $item->starts_at ? \App\Support\PersianDate::format($item->starts_at, 'Y/m/d H:i') : '—' }}</option>@endforeach
   </select></label>
   <button class="b s" type="submit">نمایش جلسه</button>

@@ -85,7 +85,7 @@ final class ProviderReadinessGracefulTest extends TestCase
 
         $courseIds = app(LearningAccessService::class)
             ->activeCourseIds($student, 'exams')
-            ->pluck('course_id')
+            ->pluck('courses.id')
             ->map(fn ($id) => (int) $id)
             ->all();
 

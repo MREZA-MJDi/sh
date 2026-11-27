@@ -64,25 +64,8 @@ final class LearningAccessService
             ->where(function (Builder $access) use ($student, $feature): void {
                 $access->whereNull('classrooms.course_id')
                     ->orWhereHas('course', function (Builder $course) use ($student, $feature): void {
-                        $course->where('status', 'published');
-                        if ($feature !== null) {
-                            $course->where(function (Builder $featureScope) use ($feature): void {
-                        $featureScope->where('learning_features->'.$feature, true)
-                            ->orWhere(function (Builder $legacy) use ($feature): void {
-                                $legacy->where(fn (Builder $missing) => $missing
-                                    ->whereNull('learning_features')
-                                    ->orWhereNull('learning_features->'.$feature));
-
-                                if ($feature === 'live_class') {
-                                    $legacy->where('delivery_type', 'skyroom');
-                                } elseif ($feature === 'recorded_video') {
-                                    $legacy->where('delivery_type', 'spotplayer');
-                                } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
-                                    $legacy->whereRaw('1 = 0');
-                                }
-                            });
-                    });
-                        }
+                        $this->applyPublishedFeatureScope($course, $feature);
+                        // Free course discovery does not grant classroom membership.
                         $course->whereHas('enrollments', fn (Builder $enrollments) => $enrollments
                             ->where('student_id', $student->id)
                             ->currentlyActive());
@@ -93,6 +76,32 @@ final class LearningAccessService
         return $student->is_active && $student->hasRole('student')
             ? $query
             : $query->whereRaw('1 = 0');
+    }
+
+    private function applyPublishedFeatureScope(Builder $course, ?string $feature): void
+    {
+        $course->where('status', 'published');
+
+        if ($feature === null) {
+            return;
+        }
+
+        $course->where(function (Builder $featureScope) use ($feature): void {
+            $featureScope->where('learning_features->'.$feature, true)
+                ->orWhere(function (Builder $legacy) use ($feature): void {
+                    $legacy->where(fn (Builder $missing) => $missing
+                        ->whereNull('learning_features')
+                        ->orWhereNull('learning_features->'.$feature));
+
+                    if ($feature === 'live_class') {
+                        $legacy->where('delivery_type', 'skyroom');
+                    } elseif ($feature === 'recorded_video') {
+                        $legacy->where('delivery_type', 'spotplayer');
+                    } elseif (! in_array($feature, ['resources', 'assignments', 'exams'], true)) {
+                        $legacy->whereRaw('1 = 0');
+                    }
+                });
+        });
     }
 
     public function hasCourseAccess(User $student, Course $course): bool

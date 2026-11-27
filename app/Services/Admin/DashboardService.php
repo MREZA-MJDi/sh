@@ -105,7 +105,7 @@ final class DashboardService
         // The dashboard is an operational overview, not a reporting workspace:
         // keep only scalar counts here and let detailed pages own their lists.
         $openMessageCount = $canSeeMessages
-            ? $this->messages->queryFor($user)->where('status', 'open')->count()
+            ? $this->messages->queryFor($user)->withConversationStatus('open')->count()
             : 0;
         $pendingConsultationCount = $user->hasPermissionTo('consultations.manage')
             ? Consultation::query()->where('status', 'pending')->count()
@@ -147,7 +147,6 @@ final class DashboardService
                 $date = today()->copy()->subDays($daysAgo);
                 $attendance = $attendanceByDay->get($date->toDateString());
                 $total = (int) ($attendance->total ?? 0);
-                $present = (int) ($attendance->present ?? 0);
 
                 $jalali = JalaliDate::fromGregorian($date);
                 $dateLabel = sprintf('%02d/%02d', $jalali['month'], $jalali['day']);

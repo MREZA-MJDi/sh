@@ -80,7 +80,10 @@ tr.is-unread .adm-msg-title{font-weight:800}
 .adm-doc-ico{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:var(--tone-soft);color:var(--tone)}
 .adm-doc-ico .adm-icon{width:24px;height:24px}
 .adm-side-list{display:grid}
-.adm-side-list>div{display:flex;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid var(--line)}
+.adm-side-list>div:not(.adm-empty){display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:12px 20px;border-top:1px solid var(--line);min-width:0}
+.adm-side-list .adm-grow{flex:1 1 180px;overflow-wrap:anywhere}
+.adm-side-list .adm-grow b,.adm-side-list .adm-grow small{display:block}
+.adm-side-list .adm-grow small{color:var(--muted);font-size:12px}
 .adm-side-list>div:first-child{border-top:0}
 
 /* Inbox conversation rhythm: clear ownership, readable line length and message separation. */

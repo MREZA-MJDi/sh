@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Storage;
 class Course extends Model
 {
     protected $fillable = [
-        'title', 'slug', 'description', 'cover_image_path', 'subject', 'grade', 'academic_grade_id', 'season', 'teacher_id',
-        'type', 'price', 'delivery_type', 'status', 'spotplayer_course_id',
+        'title', 'slug', 'description', 'cover_image_path', 'subject', 'grade', 'academic_grade_id', 'season', 'academic_year', 'teacher_id',
+        'type', 'price', 'delivery_type', 'status', 'is_recommended', 'spotplayer_course_id',
         'integration_status', 'integration_note', 'learning_features',
         'teaser_original_path', 'teaser_path', 'teaser_poster_path', 'teaser_status', 'teaser_error',
     ];
@@ -20,6 +20,8 @@ class Course extends Model
     {
         return [
             'price' => 'integer',
+            'academic_year' => 'integer',
+            'is_recommended' => 'boolean',
             'learning_features' => 'array',
         ];
     }
@@ -38,6 +40,8 @@ class Course extends Model
     {
         return $this->teaser_poster_path ? Storage::disk('public')->url($this->teaser_poster_path) : null;
     }
+
+    public const SEASONS = ['spring' => 'بهار', 'summer' => 'تابستان', 'autumn' => 'پاییز', 'winter' => 'زمستان'];
 
     public function academicGrade(): BelongsTo
     {

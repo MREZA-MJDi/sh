@@ -209,7 +209,7 @@ final class ChunkUploadController extends Controller
         ]);
 
         $existing = $this->findUploadSession($data['upload_id'], $request);
-        $this->authorizeTarget($request, $existing->target, (int) $existing->target_id, $existing->metadata ?? [], $workspace);
+        $course = $this->authorizeTarget($request, $existing->target, (int) $existing->target_id, $existing->metadata ?? [], $workspace);
 
         if ($existing->status === 'completed') {
             $existingVideo = isset($existing->metadata['result_video_id'])
@@ -219,7 +219,11 @@ final class ChunkUploadController extends Controller
             return response()->json([
                 'ok' => true,
                 'status' => $existing->target === 'teaser'
-                    ? 'processing'
+                    ? match ($course->teaser_status) {
+                        'ready' => 'ready',
+                        'processing' => 'processing',
+                        default => 'failed',
+                    }
                     : match ($existingVideo?->status) {
                         'active' => 'ready',
                         'processing' => 'processing',

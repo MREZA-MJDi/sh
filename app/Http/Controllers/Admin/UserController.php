@@ -50,7 +50,6 @@ class UserController extends Controller
                     ->orWhere('email', 'like', $term)
                     ->orWhere('phone', 'like', $term));
             })
-            ->when(isset($filters['status']), fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
             ->when($role === 'student' && filled($filters['grade'] ?? null), fn ($query) => $query->where('grade', $filters['grade']))
             ->when($role === 'student' && filled($filters['classroom_id'] ?? null), fn ($query) => $query->whereHas(
                 'enrolledClasses',
@@ -60,7 +59,9 @@ class UserController extends Controller
 
         $activeCount = (clone $usersQuery)->where('is_active', true)->count();
         $inactiveCount = (clone $usersQuery)->where('is_active', false)->count();
-        $users = $usersQuery->latest()->paginate(15)->withQueryString();
+        $users = $usersQuery
+            ->when(isset($filters['status']), fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+            ->latest()->paginate(15)->withQueryString();
 
         $classrooms = collect();
         $selectedChildren = collect();

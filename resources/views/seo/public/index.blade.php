@@ -20,13 +20,36 @@
 
 @section('content')
     {{-- Header Banner --}}
-    <div class="pgh">
+    <section class="contact-hero-wrap">
         <div class="c">
-            <div class="bc"><a href="{{ route('home') }}">خانه</a> ‹ مقالات</div>
-            <h1>{{ $settings->home_sections['blog_page_title'] ?? 'مجله شیخان' }}</h1>
-            <p>{{ filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description }}</p>
+            <header class="contact-hero">
+                <div class="contact-hero-copy">
+                    <div class="contact-breadcrumb">
+                        <a href="{{ route('home') }}">خانه</a>
+                        <span>‹</span>
+                        <span>مقالات</span>
+                    </div>
+                    <h1>{{ $settings->home_sections['blog_page_title'] ?? 'مجله شیخان' }}</h1>
+                    <p>{{ filled($settings->home_sections['blog_page_description'] ?? null) ? $settings->home_sections['blog_page_description'] : $settings->default_description }}</p>
+                </div>
+
+                <div class="contact-hero-highlights">
+                    <div class="contact-highlight-pill">
+                        <svg class="i"><use href="#pen"/></svg>
+                        <span>مقالات تخصصی آموزشی و مشاوره‌ای</span>
+                    </div>
+                    <div class="contact-highlight-pill">
+                        <svg class="i"><use href="#award"/></svg>
+                        <span>نکات کاربردی مطالعه و آمادگی آزمون</span>
+                    </div>
+                    <div class="contact-highlight-pill">
+                        <svg class="i"><use href="#search"/></svg>
+                        <span>جستجو و فیلتر بر اساس کلیدواژه</span>
+                    </div>
+                </div>
+            </header>
         </div>
-    </div>
+    </section>
 
     <div class="c" style="padding-top:32px;padding-bottom:48px">
         {{-- Search & Topic Chips --}}

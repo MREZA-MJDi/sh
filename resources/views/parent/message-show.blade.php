@@ -1,7 +1,7 @@
 @extends('parent.layouts.app')
 @section('title', 'گفت‌وگو')
 @section('content')
-<div class="parent-page-heading"><div><span class="parent-eyebrow">گفت‌وگوی خانواده</span><h1>{{ $message->subject ?: 'گفت‌وگو' }}</h1><p>پیام‌ها و پاسخ‌های مربوط به فرزند انتخاب‌شده</p></div></div>
+<x-portal.page-head icon="message" tone="communication" :title="$message->subject ?: 'گفت‌وگو'" :back="route('guardian.messages.index', ['child' => $selected_child?->id])"/>
 @include('parent.partials.kid-picker')
 <section class="c">
  <div class="msgs">

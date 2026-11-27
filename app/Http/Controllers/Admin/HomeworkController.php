@@ -64,7 +64,6 @@ class HomeworkController extends Controller
             ->when($filters['from'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '>=', $date))
             ->when($filters['to'] ?? null, fn ($query, $date) => $query->whereDate('submitted_at', '<=', $date))
             ->when($filters['classroom_id'] ?? null, fn ($query, $id) => $query->whereHas('homework', fn ($homework) => $homework->where('classroom_id', $id)))
-            ->when($filters['submission_status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($term !== '', fn ($query) => $query->where(function ($search) use ($term): void {
                 $search->whereHas('homework', fn ($homework) => $homework->where('title', 'like', "%{$term}%"))
                     ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$term}%"));
@@ -81,6 +80,7 @@ class HomeworkController extends Controller
         $pendingSubmissionCount = (clone $submissionsQuery)->whereIn('status', ['submitted', 'late'])->count();
         $reviewedSubmissionCount = (clone $submissionsQuery)->where('status', 'reviewed')->count();
         $submissions = (clone $submissionsQuery)
+            ->when($filters['submission_status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->latest('submitted_at')
             ->paginate(15, ['*'], 'submissions')
             ->withQueryString();

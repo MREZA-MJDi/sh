@@ -51,7 +51,18 @@ class StoreClassroomRequest extends FormRequest
 
             if ($teacherView && $this->filled('course_id') && ! Course::query()
                 ->whereKey($this->integer('course_id'))
-                ->where('teacher_id', $this->user()->id)
+                ->where(function ($scope): void {
+                    $scope->where('teacher_id', $this->user()->id);
+
+                    // A classroom-only teacher may keep its current course,
+                    // but must not attach their classroom to another course.
+                    $classroom = $this->route('classroom');
+                    if ($classroom instanceof \App\Models\Classroom
+                        && (int) $classroom->teacher_id === (int) $this->user()->id
+                        && (int) $classroom->course_id === $this->integer('course_id')) {
+                        $scope->orWhereKey($classroom->course_id);
+                    }
+                })
                 ->exists()) {
                 $validator->errors()->add('course_id', 'فقط دوره‌های تخصیص‌یافته به شما قابل انتخاب هستند.');
             }

@@ -394,7 +394,7 @@ class PriorityOneEducationCompletionTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('student.videos.index'))
-            ->assertRedirect(route('student.courses.index'));
+            ->assertOk()->assertSee('هنوز ویدئویی برای شما منتشر نشده است.')->assertDontSee('ضبط جلسه اول');
 
         $this->actingAs($student)
             ->get(route('student.videos.show', $video))

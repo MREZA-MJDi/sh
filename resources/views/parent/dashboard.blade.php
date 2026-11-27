@@ -39,6 +39,12 @@
 @include('parent.partials.kid-picker')
 <div class="parent-dashboard">
     @include('components.announcement-feed', ['announcements' => $announcements ?? collect()])
+    <div class="portal-action-grid">
+        @if(auth()->user()->hasPermissionTo('attendance.view.children'))<x-portal.action-card :href="route('guardian.attendance', ['child'=>$kid?->id])" title="گزارش حضور" icon="check" tone="tracking"/>@endif
+        @if(auth()->user()->hasPermissionTo('homework.view.children'))<x-portal.action-card :href="route('guardian.homework', ['child'=>$kid?->id])" title="تکالیف فرزند" icon="file" tone="tracking"/>@endif
+        @if(auth()->user()->hasPermissionTo('exams.view.children'))<x-portal.action-card :href="route('guardian.exams', ['child'=>$kid?->id])" title="کارنامه" icon="chart" tone="tracking"/>@endif
+        <x-portal.action-card :href="route('guardian.meetings.index', ['child'=>$kid?->id])" title="جلسات خانواده" icon="calendar" tone="communication"/>
+    </div>
     <div class="g g4 parent-dashboard-stats">
         <div class="st"><b>{{ $stats['avg'] ?? '—' }}</b><span>میانگین نمرات ثبت‌شده</span><small>{{ $stats['avg_note'] ?? '' }}</small></div>
         <div class="st gn"><b>{{ isset($att['percent']) ? $att['percent'].'٪' : '—' }}</b><span>حضور</span><small>{{ $att['absent'] ?? '—' }} غیبت · {{ $att['late'] ?? '—' }} تأخیر</small></div>

@@ -1,14 +1,14 @@
 @php
     $parent = auth()->user();
     $childrenCount = $parent?->children()->where('users.is_active', true)->whereHas('roles', fn ($roles) => $roles->where('name', 'student'))->count() ?? 0;
-    $nav = [['guardian.dashboard', 'داشبورد', '🏠', 'parent']];
-    if ($parent?->hasPermissionTo('attendance.view.children')) $nav[] = ['guardian.attendance', 'حضور و غیاب', '✅', 'parent/attendance'];
-    if ($parent?->hasPermissionTo('exams.view.children')) $nav[] = ['guardian.exams', 'آزمون‌ها و نمرات', '📊', 'parent/exams'];
-    if ($parent?->hasPermissionTo('homework.view.children')) $nav[] = ['guardian.homework', 'تکالیف', '📝', 'parent/homework'];
-    if ($parent?->hasPermissionTo('resources.view.enrolled')) $nav[] = ['guardian.resources.index', 'منابع آموزشی', '📚', 'parent/resources'];
-    if ($parent?->hasPermissionTo('messages.view.children')) $nav[] = ['guardian.messages.index', 'پیام به مدرس', '💬', 'parent/messages'];
-    if ($parent?->hasPermissionTo('consultations.view.children')) $nav[] = ['guardian.consultations.index', 'درخواست مشاوره', '🗨️', 'parent/consultations'];
-    $nav[] = ['guardian.meetings.index', 'جلسات', '🤝', 'parent/meetings'];
+    $nav = [['guardian.dashboard', 'داشبورد', 'home', 'parent']];
+    if ($parent?->hasPermissionTo('attendance.view.children')) $nav[] = ['guardian.attendance', 'حضور و غیاب', 'check', 'parent/attendance'];
+    if ($parent?->hasPermissionTo('exams.view.children')) $nav[] = ['guardian.exams', 'آزمون‌ها و نمرات', 'chart', 'parent/exams'];
+    if ($parent?->hasPermissionTo('homework.view.children')) $nav[] = ['guardian.homework', 'تکالیف', 'file', 'parent/homework'];
+    if ($parent?->hasPermissionTo('resources.view.enrolled')) $nav[] = ['guardian.resources.index', 'منابع آموزشی', 'book', 'parent/resources'];
+    if ($parent?->hasPermissionTo('messages.view.children')) $nav[] = ['guardian.messages.index', 'پیام به مدرس', 'message', 'parent/messages'];
+    if ($parent?->hasPermissionTo('consultations.view.children')) $nav[] = ['guardian.consultations.index', 'درخواست مشاوره', 'message', 'parent/consultations'];
+    $nav[] = ['guardian.meetings.index', 'جلسات', 'calendar', 'parent/meetings'];
 @endphp
 <aside class="parent-sidebar" id="parentSidebar" aria-label="منوی اصلی اولیا" tabindex="-1">
     <a class="parent-sidebar-identity" href="{{ route('guardian.dashboard') }}">
@@ -21,7 +21,7 @@
         @foreach ($nav as [$routeName, $label, $icon, $path])
             @php $active = $path === 'parent' ? request()->is('parent') : (request()->routeIs($routeName) || request()->is($path.'/*')); @endphp
             <a href="{{ route($routeName) }}" class="{{ $active ? 'on' : '' }}" @if($active) aria-current="page" @endif>
-                <span class="parent-sidebar-icon" aria-hidden="true">{{ $icon }}</span><span>{{ $label }}</span>
+                <span class="parent-sidebar-icon" aria-hidden="true"><x-portal.icon :name="$icon"/></span><span>{{ $label }}</span>
             </a>
         @endforeach
     </nav>

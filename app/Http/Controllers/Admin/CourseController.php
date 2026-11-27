@@ -15,6 +15,7 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Courses\CourseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -22,7 +23,7 @@ final class CourseController extends Controller
 {
     public function create(): View
     {
-        abort_unless(auth()->user()->hasPermissionTo('courses.manage'), 403);
+        abort_unless(auth()->user()->hasRole('admin') && auth()->user()->hasPermissionTo('courses.manage'), 403);
 
         $teachers = User::query()
             ->where('is_active', true)
@@ -44,7 +45,7 @@ final class CourseController extends Controller
 
     public function edit(Course $course): View
     {
-        abort_unless(auth()->user()->hasPermissionTo('courses.manage'), 403);
+        abort_unless(auth()->user()->hasRole('admin') && auth()->user()->hasPermissionTo('courses.manage'), 403);
 
         $teachers = User::query()
             ->where('is_active', true)
@@ -109,6 +110,8 @@ final class CourseController extends Controller
                 });
             })
             ->when(filled($filters['grade'] ?? null), fn ($query) => $query->where('grade', $filters['grade']))
+            ->when(filled($filters['season'] ?? null), fn ($query) => $query->where('season', $filters['season']))
+            ->when(filled($filters['academic_year'] ?? null), fn ($query) => $query->where('academic_year', $filters['academic_year']))
             ->when(filled($filters['status'] ?? null), fn ($query) => $query->where('status', $filters['status']));
 
         $courses = $coursesQuery->latest()->paginate(9)->withQueryString();
@@ -127,10 +130,11 @@ final class CourseController extends Controller
                 ->whereIn('course_id', clone $visibleCourseIds))->count(),
             'drafts' => Course::query()->whereIn('id', clone $visibleCourseIds)->where('status', 'draft')->count(),
         ];
-        $canManage = $user->hasPermissionTo('courses.manage');
+        $academicYears = $workspace->coursesQueryFor($user)->whereNotNull('academic_year')->distinct()->orderByDesc('academic_year')->pluck('academic_year');
+        $canManage = $user->hasRole('admin') && $user->hasPermissionTo('courses.manage');
         $canManageContent = $user->hasAnyPermission(['courses.manage', 'courses.content.manage.assigned']);
 
-        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent', 'grades', 'filters'));
+        return view('admin.courses.index', compact('courses', 'stats', 'canManage', 'canManageContent', 'grades', 'filters', 'academicYears'));
     }
 
     public function store(StoreCourseRequest $request, CourseService $courses): RedirectResponse
@@ -139,6 +143,9 @@ final class CourseController extends Controller
         $coverPath = $request->hasFile('cover_image')
             ? $request->file('cover_image')->store('course-covers', 'public')
             : null;
+        if ($request->hasFile('cover_image') && ! $coverPath) {
+            throw ValidationException::withMessages(['cover_image' => 'ذخیره تصویر دوره ناموفق بود؛ دوباره تلاش کنید.']);
+        }
         if ($coverPath) {
             $data['cover_image_path'] = $coverPath;
         }
@@ -173,6 +180,9 @@ final class CourseController extends Controller
 
         if ($request->hasFile('cover_image')) {
             $newCoverPath = $request->file('cover_image')->store('course-covers', 'public');
+            if (! $newCoverPath) {
+                throw ValidationException::withMessages(['cover_image' => 'ذخیره تصویر دوره ناموفق بود؛ دوباره تلاش کنید.']);
+            }
             $data['cover_image_path'] = $newCoverPath;
         } elseif ($request->boolean('remove_cover_image')) {
             $data['cover_image_path'] = null;

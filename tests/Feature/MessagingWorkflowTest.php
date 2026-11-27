@@ -204,6 +204,38 @@ final class MessagingWorkflowTest extends TestCase
         $this->assertDatabaseMissing('messages', ['recipient_id' => $unlinkedGuardian->id]);
     }
 
+    public function test_guardian_can_contact_assigned_classroom_teacher_before_course_payment(): void
+    {
+        Notification::fake();
+        $teacher = $this->userWithRole('teacher');
+        $otherTeacher = $this->userWithRole('teacher');
+        $student = $this->userWithRole('student');
+        $guardian = $this->userWithRole('parent');
+        $guardian->children()->attach($student);
+
+        $course = \App\Models\Course::query()->create([
+            'title' => 'ریاضی', 'slug' => 'paid-classroom-message', 'status' => 'published',
+            'type' => 'paid', 'price' => 100000, 'teacher_id' => $otherTeacher->id,
+        ]);
+        $classroom = Classroom::query()->create([
+            'course_id' => $course->id, 'teacher_id' => $teacher->id,
+            'name' => 'کلاس ریاضی', 'status' => 'active',
+        ]);
+        $classroom->students()->attach($student);
+        $payload = ['student_id' => $student->id, 'subject' => 'ثبت نام', 'body' => 'سوال درباره ثبت نام'];
+
+        $this->actingAs($guardian)
+            ->post(route('guardian.messages.store'), $payload + ['recipient_id' => $otherTeacher->id])
+            ->assertForbidden();
+
+        $this->post(route('guardian.messages.store'), $payload + ['recipient_id' => $teacher->id])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('messages', [
+            'sender_id' => $guardian->id, 'recipient_id' => $teacher->id, 'student_id' => $student->id,
+        ]);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create();

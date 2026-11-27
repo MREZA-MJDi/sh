@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\Process\Process;
+use App\Services\Learning\LocalVideoProcessor;
 use Throwable;
 
 final class ProcessMediaAssetVideo implements ShouldQueue
@@ -33,6 +33,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
 
     public function handle(): void
     {
+        $processor = app(LocalVideoProcessor::class);
         $asset = MediaAsset::query()->find($this->mediaAssetId);
 
         if (! $asset || $asset->provider !== 'local' || $asset->status !== 'processing') {
@@ -50,46 +51,12 @@ final class ProcessMediaAssetVideo implements ShouldQueue
         $outputDisk->makeDirectory(dirname($outputRelative));
         $processingPath = $outputDisk->path($processingRelative);
         $outputPath = $outputDisk->path($outputRelative);
-        $process = null;
         $published = false;
 
         try {
-            $process = new Process([
-                'ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-y',
-                '-i', $disk->path($asset->source_path),
-                '-map', '0:v:0', '-map', '0:a?',
-                '-sn', '-dn',
-                '-vf', 'scale=-2:min(1080\,ih)',
-                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '24',
-                '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k',
-                '-movflags', '+faststart', '-map_metadata', '-1',
-                $processingPath,
-            ]);
-            $process->setTimeout(3300);
-            $process->mustRun();
-
-            clearstatcache(true, $processingPath);
-            if (! is_file($processingPath) || filesize($processingPath) < 1024) {
-                throw new RuntimeException('FFmpeg خروجی ویدیویی معتبری تولید نکرد.');
-            }
-
-            $probe = new Process([
-                'ffprobe', '-v', 'error', '-show_entries',
-                'format=duration:stream=codec_type,width,height', '-of', 'json', $processingPath,
-            ]);
-            $probe->setTimeout(60);
-            $probe->mustRun();
-            $info = json_decode($probe->getOutput(), true, 512, JSON_THROW_ON_ERROR);
-            $videoStream = collect($info['streams'] ?? [])->first(
-                fn (array $stream): bool => ($stream['codec_type'] ?? null) === 'video'
-                    && (int) ($stream['width'] ?? 0) > 0
-                    && (int) ($stream['height'] ?? 0) > 0
-            );
-            $duration = isset($info['format']['duration']) ? (int) round((float) $info['format']['duration']) : null;
-
-            if (! $videoStream || $duration === null || $duration < 1) {
-                throw new RuntimeException('اعتبارسنجی ویدیوی خروجی با FFprobe ناموفق بود.');
-            }
+            $info = $processor->prepare($disk->path($asset->source_path), $processingPath, 1080, 24, 160);
+            $videoStream = $info['video'];
+            $duration = max(1, (int) round($info['duration']));
 
             if (! rename($processingPath, $outputPath)) {
                 throw new RuntimeException('انتشار اتمیک ویدیوی پردازش‌شده ناموفق بود.');
@@ -123,13 +90,7 @@ final class ProcessMediaAssetVideo implements ShouldQueue
             if (! $published) {
                 $outputDisk->delete([$processingRelative, $outputRelative]);
             }
-            $diagnostic = trim((string) $process?->getErrorOutput());
-
-            throw new RuntimeException(
-                $diagnostic !== '' ? $diagnostic : $exception->getMessage(),
-                0,
-                $exception
-            );
+            throw $exception;
         }
     }
 

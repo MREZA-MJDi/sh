@@ -34,7 +34,7 @@ final class StudentPortalExperienceTest extends TestCase
             ->get(route('student.attendance'))
             ->assertOk()
             ->assertSee('حضور و غیاب')
-            ->assertSee('برای این ماه هنوز سابقهٔ حضور و غیاب ثبت نشده است.');
+            ->assertSee('سابقه‌ای برای این ماه ثبت نشده است.');
     }
 
     public function test_student_attendance_shows_saved_records_for_their_active_class_only(): void
@@ -73,9 +73,12 @@ final class StudentPortalExperienceTest extends TestCase
 
         $this->actingAs($student)->get(route('student.attendance'))
             ->assertOk()
-            ->assertSee('1 جلسه دارای وضعیت ثبت‌شده')
+            ->assertViewHas('attendance_count', 1)
+            ->assertSee('کلاس late')
             ->assertSee('تأخیر')
-            ->assertDontSee('<small>غایب</small>', false);
+            ->assertDontSee('کلاس absent');
+        $this->get(route('student.attendance', ['month' => '1405-08']))
+            ->assertOk()->assertSee('سابقه‌ای برای این ماه ثبت نشده است.');
     }
 
     public function test_student_without_own_attendance_permission_does_not_see_or_access_attendance(): void

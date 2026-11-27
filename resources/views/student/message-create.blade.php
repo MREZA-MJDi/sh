@@ -4,19 +4,10 @@
 
 @section('content')
 <section class="page student-message-page">
-    <header class="student-message-heading">
-        <div>
-            <h1>ارسال پیام جدید</h1>
-            <p>برای ارتباط با مدرس یا مدیر آموزشگاه، فرم زیر را تکمیل کنید.</p>
-        </div>
-        <a class="btn s" href="{{ route('student.messages.index') }}">بازگشت به پیام‌ها</a>
-    </header>
+    <x-portal.page-head icon="message" tone="communication" title="ارسال پیام جدید" :back="route('student.messages.index')" back-label="بازگشت به پیام‌ها"/>
 
     <div class="card student-message-card">
-        <div class="student-message-intro">
-            <svg class="i" aria-hidden="true"><use href="#i-msg"/></svg>
-            <span>پیام شما به‌صورت یک گفت‌وگوی مستقل ثبت می‌شود و پاسخ‌ها را از همین بخش دنبال می‌کنید.</span>
-        </div>
+        
 
         @if ($recipients->isEmpty())
             <div class="student-message-empty" role="status">

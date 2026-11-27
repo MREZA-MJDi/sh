@@ -1,10 +1,7 @@
 @extends('teacher.layouts.app')
 @section('title', 'مرکز پیام‌ها')
 @section('content')
-<div class="teacher-page-head">
-    <div><span class="teacher-eyebrow">ارتباطات</span><h1>مرکز پیام‌ها</h1><p>همه گفت‌وگوهای مرتبط با کلاس‌ها و خانواده‌ها در یک فضای مرتب.</p></div>
-    <a class="b" href="{{ route('teacher.messages.create') }}">پیام جدید</a>
-</div>
+<x-portal.page-head icon="message" tone="communication" title="مرکز پیام‌ها">@if(auth()->user()->hasPermissionTo('messages.view.assigned'))<a class="b" href="{{ route('teacher.messages.create') }}"><x-portal.icon name="plus"/> پیام جدید</a>@endif</x-portal.page-head>
 <div class="teacher-inbox">
     <aside class="teacher-inbox-list c">
         <div class="teacher-inbox-heading"><h2>گفت‌وگوها</h2><span>{{ $conversations->total() }} مورد</span></div>

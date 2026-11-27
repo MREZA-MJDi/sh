@@ -42,7 +42,7 @@
   </form>
 </x-admin.panel>
 
-<x-admin.panel title="تکالیف کلاس‌ها" desc="هر کارت وضعیت تکلیف، مهلت تحویل و تعداد پاسخ‌ها را نشان می‌دهد." id="homework-list">
+<x-admin.panel title="تکالیف کلاس‌ها" desc="هر کارت وضعیت تکلیف، مهلت تحویل و تعداد پاسخ‌ها را نشان می‌دهد." id="homework-list" data-tone="track">
   @if($homeworks->isNotEmpty())
     <div class="adm-grid adm-cols-2">
       @foreach($homeworks as $homework)
@@ -88,7 +88,7 @@
   <x-slot:footer>{{ $homeworks->links() }}</x-slot:footer>
 </x-admin.panel>
 
-<x-admin.panel title="صف بررسی پاسخ‌ها" desc="پاسخ هر دانش‌آموز را باز کن، نمره بده و بازخورد روشن و قابل‌فهم ثبت کن." flush id="homework-review-queue">
+<x-admin.panel title="صف بررسی پاسخ‌ها" desc="پاسخ هر دانش‌آموز را باز کن، نمره بده و بازخورد روشن و قابل‌فهم ثبت کن." flush id="homework-review-queue" data-tone="track">
   @if($submissions->isNotEmpty())
     <div class="adm-review-list">
       @foreach($submissions as $submission)

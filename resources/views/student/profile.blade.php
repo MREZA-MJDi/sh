@@ -4,20 +4,7 @@
 
 @section('content')
 <section class="page" id="profile">
-  @if(session('success'))
-    <div style="background:#dcfce7;color:#166534;padding:12px 18px;border-radius:12px;margin-bottom:16px;font-weight:600">
-      {{ session('success') }}
-    </div>
-  @endif
-  @if($errors->any())
-    <div style="background:#fee2e2;color:#991b1b;padding:12px 18px;border-radius:12px;margin-bottom:16px;font-weight:600">
-      <ul style="margin:0;padding-inline-start:18px">
-        @foreach($errors->all() as $error)
-          <li>{{ $error }}</li>
-        @endforeach
-      </ul>
-    </div>
-  @endif
+<x-portal.page-head icon="user" tone="education" title="حساب کاربری"/>
 
   <div class="card">
     <div class="chead"><h2>اطلاعات پروفایل و تصویر کاربر</h2></div>

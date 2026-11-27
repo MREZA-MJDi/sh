@@ -23,48 +23,50 @@
 @endphp
 
 {{-- سربرگ مشخصات دوره --}}
-<div class="ch">
+<section class="contact-hero-wrap">
     <div class="c">
-        <div class="bc">
-            <a href="{{ route('home') }}">خانه</a> ‹ 
-            <a href="{{ route('public.courses.index') }}">دوره‌ها</a> ‹ 
-            @if($course->subject)
-                <a href="{{ route('public.courses.index', ['subject' => $course->subject]) }}">{{ $course->subject }}</a> ‹ 
-            @endif
-            <span>{{ $course->title }}</span>
-        </div>
-        <h1>{{ $course->title }}</h1>
-        @if($course->description)
-            <p>{{ \Illuminate\Support\Str::limit(strip_tags($course->description), 200) }}</p>
-        @endif
-        <div class="mt">
-            <span>
-                <svg class="i"><use href="#user"/></svg>
-                {{ number_format($course->enrollments_count ?? 0) }} دانش‌آموز
-            </span>
-            <span>
-                <svg class="i"><use href="#clock"/></svg>
-                {{ $totalLessons > 0 ? $totalLessons . ' درس آموزشی' : 'دوره جامع' }}
-            </span>
-            @if($course->grade)
-                <span class="bd">پایه {{ $course->grade }}</span>
-            @endif
-            @if($course->season)
-                <span class="bd">ترم {{ $seasonLabels[$course->season] ?? $course->season }}</span>
-            @endif
-        </div>
-        <div class="mt" aria-label="امکانات و شیوه ارائه دوره">
-            @if($features['recorded_video'] ?? false)<span>آموزش ویدیویی</span>@endif
-            @if($features['live_class'] ?? false)<span>آموزش زنده</span>@endif
-            @if($features['resources'] ?? false)<span>منابع آموزشی</span>@endif
-            @if($features['assignments'] ?? false)<span>تکلیف و تمرین</span>@endif
-            @if($features['exams'] ?? false)<span>آزمون و کوییز</span>@endif
-            @if($features['projects'] ?? false)<span>پروژه مرحله‌ای</span>@endif
-            <span>{{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال</span>
-            @if($features['live_class'] ?? false)<span>{{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو</span>@endif
-        </div>
+        <header class="contact-hero">
+            <div class="contact-hero-copy">
+                <div class="contact-breadcrumb">
+                    <a href="{{ route('home') }}">خانه</a> ‹
+                    <a href="{{ route('public.courses.index') }}">دوره‌ها</a> ‹
+                    @if($course->subject)
+                        <a href="{{ route('public.courses.index', ['subject' => $course->subject]) }}">{{ $course->subject }}</a> ‹
+                    @endif
+                    <span>{{ $course->title }}</span>
+                </div>
+                <h1>{{ $course->title }}</h1>
+                @if($course->description)
+                    <p>{{ \Illuminate\Support\Str::limit(strip_tags($course->description), 200) }}</p>
+                @endif
+            </div>
+
+            <div class="contact-hero-highlights">
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#user"/></svg>
+                    <span>{{ number_format($course->enrollments_count ?? 0) }} دانش‌آموز · {{ number_format($course->active_classrooms_count ?? 0) }} گروه کلاسی فعال@if(($features['live_class'] ?? false) || $upcomingOnlineSessionCount > 0) · {{ number_format($upcomingOnlineSessionCount) }} جلسه آنلاین پیش‌رو @endif</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#clock"/></svg>
+                    <span>{{ $totalLessons > 0 ? $totalLessons . ' درس آموزشی' : 'دوره جامع' }}@if($course->grade) · پایه {{ $course->grade }}@endif @if($course->season) · ترم {{ $seasonLabels[$course->season] ?? $course->season }}@endif</span>
+                </div>
+                <div class="contact-highlight-pill">
+                    <svg class="i"><use href="#cap"/></svg>
+                    <span>
+                        @php
+                            $heroTags = [];
+                            if ($features['recorded_video'] ?? false) $heroTags[] = 'آموزش ویدیویی';
+                            if ($features['live_class'] ?? false) $heroTags[] = 'آموزش زنده';
+                            if ($features['resources'] ?? false) $heroTags[] = 'جزوه و منابع';
+                            if ($features['exams'] ?? false) $heroTags[] = 'آزمون و کوییز';
+                        @endphp
+                        {{ count($heroTags) ? implode(' · ', $heroTags) : 'آموزش تخصصی آکادمی' }}
+                    </span>
+                </div>
+            </div>
+        </header>
     </div>
-</div>
+</section>
 
 {{-- تب‌بار ناوبری سریع سرفصل‌ها --}}
 <div class="stab">
@@ -126,7 +128,7 @@
         <div>
             {{-- تیزر عمومی دوره؛ فقط خروجی پردازش‌شده منتشر می‌شود --}}
             @if ($course->teaser_status === 'ready' && $course->teaser_url)
-                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
+                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload" playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
                     <source src="{{ $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>

@@ -2,20 +2,7 @@
 @section('title', 'یادداشت‌ها')
 @section('content')
 <section class="page" id="notes">
-  @if(session('status'))
-    <div style="background:#dcfce7;color:#166534;padding:12px 18px;border-radius:12px;margin-bottom:16px;font-weight:600">
-      {{ session('status') }}
-    </div>
-  @endif
-  @if($errors->any())
-    <div style="background:#fee2e2;color:#991b1b;padding:12px 18px;border-radius:12px;margin-bottom:16px;font-weight:600">
-      <ul style="margin:0;padding-inline-start:18px">
-        @foreach($errors->all() as $error)
-          <li>{{ $error }}</li>
-        @endforeach
-      </ul>
-    </div>
-  @endif
+<x-portal.page-head icon="file" tone="education" title="یادداشت‌ها"/>
 
   <div class="card">
     <div class="chead"><h2>یادداشت‌ها</h2></div>
@@ -30,16 +17,16 @@
         <div class="note">
           <p style="white-space:pre-wrap;word-break:break-word;margin-bottom:8px">{{ $note->body }}</p>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;border-top:1px dashed rgba(0,0,0,0.1);padding-top:8px">
-            <small>{{ $note->created_at?->format('Y/m/d H:i') }}</small>
+            <small>{{ \App\Support\PersianDate::format($note->created_at) }}</small>
             <form method="POST" action="{{ route('student.notes.destroy', $note) }}">
               @csrf
               @method('DELETE')
-              <button class="pill" type="submit" style="color:#ef4444;cursor:pointer">حذف</button>
+              <button class="pill" type="submit" data-confirm="این یادداشت حذف شود؟">حذف</button>
             </form>
           </div>
         </div>
       @empty
-        <p style="color:var(--muted)">یادداشتی ثبت نشده است.</p>
+        <x-portal.empty-state icon="file" title="یادداشتی ثبت نشده است."/>
       @endforelse
     </div>
     @if($notes->hasPages())

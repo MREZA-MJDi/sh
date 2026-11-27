@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class ParentMeeting extends Model
 {
     protected $fillable = [
+        'audience',
         'classroom_id',
         'course_id',
         'student_id',
@@ -31,6 +34,26 @@ final class ParentMeeting extends Model
             'ends_at' => 'datetime',
             'responded_at' => 'datetime',
         ];
+    }
+
+    public function scopeForStudent(Builder $query, int $studentId): Builder
+    {
+        return $query->where(fn (Builder $scope) => $scope
+            ->where('student_id', $studentId)
+            ->orWhere(fn (Builder $group) => $group->where('audience', 'classroom')
+                ->whereExists(DB::table('parent_meeting_attendees')
+                    ->selectRaw('1')->whereColumn('parent_meeting_id', 'parent_meetings.id')
+                    ->where('student_id', $studentId))));
+    }
+
+    public function scopeForGuardian(Builder $query, int $guardianId, int $studentId): Builder
+    {
+        return $query->where(fn (Builder $scope) => $scope
+            ->where(fn (Builder $individual) => $individual->where('guardian_id', $guardianId)->where('student_id', $studentId))
+            ->orWhere(fn (Builder $group) => $group->where('audience', 'classroom')
+                ->whereExists(DB::table('parent_meeting_attendees')
+                    ->selectRaw('1')->whereColumn('parent_meeting_id', 'parent_meetings.id')
+                    ->where('guardian_id', $guardianId)->where('student_id', $studentId))));
     }
 
     public function classroom(): BelongsTo
