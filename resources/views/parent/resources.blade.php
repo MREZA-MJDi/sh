@@ -10,10 +10,8 @@
             <div class="portal-state-icon"><x-portal.icon :name="$resource->kind === 'book' ? 'book' : 'file'"/></div><h3>{{ $resource->title }}</h3>
             <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif · {{ ['pdf' => 'جزوه PDF', 'book' => 'کتاب', 'other' => 'سایر منابع'][$resource->kind] ?? 'منبع آموزشی' }}</p>
             <b>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</b>
-            @if($resource->file_path && ($resource->downloadable || $resource->kind === 'pdf') && ($resource->is_free || $purchase?->status === 'paid'))
-                <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $kid?->id]) }}">مشاهده / دریافت منبع</a>
-            @elseif($resource->file_path && !$resource->downloadable && $resource->kind !== 'pdf')
-                <span class="tag">دریافت این منبع فعال نیست</span>
+            @if($resource->file_path && ($resource->is_free || $purchase?->status === 'paid'))
+                <a class="b s" href="{{ route('guardian.resources.download', ['resource' => $resource, 'child' => $kid?->id]) }}">مشاهده منبع</a>
             @elseif(!$resource->file_path)
                 <span class="tag">فایل هنوز بارگذاری نشده است</span>
             @elseif($purchase?->status === 'pending_review')

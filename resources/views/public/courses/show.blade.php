@@ -101,7 +101,7 @@
                             @endif
                             @if($hasCourseAccess && auth()->user()?->hasRole('student'))
                                 @if($resource->is_free || ($resource->is_purchased ?? false))
-                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">مشاهده فایل</a>
                                 @else
                                     <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
                                         @csrf
@@ -109,7 +109,7 @@
                                     </form>
                                 @endif
                             @else
-                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">مشاهده فایل</a>
                             @endif
                         </div>
                     </article>
@@ -466,7 +466,7 @@
                             @endif
                             @if($hasCourseAccess && auth()->user()?->hasRole('student'))
                                 @if($resource->is_free || ($resource->is_purchased ?? false))
-                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">مشاهده فایل</a>
                                 @else
                                     <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
                                         @csrf
@@ -474,7 +474,7 @@
                                     </form>
                                 @endif
                             @else
-                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">{{ $resource->downloadable ? 'دریافت فایل' : 'مشاهده فایل' }}</a>
+                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">مشاهده فایل</a>
                             @endif
                         </div>
                     </article>
@@ -518,12 +518,16 @@
             تماشای ویدیوهای دوره
         </button>
 
+        <style>
+            .course-video-layout { display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;padding:16px }
+            @media (max-width: 680px) { .course-video-layout { grid-template-columns:minmax(0,1fr) } }
+        </style>
         <dialog id="course-video-dialog" style="width:min(920px,calc(100% - 24px));max-width:920px;border:0;border-radius:20px;padding:0;box-shadow:0 24px 80px rgba(15,23,42,.32)">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--ln,#e5e7eb)">
                 <strong>ویدیوهای {{ $course->title }}</strong>
                 <button type="button" id="course-video-close" class="btn g s" aria-label="بستن پنجره پخش">بستن</button>
             </div>
-            <div style="display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;padding:16px">
+            <div class="course-video-layout">
                 <div style="min-width:0">
                     <div style="aspect-ratio:16/9;background:#0f172a;border-radius:12px;overflow:hidden">
                         <iframe
@@ -537,12 +541,13 @@
                             sandbox="allow-scripts allow-same-origin allow-presentation"
                         ></iframe>
                     </div>
-                    <p class="mu" style="font-size:12px;margin:10px 0 0">ویدیوهای داخلی با ثبت‌نام فعال پخش می‌شوند؛ ویدیوهای SpotPlayer علاوه بر ثبت‌نام به لایسنس معتبر ارائه‌دهنده نیاز دارند.</p>
+                    <p class="mu" style="font-size:12px;margin:10px 0 0">برای پخش، یکی از جلسه‌های دوره را انتخاب کنید.</p>
                 </div>
                 <nav aria-label="فهرست ویدیوهای دوره" style="display:flex;flex-direction:column;gap:8px;max-height:440px;overflow:auto">
                     @foreach ($playableVideos as $video)
                         <button
                             type="button"
+                            id="course-video-{{ $video->id }}"
                             class="btn g s course-video-choice"
                             data-player-url="{{ route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]) }}"
                             style="justify-content:flex-start;text-align:right;white-space:normal"
@@ -559,12 +564,14 @@
                 const frame = document.getElementById('course-video-frame');
                 if (!dialog || !launcher || !close || !frame) return;
 
-                launcher.addEventListener('click', () => {
-                    dialog.showModal();
-                    const firstVideo = dialog.querySelector('[data-player-url]');
-                    if (firstVideo) frame.src = firstVideo.dataset.playerUrl;
-                });
-                dialog.querySelectorAll('[data-player-url]').forEach((button) => {
+                const choices = Array.from(dialog.querySelectorAll('[data-player-url]'));
+                const openPlayer = (choice) => {
+                    if (!choice) return;
+                    if (!dialog.open) dialog.showModal();
+                    frame.src = choice.dataset.playerUrl;
+                };
+                launcher.addEventListener('click', () => openPlayer(choices[0]));
+                choices.forEach((button) => {
                     button.addEventListener('click', () => {
                         frame.src = button.dataset.playerUrl;
                     });
@@ -578,6 +585,8 @@
                     if (event.target === dialog) closeDialog();
                 });
                 dialog.addEventListener('close', () => { frame.src = 'about:blank'; });
+                const selected = choices.find((choice) => '#' + choice.id === window.location.hash);
+                if (selected) openPlayer(selected);
             })();
         </script>
     @endif

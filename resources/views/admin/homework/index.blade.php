@@ -73,7 +73,7 @@
             </div>
             <div class="adm-actions">
               @if($homework->attachment_path)
-                <x-admin.btn size="sm" variant="line" :href="route('admin.homework.attachment', $homework)">دانلود پیوست</x-admin.btn>
+                <x-admin.btn size="sm" variant="line" :href="route('admin.homework.attachment', $homework)">مشاهده پیوست</x-admin.btn>
               @endif
               <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="homework-modal" data-title="ویرایش تکلیف" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.homework.update', $homework)" data-method="PATCH">ویرایش</x-admin.btn>
               <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="homework-delete" :data-name="$homework->title" :data-action="route('admin.homework.destroy', $homework)"/>
@@ -152,7 +152,7 @@
   <x-admin.select label="کلاس / گروه" name="classroom_id" :options="$classOptions" required/>
   <x-admin.input label="مهلت تحویل" name="due_at" type="datetime-local" :min="now()->format('Y-m-d\\TH:i')" step="60" hint="تاریخ و ساعت را از تقویم انتخاب کن؛ تکلیف منتشرشده برای دانش‌آموزان فعال همین کلاس نمایش داده می‌شود."/>
   <x-admin.textarea label="دستورالعمل و توضیحات" name="instructions" wide/>
-  <x-admin.input label="فایل پیوست" name="attachment" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"/>
+  <x-admin.input label="فایل پیوست" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png"/>
   <x-admin.select label="وضعیت" name="status" :options="$statusLabels" required/>
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="homework-delete" title="حذف تکلیف" text="تکلیفی که پاسخ دانش‌آموز داشته باشد حذف نمی‌شود تا سوابق حفظ شوند."/>

@@ -21,7 +21,7 @@ class UpdateHomeworkRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'instructions' => ['nullable', 'string', 'max:40000'],
             'due_at' => ['nullable', 'date'],
-            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:20480'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:20480'],
             'remove_attachment' => ['nullable', 'boolean'],
             'status' => ['required', Rule::in(['draft', 'published'])],
         ];

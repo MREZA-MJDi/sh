@@ -270,7 +270,12 @@ final class PublicCourseVideoAccessTest extends TestCase
             ->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSee('تماشای ویدیوهای دوره')
-            ->assertSee('course-video-dialog');
+            ->assertSee('course-video-dialog')
+            ->assertSee('id="course-video-'.$video->id.'"', false);
+
+        $this->get(route('student.videos.show', $video))
+            ->assertOk()
+            ->assertSee(route('public.courses.show', $course->slug).'#course-video-'.$video->id);
 
         $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
             ->assertRedirect('https://player.example.test/embed/provider-video-1');

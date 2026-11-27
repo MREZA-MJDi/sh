@@ -31,7 +31,7 @@ final class LearningResourceService
                     'price' => $isFree ? 0 : (int) ($data['price'] ?? 0),
                     'visibility' => $data['visibility'],
                     'release_at' => $data['release_at'] ?? null,
-                    'downloadable' => (bool) ($data['downloadable'] ?? true),
+                    'downloadable' => false,
                     'file_path' => $path,
                     'status' => $data['status'],
                     'uploaded_by' => $actor->id,
@@ -63,7 +63,7 @@ final class LearningResourceService
                     'price' => $isFree ? 0 : (int) ($data['price'] ?? 0),
                     'visibility' => $data['visibility'],
                     'release_at' => $data['release_at'] ?? null,
-                    'downloadable' => (bool) ($data['downloadable'] ?? true),
+                    'downloadable' => false,
                     'file_path' => $newPath ?: $resource->file_path,
                     'status' => $data['status'],
                 ]);

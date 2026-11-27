@@ -13,6 +13,7 @@ use App\Services\Admin\ClassroomWorkspaceService;
 use App\Services\Admin\HomeworkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use App\Services\Learning\DocumentReader;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
@@ -167,7 +168,9 @@ class HomeworkController extends Controller
 
     public function downloadSubmissionFile(
         HomeworkSubmissionFile $file,
-        ClassroomWorkspaceService $workspace
+        ClassroomWorkspaceService $workspace,
+        Request $request,
+        DocumentReader $reader
     ) {
         $submission = $file->submission()->with('homework')->firstOrFail();
 
@@ -177,10 +180,10 @@ class HomeworkController extends Controller
         );
         abort_unless(filled($file->path) && Storage::disk('local')->exists($file->path), 404);
 
-        return Storage::disk('local')->download($file->path, $file->original_name);
+        return $reader->show($request, $file->path, $file->original_name ?? $submission->homework->title);
     }
 
-    public function downloadAttachment(Homework $homework, ClassroomWorkspaceService $workspace)
+    public function downloadAttachment(Request $request, Homework $homework, ClassroomWorkspaceService $workspace, DocumentReader $reader)
     {
         abort_unless(
             $workspace->queryFor(auth()->user())->whereKey($homework->classroom_id)->exists(),
@@ -191,6 +194,6 @@ class HomeworkController extends Controller
             404
         );
 
-        return Storage::disk('local')->download($homework->attachment_path);
+        return $reader->show($request, $homework->attachment_path, $homework->title);
     }
 }

@@ -17,6 +17,10 @@
                 مرورگر شما از پخش این ویدئو پشتیبانی نمی‌کند.
             </video>
             <p class="tag">تماشای آنلاین در شیخان</p>
+        @elseif($video->status === 'active' && filled($video->external_id) && filled($video->embed_url))
+            <a class="btn s" href="{{ route('public.courses.show', $video->course->slug) }}#course-video-{{ $video->id }}">
+                تماشا در SpotPlayer
+            </a>
         @else
             <div class="card cc">
                 <h3>پلیر SpotPlayer هنوز فعال نشده است</h3>

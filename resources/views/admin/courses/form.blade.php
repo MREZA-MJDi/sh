@@ -302,12 +302,11 @@
   @if($course->featureEnabled('resources') && auth()->user()->hasPermissionTo('resources.manage'))
     <x-admin.modal :demo="false" id="course-resource-modal" title="افزودن جزوه یا فایل" size="lg" :action="route('admin.resources.store')">
       <input type="hidden" name="course_id" value="{{ $course->id }}">
-      <input type="hidden" name="downloadable" value="1">
       <x-admin.input label="نام فایل" name="title" wide required placeholder="مثلاً جزوه فصل اول"/>
       <x-admin.textarea label="توضیح کوتاه برای دانش‌آموز" name="description" wide/>
       <x-admin.select label="نوع فایل" name="kind" :options="['pdf' => 'PDF', 'book' => 'کتاب یا جزوه', 'other' => 'سایر فایل‌ها']" :selected="'pdf'" required/>
       <label class="adm-upload adm-upload-wide">
-        <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" required>
+        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png" required>
         <span class="adm-upload-icon"><x-admin.icon name="plus"/></span>
         <b>فایل را اینجا رها کن یا انتخاب کن</b>
         <small data-upload-name>PDF، Word، تصویر یا ZIP · حداکثر ۳۰ مگابایت</small>

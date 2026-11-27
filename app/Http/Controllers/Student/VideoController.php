@@ -107,7 +107,7 @@ final class VideoController extends Controller
         // Only canonical processed recording paths may be internally redirected.
         if (config('learning.nginx_private_video')
             && preg_match('~^private/course-videos/[A-Za-z0-9_-]+\\.mp4$~D', $recording->file_path)
-            && realpath($path) === realpath(Storage::disk('local')->path('private/course-videos')).'/'.basename($path)) {
+            && realpath($path) === realpath(Storage::disk('local')->path('private/course-videos')).DIRECTORY_SEPARATOR.basename($path)) {
             return response('', 200, [
                 ...$headers,
                 'X-Accel-Redirect' => '/_protected_course_video/'.rawurlencode(basename($path)),

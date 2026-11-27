@@ -11,11 +11,11 @@ use App\Models\HomeworkSubmissionFile;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use App\Services\Learning\DocumentReader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 final class HomeworkSubmissionController extends Controller
@@ -129,19 +129,20 @@ final class HomeworkSubmissionController extends Controller
         return back()->with('status', 'پاسخ تکلیف حذف شد.');
     }
 
-    public function downloadAttachment(Request $request, Homework $homework): StreamedResponse
+    public function downloadAttachment(Request $request, Homework $homework, DocumentReader $reader)
     {
         $homework = $this->availableHomework($request->user(), $homework);
 
         abort_unless($homework->attachment_path && Storage::disk('local')->exists($homework->attachment_path), 404);
 
-        return Storage::disk('local')->download($homework->attachment_path);
+        return $reader->show($request, $homework->attachment_path, $homework->title);
     }
 
     public function downloadFile(
         Request $request,
-        HomeworkSubmissionFile $file
-    ): StreamedResponse {
+        HomeworkSubmissionFile $file,
+        DocumentReader $reader
+    ) {
         $submission = $file->submission()->with('homework')->firstOrFail();
         $homework = $this->availableHomework($request->user(), $submission->homework);
 
@@ -152,7 +153,7 @@ final class HomeworkSubmissionController extends Controller
             404
         );
 
-        return Storage::disk('local')->download($file->path, $file->original_name);
+        return $reader->show($request, $file->path, $file->original_name ?? $homework->title);
     }
 
     public function destroyFile(

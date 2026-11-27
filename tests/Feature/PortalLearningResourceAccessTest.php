@@ -26,7 +26,7 @@ class PortalLearningResourceAccessTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_student_can_download_only_resources_for_an_enrolled_class(): void
+    public function test_student_can_view_only_resources_for_an_enrolled_class(): void
     {
         [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();
 
@@ -49,7 +49,7 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_parent_can_download_a_child_resource_but_not_an_unlinked_child_resource(): void
+    public function test_parent_can_view_a_child_resource_but_not_an_unlinked_child_resource(): void
     {
         [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();
 
@@ -75,7 +75,7 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_student_can_download_free_course_material_without_a_course_enrollment(): void
+    public function test_student_can_view_free_course_material_without_a_course_enrollment(): void
     {
         $teacher = User::factory()->create();
         $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
@@ -106,7 +106,7 @@ class PortalLearningResourceAccessTest extends TestCase
             'status' => 'published',
         ]);
 
-        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 free course guide');
+        Storage::disk('local')->put($resource->file_path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4XcAAAAASUVORK5CYII='));
 
         $this->actingAs($student)
             ->get(route('student.resources.download', $resource))
@@ -121,11 +121,11 @@ class PortalLearningResourceAccessTest extends TestCase
             'learning_resource_id' => $resource->id,
             'user_id' => $student->id,
             'student_id' => $student->id,
-            'event_type' => 'download',
+            'event_type' => 'view',
         ]);
     }
 
-    public function test_paid_resource_is_not_downloadable_without_a_verified_purchase(): void
+    public function test_paid_resource_can_only_be_viewed_after_a_verified_purchase(): void
     {
         [$teacher, $course, $classroom, $resource] = $this->makePublishedResourceForStudent();
         $student = User::factory()->create();
@@ -144,6 +144,19 @@ class PortalLearningResourceAccessTest extends TestCase
             'learning_resource_id' => $resource->id,
             'user_id' => $student->id,
         ]);
+
+        \App\Models\ResourcePurchase::query()->create([
+            'learning_resource_id' => $resource->id,
+            'student_id' => $student->id,
+            'amount' => 25000,
+            'reference' => 'resource-reader-purchase',
+            'status' => 'paid',
+        ]);
+
+        $this->get(route('student.resources.download', $resource))
+            ->assertOk()
+            ->assertViewIs('learning.document-reader')
+            ->assertHeaderMissing('Content-Disposition');
     }
 
     public function test_resource_is_unavailable_before_its_release_time(): void
@@ -186,11 +199,11 @@ class PortalLearningResourceAccessTest extends TestCase
             'learning_resource_id' => $resource->id,
             'user_id' => $student->id,
             'student_id' => $student->id,
-            'event_type' => 'download',
+            'event_type' => 'view',
         ]);
     }
 
-    public function test_view_only_pdf_is_streamed_inline_and_parent_access_is_logged_for_selected_child(): void
+    public function test_only_page_images_are_served_and_parent_access_is_logged_for_selected_child(): void
     {
         [, , $classroom, $resource] = $this->makePublishedResourceForStudent();
         $student = User::factory()->create();
@@ -202,13 +215,13 @@ class PortalLearningResourceAccessTest extends TestCase
         $guardian->roles()->attach(Role::query()->where('name', 'parent')->value('id'));
         $guardian->children()->attach($student->id);
         $resource->update(['downloadable' => false]);
-        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 sample');
+        Storage::disk('local')->put($resource->file_path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4XcAAAAASUVORK5CYII='));
 
         $response = $this->actingAs($guardian)
             ->get(route('guardian.resources.download', ['resource' => $resource, 'child' => $student->id]))
             ->assertOk();
 
-        $this->assertStringContainsString('inline', (string) $response->headers->get('content-disposition'));
+        $response->assertViewIs('learning.document-reader')->assertHeaderMissing('Content-Disposition');
         $this->assertDatabaseHas('learning_resource_access_logs', [
             'learning_resource_id' => $resource->id,
             'user_id' => $guardian->id,
@@ -228,7 +241,7 @@ class PortalLearningResourceAccessTest extends TestCase
             'file_path' => 'private/resources/public-guide.pdf',
             'status' => 'published',
         ]);
-        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 public');
+        Storage::disk('local')->put($resource->file_path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4XcAAAAASUVORK5CYII='));
 
         $this->get(route('public.resources.download', $resource))->assertOk();
 
@@ -236,11 +249,11 @@ class PortalLearningResourceAccessTest extends TestCase
             'learning_resource_id' => $resource->id,
             'user_id' => null,
             'student_id' => null,
-            'event_type' => 'download',
+            'event_type' => 'view',
         ]);
     }
 
-    public function test_public_course_resource_appears_on_course_page_and_can_be_downloaded(): void
+    public function test_public_course_resource_appears_on_course_page_and_can_be_viewed(): void
     {
         $teacher = User::factory()->create();
         $teacher->roles()->attach(Role::query()->where('name', 'teacher')->value('id'));
@@ -267,7 +280,7 @@ class PortalLearningResourceAccessTest extends TestCase
             'file_path' => 'private/resources/public-course-guide.pdf',
             'status' => 'published',
         ]);
-        Storage::disk('local')->put($resource->file_path, '%PDF-1.4 public course guide');
+        Storage::disk('local')->put($resource->file_path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4XcAAAAASUVORK5CYII='));
 
         $this->get(route('public.courses.show', $course->slug))
             ->assertOk()
@@ -284,6 +297,38 @@ class PortalLearningResourceAccessTest extends TestCase
         Storage::disk('local')->put($resource->file_path, 'still scoped');
 
         $this->get(route('public.resources.download', $resource))->assertNotFound();
+    }
+
+    public function test_public_pdf_returns_a_page_image_instead_of_the_original_document(): void
+    {
+        foreach (['pdfinfo', 'pdftoppm'] as $program) {
+            if (! (new \Symfony\Component\Process\ExecutableFinder)->find($program)) {
+                $this->markTestSkipped('Poppler binaries are required for this test.');
+            }
+        }
+
+        $resource = LearningResource::query()->create([
+            'title' => 'PDF reader fixture',
+            'kind' => 'pdf',
+            'is_free' => true,
+            'price' => 0,
+            'visibility' => 'public',
+            'file_path' => 'testing/document.pdf',
+            'status' => 'published',
+        ]);
+        $source = file_get_contents(base_path('docs/academy-client-handoff-fa.pdf'));
+        Storage::disk('local')->put($resource->file_path, $source);
+
+        $this->get(route('public.resources.download', $resource))
+            ->assertOk()->assertViewIs('learning.document-reader');
+
+        $page = $this->get(route('public.resources.download', ['resource' => $resource, 'page' => 2, 'render' => 1]))
+            ->assertOk()->assertHeader('Content-Type', 'image/png')->assertHeaderMissing('Content-Disposition');
+
+        $this->assertStringStartsWith("\x89PNG\r\n\x1a\n", $page->getContent());
+        $resource->update(['visibility' => 'enrolled']);
+        $this->get(route('public.resources.download', ['resource' => $resource, 'page' => 2, 'render' => 1]))
+            ->assertNotFound();
     }
 
     private function makePublishedResourceForStudent(): array

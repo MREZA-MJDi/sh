@@ -27,13 +27,13 @@ final class SubmitHomeworkRequest extends FormRequest
             'files.*' => [
                 'file',
                 'max:10240',
-                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png',
+                'mimes:pdf,jpg,jpeg,png',
             ],
             'attachment' => [
                 'nullable',
                 'file',
                 'max:10240',
-                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png',
+                'mimes:pdf,jpg,jpeg,png',
             ],
         ];
     }

@@ -52,7 +52,6 @@
           'price' => $resource->price,
           'visibility' => $resource->visibility,
           'release_at' => $resource->release_at?->format('Y-m-d\\TH:i'),
-          'downloadable' => (bool) $resource->downloadable,
           'status' => $resource->status,
         ];
       @endphp
@@ -72,12 +71,11 @@
             <span class="adm-muted">{{ $visibilityOptions[$resource->visibility] ?? $resource->visibility }}</span>
           </div>
           <div class="adm-kv">
-            <span>دریافت فایل: <b>{{ $resource->downloadable ? 'مجاز' : 'غیرفعال' }}</b></span>
             <span>رویداد دسترسی: <b class="adm-num">{{ number_format($resource->access_logs_count) }}</b></span>
             <span>فایل: <b>{{ $resource->file_path ? basename($resource->file_path) : 'ثبت نشده' }}</b></span>
           </div>
           <div class="adm-actions">
-            @if($resource->file_path)<x-admin.btn size="sm" variant="line" :href="route('admin.resources.download', $resource)">دریافت فایل</x-admin.btn>@endif
+            @if($resource->file_path)<x-admin.btn size="sm" variant="line" :href="route('admin.resources.download', $resource)">مشاهده فایل</x-admin.btn>@endif
             <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="resource-modal" data-title="ویرایش منبع" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.resources.update', $resource)" data-method="PATCH">ویرایش</x-admin.btn>
             <x-admin.btn size="sm" variant="bad" icon="trash" data-modal-open="resource-delete" :data-name="$resource->title" :data-action="route('admin.resources.destroy', $resource)"/>
           </div>
@@ -131,7 +129,7 @@
   <x-admin.input label="عنوان منبع" name="title" wide required/>
   <x-admin.textarea label="توضیحات" name="description" wide/>
   <x-admin.select label="نوع منبع" name="kind" :options="$kindOptions" required/>
-  <x-admin.input label="فایل (حداکثر ۳۰ مگابایت)" name="file" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"/>
+  <x-admin.input label="فایل (حداکثر ۳۰ مگابایت)" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png"/>
   <x-admin.select label="دوره" name="course_id" :options="$courseOptions" placeholder="بدون دوره"/>
   <x-admin.select label="کلاس" name="classroom_id" :options="$classroomOptions" placeholder="سطح کل دوره"/>
   <x-admin.legend title="قیمت و دسترسی"/>
@@ -139,7 +137,6 @@
   <x-admin.input label="قیمت (تومان)" name="price" type="number" min="0"/>
   <x-admin.select label="مخاطبان مجاز" name="visibility" :options="$visibilityOptions" required/>
   <x-admin.input label="زمان انتشار (اختیاری)" name="release_at" type="datetime-local"/>
-  <x-admin.switch label="امکان دریافت فایل" name="downloadable" :checked="true"/>
   <x-admin.select label="وضعیت" name="status" :options="$statusOptions" required/>
 </x-admin.modal>
 <x-admin.confirm :demo="false" id="resource-delete" title="حذف منبع" text="منبع و فایل خصوصی آن حذف می‌شود؛ رویدادهای دسترسی برای گزارش امنیتی حفظ می‌شوند."/>

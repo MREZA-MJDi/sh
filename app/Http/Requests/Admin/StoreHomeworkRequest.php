@@ -21,7 +21,7 @@ class StoreHomeworkRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'instructions' => ['required_without:attachment', 'nullable', 'string', 'max:40000'],
             'due_at' => ['nullable', 'date', 'after:now'],
-            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,zip', 'max:20480'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:20480'],
             'status' => ['required', Rule::in(['draft', 'published'])],
         ];
     }

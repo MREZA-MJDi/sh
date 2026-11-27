@@ -18,10 +18,8 @@
                     <p>{{ $resource->course?->title ?? $resource->classroom?->name ?? 'منبع عمومی' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif · {{ ['pdf'=>'جزوه PDF','book'=>'کتاب','other'=>'منبع آموزشی'][$resource->kind] ?? 'فایل آموزشی' }}</p>
                     <p><b>{{ $resource->is_free ? 'رایگان' : number_format((int) $resource->price).' تومان' }}</b></p>
 
-                    @if($resource->file_path && ($resource->downloadable || $resource->kind === 'pdf') && ($resource->is_free || $purchase?->status === 'paid'))
-                        <a class="btn s" href="{{ route('student.resources.download', $resource) }}">مشاهده / دریافت منبع</a>
-                    @elseif($resource->file_path && !$resource->downloadable && $resource->kind !== 'pdf')
-                        <span class="tag">دریافت این منبع فعال نیست</span>
+                    @if($resource->file_path && ($resource->is_free || $purchase?->status === 'paid'))
+                        <a class="btn s" href="{{ route('student.resources.download', $resource) }}">مشاهده منبع</a>
                     @elseif(!$resource->file_path)
                         <span class="tag">فایل هنوز بارگذاری نشده است</span>
                     @elseif($purchase?->status === 'pending_review')

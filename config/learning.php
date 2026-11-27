@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'document_reader_bin' => env('DOCUMENT_READER_BIN'),
     // لینک دانلود اپ SpotPlayer که به خریدار نشان داده می‌شود (خالی = دکمه نمایش داده نمی‌شود)
     'spotplayer_app_url' => env('SPOTPLAYER_APP_URL'),
 

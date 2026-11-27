@@ -14,10 +14,9 @@
 <label>جلسه (اختیاری)</label><select name="class_session_id"><option value="">کل کلاس</option>@foreach($classrooms as $classroom)@foreach($classroom->sessions as $session)<option value="{{ $session->id }}" @selected((string) old('class_session_id') === (string) $session->id) data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>@endforeach @endforeach</select>
 <label>قیمت (تومان)</label><input type="number" name="price" min="0" value="{{ old('price',0) }}">
 <label>دسترسی</label><select name="visibility"><option value="enrolled" @selected(old('visibility', 'enrolled') === 'enrolled')>فقط دانش‌آموزان ثبت‌نام‌شده</option><option value="authenticated" @selected(old('visibility') === 'authenticated')>کاربران واردشده</option></select>
-<label>فایل</label><input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip">
+<label>فایل</label><input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png">
 <label>وضعیت</label><select name="status"><option value="published" @selected(old('status', 'published') === 'published')>منتشرشده</option><option value="draft" @selected(old('status') === 'draft')>پیش‌نویس</option></select>
 <label><input type="checkbox" name="is_free" value="1" @checked((bool) old('is_free', true))> رایگان</label>
-<label><input type="checkbox" name="downloadable" value="1" @checked((bool) old('downloadable', true))> امکان دانلود</label>
 <button class="b" type="submit">ثبت منبع</button>
 </form></section>
 <section class="c"><div class="teacher-section-head"><div><h2 class="portal-section-title"><x-portal.icon name="book"/> منابع ثبت‌شده</h2><p>{{ $resources->total() }} منبع آموزشی</p></div></div>
@@ -26,7 +25,7 @@
 <label><span class="sr-only">مرتب‌سازی</span><select name="sort"><option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>جدیدترین</option><option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>قدیمی‌ترین</option><option value="title" @selected(($filters['sort'] ?? '') === 'title')>عنوان</option></select></label>
 <button class="b s" type="submit">اعمال</button><a class="b s" href="{{ route('teacher.resources') }}">پاک‌کردن</a>
 </form>
-@forelse($resources as $resource)<div class="teacher-list-card"><div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? '—' }}@if($resource->course?->grade) · پایه {{ $resource->course->grade }}@endif @if($resource->course?->season) · {{ $seasonLabels[$resource->course->season] ?? $resource->course->season }}@endif · {{ $resource->classroom?->name ?? 'کل دوره' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif</small></div><div class="teacher-list-meta"><span>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</span><span>{{ ['published' => 'منتشرشده', 'draft' => 'پیش‌نویس', 'archived' => 'بایگانی‌شده'][$resource->status] ?? 'در حال بررسی' }}</span>@if($resource->file_path && $resource->downloadable)<a href="{{ route('teacher.resources.download',$resource) }}">دریافت فایل</a>@endif</div></div>
+@forelse($resources as $resource)<div class="teacher-list-card"><div><strong>{{ $resource->title }}</strong><small>{{ $resource->course?->title ?? '—' }}@if($resource->course?->grade) · پایه {{ $resource->course->grade }}@endif @if($resource->course?->season) · {{ $seasonLabels[$resource->course->season] ?? $resource->course->season }}@endif · {{ $resource->classroom?->name ?? 'کل دوره' }}@if($resource->classSession) · {{ $resource->classSession->title }}@endif</small></div><div class="teacher-list-meta"><span>{{ $resource->is_free ? 'رایگان' : number_format($resource->price).' تومان' }}</span><span>{{ ['published' => 'منتشرشده', 'draft' => 'پیش‌نویس', 'archived' => 'بایگانی‌شده'][$resource->status] ?? 'در حال بررسی' }}</span>@if($resource->file_path)<a href="{{ route('teacher.resources.download',$resource) }}">مشاهده فایل</a>@endif</div></div>
 @empty<x-portal.empty-state icon="file" title="هنوز منبعی برای دوره‌ها و کلاس‌های شما ثبت نشده است."/>@endforelse
 {{ $resources->links() }}</section></div>
 @endsection

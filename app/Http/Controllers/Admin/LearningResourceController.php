@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreLearningResourceRequest;
 use App\Http\Requests\Admin\UpdateLearningResourceRequest;
 use App\Models\LearningResource;
+use App\Services\Learning\DocumentReader;
 use App\Models\LearningResourceAccessLog;
 use App\Models\ResourcePurchase;
 use App\Services\Admin\ClassroomWorkspaceService;
@@ -158,28 +159,24 @@ class LearningResourceController extends Controller
         return back()->with('success', 'خرید تأیید شد؛ دسترسی محصول برای دانش‌آموز فعال گردید.');
     }
 
-    public function download(LearningResource $resource, ClassroomWorkspaceService $workspace)
+    public function download(LearningResource $resource, ClassroomWorkspaceService $workspace, DocumentReader $reader)
     {
         $this->authorizeResourceAccess($resource, $workspace);
         abort_unless($resource->file_path && Storage::disk('local')->exists($resource->file_path), 404);
-        abort_unless($resource->downloadable || $resource->kind === 'pdf', 404);
 
-        LearningResourceAccessLog::query()->create([
-            'learning_resource_id' => $resource->id,
-            'user_id' => auth()->id(),
-            'student_id' => null,
-            'event_type' => $resource->downloadable ? 'download' : 'view',
-            'ip_address' => request()->ip(),
-            'user_agent' => substr((string) request()->userAgent(), 0, 2000),
-            'accessed_at' => now(),
-        ]);
-
-        if (! $resource->downloadable) {
-            abort_unless($resource->kind === 'pdf', 404);
-            return Storage::disk('local')->response($resource->file_path, basename($resource->file_path), ['X-Content-Type-Options' => 'nosniff'], 'inline');
+        if (! request()->query('render')) {
+            LearningResourceAccessLog::query()->create([
+                'learning_resource_id' => $resource->id,
+                'user_id' => auth()->id(),
+                'student_id' => null,
+                'event_type' => 'view',
+                'ip_address' => request()->ip(),
+                'user_agent' => substr((string) request()->userAgent(), 0, 2000),
+                'accessed_at' => now(),
+            ]);
         }
 
-        return Storage::disk('local')->download($resource->file_path);
+        return $reader->show(request(), $resource->file_path, $resource->title);
     }
 
     private function authorizeResourceAccess(

@@ -31,7 +31,7 @@
      <div class="assignment-description"><h3>شرح تکلیف</h3><p>{{ html_entity_decode(strip_tags(preg_replace('/<\s*(?:br\s*\/?|\/p|\/li|\/div)\s*>/i', "\n", $homework->instructions)), ENT_QUOTES | ENT_HTML5, 'UTF-8') }}</p></div>
     @endif
     @if($homework->attachment_path)
-     <a class="pill assignment-download" href="{{ route('student.homework.attachment', $homework) }}"><x-portal.icon name="file"/> دریافت فایل تکلیف</a>
+     <a class="pill assignment-download" href="{{ route('student.homework.attachment', $homework) }}"><x-portal.icon name="file"/> مشاهده فایل تکلیف</a>
     @endif
     @if($submission?->answer)
      <div class="assignment-description"><h3>پاسخ شما</h3><p>{{ $submission->answer }}</p></div>
@@ -62,7 +62,7 @@
        @if($remaining > 0)
         <label class="assignment-upload" for="files-{{ $homework->id }}">
          <x-portal.icon name="file"/><strong>افزودن فایل</strong><small>حداکثر {{ $remaining }} فایل دیگر · هر فایل ۱۰ مگابایت</small>
-         <input id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.txt">
+         <input id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.jpg,.jpeg,.png,.txt">
         </label>
        @else
         <small class="assignment-meta">ظرفیت ۵ فایل تکمیل است؛ برای افزودن فایل، یکی از پیوست‌ها را حذف کنید.</small>

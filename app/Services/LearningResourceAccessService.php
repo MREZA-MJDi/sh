@@ -27,13 +27,12 @@ final class LearningResourceAccessService
             ->firstOrFail();
     }
 
-    public function authorizeDownload(User $student, LearningResource $resource): void
+    public function authorizeView(User $student, LearningResource $resource): void
     {
         abort_unless(
             $resource->status === 'published'
                 && (! $resource->release_at || $resource->release_at->lte(now()))
-                && $resource->file_path
-                && ($resource->downloadable || $resource->kind === 'pdf'),
+                && $resource->file_path,
             404
         );
 
@@ -96,8 +95,7 @@ final class LearningResourceAccessService
                 && ! $resource->classroom_id
                 && (! $resource->release_at || $resource->release_at->lte(now()))
                 && $resource->file_path
-                && $resource->is_free
-                && ($resource->downloadable || $resource->kind === 'pdf'),
+                && $resource->is_free,
             404
         );
 
