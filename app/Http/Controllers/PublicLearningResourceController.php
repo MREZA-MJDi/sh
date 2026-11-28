@@ -17,6 +17,7 @@ final class PublicLearningResourceController extends Controller
         LearningResource $resource,
         LearningResourceAccessService $access, DocumentReader $reader
     ): Response {
+        abort_unless($request->user()?->is_active, 403);
         $access->authorizePublicGuest($resource);
 
         abort_unless(Storage::disk('local')->exists($resource->file_path), 404);
@@ -24,7 +25,7 @@ final class PublicLearningResourceController extends Controller
         if ($request->query('render') !== '1') {
             LearningResourceAccessLog::query()->create([
                 'learning_resource_id' => $resource->id,
-                'user_id' => null,
+                'user_id' => $request->user()->id,
                 'student_id' => null,
                 'event_type' => 'view',
                 'ip_address' => $request->ip(),

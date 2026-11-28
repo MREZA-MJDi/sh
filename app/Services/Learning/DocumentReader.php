@@ -12,6 +12,8 @@ final class DocumentReader
 {
     public function show(Request $request, string $file, string $title): Response
     {
+        abort_unless($request->user()?->is_active, 403);
+        $watermark = ContentWatermark::identity($request->user());
         $disk = Storage::disk('local');
         abort_unless($disk->exists($file), 404);
 
@@ -42,7 +44,7 @@ final class DocumentReader
                 : $this->renderImage($path);
             abort_unless(str_starts_with($image, "\x89PNG\r\n\x1a\n"), 422);
 
-            return response($image, 200, [...$headers, 'Content-Type' => 'image/png']);
+            return response(ContentWatermark::markImage($image, $watermark), 200, [...$headers, 'Content-Type' => 'image/png']);
         }
 
         abort_if($pages > 0 && $page > $pages, 404);
@@ -51,6 +53,7 @@ final class DocumentReader
 
         return response()->view('learning.document-reader', [
             'title' => $title,
+            'watermark' => $watermark,
             'page' => $page,
             'pages' => $pages,
             'text' => $text === false ? null : $text,

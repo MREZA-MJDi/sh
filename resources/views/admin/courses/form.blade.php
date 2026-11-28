@@ -119,7 +119,10 @@
         <summary>ویدیو و تریلر <x-admin.icon name="chev"/></summary>
       <x-admin.panel id="course-teaser" title="تریلر دوره" desc="کاربران پس از ورود، این ویدیو را بالای صفحه دوره می‌بینند." data-tone="shop">
         @if($course->teaser_status === 'ready')
-          <video controls preload="metadata" style="display:block;width:100%;max-height:360px;border-radius:14px;background:#0f172a" src="{{ route('admin.courses.teaser', $course) }}"></video>
+          <div class="learning-video-frame" style="position:relative">
+            <video controls controlsList="nodownload nofullscreen noremoteplayback" disablepictureinpicture playsinline preload="metadata" style="display:block;width:100%;max-height:360px;border-radius:14px;background:#0f172a" src="{{ route('admin.courses.teaser', $course) }}"></video>
+            <x-learning.video-watermark/>
+          </div>
         @elseif($course->teaser_status === 'processing')
           <x-admin.badge tone="warn">در حال پردازش تریلر</x-admin.badge>
           <p class="adm-muted">پس از پایان پردازش، فهرست را به‌روزرسانی کن تا پیش‌نمایش را ببینی.</p>

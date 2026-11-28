@@ -11,11 +11,14 @@
         </div>
         <p>{{ $video->course?->title ?? 'دوره آموزشی' }} · {{ $video->classroom?->name ?? 'همه کلاس‌های دوره' }}@if($video->classSession) · {{ $video->classSession->title }}@endif</p>
         @if($video->status === 'active' && filled($video->file_path) && blank($video->external_id))
-            <video controls controlsList="nodownload noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-video playsinline preload="metadata"
+            <div class="learning-video-frame" style="position:relative">
+            <video controls controlsList="nodownload nofullscreen noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-video playsinline preload="metadata"
                    style="display:block;width:100%;max-height:72vh;background:#0b1220;border-radius:16px">
                 <source src="{{ route('student.videos.stream', $video) }}">
                 مرورگر شما از پخش این ویدئو پشتیبانی نمی‌کند.
             </video>
+            <x-learning.video-watermark/>
+            </div>
             <p class="tag">تماشای آنلاین در شیخان</p>
         @elseif($video->status === 'active' && filled($video->external_id) && filled($video->embed_url))
             <a class="btn s" href="{{ route('public.courses.show', $video->course->slug) }}#course-video-{{ $video->id }}">

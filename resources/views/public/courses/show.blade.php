@@ -101,10 +101,13 @@
     <div class="cr course-detail-grid">
         <div>
             @if (auth()->user()?->is_active && $course->teaser_status === 'ready' && $course->teaser_url)
-                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload" playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
+                <div class="learning-video-frame" style="position:relative">
+                <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload nofullscreen noremoteplayback" disablepictureinpicture disableremoteplayback playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
                     <source src="{{ !empty($isAdminPreview) ? route('admin.courses.teaser', $course) : $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>
+                <x-learning.video-watermark/>
+                </div>
             @elseif ($course->teaser_status === 'ready' && $course->teaser_path)
                 <div class="course-trailer-lock" @if($poster = $course->teaser_poster_url ?: $course->coverImageUrl) style="background-image:linear-gradient(#151c35b8,#151c35e8),url('{{ $poster }}')" @endif>
                     <div>
@@ -451,7 +454,14 @@
                             @else
                                 <strong>{{ number_format((int) $resource->price) }} تومان</strong>
                             @endif
-                            @if($hasCourseAccess && auth()->user()?->hasRole('student'))
+                            @if($resource->is_free && $resource->visibility === 'public' && !$resource->classroom_id)
+                                @guest
+                                    <a class="btn o s" href="{{ route('login') }}">ورود برای مشاهده</a>
+                                    <a class="btn o s" href="{{ route('register') }}">ثبت‌نام</a>
+                                @else
+                                    <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">مشاهده فایل</a>
+                                @endguest
+                            @elseif($hasCourseAccess && auth()->user()?->hasRole('student'))
                                 @if($resource->is_free || ($resource->is_purchased ?? false))
                                     <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">مشاهده فایل</a>
                                 @else
@@ -460,8 +470,6 @@
                                         <button class="btn s" type="submit">خرید فایل</button>
                                     </form>
                                 @endif
-                            @else
-                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">مشاهده فایل</a>
                             @endif
                         </div>
                     </article>
@@ -516,17 +524,17 @@
             </div>
             <div class="course-video-layout">
                 <div style="min-width:0">
-                    <div style="aspect-ratio:16/9;background:#0f172a;border-radius:12px;overflow:hidden">
+                    <div class="learning-video-frame" style="position:relative;aspect-ratio:16/9;background:#0f172a;border-radius:12px;overflow:hidden">
                         <iframe
                             id="course-video-frame"
                             title="پخش ویدیوی دوره"
                             src="about:blank"
                             style="width:100%;height:100%;border:0"
-                            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                            allowfullscreen
+                            allow="autoplay; encrypted-media; fullscreen 'none'; picture-in-picture 'none'"
                             referrerpolicy="strict-origin-when-cross-origin"
                             sandbox="allow-scripts allow-same-origin allow-presentation"
                         ></iframe>
+                        <x-learning.video-watermark/>
                     </div>
                     <p class="mu" style="font-size:12px;margin:10px 0 0">برای پخش، یکی از جلسه‌های دوره را انتخاب کنید.</p>
                 </div>

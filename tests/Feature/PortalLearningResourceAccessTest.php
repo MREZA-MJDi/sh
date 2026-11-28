@@ -230,7 +230,7 @@ class PortalLearningResourceAccessTest extends TestCase
         ]);
     }
 
-    public function test_public_unscoped_free_resource_is_available_to_guests_and_logged(): void
+    public function test_public_unscoped_free_resource_requires_login_and_logs_the_viewer(): void
     {
         $resource = LearningResource::query()->create([
             'title' => 'فایل عمومی',
@@ -243,11 +243,15 @@ class PortalLearningResourceAccessTest extends TestCase
         ]);
         Storage::disk('local')->put($resource->file_path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4XcAAAAASUVORK5CYII='));
 
-        $this->get(route('public.resources.download', $resource))->assertOk();
+        $url = route('public.resources.download', $resource);
+        $this->get($url)->assertRedirect(route('login'));
+        $this->get($url.'?render=1')->assertRedirect(route('login'));
+        $viewer = User::factory()->create(['is_active' => true]);
+        $this->actingAs($viewer)->get($url)->assertOk()->assertSee('آکادمی شیخان');
 
         $this->assertDatabaseHas('learning_resource_access_logs', [
             'learning_resource_id' => $resource->id,
-            'user_id' => null,
+            'user_id' => $viewer->id,
             'student_id' => null,
             'event_type' => 'view',
         ]);
@@ -285,9 +289,18 @@ class PortalLearningResourceAccessTest extends TestCase
         $this->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSee('جزوه‌ها و فایل‌های این دوره')
+            ->assertSee('ورود برای مشاهده')
             ->assertSee('جزوه رایگان فصل اول');
 
-        $this->get(route('public.resources.download', $resource))->assertOk();
+        $student = User::factory()->create(['is_active' => true]);
+        $student->roles()->attach(Role::query()->where('name', 'student')->value('id'));
+        $viewerUrl = route('public.resources.download', $resource);
+
+        $this->actingAs($student)->get(route('public.courses.show', $course->slug))
+            ->assertOk()
+            ->assertSee($viewerUrl)
+            ->assertDontSee(route('student.resources.download', $resource));
+        $this->get($viewerUrl)->assertOk()->assertViewIs('learning.document-reader');
     }
 
     public function test_public_visibility_does_not_bypass_course_or_class_membership(): void
@@ -296,7 +309,8 @@ class PortalLearningResourceAccessTest extends TestCase
         $resource->update(['visibility' => 'public']);
         Storage::disk('local')->put($resource->file_path, 'still scoped');
 
-        $this->get(route('public.resources.download', $resource))->assertNotFound();
+        $this->actingAs(User::factory()->create(['is_active' => true]))
+            ->get(route('public.resources.download', $resource))->assertNotFound();
     }
 
     public function test_public_pdf_returns_a_page_image_instead_of_the_original_document(): void
@@ -319,6 +333,7 @@ class PortalLearningResourceAccessTest extends TestCase
         $source = file_get_contents(base_path('docs/academy-client-handoff-fa.pdf'));
         Storage::disk('local')->put($resource->file_path, $source);
 
+        $this->actingAs(User::factory()->create(['is_active' => true, 'phone' => '09121234567']));
         $this->get(route('public.resources.download', $resource))
             ->assertOk()->assertViewIs('learning.document-reader');
 
@@ -326,6 +341,10 @@ class PortalLearningResourceAccessTest extends TestCase
             ->assertOk()->assertHeader('Content-Type', 'image/png')->assertHeaderMissing('Content-Disposition');
 
         $this->assertStringStartsWith("\x89PNG\r\n\x1a\n", $page->getContent());
+        $anotherPage = $this->actingAs(User::factory()->create(['is_active' => true, 'phone' => '09127654321']))
+            ->get(route('public.resources.download', ['resource' => $resource, 'page' => 2, 'render' => 1]))
+            ->assertOk();
+        $this->assertNotSame($page->getContent(), $anotherPage->getContent());
         $resource->update(['visibility' => 'enrolled']);
         $this->get(route('public.resources.download', ['resource' => $resource, 'page' => 2, 'render' => 1]))
             ->assertNotFound();

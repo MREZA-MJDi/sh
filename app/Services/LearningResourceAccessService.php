@@ -78,7 +78,8 @@ final class LearningResourceAccessService
         }
 
         if ($resource->course_id) {
-            abort_unless($this->access->activeCourseIds($student, 'resources')->whereKey($resource->course_id)->exists(), 404);
+            $course = $resource->course()->first();
+            abort_unless($course && $course->featureEnabled('resources') && $this->access->hasCourseAccess($student, $course), 404);
             return;
         }
 

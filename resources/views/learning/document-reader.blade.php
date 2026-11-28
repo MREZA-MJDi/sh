@@ -13,11 +13,16 @@
         nav a { background: #143867; color: white; padding: .35rem .75rem; border-radius: .45rem }
         img { display: block; width: 100%; height: auto; background: white; box-shadow: 0 2px 12px #16263b24 }
         pre { white-space: pre-wrap; overflow-wrap: anywhere; background: white; padding: 1rem }
+        .reader-badge { display: inline-block; color: white; background: #132642; padding: .2rem .65rem; border-radius: .45rem; font-size: .8rem }
+        .reader-text { position: relative; overflow: hidden }
+        .reader-mark { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden }
+        .reader-mark span { color: #13264288; transform: rotate(-12deg); overflow-wrap: anywhere }
     </style>
 </head>
 <body>
     <main>
         <header>
+            <span class="reader-badge">آکادمی شیخان</span>
             <h1>{{ $title }}</h1>
             @if ($pages)
                 <nav aria-label="صفحه‌های سند">
@@ -30,7 +35,10 @@
         @if ($pages)
             <img src="{{ $renderUrl }}" alt="تصویر صفحه {{ $page }} از {{ $title }}">
         @elseif ($text !== null)
-            <pre dir="auto">{{ $text }}</pre>
+            <div class="reader-text">
+                <pre dir="auto">{{ $text }}</pre>
+                <div class="reader-mark" aria-hidden="true"><span dir="ltr">{{ $watermark }}</span></div>
+            </div>
             @if ($textTruncated)<p>فقط ۱۲۸ کیلوبایت اول متن نمایش داده شده است.</p>@endif
         @else
             <p>پیش‌نمایش این فرمت در دسترس نیست. این سند باید به صورت PDF یا تصویر بارگذاری شود.</p>
