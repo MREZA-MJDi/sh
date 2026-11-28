@@ -5,7 +5,7 @@
     unicode-bidi: isolate;
     text-align: left;
     white-space: nowrap;
-    font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+    font-family: inherit;
     font-variant-numeric: tabular-nums;
     letter-spacing: .015em;
 }

@@ -2,12 +2,17 @@
 /* Shared page rhythm */
 .adm-container{gap:24px;padding-top:28px}
 .adm-pagehead{margin-bottom:2px}
-.adm-stat{min-height:104px;padding:18px 20px;border-radius:16px;box-shadow:none}
+.adm-stat{min-height:88px;padding:14px 16px;border-radius:16px;box-shadow:none}
 .adm-stat strong{font-size:25px;letter-spacing:-.5px}
 .adm-btn{min-height:40px;border-radius:10px}
 .adm-btn-sm{min-height:34px}
 .adm-input,.adm-select{min-height:42px;border-radius:10px}
-.adm-table th{font-size:11.5px;letter-spacing:.1px}
+.adm-table th{font-size:12px;letter-spacing:normal}
+.adm-pagehead h1{line-height:1.5;letter-spacing:normal}
+.adm-pagehead p{line-height:1.8}
+.adm-panel-head h2{line-height:1.6;letter-spacing:normal}
+.adm-nav-group>summary{color:var(--side-ink);font-size:12px}
+.adm-stat strong{font-variant-numeric:tabular-nums}
 .adm-table td{padding-block:13px}
 
 /* Dashboard: orient the user around the next useful action. */
