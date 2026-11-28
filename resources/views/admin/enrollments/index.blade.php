@@ -22,7 +22,7 @@
 </div>
 <x-admin.panel flush data-tone="shop">
   <form method="GET" class="adm-toolbar">
-    <input class="adm-input" type="search" name="q" value="{{ request('q') }}" placeholder="جستجوی دانش‌آموز یا دوره…">
+    <input class="adm-input adm-toolbar-search" type="search" name="q" value="{{ request('q') }}" placeholder="جستجوی دانش‌آموز یا دوره…">
     <select class="adm-select" name="course_id"><option value="">همه دوره‌ها</option>@foreach($courses as $course)<option value="{{ $course->id }}" @selected((string) request('course_id') === (string) $course->id)>{{ $course->title }}</option>@endforeach</select>
     <select class="adm-select" name="status"><option value="">همه وضعیت‌ها</option>@foreach($statusLabels as $key => $label)<option value="{{ $key }}" @selected(request('status') === $key)>{{ $label[1] }}</option>@endforeach</select>
     <button class="adm-btn adm-btn-line adm-btn-sm" type="submit">اعمال فیلتر</button>
@@ -37,10 +37,10 @@
           $enabled = collect($enrollment->course?->learning_features ?? [])->filter(fn ($value) => $value)->keys()->map(fn ($key) => $features[$key] ?? $key);
         @endphp
         <tr>
-          <td><b>{{ $enrollment->student?->name ?? 'حساب حذف‌شده' }}</b><small>{{ $enrollment->student?->phone ?: $enrollment->student?->email ?: '—' }}</small></td>
+          <td><b>{{ $enrollment->student?->name ?? 'حساب حذف‌شده' }}</b><small><bdi dir="ltr" class="adm-identifier">{{ $enrollment->student?->phone ?: $enrollment->student?->email ?: '—' }}</bdi></small></td>
           <td><b>{{ $enrollment->course?->title ?? 'دوره حذف‌شده' }}</b><small>{{ number_format((int) ($enrollment->course?->price ?? 0)) }} تومان</small></td>
           <td>{{ $enabled->isNotEmpty() ? $enabled->join('، ') : 'طبق تنظیمات دوره' }}</td>
-          <td>{{ $sources[$enrollment->source] ?? $enrollment->source }}<small>#{{ $enrollment->id }}</small></td>
+          <td>{{ $sources[$enrollment->source] ?? $enrollment->source }}<small><bdi dir="ltr" class="adm-identifier">#{{ $enrollment->id }}</bdi></small></td>
           <td class="adm-num is-nowrap">{{ ($enrollment->expires_at ? \App\Support\PersianDate::format($enrollment->expires_at, 'Y/m/d H:i') : 'بدون انقضا') }}</td>
           <td><x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge></td>
           <td>
