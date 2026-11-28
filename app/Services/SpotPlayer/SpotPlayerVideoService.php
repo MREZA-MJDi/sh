@@ -36,13 +36,10 @@ final class SpotPlayerVideoService
         string $mimeType,
         int $size,
     ): SpotPlayerVideo {
-        $course = $this->workspace->coursesQueryFor($actor)
-            ->where(function ($query): void {
-                $query->where(function ($legacy): void {
-                    $legacy->whereNull('learning_features->recorded_video')->where('delivery_type', 'spotplayer');
-                })->orWhere('learning_features->recorded_video', true);
-            })
-            ->findOrFail((int) $data['course_id']);
+        $course = $this->workspace->coursesQueryFor($actor)->findOrFail((int) $data['course_id']);
+        if (! $course->featureEnabled('recorded_video')) {
+            throw new RuntimeException('امکان ویدیوهای آموزشی برای این دوره فعال نیست.');
+        }
 
         $classroomId = filled($data['classroom_id'] ?? null) ? (int) $data['classroom_id'] : null;
         $classSessionId = filled($data['class_session_id'] ?? null) ? (int) $data['class_session_id'] : null;

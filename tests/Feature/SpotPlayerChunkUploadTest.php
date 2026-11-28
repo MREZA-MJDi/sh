@@ -168,6 +168,35 @@ final class SpotPlayerChunkUploadTest extends TestCase
             ->assertJsonPath('received_chunks.0', 0);
     }
 
+    public function test_finalization_accepts_string_enabled_feature_and_queues_video_processing(): void
+    {
+        Queue::fake();
+        $admin = $this->userWithRole('admin');
+        $course = Course::query()->create([
+            'title' => 'دوره ضبط شده', 'slug' => 'string-video-feature',
+            'type' => 'free', 'price' => 0, 'delivery_type' => 'onsite',
+            'learning_features' => ['recorded_video' => '1'], 'status' => 'draft',
+        ]);
+        $start = $this->actingAs($admin)->postJson(route('admin.uploads.start'), [
+            'target' => 'spotplayer_video', 'target_id' => $course->id,
+            'total_bytes' => 128, 'title' => 'جلسه اول',
+        ])->assertOk();
+        $uploadId = $start->json('upload_id');
+        $this->postJson(route('admin.uploads.chunk'), [
+            'upload_id' => $uploadId, 'index' => 0,
+            'chunk' => UploadedFile::fake()->createWithContent('part', str_repeat("\0", 128)),
+        ])->assertOk();
+        $this->postJson(route('admin.uploads.complete'), [
+            'upload_id' => $uploadId, 'total' => 1, 'filename' => 'lesson.mp4',
+        ])->assertOk();
+        $session = \App\Models\VideoUploadSession::query()->where('upload_id', $uploadId)->firstOrFail();
+        (new FinalizeChunkUpload($session->id))->handle(app(SpotPlayerVideoService::class));
+        $session->refresh();
+        $this->assertSame('completed', $session->status);
+        $this->assertNotNull($session->metadata['result_video_id'] ?? null);
+        Queue::assertPushed(ProcessCourseRecordingVideo::class);
+    }
+
     public function test_admin_can_retry_processing_a_failed_private_recording(): void
     {
         Queue::fake();
