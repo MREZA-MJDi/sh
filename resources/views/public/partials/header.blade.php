@@ -5,7 +5,7 @@
 
 <header class="nv">
     <div class="c nvr">
-        <button class="ib burger" id="bg" type="button" aria-label="منو">
+        <button class="ib burger" id="bg" type="button" aria-label="منو" aria-controls="lk" aria-expanded="false">
             <svg class="i"><use href="#menu"/></svg>
         </button>
 
@@ -22,7 +22,7 @@
 
             <div class="mg">
                 <a class="{{ request()->routeIs('public.courses.*') ? 'on' : '' }}" href="{{ route('public.courses.index') }}">
-                    دوره‌ها <svg class="i" style="width:1em"><use href="#chev"/></svg>
+                    دوره‌ها <svg class="i course-chevron" style="width:1em"><use href="#chev"/></svg>
                 </a>
                 <div class="card mega">
                     <div>
@@ -59,7 +59,7 @@
                 <svg class="i" data-theme-icon="moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
 
-            <button class="ib" id="sb" type="button" aria-label="جستجو">
+            <button class="ib" id="sb" type="button" aria-label="جستجو" aria-controls="sbar" aria-expanded="false">
                 <svg class="i"><use href="#search"/></svg>
             </button>
 
@@ -72,13 +72,14 @@
 
             @guest
                 <a class="tl" href="{{ route('login') }}">ورود / ثبت‌نام</a>
-                <button class="btn s" id="pb" type="button">پنل من</button>
-            @else
-                <button class="btn s" id="pb" type="button" style="display:inline-flex;gap:6px;align-items:center">
-                    <span>{{ Str::limit($user->name, 14) }}</span>
-                    <svg class="i" style="width:0.85em"><use href="#chev"/></svg>
-                </button>
             @endguest
+            <button class="btn s" id="pb" type="button" aria-label="پنل من" aria-controls="pm" aria-expanded="false">
+                <svg class="i panel-icon" aria-hidden="true"><use href="#user"/></svg>
+                <span>{{ $user ? Str::limit($user->name, 14) : 'پنل من' }}</span>
+                @auth
+                    <svg class="i panel-chevron" aria-hidden="true" style="width:0.85em"><use href="#chev"/></svg>
+                @endauth
+            </button>
         </div>
     </div>
 
@@ -97,8 +98,6 @@
             </form>
         </div>
     </div>
-</header>
-
 <!-- منوی بازشونده پنل من -->
 <div class="card ddm" id="pm">
     @guest
@@ -156,3 +155,4 @@
         </div>
     @endguest
 </div>
+</header>
