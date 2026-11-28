@@ -53,6 +53,8 @@
       <input type="hidden" name="delivery_type" value="{{ $course->delivery_type ?: 'onsite' }}">
       <input type="hidden" name="spotplayer_course_id" value="{{ old('spotplayer_course_id', $course->spotplayer_course_id) }}">
 
+      <div class="editor-course-layout">
+        <div class="adm-stack">
       <x-admin.panel id="course-basics" title="مشخصات دوره" desc="این اطلاعات، سربرگ صفحه عمومی دوره را می‌سازند و به دانش‌آموز نمایش داده می‌شوند." data-tone="edu">
         <div class="adm-form">
           <x-admin.input label="عنوان اصلی دوره" name="title" :value="old('title', $course->title)" placeholder="مثلاً شیمی دوازدهم؛ آموزش مفهومی و مسئله‌محور" wide required/>
@@ -70,11 +72,12 @@
           <div class="adm-field wide">
             <span class="adm-label">تصویر روی کارت و صفحه دوره</span>
             <label class="adm-upload adm-upload-wide">
-              <input id="course-cover-image" type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" data-course-cover-input data-preview-ratio="16/9" data-preview-fit="cover">
+              <input id="course-cover-image" type="file" name="cover_image" aria-describedby="course-cover-guidance @error('cover_image') course-cover-error @enderror" @error('cover_image') aria-invalid="true" @enderror accept="image/jpeg,image/png,image/webp" data-course-cover-input data-preview-ratio="16/9" data-preview-fit="cover">
               <span class="adm-upload-icon"><x-admin.icon name="file"/></span>
               <b>تصویر دوره را اینجا رها کن یا انتخاب کن</b>
-              <small data-upload-name>JPG، PNG یا WebP · حداکثر ۵ مگابایت</small>
+              <small id="course-cover-guidance" data-upload-name>JPG، PNG یا WebP · حداکثر ۵ مگابایت</small>
             </label>
+            @error('cover_image') <span class="adm-err" id="course-cover-error">{{ $message }}</span> @enderror
             @if($isEditing && $course->coverImageUrl)
               <div class="adm-current-cover">
                 <img src="{{ $course->coverImageUrl }}" alt="تصویر فعلی {{ $course->title }}" loading="lazy">
@@ -105,6 +108,10 @@
       </x-admin.panel>
 
       </details>
+
+        </div>
+        <x-learning.editor-preview kind="course" :cover="$course->coverImageUrl"/>
+      </div>
 
       <div class="adm-actions">
         <button type="submit" class="adm-btn adm-btn-primary">{{ $isEditing ? 'ذخیره تغییرات صفحه دوره' : 'ساخت دوره' }}</button>

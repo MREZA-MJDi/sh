@@ -20,3 +20,5 @@
 <x-admin.textarea label="یادداشت مدرس" name="teacher_notes" wide/>
 </div>
 </details>
+
+<x-learning.editor-preview kind="session" :class-link="filled($classroom->meeting_url ?? null)"/>

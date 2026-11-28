@@ -63,6 +63,25 @@ class StoreCourseRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'عنوان دوره را وارد کنید.',
+            'title.max' => 'عنوان دوره حداکثر ۱۸۰ نویسه است.',
+            'description.max' => 'معرفی دوره حداکثر ۱۰٬۰۰۰ نویسه است.',
+            'cover_image.image' => 'یک تصویر معتبر انتخاب کنید.',
+            'cover_image.mimes' => 'تصویر باید JPG، PNG یا WebP باشد.',
+            'cover_image.max' => 'حجم تصویر باید حداکثر ۵ مگابایت باشد.',
+            'price.integer' => 'قیمت را به تومان و بدون اعشار وارد کنید.',
+            'price.min' => 'قیمت نمی‌تواند کمتر از صفر باشد.',
+            'price.max' => 'قیمت نمی‌تواند بیشتر از یک میلیارد تومان باشد.',
+            'type.required' => 'رایگان یا پولی بودن دوره را مشخص کنید.',
+            'type.in' => 'نوع دوره را از گزینه‌های فرم انتخاب کنید.',
+            'status.required' => 'وضعیت انتشار را مشخص کنید.',
+            'status.in' => 'وضعیت انتشار را از گزینه‌های فرم انتخاب کنید.',
+        ];
+    }
+
     public function after(): array
     {
         return [function (Validator $validator): void {

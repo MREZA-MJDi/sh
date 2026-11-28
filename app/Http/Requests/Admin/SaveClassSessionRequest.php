@@ -30,6 +30,13 @@ class SaveClassSessionRequest extends FormRequest
     {
         return [
             'title.required' => 'عنوان جلسه را وارد کنید.',
+            'title.max' => 'عنوان جلسه حداکثر ۱۸۰ نویسه است.',
+            'session_type.required' => 'نوع برگزاری جلسه را انتخاب کنید.',
+            'session_type.in' => 'نوع برگزاری را از گزینه‌های فرم انتخاب کنید.',
+            'starts_at.date' => 'تاریخ و ساعت شروع معتبر وارد کنید.',
+            'ends_at.date' => 'تاریخ و ساعت پایان معتبر وارد کنید.',
+            'meeting_provider.in' => 'سرویس برگزاری را از گزینه‌های فرم انتخاب کنید.',
+            'teacher_notes.max' => 'یادداشت مدرس حداکثر ۲٬۰۰۰ نویسه است.',
             'starts_at.required' => 'زمان شروع جلسه را مشخص کنید.',
             'ends_at.after' => 'زمان پایان باید بعد از زمان شروع باشد.',
             'ends_at.required_if' => 'زمان پایان برای جلسه آنلاین الزامی است.',

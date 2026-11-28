@@ -49,6 +49,7 @@
   <x-admin.textarea label="توضیح کوتاه فصل" name="description" wide/>
   <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
   <x-admin.select label="وضعیت نمایش" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'draft'" required/>
+  <x-learning.editor-preview kind="section"/>
 </x-admin.modal>
 
 <x-admin.modal :demo="false" id="lesson-modal" title="درس جدید" size="lg" :action="url('admin/course-sections/0/lessons')">
@@ -57,6 +58,7 @@
   <x-admin.input label="مدت‌زمان (دقیقه)" name="duration_minutes" type="number" min="0" max="600"/>
   <x-admin.input label="ترتیب نمایش" name="sort_order" type="number" min="0"/>
   <x-admin.select label="وضعیت نمایش" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'نمایش در سایت', 'archived' => 'بایگانی']" :selected="'draft'" required/>
+  <x-learning.editor-preview kind="lesson"/>
 </x-admin.modal>
 
 <x-admin.confirm :demo="false" id="section-delete" title="حذف فصل" text="اگر دانش‌آموزی پیشرفت ثبت‌شده داشته باشد، فصل حذف نمی‌شود؛ آن را بایگانی کن."/>

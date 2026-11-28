@@ -46,11 +46,16 @@
         <div class="teacher-live-session-actions">
             @if ($joinUrl)<a class="b" href="{{ $joinUrl }}" target="_blank" rel="noopener noreferrer">ورود به کلاس</a>@else<span class="teacher-live-no-link">لینک ورود برای این جلسه ثبت نشده است.</span>@endif
             @if (auth()->user()->hasPermissionTo('classes.manage.assigned'))
-            <details class="teacher-live-settings"><summary>تنظیمات اتصال جلسه</summary>
+            @php($retrySession = (string) old('editing_session_id') === (string) $session->id)
+            <details class="teacher-live-settings" @if($retrySession) open @endif><summary>تنظیمات اتصال جلسه</summary>
                 <form method="POST" action="{{ route('teacher.live.update', $session) }}" class="teacher-form teacher-live-settings-form">
+                    <input type="hidden" name="editing_session_id" value="{{ $session->id }}">
                     @csrf @method('PATCH')
-                    <label>سرویس برگزاری</label><select name="meeting_provider" required>@foreach ($providerNames as $key => $label)<option value="{{ $key }}" @selected($session->meeting_provider === $key)>{{ $label }}</option>@endforeach</select>
-                    <label>لینک امن جلسه (HTTPS)</label><input type="url" name="meeting_url" value="{{ $session->meeting_url }}" placeholder="https://..." inputmode="url">
+                    <label>سرویس برگزاری</label><select name="meeting_provider" required>@foreach ($providerNames as $key => $label)<option value="{{ $key }}" @selected(($retrySession ? old('meeting_provider') : $session->meeting_provider) === $key)>{{ $label }}</option>@endforeach</select>
+                    <label for="teacher-session-link-{{ $session->id }}">لینک امن جلسه (HTTPS)</label><input type="url" name="meeting_url" value="{{ $retrySession ? old('meeting_url') : $session->meeting_url }}" id="teacher-session-link-{{ $session->id }}" @error('meeting_url') @if($retrySession) aria-invalid="true" aria-describedby="teacher-session-link-error-{{ $session->id }}" @endif @enderror placeholder="https://..." inputmode="url">
+                    @error('meeting_url') @if($retrySession) <span id="teacher-session-link-error-{{ $session->id }}">{{ $message }}</span> @endif @enderror
+                    @error('meeting_provider') @if($retrySession) <span>{{ $message }}</span> @endif @enderror
+                    <x-learning.editor-preview kind="session" :session="$session" :class-link="filled($session->classroom?->meeting_url)"/>
                     <button class="b s" type="submit">ذخیره تنظیمات</button>
                 </form>
             </details>
