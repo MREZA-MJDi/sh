@@ -162,37 +162,44 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (burgerBtn && linksNav) {
-        burgerBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            linksNav.classList.toggle('open');
-        });
+    const disclosures = [
+        { button: burgerBtn, content: linksNav, openClass: 'open' },
+        { button: searchBtn, content: searchBar, openClass: 'on' },
+        { button: panelBtn, content: panelMenu, openClass: 'on' },
+    ].filter(({ button, content }) => button && content);
+
+    function setExpanded({ button, content, openClass }, expanded) {
+        content.classList.toggle(openClass, expanded);
+        button.setAttribute('aria-expanded', String(expanded));
     }
 
-    if (searchBtn && searchBar) {
-        searchBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            searchBar.classList.toggle('on');
-            if (searchBar.classList.contains('on') && searchInput) {
-                searchInput.focus();
-            }
+    disclosures.forEach((disclosure) => {
+        disclosure.button.addEventListener('click', () => {
+            const expanded = disclosure.button.getAttribute('aria-expanded') === 'false';
+            disclosures.forEach((item) => setExpanded(item, item === disclosure && expanded));
+            if (expanded && disclosure.button === searchBtn) searchInput?.focus();
         });
-    }
-
-    if (panelBtn && panelMenu) {
-        panelBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            panelMenu.classList.toggle('on');
-        });
-    }
+    });
 
     document.addEventListener('click', function (e) {
-        if (panelMenu && !panelMenu.contains(e.target) && e.target !== panelBtn) {
-            panelMenu.classList.remove('on');
-        }
-        if (linksNav && !linksNav.contains(e.target) && e.target !== burgerBtn) {
-            linksNav.classList.remove('open');
-        }
+        disclosures.forEach((item) => {
+            if (!item.content.contains(e.target) && !item.button.contains(e.target)) {
+                setExpanded(item, false);
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        const expanded = disclosures.find(({ button }) => button.getAttribute('aria-expanded') === 'true');
+        if (!expanded) return;
+        setExpanded(expanded, false);
+        expanded.button.focus();
+    });
+
+    window.matchMedia('(max-width: 1100px)').addEventListener('change', () => {
+        const navigation = disclosures.find(({ button }) => button === burgerBtn);
+        if (navigation) setExpanded(navigation, false);
     });
 });
 </script>
