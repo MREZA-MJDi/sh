@@ -4,6 +4,7 @@
             .learning-video-frame:fullscreen { display: grid; place-items: center; background: #000 }
             .learning-video-frame:fullscreen video { width: 100% !important; height: 100% !important; max-height: none !important; object-fit: contain !important }
             .learning-video-watermark { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; overflow: hidden }
+            .learning-video-brand { position: absolute; z-index: 3; inset-block-start: 12px; left: 50%; transform: translateX(-50%); pointer-events: none }
             .learning-video-watermark span {
                 max-width: 82%; padding: .35em .8em; border-radius: 999px;
                 background: #13264220; color: #ffffff68; text-shadow: 0 1px 4px #0006;
@@ -15,8 +16,9 @@
         </style>
     @endonce
     @php($identity = \App\Services\Learning\ContentWatermark::identity(auth()->user()))
+    <x-learning.academy-badge class="learning-video-brand"/>
     <div class="learning-video-watermark" aria-hidden="true">
-        <span>آکادمی شیخان · <bdi dir="ltr">{{ $identity }}</bdi></span>
+        <span><bdi dir="ltr">{{ $identity }}</bdi></span>
     </div>
     <button type="button" class="learning-video-fullscreen"
         onclick="if (document.fullscreenElement) document.exitFullscreen(); else this.parentElement.requestFullscreen?.();"
