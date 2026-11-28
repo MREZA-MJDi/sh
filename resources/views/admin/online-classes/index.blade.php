@@ -84,7 +84,7 @@
           @if(filled($meetingLink))
             <a class="adm-online-link" href="{{ $meetingLink }}" target="_blank" rel="noopener noreferrer"><x-admin.icon name="link"/>باز کردن لینک جلسه</a>
           @else
-            <span class="adm-muted">لینک ورود هنوز آماده نیست</span>
+            <x-admin.badge tone="warn">لینک ورود ثبت نشده</x-admin.badge>
           @endif
           @if($classroom)
             <x-admin.btn size="sm" variant="line" icon="cal" :href="route('admin.classes.sessions.index', $classroom)">برنامه کلاس</x-admin.btn>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAnnouncementRequest;
 use App\Http\Requests\Admin\UpdateAnnouncementStatusRequest;
 use App\Models\Announcement;
+use App\Models\AdminNotificationBroadcast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,14 @@ class AnnouncementController extends Controller
     {
         $announcements = Announcement::with('creator')->latest()->paginate(15);
 
-        return view('admin.announcements.index', compact('announcements'));
+        $audienceCounts = [];
+        if (auth()->user()->hasPermissionTo('announcements.manage')) {
+            foreach (['all', 'students', 'parents', 'teachers'] as $audience) {
+                $audienceCounts[$audience] = AdminNotificationBroadcast::recipients($audience)->count();
+            }
+        }
+
+        return view('admin.announcements.index', compact('announcements', 'audienceCounts'));
     }
 
     public function store(StoreAnnouncementRequest $request): RedirectResponse

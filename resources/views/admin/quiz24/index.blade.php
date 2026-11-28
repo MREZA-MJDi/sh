@@ -15,7 +15,7 @@
 <div class="adm-stats">
   <x-admin.stat tone="track" icon="exam" label="آزمون‌های Quiz24" :value="number_format($exams->total())" hint="متصل یا در انتظار نگاشت"/>
   <x-admin.stat tone="track" icon="users" label="شرکت‌کنندگان نیازمند تطبیق" :value="number_format($unmatched->total())" hint="نتیجه بدون پروفایل معتبر"/>
-  <x-admin.stat tone="track" icon="refresh" label="عملیات ثبت‌شده" :value="number_format($operations->count())" hint="در انتظار قرارداد یا پاسخ"/>
+  <x-admin.stat tone="track" icon="refresh" label="آخرین عملیات اتصال" :value="$operations->first() ? \App\Support\PersianDate::format($operations->first()->created_at, 'Y/m/d H:i') : 'ثبت نشده'" href="#quiz24-operations"/>
   <x-admin.stat tone="track" icon="chart" label="وضعیت سرویس" :value="$health->available ? 'متصل' : 'در انتظار'" :hint="$health->message"/>
 </div>
 
@@ -102,7 +102,7 @@
   <x-slot:footer>{{ $unmatched->links() }}</x-slot:footer>
 </x-admin.panel>
 
-<x-admin.panel title="تاریخچه عملیات Quiz24" flush>
+<x-admin.panel id="quiz24-operations" title="تاریخچه عملیات Quiz24" flush>
   <div class="adm-table-wrap"><table class="adm-table">
     <thead><tr><th>عملیات</th><th>شناسه پیگیری</th><th>وضعیت</th><th>خطا / توضیح</th><th>زمان</th></tr></thead>
     <tbody>

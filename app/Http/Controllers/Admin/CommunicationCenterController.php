@@ -26,6 +26,7 @@ final class CommunicationCenterController extends Controller
     ): View {
         $filters = $request->validate([
             'type' => ['nullable', 'in:messages,contacts,consultations,meetings'],
+            'attention' => ['nullable', 'in:needed'],
             'q' => ['nullable', 'string', 'max:120'],
             'page' => ['nullable', 'integer', 'min:1', 'max:1000000'],
         ]);
@@ -35,6 +36,7 @@ final class CommunicationCenterController extends Controller
         $selectedType = $filters['type'] ?? null;
         $page = max(1, (int) ($filters['page'] ?? 1));
         $sources = [];
+        $attentionNeeded = ($filters['attention'] ?? null) === 'needed';
 
         $counts = [
             'messages' => 0,
@@ -53,6 +55,10 @@ final class CommunicationCenterController extends Controller
                         ->orWhereHas('recipient', fn ($recipient) => $recipient->where('name', 'like', "%{$term}%"))
                         ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$term}%"));
                 }));
+
+            if ($attentionNeeded) {
+                $query->whereNull('closed_at')->whereIn('status', ['open', 'read']);
+            }
 
             $counts['messages'] = (clone $query)->count();
 
@@ -92,6 +98,10 @@ final class CommunicationCenterController extends Controller
                         ->orWhere('body', 'like', "%{$term}%");
                 }));
 
+            if ($attentionNeeded) {
+                $query->whereIn('status', ['new', 'in_progress']);
+            }
+
             $counts['contacts'] = (clone $query)->count();
 
             if ($selectedType === null || $selectedType === 'contacts') {
@@ -126,6 +136,10 @@ final class CommunicationCenterController extends Controller
                         ->orWhere('notes', 'like', "%{$term}%");
                 }));
 
+            if ($attentionNeeded) {
+                $query->where('status', 'pending');
+            }
+
             $counts['consultations'] = (clone $query)->count();
 
             if ($selectedType === null || $selectedType === 'consultations') {
@@ -142,7 +156,8 @@ final class CommunicationCenterController extends Controller
                             'label' => 'درخواست مشاوره',
                             'title' => $consultation->topic ?: 'درخواست مشاوره',
                             'sender' => $consultation->requester?->name ?? 'کاربر',
-                            'context' => $consultation->student?->name ?: $consultation->teacher?->name,
+                            'context' => $consultation->student?->name,
+                            'owner' => $consultation->teacher?->name,
                             'summary' => 'نوع درخواست: '.$consultation->type.' · '.($consultation->notes ?: 'بدون یادداشت'),
                             'status' => $consultation->status,
                             'created_at' => $consultation->created_at,
@@ -164,6 +179,10 @@ final class CommunicationCenterController extends Controller
                         ->orWhereHas('student', fn ($student) => $student->where('name', 'like', "%{$term}%"))
                         ->orWhereHas('guardian', fn ($guardian) => $guardian->where('name', 'like', "%{$term}%"));
                 }));
+
+            if ($attentionNeeded) {
+                $query->whereIn('status', ['requested', 'proposed']);
+            }
 
             $counts['meetings'] = (clone $query)->count();
 

@@ -18,6 +18,7 @@
 @include('admin.seo.partials.workspace-tabs')
 <x-admin.page-head tone="shop" icon="file" title="{{ $selectedPlacement === 'home_hero' ? 'مدیریت اسلایدر Hero صفحه اصلی' : 'بنرها و جایگاه‌های تبلیغاتی' }}" :desc="$selectedPlacement === 'home_hero' ? 'کنترل کامل اسلایدر بالای لندینگ؛ متن‌ها، عنوان، توضیحات، نشان (Badge)، دکمه‌های اقدام (CTA)، تصویر و رنگ‌بندی هر اسلاید را تنظیم کنید.' : 'مدیریت بنرهای سایت با متن جایگزین، مقصد و بازه نمایش'">
   <x-admin.btn icon="plus" data-modal-open="banner-modal">ثبت بنر جدید</x-admin.btn>
+  <x-admin.btn variant="line" :href="route('home').'#homeHero'" target="_blank" rel="noopener">نمایش اسلایدر سایت</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">

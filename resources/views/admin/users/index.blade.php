@@ -67,8 +67,11 @@
       @endunless
     </div>
   </form>
-  <div class="adm-grid adm-cols-2">
-    @forelse($users as $user)
+  <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead><tr><th scope="col">نام</th><th scope="col">تماس</th><th scope="col">وضعیت</th><th scope="col">پرونده</th></tr></thead>
+      <tbody>
+    @foreach($users as $user)
       @php
         $associations = $role === 'student'
           ? $user->enrolledClasses->pluck('name')->join('، ')
@@ -98,27 +101,20 @@
         }
         $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
       @endphp
-      <article class="adm-card">
-        <div class="adm-card-body">
-          <div class="adm-card-title">
-            <div class="adm-person">
-              <span class="adm-avatar">
-                @if($role === 'teacher' && $user->avatarUrl())
-                  <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }}" loading="lazy">
-                @else
-                  {{ mb_substr($user->name, 0, 1) }}
-                @endif
-              </span>
-              <div><b>{{ $user->name }}</b><small>شناسه {{ $user->id }} · عضویت {{ \App\Support\PersianDate::format($user->created_at, 'Y/m/d') }}</small></div>
-            </div>
-            <x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge>
-          </div>
-          <div class="adm-meta">
-            @if($user->email)<span><x-admin.icon name="msg"/><span class="adm-ltr">{{ $user->email }}</span></span>@endif
-            @if($user->phone)<span><x-admin.icon name="phone"/>@phone($user->phone)</span>@endif
-          </div>
-          <div class="adm-panel-kicker">{{ $role === 'student' ? 'کلاس‌های آموزشی' : ($role === 'teacher' ? 'دوره‌های تخصیص‌یافته' : 'فرزندان مرتبط') }}</div>
-          <p>{{ $associations ?: 'هنوز ارتباط آموزشی ثبت نشده است.' }}</p>
+      <tr>
+        <td><b>{{ $user->name }}</b><small>شناسه {{ $user->id }}</small></td>
+        <td>
+          @if($user->email)<div dir="ltr">{{ $user->email }}</div>@endif
+          @if($user->phone)<div>@phone($user->phone)</div>@endif
+          @if(!$user->email && !$user->phone)<span class="adm-muted">ثبت نشده</span>@endif
+        </td>
+        <td><x-admin.badge :tone="$user->is_active ? 'ok' : 'warn'">{{ $user->is_active ? 'فعال' : 'غیرفعال' }}</x-admin.badge></td>
+        <td>
+          <details>
+            <summary>جزئیات پرونده</summary>
+            <small>عضویت {{ \App\Support\PersianDate::format($user->created_at, 'Y/m/d') }}</small>
+            <p>{{ $role === 'student' ? 'کلاس‌ها' : ($role === 'teacher' ? 'دوره‌های تخصیص‌یافته' : 'فرزندان') }} · {{ $associations ?: 'ثبت نشده' }}</p>
+          </details>
           <div class="adm-actions">
             @if($canManage)
               <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="user-modal" data-title="ویرایش کاربر" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="$updateAction" data-method="PATCH">ویرایش پرونده</x-admin.btn>
@@ -129,10 +125,11 @@
               </form>
             @endif
           </div>
-        </div>
-      </article>
-    @empty
-    @endforelse
+        </td>
+      </tr>
+    @endforeach
+      </tbody>
+    </table>
   </div>
   @if($users->isEmpty())
     <x-admin.empty icon="users" text="حسابی در این نقش ثبت نشده است."/>

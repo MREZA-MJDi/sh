@@ -40,7 +40,10 @@ class ExamController extends Controller
 
         $records = (clone $examQuery)
             ->with(['classroom', 'course'])
-            ->withCount(['results', 'questions', 'attempts'])
+            ->withCount([
+                'results', 'questions', 'attempts',
+                'attempts as pending_review_count' => fn ($attempts) => $attempts->where('status', 'pending_review'),
+            ])
             ->latest()
             ->paginate(15)
             ->withQueryString();

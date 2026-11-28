@@ -99,7 +99,7 @@
     <x-admin.input label="عنوان" name="title" wide required/>
     <x-admin.textarea label="متن اعلان" name="body" rows="5" wide required/>
     <x-admin.select label="مخاطب" name="audience" :options="$audiences" required/>
-    <p class="adm-muted wide">«عمومی» در سایت و فید همه پنل‌ها نمایش داده می‌شود؛ انتخاب دانش‌آموز، اولیا یا مدرس فقط در پنل همان گروه دیده خواهد شد.</p>
+    <p class="adm-muted wide" id="announcement-audience-summary" aria-live="polite"></p>
     <x-admin.select label="وضعیت انتشار" name="status" :options="['draft' => 'پیش‌نویس', 'published' => 'انتشار / زمان‌بندی']" required/>
     <x-admin.legend title="زمان‌بندی و دکمه اقدام"/>
     <label class="adm-field"><span>شروع نمایش (اختیاری)</span><input type="datetime-local" name="starts_at"></label>
@@ -112,16 +112,26 @@
     <div class="wide" style="padding:14px;border-radius:12px;background:var(--adm-soft, #f5f6fb)"><b>رفتار کارت صفحه اصلی</b><p class="adm-muted" style="margin:6px 0 0">در هر زمان فقط یک کارت ویژه صفحه اصلی فعال است. با انتخاب این گزینه، مخاطب به «همه کاربران» تنظیم می‌شود و زمان‌بندی روی کارت اعمال نمی‌شود. تخفیف، ظرفیت و شمارنده‌ای نمایش داده نخواهد شد.</p></div>
     <p class="adm-muted wide">اعلان‌های عادی بر اساس مخاطب و زمان‌بندی نمایش داده می‌شوند. کارت ویژه صفحه اصلی سایت فقط یک مورد فعال دارد و برای همه کاربران قابل مشاهده است. پیامک ارسال نمی‌شود.</p>
 </x-admin.modal>
-@if ($errors->any())
+@endpush
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const dialog = document.getElementById('announcement-modal');
-    if (dialog && typeof dialog.showModal === 'function' && !dialog.open) {
-        dialog.showModal();
-    }
+    if (!dialog) return;
+    const audience = dialog.querySelector('select[name="audience"]');
+    const ticket = dialog.querySelector('input[type="checkbox"][name="display_as_ticket"]');
+    const summary = document.getElementById('announcement-audience-summary');
+    const counts = @json($audienceCounts);
+    const format = new Intl.NumberFormat('fa-IR');
+    const refresh = () => {
+        const group = ticket.checked ? 'all' : audience.value;
+        const surface = ticket.checked ? 'کارت ویژهٔ صفحهٔ اصلی' : audience.selectedOptions[0]?.textContent.trim();
+        summary.textContent = surface ? surface + ' · ' + format.format(counts[group] ?? 0) + ' حساب فعال' : '';
+    };
+    dialog.addEventListener('change', refresh);
+    new MutationObserver(refresh).observe(dialog, { attributes: true, attributeFilter: ['open'] });
+    refresh();
 });
 </script>
-@endpush
-@endif
 @endpush

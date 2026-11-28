@@ -14,6 +14,9 @@
 
 <x-admin.page-head tone="shop" icon="lib" title="جزوه‌ها و منابع آموزشی" desc="جزوه را به دوره یا کلاس اضافه کن، سطح دسترسی را تعیین کن و رسیدهای خرید را بررسی کن.">
   <x-admin.btn icon="plus" data-modal-open="resource-modal">افزودن منبع</x-admin.btn>
+  @if($pendingPurchaseCount > 0)
+    <x-admin.btn size="sm" variant="line" href="#resource-purchase-queue">{{ number_format($pendingPurchaseCount) }} خرید در انتظار بررسی</x-admin.btn>
+  @endif
 </x-admin.page-head>
 
 <section class="adm-resource-guide" data-tone="shop">
@@ -89,7 +92,7 @@
 </x-admin.panel>
 
 @if(!$teacherView)
-<x-admin.panel title="درخواست‌های خرید در انتظار بررسی" desc="پس از تطبیق رسید بانکی با واریز واقعی، خرید را تأیید کنید." flush data-tone="shop">
+<x-admin.panel id="resource-purchase-queue" title="درخواست‌های خرید در انتظار بررسی" desc="پس از تطبیق رسید بانکی با واریز واقعی، خرید را تأیید کنید." flush data-tone="shop">
     <div class="adm-grid adm-cols-2">
       @forelse($purchases as $purchase)
         <article class="adm-card">

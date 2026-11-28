@@ -10,6 +10,7 @@ use App\Models\ClassSession;
 use App\Models\CourseEnrollment;
 use App\Models\HomeworkSubmission;
 use App\Models\Payment;
+use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Support\JalaliDate;
 
@@ -169,7 +170,11 @@ final class DashboardService
             })
             : collect();
 
+        $failedVideoCount = $user->hasRole('admin') && $user->hasPermissionTo('integrations.manage')
+            ? SpotPlayerVideo::where('status', 'failed')->count() : 0;
+
         return compact(
+            'failedVideoCount',
             'stats',
             'weeklyAttendance',
             'attendanceTotal',

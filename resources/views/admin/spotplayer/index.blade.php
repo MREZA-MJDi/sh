@@ -100,7 +100,7 @@
         <div class="adm-card-body">
           <div class="adm-card-title">
             <div><h3>{{ $video->title }}</h3><p>{{ $video->course?->title ?? 'دوره نامشخص' }} · شناسه داخلی #{{ $video->id }}</p></div>
-            <x-admin.badge :tone="$videoStatus[0]">{{ $videoStatus[1] }}</x-admin.badge>
+            <x-admin.badge :tone="$videoStatus[0]">آمادگی پخش · {{ $videoStatus[1] }}</x-admin.badge>
           </div>
           <div class="adm-meta">
             <span><x-admin.icon name="users"/>{{ $video->classroom?->name ?? 'در سطح کل دوره' }}</span>
@@ -108,13 +108,13 @@
             <span><x-admin.icon name="clock"/>{{ ($video->staged_at ? \App\Support\PersianDate::format($video->staged_at, 'Y/m/d H:i') : 'زمان ثبت نامشخص') }}</span>
           </div>
           <div class="adm-card-foot">
-            <span class="adm-video-source">{{ $video->file_path ? 'فایل بارگذاری‌شده' : 'شناسه SpotPlayer' }}</span>
+            <span class="adm-video-source">منبع و بارگذاری · {{ $video->file_path ? 'فایل بارگذاری‌شده' : 'شناسه SpotPlayer' }}</span>
             @if($video->approval_status === 'pending')
               <x-admin.badge tone="warn">در انتظار تأیید مدیر</x-admin.badge>
             @elseif($video->approval_status === 'rejected')
               <x-admin.badge tone="bad">نیازمند اصلاح</x-admin.badge>
             @else
-              <x-admin.badge tone="ok">تأیید انتشار</x-admin.badge>
+              <x-admin.badge tone="ok">دسترسی · {{ $video->status === 'active' ? 'طبق مجوز دوره' : 'منتظر آماده‌شدن پخش' }}</x-admin.badge>
             @endif
             @if($video->file_path)
               <span class="adm-muted">{{ number_format(($video->file_size_bytes ?? 0) / 1048576, 1) }} مگابایت</span>

@@ -31,6 +31,16 @@
   <x-admin.btn variant="line" :href="route('admin.courses.index')">بازگشت به دوره‌ها</x-admin.btn>
 </x-admin.page-head>
 
+@if($isEditing && $course->status === 'draft')
+  <x-admin.panel title="قدم بعدی دوره" desc="محتوا را اضافه کن و پیش‌نمایش صفحه را ببین. وقتی دوره آماده شد، از بخش قیمت و انتشار آن را منتشر کن." data-tone="edu">
+    <div class="adm-actions">
+      <a class="adm-btn adm-btn-primary" href="#course-lessons">افزودن فصل و درس</a>
+      <a class="adm-btn adm-btn-line" href="#course-media">افزودن ویدیو</a>
+      <a class="adm-btn adm-btn-line" href="#course-enrollment">قیمت و انتشار</a>
+    </div>
+  </x-admin.panel>
+@endif
+
 @if($isEditing)
   <nav class="adm-actions" aria-label="بخش‌های دوره">
     <a class="adm-btn adm-btn-line" href="#course-basics">مشخصات دوره</a>
@@ -42,7 +52,7 @@
     @endif
   </nav>
 @else
-  <p class="adm-muted">نام دوره را وارد کن و پیش‌نویس را بساز. ویدیو، درس و کلاس را بعد از ذخیره اضافه کن.</p>
+  <p class="adm-muted">عنوان، کاور، معرفی و نوع ثبت‌نام را تعیین کن. قبل از ذخیره، نتیجه را در پیش‌نمایش ببین.</p>
 @endif
 
 <div class="adm-stack">
@@ -114,7 +124,7 @@
       </div>
 
       <div class="adm-actions">
-        <button type="submit" class="adm-btn adm-btn-primary">{{ $isEditing ? 'ذخیره تغییرات صفحه دوره' : 'ساخت دوره' }}</button>
+        <button type="submit" class="adm-btn adm-btn-primary">{{ $isEditing ? 'ذخیره تغییرات صفحه دوره' : 'ذخیره و ادامه به محتوا' }}</button>
         @if($isEditing)
           <a class="adm-btn adm-btn-line" href="{{ route('public.courses.show', ['slug' => $course->slug, 'preview' => 1]) }}" target="_blank" rel="noopener">دیدن نتیجه در صفحه عمومی</a>
         @endif

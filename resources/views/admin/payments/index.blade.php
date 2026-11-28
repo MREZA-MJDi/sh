@@ -45,6 +45,11 @@
           <td><x-admin.badge :tone="$status[0]">{{ $status[1] }}</x-admin.badge>@if($payment->note)<small>{{ $payment->note }}</small>@endif</td>
           <td>{{ $payment->verifier?->name ?? '—' }}</td>
           <td>
+            @if($payment->provider === 'manual')
+              <small>شماره رسید
+                @if($payment->provider_reference)<b dir="ltr">{{ $payment->provider_reference }}</b>@else ثبت نشده @endif
+              </small>
+            @endif
             @if($payment->status === 'pending_review' && $payment->provider === 'manual')
               <form method="POST" action="{{ route('admin.payments.verify', $payment) }}" onsubmit="return confirm('فقط در صورت تطبیق رسید و دریافت واقعی وجه، پرداخت را تأیید کنید.')">
                 @csrf @method('PATCH')

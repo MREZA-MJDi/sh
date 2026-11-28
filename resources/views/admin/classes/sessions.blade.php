@@ -136,7 +136,10 @@
               <a class="adm-btn adm-btn-primary adm-btn-sm" href="{{ $session->meeting_url ?: $classroom->meeting_url }}" target="_blank" rel="noopener noreferrer"><x-admin.icon name="live"/>ورود به جلسه</a>
             @endif
             @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
-              @if($session->status !== 'cancelled')
+              @if($session->status === 'scheduled' && $session->session_type === 'online' && !($session->meeting_url || $classroom->meeting_url))
+              <x-admin.badge tone="warn">لینک ورود ثبت نشده</x-admin.badge>
+            @endif
+            @if($session->status !== 'cancelled')
                 <x-admin.btn size="sm" icon="check" variant="soft" :href="route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $session->starts_at?->format('Y-m-d'), 'session' => $session->id])">{{ $session->starts_at->isFuture() ? 'مشاهده حضور و غیاب' : 'حضور و غیاب' }}</x-admin.btn>
               @endif
             @endcanany

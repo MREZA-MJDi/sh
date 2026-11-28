@@ -5,6 +5,7 @@
 @include('admin.seo.partials.workspace-tabs')
 <x-admin.page-head tone="shop" icon="chat" title="آزمون و معماهای صفحه اصلی" desc="مدیریت سؤال‌های بخش دوم صفحه اصلی؛ ترتیب، نوع سؤال، پاسخ و توضیح پاسخ را کنترل کنید">
   <x-admin.btn icon="plus" data-modal-open="quiz-question-modal">افزودن سؤال</x-admin.btn>
+  <x-admin.btn variant="line" :href="route('home').'#homeQuiz'" target="_blank" rel="noopener">نمایش آزمونک در سایت</x-admin.btn>
 </x-admin.page-head>
 
 <div class="adm-stats">

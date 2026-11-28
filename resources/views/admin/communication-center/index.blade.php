@@ -30,12 +30,16 @@
 
 <x-admin.panel title="صف پیگیری ارتباطات" icon="msg" flush data-tone="comm">
   <form method="GET" action="{{ route('admin.communication-center.index') }}" class="adm-toolbar">
-    <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="جستجوی موضوع، نام، شماره تماس یا متن پیام…" aria-label="جستجوی پیام‌ها" style="min-width:240px;flex:1">
+    <input class="adm-input" type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="جستجوی موضوع، نام، شماره تماس یا متن پیام…" aria-label="جستجوی پیام‌ها" style="min-width:0;flex:1 1 240px">
     <select class="adm-select" name="type" aria-label="دسته پیام">
       <option value="">همه دسته‌ها</option>
       @foreach($typeLabels as $type => $label)
         <option value="{{ $type }}" @selected(($filters['type'] ?? '') === $type)>{{ $label }}</option>
       @endforeach
+    </select>
+    <select class="adm-select" name="attention" aria-label="نیاز به پیگیری">
+      <option value="">همه وضعیت‌ها</option>
+      <option value="needed" @selected(($filters['attention'] ?? '') === 'needed')>نیازمند پیگیری</option>
     </select>
     <div class="adm-toolbar-end">
       <x-admin.btn type="submit" size="sm">اعمال فیلتر</x-admin.btn>
@@ -49,7 +53,7 @@
         <span class="adm-communication-icon" data-type="{{ $item['type'] }}"><x-admin.icon :name="$typeIcons[$item['type']] ?? 'msg'"/></span>
         <span class="adm-communication-main">
           <span class="adm-communication-topline"><strong>{{ $item['title'] }}</strong><small>{{ \App\Support\PersianDate::format($item['created_at'], 'Y/m/d H:i') }}</small></span>
-          <span class="adm-communication-meta">{{ $item['label'] }} · {{ $item['sender'] }} @if($item['context']) · {{ $item['context'] }} @endif</span>
+          <span class="adm-communication-meta">{{ $item['label'] }} · {{ $item['sender'] }} @if($item['context']) · {{ $item['context'] }} @endif @if(!empty($item['owner'])) · مسئول: {{ $item['owner'] }} @endif</span>
           <span class="adm-communication-direction" data-direction="{{ $item['direction'] }}">
             <x-admin.icon name="msg"/>
             {{ $item['direction_label'] }}

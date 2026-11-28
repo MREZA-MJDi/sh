@@ -90,7 +90,7 @@
               <x-admin.btn size="sm" icon="file" :href="route('admin.exams.questions', $exam)">مدیریت سؤال‌ها</x-admin.btn>
             @endif
             <x-admin.btn size="sm" variant="soft" icon="chart" :href="route('admin.exams.results', $exam)">نتایج</x-admin.btn>
-            <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.exams.attempts', $exam)">تصحیح تشریحی</x-admin.btn>
+            <x-admin.btn size="sm" variant="soft" icon="check" :href="route('admin.exams.attempts', $exam)">تصحیح تشریحی @if($exam->pending_review_count > 0) ({{ number_format($exam->pending_review_count) }} در انتظار) @endif</x-admin.btn>
             <x-admin.btn size="sm" variant="soft" icon="edit" data-modal-open="exam-modal" data-title="ویرایش آزمون" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.exams.update', $exam)" data-method="PATCH">ویرایش</x-admin.btn>
             @if(auth()->user()->hasRole('admin') && $exam->attempts_count === 0 && $exam->results_count === 0)
               <form method="POST" action="{{ route('admin.exams.destroy', $exam) }}" onsubmit="return confirm('این آزمون حذف شود؟')">

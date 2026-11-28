@@ -68,8 +68,8 @@
             </div>
             <div class="adm-work-item" data-tone="track">
               <span><x-admin.icon name="file"/></span>
-              <div><b>{{ number_format($homework->submissions_count) }} پاسخ دریافت‌شده</b><small>پاسخ‌های منتظر بررسی</small></div>
-              <strong>{{ number_format($homework->pending_submissions_count) }}</strong>
+              <div><b>{{ number_format($homework->submissions_count) }} پاسخ دریافت‌شده</b><small>از پایین صفحه صف بررسی را باز کن</small></div>
+              <a href="#homework-review-queue" class="adm-btn adm-btn-line adm-btn-sm">{{ number_format($homework->pending_submissions_count) }} منتظر بررسی</a>
             </div>
             <div class="adm-actions">
               @if($homework->attachment_path)

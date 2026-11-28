@@ -79,7 +79,10 @@
       <div class="adm-attendance-filters">
         <div class="adm-attendance-selected-date">
           <b>{{ $date }}</b>
-          <small>جلسه‌های این روز</small>
+          <small>{{ $classroom?->name ?? 'کلاسی انتخاب نشده' }}</small>
+          @if($session)
+            <small>{{ $session->session_type === 'online' ? 'آنلاین' : 'حضوری' }} · {{ \App\Support\PersianDate::format($session->starts_at, 'H:i') }}</small>
+          @endif
         </div>
         <label class="adm-label">جلسه
           <select class="adm-select" name="session" form="attendance-filter" aria-label="انتخاب جلسه">
@@ -94,7 +97,7 @@
       </div>
       <div class="adm-actions">
         <x-admin.btn type="button" variant="line" size="sm" icon="check" data-mark-all="present" :disabled="!$canRecordSession || $roster->isEmpty()">همه حاضر</x-admin.btn>
-        <x-admin.btn type="submit" size="sm" icon="check" :disabled="!$canRecordSession || $roster->isEmpty()">ذخیره وضعیت‌ها</x-admin.btn>
+        <x-admin.btn type="submit" size="sm" icon="check" :disabled="!$canRecordSession || $roster->isEmpty()">ذخیره حضور همین جلسه</x-admin.btn>
       </div>
     </div>
 

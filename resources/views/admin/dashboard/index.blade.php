@@ -53,6 +53,11 @@
   </div>
   <div class="adm-work-queue">
     @can('users.manage')
+      @if(($failedVideoCount ?? 0) > 0)
+        <a class="adm-work-item" data-tone="edu" href="{{ route('admin.spotplayer.index', ['status' => 'failed']) }}">
+          <span><x-admin.icon name="video"/></span><div><b>ویدیوهای ناموفق</b><small>خطای پردازش را ببین و دوباره تلاش کن</small></div><strong>{{ number_format($failedVideoCount) }}</strong>
+        </a>
+      @endif
       @if(($pendingPaymentReviewCount ?? 0) > 0)
         <a class="adm-work-item" data-tone="shop" href="{{ route('admin.payments.index', ['status' => 'pending_review']) }}"><span><x-admin.icon name="card"/></span><div><b>رسیدهای پرداخت نیازمند بررسی</b><small>قبل از تأیید، اطلاعات واریز را بررسی کن</small></div><strong>{{ number_format($pendingPaymentReviewCount) }}</strong></a>
       @endif
@@ -72,7 +77,7 @@
     @endcan
     @canany(['messages.view.all', 'messages.view.assigned'])
       @if($openMessages > 0)
-        <a class="adm-work-item" data-tone="comm" href="{{ route('admin.communication-center.index') }}"><span><x-admin.icon name="msg"/></span><div><b>گفت‌وگوهای باز</b><small>پیام‌هایی که نیاز به پاسخ دارند</small></div><strong>{{ number_format($openMessages) }}</strong></a>
+        <a class="adm-work-item" data-tone="comm" href="{{ route('admin.communication-center.index', ['type' => 'messages', 'attention' => 'needed']) }}"><span><x-admin.icon name="msg"/></span><div><b>گفت‌وگوهای باز</b><small>پیام‌هایی که نیاز به پاسخ دارند</small></div><strong>{{ number_format($openMessages) }}</strong></a>
       @endif
     @endcanany
     @if($pendingConsultations > 0)
@@ -81,7 +86,7 @@
     @if(($publishedAnnouncementCount ?? 0) > 0)
       <a class="adm-work-item" data-tone="comm" href="{{ route('admin.announcements.index') }}"><span><x-admin.icon name="bell"/></span><div><b>اطلاعیه‌های منتشرشده</b><small>مدیریت اطلاع‌رسانی آکادمی</small></div><strong>{{ number_format($publishedAnnouncementCount) }}</strong></a>
     @endif
-    @if(($pendingPaymentReviewCount ?? 0) === 0 && ($recentEnrollmentCount ?? 0) === 0 && ($upcomingSessions ?? collect())->isEmpty() && $pendingHomework === 0 && $openMessages === 0 && $pendingConsultations === 0 && ($publishedAnnouncementCount ?? 0) === 0)
+    @if(($failedVideoCount ?? 0) === 0 && ($pendingPaymentReviewCount ?? 0) === 0 && ($recentEnrollmentCount ?? 0) === 0 && ($upcomingSessions ?? collect())->isEmpty() && $pendingHomework === 0 && $openMessages === 0 && $pendingConsultations === 0 && ($publishedAnnouncementCount ?? 0) === 0)
       <div class="adm-queue-empty"><x-admin.icon name="check"/><b>مورد فوری تازه‌ای ثبت نشده است</b><span>فعلاً صف پیگیری خالی است؛ می‌توانی وضعیت دوره‌ها و کلاس‌ها را مرور کنی.</span></div>
     @endif
   </div>

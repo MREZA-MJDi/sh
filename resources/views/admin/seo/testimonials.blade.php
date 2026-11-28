@@ -5,6 +5,7 @@
 @php $statusLabels = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی']; @endphp
 <x-admin.page-head tone="shop" icon="check" title="نظرات و تجربه دانش‌آموزان" desc="مدیریت نظرهای تأییدشده برای نمایش در صفحه اصلی">
   <x-admin.btn icon="plus" data-modal-open="testimonial-modal">ثبت نظر جدید</x-admin.btn>
+  <x-admin.btn variant="line" :href="route('home').'#homeStories'" target="_blank" rel="noopener">نمایش نظرات در سایت</x-admin.btn>
 </x-admin.page-head>
 
 <x-admin.panel flush>
