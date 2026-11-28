@@ -279,9 +279,15 @@ final class CourseTeaserUploadTest extends TestCase
 
         $this->get(route('public.courses.show', $course->slug))
             ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('برای تماشای تریلر دوره')
-            ->assertDontSee('<video', false);
-        $this->get($url)->assertRedirect(route('login'));
+            ->assertDontSee('<video', false)
+            ->assertDontSee($url);
+        $this->get($url, ['Range' => 'bytes=0-3'])->assertRedirect(route('login'));
+
+        $this->actingAs(User::factory()->create(['is_active' => false]));
+        $this->get(route('public.courses.show', $course->slug))->assertDontSee($url);
+        $this->get($url, ['Range' => 'bytes=0-3'])->assertForbidden();
 
         $this->actingAs($this->admin())->get(route('public.courses.show', $course->slug))
             ->assertOk()

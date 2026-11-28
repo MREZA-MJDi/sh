@@ -5,6 +5,25 @@
 @section('canonical', route('public.courses.show', $course->slug))
 @if(!empty($isAdminPreview))@section('robots', 'noindex,nofollow')@endif
 
+@push('head')
+<style>
+    .course-jump-nav a { flex: none; padding-block: 11px }
+    .course-detail-grid { grid-template-columns: minmax(0, 1fr) minmax(17rem, 23rem); gap: clamp(1rem, 3vw, 2rem) }
+    .course-detail-grid > * { min-width: 0 }
+    :is(#c1, #c2, #course-resources, #rel) { scroll-margin-block-start: calc(9rem + env(safe-area-inset-top, 0px)) }
+    .course-trailer-lock {
+        display: grid; place-items: center; min-height: clamp(14rem, 30vw, 24rem);
+        padding: 1.5rem; border-radius: var(--r); text-align: center;
+        color: white; background: #151c35; background-size: cover; background-position: center;
+    }
+    .course-trailer-lock h2 { color: inherit; margin: .75rem 0 .5rem }
+    .course-trailer-lock p { color: inherit; margin: 0 0 1rem }
+    .course-trailer-lock .btn.o { color: white; border-color: white }
+    .course-trailer-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem }
+    @media (max-width: 900px) { .course-detail-grid { grid-template-columns: minmax(0, 1fr) } }
+</style>
+@endpush
+
 @section('content')
 @if(!empty($isAdminPreview))
     <div class="c" style="padding-top:16px"><div role="status" style="padding:14px 18px;border-radius:14px;background:#fff7e6;border:1px solid #f0d49a;color:#7a4b08;display:flex;align-items:center;gap:10px"><strong>پیش‌نمایش مدیر</strong><span>این همان قالب صفحه عمومی دوره است؛ این دوره هنوز برای بازدیدکنندگان منتشر نشده است.</span></div></div>
@@ -68,74 +87,39 @@
     </div>
 </section>
 
-{{-- تب‌بار ناوبری سریع سرفصل‌ها --}}
-<div class="stab">
+<nav class="stab course-jump-nav" aria-label="بخش‌های دوره">
     <div class="c">
-        @if($course->description)<a href="#c1">معرفی دوره</a>@endif
-        <a href="#c2">سرفصل‌ها ({{ $sections->total() }} فصل)</a>
-        @if($courseResources->isNotEmpty())
-        <section class="card blk course-resources" id="course-resources">
-            <div class="course-resources-head">
-                <div>
-                    <h2>جزوه‌ها و فایل‌های این دوره</h2>
-                    <p>فایل‌هایی که مدرس برای این دوره آماده کرده است.</p>
-                </div>
-                <span class="c-badge">{{ $courseResources->count() }} فایل</span>
-            </div>
-            <div class="course-resources-list">
-                @foreach($courseResources as $resource)
-                    <article class="course-resource-card">
-                        <div class="course-resource-main">
-                            <span class="course-resource-icon"><svg class="i"><use href="#file"/></svg></span>
-                            <div class="course-resource-info">
-                                <strong>{{ $resource->title }}</strong>
-                                @if($resource->description)<p>{{ $resource->description }}</p>@endif
-                                <small>{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
-                            </div>
-                        </div>
-                        <div class="course-resource-actions">
-                            @if($resource->is_free)
-                                <span class="c-badge">رایگان</span>
-                            @else
-                                <strong>{{ number_format((int) $resource->price) }} تومان</strong>
-                            @endif
-                            @if($hasCourseAccess && auth()->user()?->hasRole('student'))
-                                @if($resource->is_free || ($resource->is_purchased ?? false))
-                                    <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">مشاهده فایل</a>
-                                @else
-                                    <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
-                                        @csrf
-                                        <button class="btn s" type="submit">خرید فایل</button>
-                                    </form>
-                                @endif
-                            @else
-                                <a class="btn o s" href="{{ route('public.resources.download', $resource) }}">مشاهده فایل</a>
-                            @endif
-                        </div>
-                    </article>
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-    @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
+        @if(filled($course->description))<a href="#c1">معرفی دوره</a>@endif
+        <a href="#c2">سرفصل‌ها</a>
+        @if($courseResources->isNotEmpty())<a href="#course-resources">جزوه و فایل</a>@endif
+        @if($relatedCourses->isNotEmpty())<a href="#rel">دوره‌های مرتبط</a>@endif
     </div>
-</div>
+</nav>
 
 {{-- محتوای اصلی به همراه سایدبار استیکی --}}
 <div class="c">
-    <div class="cr">
+    <div class="cr course-detail-grid">
         <div>
-            @if (auth()->check() && $course->teaser_status === 'ready' && $course->teaser_url)
+            @if (auth()->user()?->is_active && $course->teaser_status === 'ready' && $course->teaser_url)
                 <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload" playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
                     <source src="{{ !empty($isAdminPreview) ? route('admin.courses.teaser', $course) : $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>
             @elseif ($course->teaser_status === 'ready' && $course->teaser_path)
-                <div class="card blk">
-                    <p>برای تماشای تریلر دوره وارد حساب کاربری شوید یا ثبت‌نام کنید.</p>
-                    <a class="btn s" href="{{ route('login') }}">ورود</a>
-                    <a class="btn o s" href="{{ route('register') }}">ثبت‌نام</a>
+                <div class="course-trailer-lock" @if($poster = $course->teaser_poster_url ?: $course->coverImageUrl) style="background-image:linear-gradient(#151c35b8,#151c35e8),url('{{ $poster }}')" @endif>
+                    <div>
+                        <svg class="i" aria-hidden="true"><use href="#lock"/></svg>
+                        <h2>تریلر دوره</h2>
+                        @guest
+                            <p>برای تماشای تریلر دوره وارد حساب کاربری شوید یا ثبت‌نام کنید.</p>
+                            <div class="course-trailer-actions">
+                                <a class="btn s" href="{{ route('login') }}">ورود</a>
+                                <a class="btn o s" href="{{ route('register') }}">ثبت‌نام</a>
+                            </div>
+                        @else
+                            <p>تماشای تریلر به حساب کاربری فعال نیاز دارد.</p>
+                        @endguest
+                    </div>
                 </div>
             @else
                 @if($course->coverImageUrl)
@@ -442,28 +426,26 @@
     </div>
 
     @if($courseResources->isNotEmpty())
-        <section class="card blk" id="course-resources">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+        <section class="card blk course-resources" id="course-resources">
+            <div class="course-resources-head">
                 <div>
-                    <h2 style="margin:0">جزوه‌ها و فایل‌های این دوره</h2>
-                    <p style="margin:5px 0 0;color:var(--mute);font-size:13px">فایل‌هایی که مدرس برای این دوره آماده کرده است.</p>
+                    <h2>جزوه‌ها و فایل‌های این دوره</h2>
+                    <p>فایل‌هایی که مدرس برای این دوره آماده کرده است.</p>
                 </div>
                 <span class="c-badge">{{ $courseResources->count() }} فایل</span>
             </div>
-            <div style="display:grid;gap:10px">
+            <div class="course-resources-list">
                 @foreach($courseResources as $resource)
-                    <article style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid var(--ln,#e5e7eb);border-radius:13px">
-                        <div style="display:flex;align-items:center;gap:11px;min-width:0">
-                            <span style="width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:11px;background:var(--soft,#eef2ff);color:var(--pri,#3156c9)">
-                                <svg class="i"><use href="#file"/></svg>
-                            </span>
-                            <div style="min-width:0">
-                                <strong style="display:block">{{ $resource->title }}</strong>
-                                @if($resource->description)<p style="margin:3px 0 0;color:var(--mute);font-size:12px">{{ $resource->description }}</p>@endif
-                                <small style="color:var(--mute)">{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
+                    <article class="course-resource-card">
+                        <div class="course-resource-main">
+                            <span class="course-resource-icon"><svg class="i"><use href="#file"/></svg></span>
+                            <div class="course-resource-info">
+                                <strong>{{ $resource->title }}</strong>
+                                @if($resource->description)<p>{{ $resource->description }}</p>@endif
+                                <small>{{ $resource->kind === 'pdf' ? 'فایل PDF' : ($resource->kind === 'book' ? 'کتاب یا جزوه' : 'فایل آموزشی') }}@if($resource->classroom) · {{ $resource->classroom->name }}@endif</small>
                             </div>
                         </div>
-                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <div class="course-resource-actions">
                             @if($resource->is_free)
                                 <span class="c-badge">رایگان</span>
                             @else

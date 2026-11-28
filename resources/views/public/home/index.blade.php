@@ -4,6 +4,90 @@
 @section('title', $settings->home_sections['home_meta_title'] ?? (($settings->site_name ?? 'آکادمی شیخان').' | آموزش آنلاین'))
 @section('description', $settings->home_sections['home_meta_description'] ?? $settings->default_description)
 
+@push('head')
+    <style>
+        .hero-wrap > .c { min-width: 0 }
+        #homeHero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            width: 100%;
+            min-height: 0;
+            border-radius: clamp(18px, 2vw, 28px);
+            isolation: isolate;
+            touch-action: pan-y pinch-zoom;
+        }
+        #homeHero .sl {
+            position: relative; grid-area: 1 / 1; display: grid; min-height: clamp(25rem, 41vw, 33rem);
+            grid-template-columns: minmax(0, 1fr) minmax(0, .86fr);
+            align-content: center;
+            padding: clamp(1.5rem, 5vw, 4.5rem) clamp(1.25rem, 5vw, 4.5rem) 5rem;
+            min-width: 0; transform: none; visibility: hidden; overflow-wrap: anywhere; transition: none;
+        }
+        #homeHero .sl.on { visibility: visible }
+        #homeHero .layout-full-bg { grid-template-columns: minmax(0, 1fr) }
+        #homeHero .sl-content { min-width: 0; max-width: 37rem }
+        #homeHero .layout-full-bg .sl-content { max-width: min(37rem, 53%) }
+        #homeHero .layout-full-bg .sl-banner-bg { opacity: 1; object-position: var(--hero-image-position, center) }
+        #homeHero .layout-full-bg::before {
+            background: linear-gradient(to left, rgba(18, 16, 39, .96), rgba(18, 16, 39, .78) 43%, transparent 78%);
+        }
+        #homeHero .sl-title { color: var(--banner-text, #fff); font-size: clamp(1.75rem, 4vw, 3.25rem); margin: 0 0 1rem; line-height: 1.3; font-weight: 800 }
+        #homeHero .sl-btn-primary { background: #f9dba0; color: #24203a !important; box-shadow: none }
+        #homeHero .sl-btn-primary:hover { box-shadow: none }
+        #homeHero .sl-btn-secondary { background: transparent }
+        #heroDots {
+            inset-inline: clamp(1.25rem, 5vw, 4.5rem) 1.25rem;
+            bottom: 1rem; gap: .25rem; justify-content: flex-start; overflow-x: auto;
+            padding: 4px;
+        }
+        #heroDots[hidden] { display: none }
+        #heroDots button {
+            display: inline-grid; place-items: center; width: 44px; height: 44px;
+            border: 1px solid transparent; border-radius: 50%; background: transparent; color: #fff; cursor: pointer;
+            flex: 0 0 44px;
+        }
+        #heroDots [data-hero-dir] { border-color: #ffffff4d; background: #17152fb3 }
+        #heroDots [data-hero-slide]::before { content: ''; width: 8px; height: 8px; background: #ffffff8c; border-radius: 9px }
+        #heroDots [aria-current]::before { width: 22px; background: #f9dba0 }
+        #homeHero :focus-visible { outline: 2px solid #fff; outline-offset: 3px }
+        #homeHero[data-hero-motion] .sl.on .sl-content {
+            animation: home-hero-copy-in 420ms cubic-bezier(.2, .7, .25, 1) both;
+        }
+        #homeHero[data-hero-motion] .sl.on .sl-banner-bg {
+            animation: home-hero-image-in 520ms ease-out both;
+        }
+        #homeHero[data-hero-motion="next"] { --hero-shift: -16px }
+        #homeHero[data-hero-motion="previous"] { --hero-shift: 16px }
+        @keyframes home-hero-copy-in {
+            from { opacity: 0; transform: translateX(var(--hero-shift, 0)) }
+            to { opacity: 1; transform: translateX(0) }
+        }
+        @keyframes home-hero-image-in {
+            from { opacity: .35 }
+            to { opacity: 1 }
+        }
+        @media (max-width: 900px) {
+            #homeHero .sl {
+                min-height: 0; grid-template-columns: minmax(0, 1fr); justify-items: stretch;
+                align-content: start; gap: 1rem; text-align: right;
+            }
+            #homeHero .sl-content { max-width: none; align-items: flex-start; text-align: right }
+            #homeHero .sl p { margin-inline: 0 }
+            #homeHero .sl-actions { justify-content: start }
+            #homeHero .sl-media { max-height: 13rem }
+            #homeHero .sl-media img { max-height: 13rem }
+            #homeHero .layout-full-bg.has-banner-image { padding-top: clamp(10rem, 38vw, 16rem) }
+            #homeHero .layout-full-bg .sl-content { max-width: none }
+            #homeHero .layout-full-bg::before { background: linear-gradient(to top, #17152f 38%, rgba(23, 21, 47, .22) 85%) }
+            #homeHero .layout-full-bg .sl-banner-bg { height: clamp(15rem, 54vw, 22rem); object-position: left center }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #homeHero *, #homeHero *::before { transition: none }
+            #homeHero[data-hero-motion] .sl.on :is(.sl-content, .sl-banner-bg) { animation: none }
+        }
+    </style>
+@endpush
+
 @section('content')
 
     @php
@@ -117,16 +201,6 @@
         <div class="c">
             <header class="hero" id="homeHero" aria-label="اسلایدر ویژه آکادمی">
 
-                @if($bannersCollection->count() > 1)
-                    <button class="arr prev" type="button" data-hero-dir="-1" aria-label="اسلاید قبلی">
-                        <svg class="i"><use href="#arrr"/></svg>
-                    </button>
-
-                    <button class="arr next" type="button" data-hero-dir="1" aria-label="اسلاید بعدی">
-                        <svg class="i"><use href="#arrl"/></svg>
-                    </button>
-                @endif
-
                 @if($bannersCollection->isNotEmpty())
 
                     @foreach($bannersCollection as $index => $banner)
@@ -145,14 +219,15 @@
                         <div
                             class="sl {{ $index === 0 ? 'on' : '' }} {{ $isFullBg ? 'layout-full-bg' : 'layout-card' }} {{ $hasImage ? 'has-banner-image' : '' }}"
                             style="--banner-bg: {{ $slideBg }}; {{ $banner->text_color ? '--banner-text:' . $banner->text_color . ';' : '' }}"
-                            data-slide-index="{{ $index }}"
+                            @if($index !== 0) inert aria-hidden="true" @endif
                         >
 
                             @if($isFullBg && $hasImage)
                                 <img
                                     class="sl-banner-bg"
-                                    src="{{ Storage::disk('public')->url($banner->image_path) }}"
-                                    style="object-position:{{ $banner->image_position ?? '50% 50%' }}"
+                                    @if($index === 0) fetchpriority="high" src="{{ Storage::disk('public')->url($banner->image_path) }}"
+                                    @else data-src="{{ Storage::disk('public')->url($banner->image_path) }}" @endif
+                                    style="--hero-image-position:{{ $banner->image_position ?? '50% 50%' }}"
                                     alt="{{ $banner->alt_text ?: ($banner->title ?? '') }}"
                                 >
                             @endif
@@ -165,7 +240,11 @@
                                     </span>
                                 @endif
 
-                                <h1>{{ $banner->title }}</h1>
+                                @if($index === 0)
+                                    <h1 class="sl-title">{{ $banner->title }}</h1>
+                                @else
+                                    <h2 class="sl-title">{{ $banner->title }}</h2>
+                                @endif
 
                                 @if(filled($subtitleText))
                                     <p>{{ $subtitleText }}</p>
@@ -197,10 +276,10 @@
                                     @if($hasImage)
                                         <img
                                             class="sl-banner-bg"
-                                            src="{{ Storage::disk('public')->url($banner->image_path) }}"
+                                            @if($index === 0) fetchpriority="high" src="{{ Storage::disk('public')->url($banner->image_path) }}"
+                                            @else data-src="{{ Storage::disk('public')->url($banner->image_path) }}" @endif
                                             style="object-position:{{ $banner->image_position ?? '50% 50%' }}"
                                             alt="{{ $banner->alt_text ?: ($banner->title ?? '') }}"
-                                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
                                         >
                                     @else
                                         <div class="vis">
@@ -231,7 +310,7 @@
                                 </span>
                             @endif
 
-                            <h1>{{ $settings->site_name ?? 'آموزشگاه شیخان' }}</h1>
+                            <h1 class="sl-title">{{ $settings->site_name ?? 'آموزشگاه شیخان' }}</h1>
 
                             <p>{{ $contentValue('hero_description', 'آموزش هدفمند و مرحله‌به‌مرحله با اساتید مجرب و دسترسی همیشگی به محتوای آموزشی.') }}</p>
 
@@ -258,11 +337,15 @@
 
                 @endif
 
-                <div
-                    class="dots"
-                    id="heroDots"
-                    @if($bannersCollection->count() < 2) hidden @endif
-                ></div>
+                @if($bannersCollection->count() > 1)
+                    <div class="dots" id="heroDots" role="group" aria-label="کنترل اسلایدهای معرفی" hidden>
+                        <button type="button" data-hero-dir="-1" aria-label="اسلاید قبلی"><svg class="i" aria-hidden="true"><use href="#arrr"/></svg></button>
+                        @foreach($bannersCollection as $index => $banner)
+                            <button type="button" data-hero-slide="{{ $index }}" aria-label="{{ $banner->title }}" @if($index === 0) aria-current="true" @endif></button>
+                        @endforeach
+                        <button type="button" data-hero-dir="1" aria-label="اسلاید بعدی"><svg class="i" aria-hidden="true"><use href="#arrl"/></svg></button>
+                    </div>
+                @endif
 
             </header>
         </div>
@@ -2253,133 +2336,72 @@ document.addEventListener('DOMContentLoaded', function () {
 @push('scripts')
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const hero = document.getElementById('homeHero');
-            if (!hero) return;
+        const homeHero = document.getElementById('homeHero');
 
-            const slides = Array.from(hero.querySelectorAll('.sl'));
-            const dotsContainer = document.getElementById('heroDots');
+        if (homeHero) {
+            const slides = Array.from(homeHero.querySelectorAll('.sl'));
+            const controls = homeHero.querySelector('#heroDots');
+            const dots = Array.from(homeHero.querySelectorAll('[data-hero-slide]'));
+            let current = 0;
 
-            if (slides.length <= 1) return;
-
-            let currentIndex = 0;
-            let timer = null;
-
-            if (dotsContainer) {
-                dotsContainer.innerHTML = '';
-            }
-
-            const dots = dotsContainer ? slides.map((slide, index) => {
-                const dot = document.createElement('i');
-                if (index === 0) dot.classList.add('on');
-                dot.setAttribute('role', 'button');
-                dot.setAttribute('tabindex', '0');
-                dot.setAttribute('aria-label', 'نمایش اسلاید ' + (index + 1));
-
-                dot.addEventListener('click', function () {
-                    goToSlide(index);
-                    resetAutoplay();
-                });
-
-                dot.addEventListener('keydown', function (event) {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        goToSlide(index);
-                        resetAutoplay();
-                    }
-                });
-
-                dotsContainer.appendChild(dot);
-                return dot;
-            }) : [];
-
-            function goToSlide(index) {
-                currentIndex = (index + slides.length) % slides.length;
-
-                slides.forEach(function (slide, slideIndex) {
-                    slide.classList.toggle('on', slideIndex === currentIndex);
-                });
-
-                dots.forEach(function (dot, dotIndex) {
-                    dot.classList.toggle('on', dotIndex === currentIndex);
-                });
-            }
-
-            hero.querySelectorAll('[data-hero-dir]').forEach(function (button) {
-                button.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    const direction = parseInt(button.getAttribute('data-hero-dir'), 10) || 1;
-                    goToSlide(currentIndex + direction);
-                    resetAutoplay();
-                });
-            });
-
-            function startAutoplay() {
-                if (timer !== null) clearInterval(timer);
-                timer = setInterval(function () {
-                    goToSlide(currentIndex + 1);
-                }, 5500);
-            }
-
-            function resetAutoplay() {
-                startAutoplay();
-            }
-
-            hero.addEventListener('mouseenter', function () {
-                if (timer !== null) {
-                    clearInterval(timer);
-                    timer = null;
+            function showSlide(index) {
+                const next = (index + slides.length) % slides.length;
+                if (next === current) return;
+                homeHero.dataset.heroMotion = index > current ? 'next' : 'previous';
+                current = next;
+                const image = slides[current].querySelector('img[data-src]');
+                if (image) {
+                    image.src = image.dataset.src;
+                    image.removeAttribute('data-src');
                 }
-            });
 
-            hero.addEventListener('mouseleave', function () {
-                if (timer === null) startAutoplay();
-            });
+                slides.forEach((slide, i) => {
+                    const active = i === current;
+                    slide.classList.toggle('on', active);
+                    slide.inert = !active;
+                    slide.setAttribute('aria-hidden', String(!active));
+                });
 
-            // Touch Swipe Support for mobile devices
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let touchEndX = 0;
+                dots.forEach((dot, i) => {
+                    if (i === current) dot.setAttribute('aria-current', 'true');
+                    else dot.removeAttribute('aria-current');
+                });
+            }
 
-            hero.addEventListener('touchstart', function (e) {
-                if (!e.touches || e.touches.length === 0) return;
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            }, { passive: true });
+            if (slides.length > 1 && controls) {
+                controls.hidden = false;
+                controls.addEventListener('click', (event) => {
+                    const dot = event.target.closest('[data-hero-slide]');
+                    const arrow = event.target.closest('[data-hero-dir]');
+                    if (dot) showSlide(Number(dot.dataset.heroSlide));
+                    if (arrow) showSlide(current + Number(arrow.dataset.heroDir));
+                });
 
-            hero.addEventListener('touchend', function (e) {
-                if (!e.changedTouches || e.changedTouches.length === 0) return;
-                touchEndX = e.changedTouches[0].clientX;
-                const touchEndY = e.changedTouches[0].clientY;
-                const diffX = touchEndX - touchStartX;
-                const diffY = touchEndY - touchStartY;
+                controls.addEventListener('keydown', (event) => {
+                    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+                    event.preventDefault();
+                    showSlide(current + (event.key === 'ArrowLeft' ? 1 : -1));
+                    dots[current]?.focus();
+                });
 
-                // Only consider horizontal swipes (ignore vertical scrolling)
-                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
-                    if (diffX < 0) {
-                        // Swiped left (in RTL, forward)
-                        goToSlide(currentIndex + 1);
-                    } else {
-                        // Swiped right (in RTL, back)
-                        goToSlide(currentIndex - 1);
+                let touchStart;
+                homeHero.addEventListener('touchstart', (event) => {
+                    touchStart = event.touches.length === 1 && !event.target.closest('#heroDots')
+                        ? event.touches[0] : null;
+                }, { passive: true });
+                homeHero.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+                homeHero.addEventListener('touchend', (event) => {
+                    if (!touchStart) return;
+                    const touchEnd = event.changedTouches[0];
+                    const x = touchEnd.clientX - touchStart.clientX;
+                    const y = touchEnd.clientY - touchStart.clientY;
+                    touchStart = null;
+                    if (Math.abs(x) > 45 && Math.abs(x) > Math.abs(y)) {
+                        showSlide(current + (x < 0 ? 1 : -1));
                     }
-                    resetAutoplay();
-                }
-            }, { passive: true });
-
-            document.addEventListener('visibilitychange', function () {
-                if (document.hidden) {
-                    if (timer !== null) {
-                        clearInterval(timer);
-                        timer = null;
-                    }
-                } else if (timer === null) {
-                    startAutoplay();
-                }
-            });
-
-            startAutoplay();
-        });
+                }, { passive: true });
+            }
+        }
     </script>
 
     <script>

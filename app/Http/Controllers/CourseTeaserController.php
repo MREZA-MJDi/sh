@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class CourseTeaserController extends Controller
 {
-    public function __invoke(string $slug): BinaryFileResponse
+    public function __invoke(Request $request, string $slug): BinaryFileResponse
     {
+        abort_unless($request->user()?->is_active, 403);
         $course = Course::query()->where('slug', $slug)->where('status', 'published')->firstOrFail();
 
         return self::video($course);

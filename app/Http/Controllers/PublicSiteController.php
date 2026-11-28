@@ -130,7 +130,7 @@ final class PublicSiteController extends Controller
         string $slug,
         CourseEnrollmentService $enrollments,
         LearningAccessService $learningAccess
-    ): View
+    ): \Illuminate\Http\Response
     {
         $settings = SeoSetting::current();
         $isAdminPreview = $request->boolean('preview')
@@ -285,7 +285,7 @@ final class PublicSiteController extends Controller
                     ->withCount(['lessons' => fn ($lessons) => $lessons->where('status', 'published')]),
             ])->withCount(['enrollments' => fn ($query) => $query->currentlyActive()])->latest()->limit(3)->get();
 
-        return view('public.courses.show', compact(
+        return response()->view('public.courses.show', compact(
             'settings',
             'course',
             'sections',
@@ -299,7 +299,7 @@ final class PublicSiteController extends Controller
             'canWatchCourseVideos',
             'playableVideos',
             'isAdminPreview'
-        ));
+        ), 200, ['Cache-Control' => 'private, no-store']);
     }
 
     public function playCourseVideo(
