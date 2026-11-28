@@ -439,6 +439,13 @@
             @if(($features['recorded_video'] ?? false) && $hasCourseAccess && ! $canWatchCourseVideos)
                 <p class="lesson-empty" style="margin-top:14px">هنوز ویدیویی برای تماشا در دسترس نیست.</p>
             @endif
+            @if(empty($isAdminPreview))
+              @if(auth()->user()?->hasRole('student'))
+                <a class="btn o s" href="{{ route('student.messages.create', ['playback_course' => $course->slug]) }}">مشکل پرداخت یا پخش؟ پشتیبانی</a>
+              @else
+                <a class="btn o s" href="{{ route('public.contact') }}">مشکل پرداخت یا پخش؟ پشتیبانی</a>
+              @endif
+            @endif
         </aside>
     </div>
 

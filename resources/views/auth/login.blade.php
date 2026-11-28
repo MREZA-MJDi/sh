@@ -39,7 +39,7 @@
 
             <div class="auth-tabs" role="tablist" aria-label="ورود یا ثبت‌نام">
                 <button type="button" class="auth-tab {{ ($activeTab ?? 'login') === 'login' ? 'is-active' : '' }}" id="loginTab" role="tab" aria-controls="loginPanel" aria-selected="{{ ($activeTab ?? 'login') === 'login' ? 'true' : 'false' }}">ورود</button>
-                <button type="button" class="auth-tab {{ ($activeTab ?? 'login') === 'register' ? 'is-active' : '' }}" id="registerTab" role="tab" aria-controls="registerPanel" aria-selected="{{ ($activeTab ?? 'login') === 'register' ? 'true' : 'false' }}">ثبت‌نام دانش‌آموز</button>
+                <button type="button" class="auth-tab {{ ($activeTab ?? 'login') === 'register' ? 'is-active' : '' }}" id="registerTab" role="tab" aria-controls="registerPanel" aria-selected="{{ ($activeTab ?? 'login') === 'register' ? 'true' : 'false' }}">ثبت‌نام</button>
             </div>
 
             <section id="loginPanel" role="tabpanel" aria-labelledby="loginTab" @if(($activeTab ?? 'login') === 'register') hidden @endif>
@@ -82,13 +82,20 @@
             </section>
 
             <section id="registerPanel" role="tabpanel" aria-labelledby="registerTab" @if(($activeTab ?? 'login') !== 'register') hidden @endif>
-                <p class="auth-register-note">این فرم یک حساب دانش‌آموزی ایجاد می‌کند.</p>
+                <p class="auth-register-note">نوع حساب خود را انتخاب کنید.</p>
                 <form method="POST" action="{{ route('register.store') }}">
                     @if(!empty($returnCourse))
                         <input type="hidden" name="return_course" value="{{ $returnCourse->slug }}">
-                        <p class="auth-register-note">بعد از ثبت‌نام به «{{ $returnCourse->title }}» برمی‌گردی.</p>
+                        <p class="auth-register-note">با حساب دانش‌آموزی، بعد از ثبت‌نام به «{{ $returnCourse->title }}» برمی‌گردی.</p>
                     @endif
                     @csrf
+                    <label for="account_type">نوع حساب</label>
+                    <select class="ac-field" id="account_type" name="account_type" required>
+                        <option value="student" @selected(old('account_type', 'student') === 'student')>دانش‌آموز</option>
+                        <option value="parent" @selected(old('account_type') === 'parent')>والد / سرپرست</option>
+                    </select>
+                    <small>حساب اولیا پس از اتصال پروندهٔ فرزند توسط آموزشگاه، به پیام‌ها و مشاوره دسترسی دارد.</small>
+                    @error('account_type')<div class="ac-error">{{ $message }}</div>@enderror
                     <label for="register_name">نام و نام خانوادگی</label>
                     <input class="ac-field" id="register_name" name="name" value="{{ old('name') }}" autocomplete="name" maxlength="120" required>
                     @error('name')<div class="ac-error">{{ $message }}</div>@enderror
@@ -108,7 +115,7 @@
                     <label for="register_password_confirmation">تکرار گذرواژه</label>
                     <input class="ac-field" id="register_password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="10" required>
 
-                    <button class="ac-btn auth-submit" type="submit">{{ !empty($returnCourse) ? 'ساخت حساب و بازگشت به دوره' : 'ساخت حساب دانش‌آموزی' }}</button>
+                    <button class="ac-btn auth-submit" type="submit">{{ !empty($returnCourse) ? 'ساخت حساب و بازگشت به دوره' : 'ساخت حساب' }}</button>
                 </form>
             </section>
 

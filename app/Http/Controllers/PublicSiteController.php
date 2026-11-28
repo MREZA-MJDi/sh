@@ -444,14 +444,14 @@ final class PublicSiteController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:120'],
-            'contact' => ['required', 'string', 'max:190'],
+            'contact' => ['required', 'email:rfc', 'max:190'],
             'topic' => ['required', 'string', 'max:80'],
             'body' => ['required', 'string', 'max:5000'],
         ]);
 
         ContactMessage::query()->create($data);
 
-        return back()->with('status', 'پیام شما ثبت شد. تیم شیخان پس از بررسی با شما تماس می‌گیرد.');
+        return back()->with('status', 'پیام ثبت شد. پاسخ تیم شیخان به ایمیل واردشده ارسال می‌شود.');
     }
 
     public function cart(Request $request): View

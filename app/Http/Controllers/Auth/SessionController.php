@@ -147,10 +147,17 @@ final class SessionController extends Controller
         RegisterRequest $request,
         AuthenticationService $authentication
     ): RedirectResponse {
-        $student = $authentication->registerStudent($request->validated());
+        $data = $request->validated();
+        $isParent = ($data['account_type'] ?? 'student') === 'parent';
+        $user = $isParent ? $authentication->registerParent($data) : $authentication->registerStudent($data);
 
-        Auth::login($student);
+        Auth::login($user);
         $request->session()->regenerate();
+
+        if ($isParent) {
+            return redirect()->route('guardian.dashboard')
+                ->with('status', 'حساب ولی ساخته شد. برای اتصال پرونده دانش‌آموز، با پشتیبانی شیخان تماس بگیرید.');
+        }
 
         $course = $this->findFreeCourse($request->input('return_course'));
 

@@ -7,6 +7,7 @@ use App\Http\Requests\Portal\ReplyPortalMessageRequest;
 use App\Http\Requests\Portal\StorePortalMessageRequest;
 use App\Http\Requests\Portal\UpdatePortalMessageRequest;
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Message;
 use App\Services\Messaging\MessageReplyService;
 use App\Models\User;
@@ -81,6 +82,18 @@ final class MessageController extends Controller
         abort_if(! $student, 403, 'برای ارسال پیام، ابتدا دانش‌آموزی به این حساب متصل کنید.');
 
         $recipients = $this->availableRecipients($student);
+        $supportCourse = null;
+        $supportRecipientId = null;
+        $courseSlug = $request->query('playback_course');
+        if ($request->user()->hasRole('student') && is_string($courseSlug) && mb_strlen($courseSlug) <= 190) {
+            $supportCourse = Course::query()->where('status', 'published')->where('slug', $courseSlug)
+                ->first(['id', 'title', 'slug']);
+            if ($supportCourse) {
+                $supportRecipientId = User::query()->whereIn('id', $recipients->modelKeys())
+                    ->whereHas('roles', fn (Builder $roles) => $roles->where('name', 'admin'))
+                    ->orderBy('id')->value('id');
+            }
+        }
 
         return view($request->user()->hasRole('parent') ? 'parent.message-create' : 'student.message-create', [
             'student' => $student,
@@ -89,6 +102,8 @@ final class MessageController extends Controller
             'kids' => $children,
             'kid' => $selectedChild,
             'recipients' => $recipients,
+            'supportCourse' => $supportCourse,
+            'supportRecipientId' => $supportRecipientId,
         ]);
     }
 

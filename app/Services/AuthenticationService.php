@@ -10,10 +10,20 @@ final class AuthenticationService
 {
     public function registerStudent(array $data): User
     {
-        return DB::transaction(function () use ($data): User {
-            $studentRole = Role::query()->where('name', 'student')->firstOrFail();
+        return $this->registerAccount($data, 'student');
+    }
 
-            $student = User::query()->create([
+    public function registerParent(array $data): User
+    {
+        return $this->registerAccount($data, 'parent');
+    }
+
+    private function registerAccount(array $data, string $roleName): User
+    {
+        return DB::transaction(function () use ($data, $roleName): User {
+            $role = Role::query()->where('name', $roleName)->firstOrFail();
+
+            $user = User::query()->create([
                 'name' => $data['name'],
                 'email' => mb_strtolower(trim($data['email'])),
                 'phone' => $data['phone'] ?? null,
@@ -21,9 +31,9 @@ final class AuthenticationService
                 'is_active' => true,
             ]);
 
-            $student->roles()->sync([$studentRole->getKey()]);
+            $user->roles()->sync([$role->getKey()]);
 
-            return $student;
+            return $user;
         });
     }
 

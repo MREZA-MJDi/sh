@@ -149,6 +149,8 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
         ->name('communication-center.index');
 
     Route::get('/contact-messages', [ContactMessageController::class, 'index'])->middleware('permission:messages.view.all')->name('contact-messages.index');
+    Route::post('/contact-messages/{message}/reply', [ContactMessageController::class, 'reply'])
+        ->middleware(['permission:messages.view.all', 'permission:messages.reply', 'throttle:10,1'])->name('contact-messages.reply');
     Route::patch('/contact-messages/{message}/status', [ContactMessageController::class, 'updateStatus'])->middleware('permission:messages.view.all')->name('contact-messages.status');
     Route::delete('/contact-messages/{message}', [ContactMessageController::class, 'destroy'])->middleware('permission:messages.view.all')->name('contact-messages.destroy');
 

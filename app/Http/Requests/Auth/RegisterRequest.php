@@ -35,6 +35,7 @@ final class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'account_type' => ['sometimes', 'required', Rule::in(['student', 'parent'])],
             'name' => ['required', 'string', 'min:2', 'max:120'],
             'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')],
             'phone' => ['nullable', 'string', 'max:30'],

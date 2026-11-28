@@ -4,7 +4,7 @@
 @section('content')
 @include('admin.partials.communication-center-link')
 @php
-  $statusLabels = ['new' => 'جدید', 'in_progress' => 'در حال پیگیری', 'resolved' => 'پاسخ‌داده‌شده', 'spam' => 'هرزنامه'];
+  $statusLabels = ['new' => 'جدید', 'in_progress' => 'در حال پیگیری', 'resolved' => 'رسیدگی‌شده', 'spam' => 'هرزنامه'];
   $statusTones = ['new' => 'warn', 'in_progress' => 'info', 'resolved' => 'ok', 'spam' => 'mute'];
 @endphp
 
@@ -13,7 +13,7 @@
 <div class="adm-stats">
   <x-admin.stat tone="comm" icon="msg" label="پیام جدید" :value="number_format((int) ($counts['new'] ?? 0))"/>
   <x-admin.stat tone="comm" icon="clock" label="در حال پیگیری" :value="number_format((int) ($counts['in_progress'] ?? 0))"/>
-  <x-admin.stat tone="comm" icon="check" label="پاسخ‌داده‌شده" :value="number_format((int) ($counts['resolved'] ?? 0))"/>
+  <x-admin.stat tone="comm" icon="check" label="رسیدگی‌شده" :value="number_format((int) ($counts['resolved'] ?? 0))"/>
   <x-admin.stat tone="comm" icon="lock" label="هرزنامه" :value="number_format((int) ($counts['spam'] ?? 0))"/>
 </div>
 
@@ -35,7 +35,26 @@
         <tr id="contact-message-{{ $message->id }}" data-name="{{ $message->name.' '.$message->contact.' '.$message->topic.' '.$message->body }}">
           <td><b>{{ $message->name }}</b><small>{{ $message->contact }}</small></td>
           <td>{{ $message->topic ?: 'عمومی' }}</td>
-          <td><p>{{ \Illuminate\Support\Str::limit($message->body, 180) }}</p></td>
+          <td><details @if((int) old('contact_message_id') === $message->id) open @endif>
+            <summary>{{ \Illuminate\Support\Str::limit($message->body, 100) }}</summary>
+            <p style="white-space:pre-wrap">{{ $message->body }}</p>
+            @if(auth()->user()->hasPermissionTo('messages.reply') && $message->status !== 'spam')
+              @if(filter_var($message->contact, FILTER_VALIDATE_EMAIL))
+                <form method="POST" action="{{ route('admin.contact-messages.reply', $message) }}">
+                  @csrf
+                  <input type="hidden" name="contact_message_id" value="{{ $message->id }}">
+                  <label for="contact-reply-{{ $message->id }}">پاسخ به ایمیل فرستنده</label>
+                  <textarea class="adm-input" name="reply" id="contact-reply-{{ $message->id }}" required maxlength="5000">{{ (int) old('contact_message_id') === $message->id ? old('reply') : '' }}</textarea>
+                  @if((int) old('contact_message_id') === $message->id)
+                    @error('reply', 'contactReply')<p class="adm-err">{{ $message }}</p>@enderror
+                  @endif
+                  <button type="submit" class="adm-btn adm-btn-primary adm-btn-sm">ارسال پاسخ</button>
+                </form>
+              @else
+                <small>این پیام قدیمی با شماره تماس ثبت شده. از شمارهٔ درج‌شده برای پیگیری استفاده کنید.</small>
+              @endif
+            @endif
+          </details></td>
           <td>{{ \App\Support\PersianDate::format($message->created_at, 'Y/m/d H:i') }}</td>
           <td><x-admin.badge :tone="$statusTones[$message->status] ?? 'warn'">{{ $statusLabels[$message->status] ?? $message->status }}</x-admin.badge>
             @if($message->handler)<small>{{ $message->handler->name }} · {{ \App\Support\PersianDate::format($message->handled_at, 'Y/m/d H:i') }}</small>@endif
