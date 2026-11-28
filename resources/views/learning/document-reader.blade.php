@@ -16,7 +16,7 @@
         .reader-brand { display: flex; justify-content: center; margin-block-end: .5rem }
         .reader-text { position: relative; overflow: hidden }
         .reader-mark { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden }
-        .reader-mark span { max-width: 82%; padding: .3em .8em; border-radius: 999px; background: #1326420b; color: #13264234; font-size: clamp(12px, 3vw, 26px); font-weight: 700; transform: rotate(-12deg); filter: blur(.45px); overflow-wrap: anywhere }
+        .reader-mark span { max-width: 82%; padding: .3em .8em; border-radius: 999px; background: #1326420b; color: #13264234; font-size: clamp(16px, 5vw, 42px); font-weight: 700; transform: rotate(32deg); filter: blur(.7px); overflow-wrap: anywhere }
     </style>
 </head>
 <body>

@@ -38,15 +38,24 @@ final class ContentWatermark
         imagefilledellipse($stamp, $labelWidth - $radius - 1, $radius, $labelHeight, $labelHeight, $background);
         imagestring($stamp, $font, 8, 4, $label, imagecolorallocatealpha($stamp, 30, 51, 84, 105));
 
-        $scale = min($width * 0.76 / $labelWidth, $height * 0.13 / $labelHeight, 3.5);
-        $stampWidth = max(1, (int) round($labelWidth * $scale));
-        $stampHeight = max(1, (int) round($labelHeight * $scale));
+        $angle = -32;
+        $diagonal = imagerotate($stamp, $angle, imagecolorallocatealpha($stamp, 0, 0, 0, 127));
+        abort_unless($diagonal !== false, 503);
+        imagealphablending($diagonal, false);
+        imagesavealpha($diagonal, true);
+        imagefilter($diagonal, IMG_FILTER_GAUSSIAN_BLUR);
+
+        $diagonalWidth = imagesx($diagonal);
+        $diagonalHeight = imagesy($diagonal);
+        $scale = min($width * 0.90 / $diagonalWidth, $height * 0.72 / $diagonalHeight);
+        $stampWidth = max(1, (int) round($diagonalWidth * $scale));
+        $stampHeight = max(1, (int) round($diagonalHeight * $scale));
 
         imagealphablending($image, true);
         imagesavealpha($image, true);
         imagecopyresampled(
-            $image, $stamp, intdiv($width - $stampWidth, 2), intdiv($height - $stampHeight, 2),
-            0, 0, $stampWidth, $stampHeight, $labelWidth, $labelHeight,
+            $image, $diagonal, intdiv($width - $stampWidth, 2), intdiv($height - $stampHeight, 2),
+            0, 0, $stampWidth, $stampHeight, $diagonalWidth, $diagonalHeight,
         );
 
         ob_start();
