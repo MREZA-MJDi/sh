@@ -522,13 +522,12 @@ final class ChunkUploadController extends Controller
             abort_unless($request->user()->hasAnyPermission(['integrations.manage', 'courses.manage']), 403);
         }
 
-        $course = $workspace->coursesQueryFor($request->user())
-            ->where(function ($query): void {
-                $query->where(function ($legacy): void {
-                    $legacy->whereNull('learning_features->recorded_video')->where('delivery_type', 'spotplayer');
-                })->orWhere('learning_features->recorded_video', true);
-            })
-            ->findOrFail($courseId);
+        $course = $workspace->coursesQueryFor($request->user())->findOrFail($courseId);
+        if (! $course->featureEnabled('recorded_video')) {
+            throw ValidationException::withMessages([
+                'target_id' => 'ابتدا «ویدیوهای آموزشی» را در امکانات دوره فعال و ذخیره کنید.',
+            ]);
+        }
 
         $classroomId = filled($metadata['classroom_id'] ?? null)
             ? (int) $metadata['classroom_id']

@@ -185,21 +185,25 @@ initCourseCoverCropper();
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 const uploadResponse = async (response) => {
-  let result = {};
+  let result = null;
   try { result = await response.json(); } catch (_) {}
-  if (response.ok) return result;
+  if (response.ok && result && typeof result === 'object') return result;
 
   const guidance = {
     401: 'برای ادامه ابتدا دوباره وارد حساب شوید.',
     403: 'حساب شما برای بارگذاری در این بخش مجوز ندارد.',
+    404: 'دوره، کلاس، جلسه یا مسیر بارگذاری پیدا نشد.',
+    409: 'نشست بارگذاری با وضعیت فعلی سازگار نیست.',
+    410: 'نشست بارگذاری منقضی شده است.',
     413: 'حجم فایل یا بخش ارسالی از محدودیت سرور بیشتر است. فایل کوچک‌تری انتخاب کنید.',
     419: 'اعتبار نشست تمام شده است. دوباره وارد شوید و همین فایل را برای ادامه انتخاب کنید.',
     429: 'تعداد درخواست‌های ارسال فایل زیاد شده است. کمی صبر کنید و دوباره تلاش کنید.',
   };
-  const validationMessage = Object.values(result.errors || {}).flat()[0];
-  const serverMessage = typeof result.message === 'string' && /[\u0600-\u06ff]/u.test(result.message)
+  const validationMessage = Object.values(result?.errors || {}).flat()[0];
+  const serverMessage = typeof result?.message === 'string' && /[\u0600-\u06ff]/u.test(result.message)
     ? result.message : null;
-  const error = new Error(validationMessage || guidance[response.status] || serverMessage ||
+  const error = new Error(validationMessage || serverMessage || guidance[response.status] ||
+    (response.ok ? 'سرور به‌جای پاسخ بارگذاری، یک صفحهٔ دیگر برگرداند. نشست ورود را بررسی کنید.' : '') ||
     (response.status >= 500 ? 'سرور نتوانست فایل را دریافت یا پردازش کند. وضعیت آپلود را بررسی و دوباره تلاش کنید.'
       : 'ارسال فایل انجام نشد. انتخاب فایل و دسترسی خود را بررسی کنید.'));
   error.status = response.status;
@@ -394,6 +398,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
     setControlsDisabled(true, courseSelect, classroomSelect, sessionSelect);
     let started = null;
     let completedUpload = false;
+    let stage = 'شروع بارگذاری';
     const receivedChunks = new Set();
     progress.hidden = false;
     setProgress(0);
@@ -405,6 +410,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
         : null;
       if (savedUploadId) {
         try {
+          stage = 'ادامهٔ بارگذاری';
           started = await jsonRequest(widget.dataset.resumeUrl, {
             upload_id: savedUploadId,
             ...(target === 'teaser' ? {} : {
@@ -438,6 +444,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
           if (classSessionId) startPayload.class_session_id = classSessionId;
         }
 
+        stage = 'شروع بارگذاری';
         started = await jsonRequest(widget.dataset.startUrl, startPayload);
         if (widget.dataset.resumeUrl) uploadStorage('setItem', resumeKey, started.upload_id);
       }
@@ -496,9 +503,11 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
           }
         }
       };
+      stage = 'ارسال فایل';
       await Promise.all([sendPending(), sendPending()]);
       if (chunkFailure) throw chunkFailure;
 
+      stage = 'تحویل فایل به صف';
       const completed = await jsonRequest(widget.dataset.completeUrl, {
         upload_id: started.upload_id,
         total,
@@ -513,6 +522,7 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       let statusNeedsCheck = false;
 
       if (statusUrl) {
+        stage = 'بررسی پردازش ویدیو';
         setStatus('فایل دریافت شد؛ در صف پردازش یا در حال آماده‌سازی پخش است.');
         for (let attempt = 0; attempt < 60; attempt++) {
           try {
@@ -554,7 +564,8 @@ document.querySelectorAll('[data-course-upload]').forEach((widget) => {
       const suffix = resumable
         ? ' نشست آپلود حفظ شد؛ با انتخاب همین فایل و زدن دوباره دکمه، از بخش‌های دریافت‌شده ادامه می‌دهید.'
         : '';
-      setStatus((error.message || 'بارگذاری فایل ناموفق بود.') + suffix, true);
+      const statusCode = error.status ? ' (HTTP ' + error.status + ')' : '';
+      setStatus(stage + statusCode + ' — ' + (error.message || 'بارگذاری فایل ناموفق بود.') + suffix, true);
     } finally {
       activeUploads.delete(widget);
       setControlsDisabled(false, courseSelect, classroomSelect, sessionSelect);
