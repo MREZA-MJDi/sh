@@ -18,6 +18,7 @@ class UpdateSpotPlayerSettingsRequest extends FormRequest
             'mode' => ['required', Rule::in(['test', 'production'])],
             'watermark_enabled' => ['sometimes', 'boolean'],
             'auto_license_enabled' => ['sometimes', 'boolean'],
+            'api_enabled' => ['sometimes', 'boolean'],
         ];
     }
 }

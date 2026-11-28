@@ -298,6 +298,7 @@ final class CourseTeaserUploadTest extends TestCase
         \Illuminate\Support\Facades\Queue::fake();
         $this->head($url)->assertStatus(503)->assertHeader('Retry-After', '3');
         Storage::disk('local')->put(\App\Jobs\Learning\RenderViewerVideo::pathFor('teasers/ready-preview.mp4', auth()->user()), 'watermarked-video-content');
+        $this->get($url, ['Sec-Fetch-Mode' => 'navigate'])->assertForbidden();
         $this->get($url, ['Range' => 'bytes=0-3'])
             ->assertStatus(206)
             ->assertHeader('Content-Type', 'video/mp4');

@@ -312,7 +312,7 @@ final class PublicSiteController extends Controller
         int $video,
         CourseEnrollmentService $enrollments,
         LearningAccessService $learningAccess
-    ): RedirectResponse {
+    ): RedirectResponse|\Illuminate\Http\Response {
         $student = $request->user();
 
         abort_unless($student && $student->is_active && $student->hasRole('student'), 403);
@@ -343,6 +343,13 @@ final class PublicSiteController extends Controller
         }
 
         if (filled($courseVideo->file_path) && blank($courseVideo->external_id)) {
+            if ($request->boolean('player')) {
+                return response()->view('learning.course-video-frame', ['video' => $courseVideo], 200, [
+                    'Cache-Control' => 'private, no-store',
+                    'X-Frame-Options' => 'SAMEORIGIN',
+                ]);
+            }
+
             return redirect()->route('student.videos.show', $courseVideo);
         }
 

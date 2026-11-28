@@ -169,9 +169,6 @@
                     @endif
 
                     @if($video->file_path)
-                        <a href="{{ route('teacher.spotplayer.videos.download', $video) }}">
-                            {{ $video->status === 'active' ? 'دریافت فایل پردازش‌شده' : 'دریافت فایل مبدأ' }}
-                        </a>
                         @if($video->status === 'failed')
                             <form method="POST" action="{{ route('teacher.spotplayer.videos.retry-processing', $video) }}">
                                 @csrf

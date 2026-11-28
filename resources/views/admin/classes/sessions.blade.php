@@ -11,7 +11,7 @@
 <x-admin.page-head tone="edu" icon="cal" :title="'برنامه کلاس '.$classroom->name" :desc="($classroom->course?->title ?? 'کلاس مستقل').' · '.($classroom->teacher?->name ?? 'مدرس تعیین نشده')"
    :back-url="$teacherView ? route('admin.classes.index') : ($classroom->course ? route('admin.courses.edit', $classroom->course) : route('admin.classes.index'))" :back-label="$teacherView ? 'گروه‌های آموزشی' : ($classroom->course ? 'بازگشت به دوره' : 'گروه‌های آموزشی')">
   @if($canManage)
-    <x-admin.btn icon="plus" data-modal-open="session-modal">برنامه‌ریزی جلسه</x-admin.btn>
+    <x-admin.btn icon="plus" data-modal-open="session-modal">جلسه جدید</x-admin.btn>
   @endif
 </x-admin.page-head>
 
@@ -33,7 +33,7 @@
           <span class="adm-session-no-link">لینک ورود هنوز آماده نیست</span>
         @endif
         @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
-          <a class="adm-btn adm-btn-line" href="{{ route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $nextSession->starts_at?->format('Y-m-d'), 'session' => $nextSession->id]) }}">آماده‌سازی حضور و غیاب</a>
+          <a class="adm-btn adm-btn-line" href="{{ route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $nextSession->starts_at?->format('Y-m-d'), 'session' => $nextSession->id]) }}">مشاهده حضور و غیاب جلسه</a>
         @endcanany
       </div>
     @else
@@ -132,11 +132,13 @@
             @endif
           </div>
           <div class="adm-actions">
-            @if($session->session_type === 'online' && ($session->meeting_url || $classroom->meeting_url))
+            @if($session->status === 'scheduled' && $session->session_type === 'online' && ($session->meeting_url || $classroom->meeting_url))
               <a class="adm-btn adm-btn-primary adm-btn-sm" href="{{ $session->meeting_url ?: $classroom->meeting_url }}" target="_blank" rel="noopener noreferrer"><x-admin.icon name="live"/>ورود به جلسه</a>
             @endif
             @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
-              <x-admin.btn size="sm" icon="check" variant="soft" :href="route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $session->starts_at?->format('Y-m-d'), 'session' => $session->id])">ثبت حضور</x-admin.btn>
+              @if($session->status !== 'cancelled')
+                <x-admin.btn size="sm" icon="check" variant="soft" :href="route('admin.attendance.index', ['class_id' => $classroom->id, 'date' => $session->starts_at?->format('Y-m-d'), 'session' => $session->id])">{{ $session->starts_at->isFuture() ? 'مشاهده حضور و غیاب' : 'حضور و غیاب' }}</x-admin.btn>
+              @endif
             @endcanany
             @if($canManage)
               <x-admin.btn size="sm" variant="line" icon="edit" data-modal-open="session-modal" data-title="ویرایش جلسه" :data-fill="json_encode($fill, JSON_UNESCAPED_UNICODE)" :data-action="route('admin.classes.sessions.update', $session)" data-method="PATCH">ویرایش</x-admin.btn>
@@ -202,6 +204,7 @@
 @push('modals')
 @if($canManage)
   <x-admin.modal :demo="false" id="session-modal" title="برنامه‌ریزی جلسه" size="lg" :action="route('admin.classes.sessions.store', $classroom)">
+    <input type="hidden" name="return_to_session_day" value="1">
     @include('admin.classes.partials.session-fields', ['sessionDefaultDate' => $selectedDate->setTimeFromTimeString(data_get($classroom->schedule, 'time') ?: '09:00')->format('Y-m-d\\TH:i')])
   </x-admin.modal>
   <x-admin.confirm :demo="false" id="session-delete" title="حذف جلسه" text="جلسه‌ای که حضور یا سابقه ورود دارد حذف نمی‌شود؛ آن را لغو کن تا سوابق حفظ شود."/>

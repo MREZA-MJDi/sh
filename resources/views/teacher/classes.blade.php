@@ -17,6 +17,14 @@
                 <small>{{ $classroom->course?->title ?? 'کلاس مستقل' }}@if($classroom->course?->grade) · پایه {{ $classroom->course->grade }}@endif @if($classroom->course?->season) · {{ $seasonLabels[$classroom->course->season] ?? $classroom->course->season }}@endif</small>
             </div>
             <div class="teacher-list-meta"><span>{{ $classroom->students_count }} دانش‌آموز</span><span>{{ $classroom->sessions_count }} جلسه</span></div>
+            <div class="teacher-list-meta">
+                @canany(['classes.view.assigned', 'classes.manage.assigned'])
+                    <a class="b s" href="{{ route('admin.classes.sessions.index', $classroom) }}">برنامهٔ کلاس</a>
+                @endcanany
+                @canany(['attendance.manage.assigned', 'attendance.view.assigned'])
+                    <a class="b s" href="{{ route('admin.attendance.index', ['class_id' => $classroom->id]) }}">حضور و غیاب</a>
+                @endcanany
+            </div>
         </div>
     @empty
         <div class="teacher-empty-state"><strong>هنوز گروه آموزشی به شما تخصیص داده نشده است</strong><span>بعد از تخصیص کلاس، فهرست گروه‌ها و جلسه‌های شما در این بخش نمایش داده می‌شود.</span></div>

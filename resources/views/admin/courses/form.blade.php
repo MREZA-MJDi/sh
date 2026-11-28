@@ -156,6 +156,11 @@
 
       @if($course->featureEnabled('recorded_video'))
         <x-admin.panel id="course-videos" title="ویدیوهای آموزشی" desc="ویدیو را انتخاب کن. اگر برای یک کلاس یا جلسه خاص است، آن را هم مشخص کن." data-tone="edu">
+          <div class="adm-actions">
+            @can('integrations.manage')
+              <x-admin.btn variant="line" :href="route('admin.spotplayer.index', ['course_id' => $course->id])">ثبت ویدیو از SpotPlayer</x-admin.btn>
+            @endcan
+          </div>
           <div data-course-upload data-target="spotplayer_video" data-course-id="{{ $course->id }}"
             data-start-url="{{ route('admin.uploads.start') }}" data-chunk-url="{{ route('admin.uploads.chunk') }}"
             data-complete-url="{{ route('admin.uploads.complete') }}" data-cancel-url="{{ route('admin.uploads.cancel') }}" data-resume-url="{{ route('admin.uploads.resume') }}" data-status-url="{{ route('admin.uploads.status') }}" data-max-mb="{{ config('learning.max_lesson_mb') }}" data-chunk-mb="{{ config('learning.chunk_mb') }}">
@@ -209,7 +214,7 @@
               <x-admin.empty text="هنوز ویدیویی برای این دوره بارگذاری نشده است."/>
             @endforelse
           </div>
-          <p class="adm-muted">فایل محلی از داخل سایت پخش می‌شود. ویدیوهای دارای لایسنس SpotPlayer را از بخش مدیریت ویدیوها با شناسه خارجی ثبت کن؛ نیازی به بارگذاری مجدد فایل نیست.</p>
+          <p class="adm-muted">فایل آموزشی پس از پردازش در صفحهٔ دوره قابل پخش می‌شود. اگر فایل را در SpotPlayer بارگذاری کرده‌ای، فقط شناسهٔ آن را ثبت کن.</p>
           @if($videos->hasPages())<div class="adm-pagination">{{ $videos->links() }}</div>@endif
         </x-admin.panel>
       @else

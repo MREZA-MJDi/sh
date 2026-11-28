@@ -172,6 +172,11 @@ final class PublicCourseVideoAccessTest extends TestCase
 
         $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]))
             ->assertRedirect(route('student.videos.show', $video));
+
+        $this->get(route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id, 'player' => 1]))
+            ->assertOk()
+            ->assertViewIs('learning.course-video-frame')
+            ->assertSee(route('student.videos.stream', $video));
     }
 
     public function test_active_class_member_can_see_its_session_recording_on_the_public_course_page(): void

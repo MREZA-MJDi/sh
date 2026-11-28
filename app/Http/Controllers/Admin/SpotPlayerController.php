@@ -128,8 +128,8 @@ class SpotPlayerController extends Controller
         $settings->fill([
             ...$data,
             'watermark_enabled' => $request->boolean('watermark_enabled'),
-            'auto_license_enabled' => false,
-            'api_enabled' => false,
+            'auto_license_enabled' => $request->boolean('api_enabled'),
+            'api_enabled' => $request->boolean('api_enabled'),
         ])->save();
 
         return back()->with('success', 'تنظیمات محلی ذخیره شد؛ اتصال خارجی تا دریافت قرارداد رسمی فعال نمی‌شود.');
@@ -157,35 +157,6 @@ class SpotPlayerController extends Controller
                 : 'شناسه ویدیوی موجود در SpotPlayer ثبت شد؛ اتصال و نمایش پلیر رسمی پس از تأیید قرارداد سرویس فعال می‌شود. شناسه داخلی: '.$video->id));
 
         return back()->with('success', $message);
-    }
-
-    public function downloadStagedVideo(SpotPlayerVideo $video, ClassroomWorkspaceService $workspace)
-    {
-        if ($workspace->isTeacher(auth()->user())) {
-            if ($video->classroom_id) {
-                $classroom = $workspace->queryFor(auth()->user())->find($video->classroom_id);
-                abort_unless(
-                    $classroom
-                    && $video->course_id
-                    && (int) $classroom->course_id === (int) $video->course_id
-                    && $workspace->coursesQueryFor(auth()->user())->whereKey($video->course_id)->exists(),
-                    403
-                );
-            } else {
-                abort_unless(
-                    $video->course_id
-                    && $workspace->coursesQueryFor(auth()->user())->whereKey($video->course_id)->exists(),
-                    403
-                );
-            }
-        }
-
-        abort_unless(filled($video->file_path) && Storage::disk('local')->exists($video->file_path), 404);
-
-        return Storage::disk('local')->download(
-            $video->file_path,
-            $video->file_original_name ?: 'spotplayer-video'
-        );
     }
 
     public function retryProcessing(

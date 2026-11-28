@@ -17,6 +17,31 @@ final class ClassSessionAttendanceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_attendance_page_does_not_select_a_different_session_when_the_requested_one_is_unavailable(): void
+    {
+        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+        [$teacher, , $classroom] = $this->classroomFixture();
+        $admin = User::factory()->create();
+        $admin->roles()->attach(\App\Models\Role::query()->where('name', 'admin')->value('id'));
+        $startsAt = now()->subDay();
+        $session = ClassSession::query()->create([
+            'classroom_id' => $classroom->id,
+            'title' => 'جلسه قابل انتخاب',
+            'session_type' => 'onsite',
+            'starts_at' => $startsAt,
+            'status' => 'completed',
+            'created_by' => $teacher->id,
+        ]);
+
+        $this->withoutVite()->actingAs($admin)->get(route('admin.attendance.index', [
+            'class_id' => $classroom->id,
+            'date' => $startsAt->toDateString(),
+            'session' => $session->id + 1000,
+        ]))->assertOk()
+            ->assertViewHas('sessionUnavailable', true)
+            ->assertViewHas('session', fn ($selected) => $selected === null);
+    }
+
     public function test_class_session_owns_attendance_records_and_preserves_classroom_relation(): void
     {
         [$teacher, $student, $classroom] = $this->classroomFixture();

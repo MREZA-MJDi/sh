@@ -25,6 +25,7 @@ final class CourseTeaserController extends Controller
 
         $viewer = request()->user();
         abort_unless($viewer?->is_active, 403);
+        abort_if(request()->header('Sec-Fetch-Mode') === 'navigate', 403);
         $path = RenderViewerVideo::readyPath($course->teaser_path, $viewer);
         abort_if($path === null, 503, 'نسخه اختصاصی ویدیو در حال آماده‌سازی است.', ['Retry-After' => '3', 'Cache-Control' => 'private, no-store']);
 

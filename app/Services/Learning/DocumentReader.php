@@ -38,6 +38,7 @@ final class DocumentReader
         };
 
         if ($request->query('render') === '1') {
+            abort_if($request->header('Sec-Fetch-Mode') === 'navigate', 403);
             abort_unless($page <= $pages, 404);
             $image = $mime === 'application/pdf'
                 ? $this->run('pdftoppm', ['-f', (string) $page, '-l', (string) $page, '-scale-to', '1600', '-singlefile', '-png', $path])

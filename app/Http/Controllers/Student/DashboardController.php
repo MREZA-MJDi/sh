@@ -110,10 +110,11 @@ final class DashboardController extends Controller
         ]);
     }
 
-    public function liveClasses(Request $request, StudentDashboardService $dashboard): View
+    public function liveClasses(Request $request, StudentDashboardService $dashboard, \App\Services\Learning\LiveClassService $liveClasses): View
     {
         return view('student.live-classes', [
             'sessions' => $dashboard->liveClasses($request->user()),
+            'skyroomReady' => $liveClasses->health()->available,
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Services\Courses;
 
+use App\Jobs\Learning\ActivatePurchasedSpotPlayerLicense;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
@@ -156,6 +157,10 @@ class CourseEnrollmentService
                 'granted_at' => now(),
                 'expires_at' => null,
             ])->save();
+
+            if (filled($course->spotplayer_course_id) && $course->featureEnabled('recorded_video')) {
+                ActivatePurchasedSpotPlayerLicense::dispatch($enrollment->id)->afterCommit();
+            }
 
             return $enrollment;
         }, 3);

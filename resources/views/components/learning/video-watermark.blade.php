@@ -1,7 +1,9 @@
-@props(['source' => null])
+@props(['source' => null, 'fullscreen' => true])
 @auth
     @once
         <style>
+            .learning-video-frame { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none }
+            @media print { .learning-video-frame { display: none !important } }
             .learning-video-frame:fullscreen { display: grid; place-items: center; background: #000 }
             .learning-video-frame:fullscreen video { width: 100% !important; height: 100% !important; max-height: none !important; object-fit: contain !important }
             .learning-video-watermark { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; overflow: hidden }
@@ -20,8 +22,17 @@
             .learning-video-fullscreen { position: absolute; z-index: 3; inset-block-start: 12px; inset-inline-end: 12px; padding: 6px 10px; border: 0; border-radius: 8px; background: #132642e8; color: white; font: inherit; font-size: 12px; cursor: pointer }
         </style>
         <script>
-            document.addEventListener('contextmenu', (event) => {
-                if (event.target.closest('.learning-video-frame')) event.preventDefault();
+            for (const eventName of ['contextmenu', 'dragstart']) {
+                document.addEventListener(eventName, (event) => {
+                    if (event.target.closest('.learning-video-frame')) event.preventDefault();
+                });
+            }
+            document.addEventListener('keydown', (event) => {
+                const frame = document.fullscreenElement?.closest('.learning-video-frame')
+                    || event.target.closest('.learning-video-frame');
+                if (frame && (event.ctrlKey || event.metaKey) && ['s', 'p'].includes(event.key.toLowerCase())) {
+                    event.preventDefault();
+                }
             });
             document.addEventListener('click', async (event) => {
                 const button = event.target.closest('[data-viewer-video]');
@@ -62,7 +73,9 @@
         <span class="mark-lower"><bdi dir="ltr">{{ $identity }}</bdi></span>
     </div>
     @endif
+    @if($fullscreen)
     <button type="button" class="learning-video-fullscreen"
         onclick="if (document.fullscreenElement) document.exitFullscreen(); else this.parentElement.requestFullscreen?.();"
         aria-label="تغییر حالت تمام‌صفحه">تمام‌صفحه</button>
+    @endif
 @endauth

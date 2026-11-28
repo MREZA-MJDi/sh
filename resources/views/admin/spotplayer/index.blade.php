@@ -13,6 +13,8 @@
 @section('content')
 @php
   $courseOptions = $courses->pluck('title', 'id')->all();
+  $requestedCourse = request()->integer('course_id');
+  $selectedCourse = array_key_exists($requestedCourse, $courseOptions) ? $requestedCourse : null;
   $licenseCourseOptions = $courses->filter(fn ($course) => filled($course->spotplayer_course_id))->pluck('title', 'id')->all();
   $studentOptions = $students->pluck('name', 'id')->all();
   $licenseStatus = [
@@ -24,15 +26,29 @@
   ];
 @endphp
 
-<x-admin.page-head tone="edu" icon="video" title="ویدیوهای آموزشی" desc="ویدیوهای دوره‌ها و وضعیت نمایش آن‌ها را اینجا مدیریت کن.">
+<x-admin.page-head tone="edu" icon="video" title="مدیریت ویدیو و SpotPlayer" desc="ویدیو را به یک دوره وصل کن و وضعیت نمایش آن را بررسی کن.">
   @unless($teacherView)
     @if($courseOptions)
       <x-admin.btn icon="plus" data-modal-open="spot-video-modal">افزودن ویدیو از SpotPlayer</x-admin.btn>
     @endif
 
-    <x-admin.btn variant="line" :href="route('admin.courses.index')">ویدیوهای هر دوره</x-admin.btn>
+    <x-admin.btn variant="line" :href="route('admin.courses.index')">رفتن به دوره‌ها</x-admin.btn>
   @endunless
 </x-admin.page-head>
+@unless($teacherView)
+  <x-admin.panel title="وضعیت اتصال SpotPlayer" data-tone="edu">
+    <x-slot:actions>
+      <x-admin.badge :tone="$health?->available ? 'ok' : 'warn'">{{ $health?->available ? 'متصل' : 'اتصال فعال نیست' }}</x-admin.badge>
+    </x-slot:actions>
+    @if(!$health?->available)
+      <p class="adm-muted">می‌توانی شناسهٔ ویدیو را ثبت کنی. پخش و صدور لایسنس بعد از فعال‌شدن اتصال در دسترس خواهند بود.</p>
+    @endif
+    <div class="adm-actions">
+      <a class="adm-btn adm-btn-line adm-btn-sm" href="https://panel.spotplayer.ir/" target="_blank" rel="noopener noreferrer">پنل ناشران SpotPlayer</a>
+      <a class="adm-btn adm-btn-line adm-btn-sm" href="#spotplayer-connection" data-open-spotplayer-settings>تنظیمات اتصال</a>
+    </div>
+  </x-admin.panel>
+@endunless
 @if(!$teacherView && !$courseOptions)
   <p class="adm-muted">برای افزودن ویدیو، «ویدیوهای آموزشی» را در امکانات یکی از دوره‌ها فعال کن.</p>
 @endif
@@ -109,9 +125,6 @@
           @if($video->review_note)<p class="adm-panel-kicker">یادداشت بررسی: {{ $video->review_note }}</p>@endif
           @if($video->processing_error)<p class="adm-panel-kicker">خطای پردازش: {{ $video->processing_error }}</p>@endif
           <div class="adm-actions">
-            @if($video->file_path)
-              <x-admin.btn size="sm" variant="line" :href="route('admin.spotplayer.videos.download', $video)">{{ $video->status === 'active' ? 'دریافت فایل پردازش‌شده' : 'دریافت فایل مبدأ' }}</x-admin.btn>
-            @endif
             @if($video->status === 'failed' && $video->file_path)
               <form method="POST" action="{{ route('admin.spotplayer.videos.retry-processing', $video) }}">
                 @csrf
@@ -142,7 +155,7 @@
 </x-admin.panel>
 
 @if(!$teacherView)
-  <details class="adm-video-advanced" @if($errors->hasAny(['account_id','api_key','max_devices','mode','student_id'])) open @endif>
+  <details id="spotplayer-connection" class="adm-video-advanced" @if($errors->hasAny(['account_id','api_key','max_devices','mode','student_id'])) open @endif>
   <summary><span><b>تنظیمات SpotPlayer و دسترسی دانش‌آموزان</b><small>لایسنس‌ها، وضعیت اتصال و ابزارهای مدیریتی؛ در کارهای روزمره نیازی به این بخش نیست.</small></span><x-admin.icon name="chev"/></summary>
   <div class="adm-video-advanced-body">
   <div class="adm-video-connection">
@@ -223,6 +236,7 @@
       </x-admin.field>
       <x-admin.input label="حداکثر دستگاه" name="max_devices" type="number" min="1" max="99" :value="$settings?->max_devices ?? 2"/>
       <x-admin.select label="محیط" name="mode" :options="['test' => 'آزمایشی', 'production' => 'عملیاتی']" :selected="$settings?->mode ?? 'test'"/>
+      <x-admin.switch label="صدور خودکار لایسنس پس از خرید تأییدشده" name="api_enabled" :checked="$settings?->api_enabled ?? false"/>
       <x-admin.switch label="واترمارک اطلاعات دانش‌آموز" name="watermark_enabled" :checked="$settings?->watermark_enabled ?? true"/>
       <div class="wide"><button type="submit" class="adm-btn adm-btn-primary">ذخیره تنظیمات محلی</button></div>
     </form>
@@ -236,7 +250,7 @@
 @if(!$teacherView && $courseOptions)
 <x-admin.modal :demo="false" id="spot-video-modal" title="افزودن ویدیو از SpotPlayer" :action="route('admin.spotplayer.videos.store')">
   <x-admin.input label="عنوان ویدیو" name="title" wide required/>
-  <x-admin.select label="دوره" name="course_id" :options="$courseOptions" placeholder="انتخاب دوره" required/>
+  <x-admin.select label="دوره" name="course_id" :options="$courseOptions" :selected="$selectedCourse" placeholder="انتخاب دوره" required/>
   <x-admin.field label="کلاس (اختیاری)" name="classroom_id">
     <select name="classroom_id" class="adm-select">
       <option value="">کل دوره</option>
@@ -255,6 +269,12 @@
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const settings = document.getElementById('spotplayer-connection');
+    document.querySelector('[data-open-spotplayer-settings]')?.addEventListener('click', () => {
+      if (settings) settings.open = true;
+    });
+    if (settings && location.hash === '#spotplayer-connection') settings.open = true;
+
     const modal = document.getElementById('spot-video-modal');
     if (!modal) return;
     const course = modal.querySelector('[name="course_id"]');
@@ -267,7 +287,7 @@
     };
     course.addEventListener('change', syncClassrooms);
     syncClassrooms();
-    @if(old('status') === 'waiting_contract' && $errors->hasAny(['title','course_id','classroom_id','external_id']))
+    @if($selectedCourse || (old('status') === 'waiting_contract' && $errors->hasAny(['title','course_id','classroom_id','external_id'])))
       document.querySelector('[data-modal-open="spot-video-modal"]')?.click();
     @endif
   });

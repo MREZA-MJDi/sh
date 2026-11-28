@@ -402,7 +402,7 @@ class ExternalServiceBusinessWorkflowTest extends TestCase
 
         $this->assertDatabaseMissing('integration_runs', ['entity_id' => $video->id]);
 
-        $this->get(route('admin.spotplayer.videos.download', $video))->assertOk();
+        $this->get(url('/admin/spotplayer/videos/'.$video->id.'/download'))->assertNotFound();
         Http::assertNothingSent();
     }
 

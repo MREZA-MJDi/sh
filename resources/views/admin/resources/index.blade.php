@@ -12,7 +12,7 @@
   $statusOptions = ['draft' => 'پیش‌نویس', 'published' => 'منتشرشده', 'archived' => 'بایگانی'];
 @endphp
 
-<x-admin.page-head tone="shop" icon="lib" title="منابع و محصولات آموزشی" desc="جزوه‌ها و فایل‌های دوره یا کلاس با سطح دسترسی و ثبت رویداد دریافت">
+<x-admin.page-head tone="shop" icon="lib" title="جزوه‌ها و منابع آموزشی" desc="جزوه را به دوره یا کلاس اضافه کن، سطح دسترسی را تعیین کن و رسیدهای خرید را بررسی کن.">
   <x-admin.btn icon="plus" data-modal-open="resource-modal">افزودن منبع</x-admin.btn>
 </x-admin.page-head>
 

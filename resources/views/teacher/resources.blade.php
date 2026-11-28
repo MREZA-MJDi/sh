@@ -13,9 +13,11 @@
 <label>کلاس (اختیاری)</label><select name="classroom_id"><option value="">سطح کل دوره</option>@foreach($classrooms as $classroom)<option value="{{ $classroom->id }}" @selected((string) old('classroom_id') === (string) $classroom->id) data-course-id="{{ $classroom->course_id }}">{{ $classroom->name }}</option>@endforeach</select>
 <label>جلسه (اختیاری)</label><select name="class_session_id"><option value="">کل کلاس</option>@foreach($classrooms as $classroom)@foreach($classroom->sessions as $session)<option value="{{ $session->id }}" @selected((string) old('class_session_id') === (string) $session->id) data-classroom-id="{{ $classroom->id }}">{{ $session->title ?: $classroom->name }} · {{ $session->starts_at?->format('Y/m/d H:i') }}</option>@endforeach @endforeach</select>
 <label>قیمت (تومان)</label><input type="number" name="price" min="0" value="{{ old('price',0) }}">
-<label>دسترسی</label><select name="visibility"><option value="enrolled" @selected(old('visibility', 'enrolled') === 'enrolled')>فقط دانش‌آموزان ثبت‌نام‌شده</option><option value="authenticated" @selected(old('visibility') === 'authenticated')>کاربران واردشده</option></select>
+<label>دسترسی</label><select name="visibility"><option value="enrolled" @selected(old('visibility', 'enrolled') === 'enrolled')>دانش‌آموزان دارای دسترسی</option><option value="authenticated" @selected(old('visibility') === 'authenticated')>نیازمند ورود به حساب</option></select>
+<small class="teacher-help">اگر کلاس یا جلسه‌ای انتخاب کنی، دسترسی به اعضای همان کلاس محدود می‌شود.</small>
 <label>فایل</label><input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png">
 <label>وضعیت</label><select name="status"><option value="published" @selected(old('status', 'published') === 'published')>منتشرشده</option><option value="draft" @selected(old('status') === 'draft')>پیش‌نویس</option></select>
+<input type="hidden" name="is_free" value="0">
 <label><input type="checkbox" name="is_free" value="1" @checked((bool) old('is_free', true))> رایگان</label>
 <button class="b" type="submit">ثبت منبع</button>
 </form></section>

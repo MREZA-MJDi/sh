@@ -72,11 +72,9 @@ class AttendanceController extends Controller
             ? $sessions->firstWhere('id', $selectedSessionId)
             : $sessions->first();
 
-        if (! $session && $sessions->isNotEmpty()) {
-            $session = $sessions->first();
-        }
+        $sessionUnavailable = $selectedSessionId > 0 && ! $session;
 
-        $students = $classroom
+        $students = $session
             ? $classroom->students()->orderBy('name')->get()
             : collect();
 
@@ -139,6 +137,7 @@ class AttendanceController extends Controller
             'calendar',
             'sessions',
             'session',
+            'sessionUnavailable',
             'roster',
             'report',
             'canManage'

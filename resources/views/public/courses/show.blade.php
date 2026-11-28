@@ -20,6 +20,8 @@
     .course-trailer-lock p { color: inherit; margin: 0 0 1rem }
     .course-trailer-lock .btn.o { color: white; border-color: white }
     .course-trailer-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem }
+    [data-course-local] > :is(.learning-video-watermark, .learning-video-brand) { display: none !important }
+    .course-video-choice[aria-current="true"] { color: var(--pri); background: var(--soft); border-color: currentColor }
     .course-resource-purchase summary { cursor: pointer; color: var(--pri); font-weight: 700 }
     .course-resource-purchase form { display: grid; gap: .5rem; margin-top: .75rem }
     .course-resource-purchase input:not([type="hidden"]) { min-width: 0; width: 100%; padding: .5rem; border: 1px solid var(--ln); border-radius: .5rem; background: var(--sf); color: var(--ink); font: inherit }
@@ -425,7 +427,7 @@
                 @endif
             </ul>
             @if(($features['recorded_video'] ?? false) && $hasCourseAccess && ! $canWatchCourseVideos)
-                <p class="lesson-empty" style="margin-top:14px">ثبت‌نام شما فعال است؛ ویدیوهای داخلی پس از آماده‌سازی و ویدیوهای SpotPlayer پس از تأیید لایسنس در همین صفحه نمایش داده می‌شوند.</p>
+                <p class="lesson-empty" style="margin-top:14px">هنوز ویدیویی برای تماشا در دسترس نیست.</p>
             @endif
         </aside>
     </div>
@@ -558,7 +560,8 @@
                             type="button"
                             id="course-video-{{ $video->id }}"
                             class="btn g s course-video-choice"
-                            data-player-url="{{ route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id]) }}"
+                            data-player-url="{{ route('public.courses.videos.play', ['slug' => $course->slug, 'video' => $video->id, 'player' => 1]) }}"
+                            @if(blank($video->external_id)) data-local-video @endif
                             style="justify-content:flex-start;text-align:right;white-space:normal"
                         >{{ $video->title }}@if($video->classSession) · {{ $video->classSession->title }}@endif</button>
                     @endforeach
@@ -577,13 +580,16 @@
                 const openPlayer = (choice) => {
                     if (!choice) return;
                     if (!dialog.open) dialog.showModal();
+                    for (const button of choices) {
+                        if (button === choice) button.setAttribute('aria-current', 'true');
+                        else button.removeAttribute('aria-current');
+                    }
+                    frame.parentElement.toggleAttribute('data-course-local', choice.hasAttribute('data-local-video'));
                     frame.src = choice.dataset.playerUrl;
                 };
                 launcher.addEventListener('click', () => openPlayer(choices[0]));
                 choices.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        frame.src = button.dataset.playerUrl;
-                    });
+                    button.addEventListener('click', () => openPlayer(button));
                 });
                 const closeDialog = () => {
                     dialog.close();

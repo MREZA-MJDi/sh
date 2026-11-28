@@ -4,6 +4,7 @@
 @section('content')
 @php
   $marks = ['present' => 'حاضر', 'late' => 'تأخیر', 'absent' => 'غایب', 'excused' => 'موجه'];
+  $canRecordSession = $canManage && $session && !$session->starts_at->isFuture();
 @endphp
 
 <x-admin.page-head tone="track" icon="check" title="حضور و غیاب"  :desc="$canManage ? 'وضعیت حضور هر دانش‌آموز را برای جلسه انتخاب‌شده ثبت و ذخیره کن.' : 'سوابق حضور و غیاب جلسه انتخاب‌شده را مشاهده کن؛ امکان ویرایش برای این حساب فعال نیست.'"
@@ -82,6 +83,7 @@
         </div>
         <label class="adm-label">جلسه
           <select class="adm-select" name="session" form="attendance-filter" aria-label="انتخاب جلسه">
+            @if(!$session && $sessions->isNotEmpty())<option value="">انتخاب جلسه</option>@endif
             @forelse ($sessions as $item)
               <option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title ?: 'جلسه' }} — {{ \App\Support\PersianDate::format($item->starts_at, 'H:i') }}</option>
             @empty
@@ -91,8 +93,8 @@
         </label>
       </div>
       <div class="adm-actions">
-        <x-admin.btn type="button" variant="line" size="sm" icon="check" data-mark-all="present">همه حاضر</x-admin.btn>
-        <x-admin.btn type="submit" size="sm" icon="check" :disabled="!$session || $roster->isEmpty()">ذخیره وضعیت‌ها</x-admin.btn>
+        <x-admin.btn type="button" variant="line" size="sm" icon="check" data-mark-all="present" :disabled="!$canRecordSession || $roster->isEmpty()">همه حاضر</x-admin.btn>
+        <x-admin.btn type="submit" size="sm" icon="check" :disabled="!$canRecordSession || $roster->isEmpty()">ذخیره وضعیت‌ها</x-admin.btn>
       </div>
     </div>
 
@@ -104,7 +106,11 @@
       </div>
     </div>
 
-    @if($roster->isNotEmpty())
+    @if($sessionUnavailable)
+      <div class="adm-queue-empty"><b>جلسهٔ انتخاب‌شده برای این کلاس و تاریخ در دسترس نیست</b><span>برای جلوگیری از ثبت حضور روی جلسهٔ اشتباه، جلسه را دوباره انتخاب کن.</span></div>
+    @elseif($session && !$canRecordSession)
+      <div class="adm-queue-empty"><b>این جلسه هنوز شروع نشده است</b><span>از زمان شروع جلسه می‌توانی وضعیت حضور دانش‌آموزان را ثبت کنی.</span></div>
+    @elseif($roster->isNotEmpty())
       <div class="adm-roster-grid">
         @foreach ($roster as $student)
           <article class="adm-roster-card">
@@ -136,6 +142,18 @@
     @endif
   </form>
   @else
+    @if($sessions->isNotEmpty())
+        <div class="adm-attendance-toolbar">
+            <label class="adm-label">جلسه
+                <select class="adm-select" name="session" form="attendance-filter" aria-label="انتخاب جلسه">
+                    @if(!$session)<option value="">انتخاب جلسه</option>@endif
+                    @foreach($sessions as $item)
+                        <option value="{{ $item->id }}" @selected($session?->id === $item->id)>{{ $item->title }} — {{ \App\Support\PersianDate::format($item->starts_at, 'H:i') }}</option>
+                    @endforeach
+                </select>
+            </label>
+        </div>
+    @endif
     @if($roster->isNotEmpty())
       <div class="adm-roster-grid adm-attendance-readonly">
         @foreach($roster as $student)

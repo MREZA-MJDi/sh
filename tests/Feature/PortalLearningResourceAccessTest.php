@@ -346,9 +346,14 @@ class PortalLearningResourceAccessTest extends TestCase
 
         $this->actingAs(User::factory()->create(['is_active' => true, 'phone' => '09121234567']));
         $this->get(route('public.resources.download', $resource))
-            ->assertOk()->assertViewIs('learning.document-reader');
+            ->assertOk()->assertViewIs('learning.document-reader')
+            ->assertSee('<canvas data-render-url=', false)
+            ->assertDontSee('<img src=', false);
 
-        $page = $this->get(route('public.resources.download', ['resource' => $resource, 'page' => 2, 'render' => 1]))
+        $pageUrl = route('public.resources.download', ['resource' => $resource, 'page' => 2, 'render' => 1]);
+        $this->get($pageUrl, ['Sec-Fetch-Mode' => 'navigate'])->assertForbidden();
+
+        $page = $this->get($pageUrl)
             ->assertOk()->assertHeader('Content-Type', 'image/png')->assertHeaderMissing('Content-Disposition');
 
         $this->assertStringStartsWith("\x89PNG\r\n\x1a\n", $page->getContent());

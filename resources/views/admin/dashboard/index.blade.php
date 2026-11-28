@@ -24,8 +24,11 @@
         <x-admin.btn icon="plus" :href="route('admin.courses.create')">ساخت دوره</x-admin.btn>
       @endcan
       @can('classes.manage')
-        <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">گروه‌های آموزشی</x-admin.btn>
+        <x-admin.btn variant="line" icon="cls" :href="route('admin.classes.index')">کلاس‌ها و جلسه‌ها</x-admin.btn>
       @endcan
+      @canany(['attendance.manage.all', 'attendance.manage.assigned', 'attendance.view.assigned'])
+        <x-admin.btn variant="line" icon="check" :href="route('admin.attendance.index')">حضور و غیاب</x-admin.btn>
+      @endcanany
       @can('seo.manage')
         <x-admin.btn variant="line" icon="image" :href="route('admin.seo.banners.index', ['placement' => 'home_hero'])">اسلایدر صفحه اصلی</x-admin.btn>
       @endcan

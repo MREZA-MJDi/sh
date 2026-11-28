@@ -12,6 +12,7 @@ use App\Services\Integrations\Contracts\IntegrationHealth;
 use App\Services\Integrations\IntegrationException;
 use App\Services\Integrations\IntegrationOperationService;
 use App\Services\SpotPlayer\Contracts\SpotPlayerGateway;
+use App\Services\SpotPlayer\Contracts\SpotPlayerLicenseCommand;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -58,8 +59,12 @@ class SpotPlayerService
 
         $settings = SpotPlayerSetting::query()->first();
 
-        if (($settings?->watermark_enabled ?? true) && blank($student->phone)) {
+        if (! ($settings?->api_enabled && filled($settings->api_key)) && ($settings?->watermark_enabled ?? true) && blank($student->phone)) {
             throw new IntegrationException('برای واترمارک لایسنس، شماره موبایل دانش‌آموز لازم است.');
+        }
+
+        if ($settings?->api_enabled && filled($settings->api_key) && filled($course->spotplayer_course_id)) {
+            return $this->issueConfiguredLicense($student, $course, $settings);
         }
 
         return DB::transaction(function () use ($student, $course, $requestedBy, $settings): SpotPlayerLicense {
@@ -127,6 +132,60 @@ class SpotPlayerService
 
             return $license->refresh();
         });
+    }
+
+    private function issueConfiguredLicense(User $student, Course $course, SpotPlayerSetting $settings): SpotPlayerLicense
+    {
+        [$license, $shouldIssue] = DB::transaction(function () use ($student, $course, $settings): array {
+            Course::query()->whereKey($course->id)->lockForUpdate()->firstOrFail();
+            $license = SpotPlayerLicense::query()->firstOrNew([
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+            ]);
+
+            if (in_array($license->status, ['active', 'queued'], true)) {
+                return [$license, false];
+            }
+
+            $license->fill([
+                'status' => 'queued',
+                'max_devices' => $settings->max_devices ?? 2,
+                'error_message' => null,
+            ])->save();
+
+            return [$license, true];
+        });
+
+        if (! $shouldIssue) {
+            return $license;
+        }
+
+        try {
+            $issued = app(SpotPlayerLicenseApi::class)->issue($settings, new SpotPlayerLicenseCommand(
+                idempotencyKey: 'sheykhan-license-'.$license->id,
+                studentReference: 'student-'.$student->id,
+                studentName: $student->name,
+                externalCourseId: $course->spotplayer_course_id,
+                watermarkText: $student->phone ?: $student->email,
+                deviceLimits: ['p0' => (int) $license->max_devices],
+            ));
+        } catch (\Throwable) {
+            // A network failure can occur after the provider has issued a billable license.
+            $license->update(['error_message' => 'پاسخ صدور قطعی نیست. پیش از صدور مجدد، پنل SpotPlayer را بررسی کنید.']);
+
+            return $license;
+        }
+
+        $license->update([
+            'status' => 'active',
+            'external_license_id' => $issued->externalId,
+            'license_key' => $issued->licenseKey,
+            'download_url' => $issued->secureUrl,
+            'issued_at' => now(),
+            'revoked_at' => null,
+        ]);
+
+        return $license;
     }
 
     public function requestRevocation(SpotPlayerLicense $license, User $requestedBy, string $reason): IntegrationRun

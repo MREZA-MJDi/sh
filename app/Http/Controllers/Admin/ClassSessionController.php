@@ -79,7 +79,7 @@ class ClassSessionController extends Controller
         $meetingUrl = $data['session_type'] === 'online'
             ? (filled($data['meeting_url'] ?? null) ? $data['meeting_url'] : ($provider === 'skyroom' ? $classroom->meeting_url : null))
             : null;
-        ClassSession::create([
+        $session = ClassSession::create([
             ...$data,
             // اگر لینک جلسه خالی بود، لینک اسکای‌روم خود کلاس استفاده می‌شود.
             'meeting_url' => $meetingUrl,
@@ -88,7 +88,11 @@ class ClassSessionController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('success', 'جلسه جدید ثبت شد.');
+        $destination = $request->boolean('return_to_session_day')
+            ? redirect()->route('admin.classes.sessions.index', ['classroom' => $classroom->id, 'date' => $session->starts_at->toDateString()])
+            : back();
+
+        return $destination->with('success', 'جلسه جدید ثبت شد.');
     }
 
     public function update(SaveClassSessionRequest $request, int $classSession, ClassroomWorkspaceService $workspace): RedirectResponse
@@ -105,7 +109,11 @@ class ClassSessionController extends Controller
             'meeting_provider' => $data['session_type'] === 'online' ? $provider : null,
         ]);
 
-        return back()->with('success', 'جلسه به‌روزرسانی شد.');
+        $destination = $request->boolean('return_to_session_day')
+            ? redirect()->route('admin.classes.sessions.index', ['classroom' => $session->classroom_id, 'date' => $session->starts_at->toDateString()])
+            : back();
+
+        return $destination->with('success', 'جلسه به‌روزرسانی شد.');
     }
 
     public function destroy(Request $request, int $classSession, ClassroomWorkspaceService $workspace): RedirectResponse
