@@ -57,7 +57,7 @@
         if (!persianFormatter || month < 1 || month > 12 || day < 1 || day > 31) return null;
         const baseDay = Math.floor(Date.UTC(year + 621, 0, 1, 12) / 86400000);
         let low = baseDay - 370;
-        let high = baseDay + 370;
+        let high = baseDay + 460;
         const target = { year, month, day };
 
         while (low <= high) {
@@ -90,7 +90,7 @@
         const datePart = String(jalali.year).padStart(4, '0') + '-'
             + String(jalali.month).padStart(2, '0') + '-'
             + String(jalali.day).padStart(2, '0');
-        if (!withTime) return datePart;
+        if (!withTime) return match[4] === undefined ? datePart : null;
         return datePart + 'T' + String(Number(match[4])).padStart(2, '0') + ':' + match[5]
             + (match[6] ? ':' + match[6] : '');
     }
@@ -113,10 +113,11 @@
     function localizeDateText(value) {
         const fullDate = /(^|[^\d])((?:19|20)\d{2})[/-](0?[1-9]|1[0-2])[/-]([12]\d|3[01]|0?[1-9])(?!\d)(?:[ T](\d{1,2}):([0-5]\d)(?::([0-5]\d))?)?/g;
         value = value.replace(fullDate, (full, prefix, year, month, day, hour, minute, second) => {
-            const utcHour = hour === undefined ? 8 : Number(hour) - 3;
-            const utcMinute = hour === undefined ? 30 : Number(minute || 0) - 30;
-            const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), utcHour, utcMinute, Number(second || 0)));
-            return prefix + (formatJalaliDate(date, hour !== undefined) || full.slice(prefix.length));
+            const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12));
+            if (date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day)) return full;
+            const formatted = formatJalaliDate(date, false);
+            const clock = hour === undefined ? '' : ' ' + faDigits(hour.padStart(2, '0') + ':' + minute + (second ? ':' + second : ''));
+            return formatted ? prefix + formatted + clock : full;
         });
 
         const monthOnly = /(^|[^\d])((?:19|20)\d{2})-(0?[1-9]|1[0-2])(?![-/\d])/g;
@@ -148,8 +149,10 @@
             visible.value = '';
             return;
         }
-        const date = dateFromIso(raw);
-        visible.value = (date && formatJalaliDate(date, original.type === 'datetime-local')) || raw;
+        const date = dateFromIso(raw.slice(0, 10));
+        const formatted = date && formatJalaliDate(date, false);
+        const clock = raw.split('T')[1];
+        visible.value = formatted ? formatted + (clock ? ' ' + faDigits(clock) : '') : raw;
     }
 
     function normalizeNumber(value, original) {
@@ -163,6 +166,138 @@
         if (min !== null && number < Number(min)) return { valid: false, value: normalized };
         if (max !== null && number > Number(max)) return { valid: false, value: normalized };
         return { valid: true, value: normalized };
+    }
+
+    function attachJalaliCalendar(original, visible) {
+        if (!persianFormatter || visible.readOnly || !HTMLElement.prototype.showPopover) return;
+        const calendar = document.createElement('div');
+        calendar.setAttribute('popover', 'auto');
+        calendar.setAttribute('role', 'dialog');
+        calendar.setAttribute('aria-label', 'تقویم شمسی');
+        calendar.dir = 'rtl';
+        calendar.style.cssText = 'position:fixed;margin:0;padding:12px;max-width:calc(100vw - 16px);box-sizing:border-box;border:1px solid #94a3b8;border-radius:8px;background:Canvas;color:CanvasText;font:inherit';
+        (original.closest('dialog') || document.body).append(calendar);
+
+        const button = (label, action) => {
+            const element = document.createElement('button');
+            element.type = 'button';
+            element.textContent = label;
+            element.addEventListener('click', action);
+            return element;
+        };
+        const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+            'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+        const isoDay = ({ year, month, day }) =>
+            [String(year).padStart(4, '0'), String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('-');
+        let monthIndex;
+        let opener;
+        const render = () => {
+            const year = Math.floor(monthIndex / 12);
+            const month = monthIndex % 12 + 1;
+            const heading = document.createElement('div');
+            heading.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px';
+            const title = document.createElement('strong');
+            title.textContent = months[month - 1] + ' ' + faDigits(year);
+            const yearInput = document.createElement('input');
+            yearInput.type = 'text';
+            yearInput.inputMode = 'numeric';
+            yearInput.size = 4;
+            yearInput.value = faDigits(year);
+            yearInput.setAttribute('aria-label', 'سال شمسی');
+            yearInput.addEventListener('change', () => {
+                const entered = asciiDigits(yearInput.value).trim();
+                if (!/^[1-9]\d{3}$/.test(entered) || Number(entered) > 2500) {
+                    yearInput.value = faDigits(year);
+                    return;
+                }
+                monthIndex = Number(entered) * 12 + month - 1;
+                render();
+                calendar.querySelector('input')?.focus();
+            });
+            heading.append(button('ماه قبل', () => move(-1)), title, yearInput, button('ماه بعد', () => move(1)));
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center';
+            for (const weekday of ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']) {
+                const cell = document.createElement('span');
+                cell.textContent = weekday;
+                grid.append(cell);
+            }
+            const first = jalaliToGregorian(year, month, 1);
+            if (!first) return;
+            const firstDate = Date.UTC(first.year, first.month - 1, first.day, 12);
+            const offset = (new Date(firstDate).getUTCDay() + 1) % 7;
+            for (let i = 0; i < offset; i++) grid.append(document.createElement('span'));
+            const next = jalaliToGregorian(month === 12 ? year + 1 : year, month === 12 ? 1 : month + 1, 1);
+            const length = (Date.UTC(next.year, next.month - 1, next.day, 12) - firstDate) / 86400000;
+            for (let day = 1; day <= length; day++) {
+                const date = new Date(firstDate + (day - 1) * 86400000);
+                const iso = isoDay({ year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() });
+                const choice = button(faDigits(day), () => {
+                    const enteredTime = asciiDigits(visible.value).match(/\s(\d{1,2}:[0-5]\d(?::[0-5]\d)?)$/)?.[1];
+                    const time = enteredTime || original.value.split('T')[1] || '09:00';
+                    const dateText = faDigits([year, String(month).padStart(2, '0'), String(day).padStart(2, '0')].join('/'));
+                    visible.value = original.type === 'datetime-local' ? dateText + ' ' + faDigits(time) : dateText;
+                    visible.dispatchEvent(new Event('input', { bubbles: true }));
+                    visible.dispatchEvent(new Event('change', { bubbles: true }));
+                    calendar.hidePopover();
+                    visible.focus();
+                });
+                choice.setAttribute('aria-label', faDigits(day) + ' ' + title.textContent);
+                choice.setAttribute('aria-pressed', String(original.value.slice(0, 10) === iso));
+                choice.disabled = Boolean((original.min && iso < original.min.slice(0, 10)) ||
+                    (original.max && iso > original.max.slice(0, 10)));
+                grid.append(choice);
+            }
+            calendar.replaceChildren(heading, grid);
+        };
+
+        function move(delta) {
+            monthIndex += delta;
+            render();
+            calendar.querySelectorAll('button')[delta < 0 ? 0 : 1]?.focus();
+        }
+        function open() {
+            if (calendar.matches(':popover-open')) {
+                calendar.hidePopover();
+                return;
+            }
+            const parts = persianDateParts(dateFromIso(original.value) || new Date());
+            if (!parts) return;
+            monthIndex = parts.year * 12 + parts.month - 1;
+            render();
+            calendar.showPopover();
+            const anchor = opener.getBoundingClientRect();
+            const panel = calendar.getBoundingClientRect();
+            calendar.style.left = Math.max(8, Math.min(anchor.right - panel.width, window.innerWidth - panel.width - 8)) + 'px';
+            calendar.style.top = Math.max(8, Math.min(anchor.bottom + 4, window.innerHeight - panel.height - 8)) + 'px';
+            (calendar.querySelector('[aria-pressed="true"]:enabled') || calendar.querySelector('button:enabled'))?.focus();
+        }
+
+        opener = button('▦', open);
+        opener.style.cssText = 'margin-inline-start:4px;vertical-align:middle';
+        opener.setAttribute('aria-label', 'انتخاب تاریخ از تقویم شمسی');
+        opener.setAttribute('aria-haspopup', 'dialog');
+        opener.title = 'تقویم شمسی';
+        const wrapper = document.createElement('span');
+        wrapper.style.cssText = 'position:relative;display:block;min-width:0';
+        visible.after(wrapper);
+        wrapper.append(visible, opener);
+        opener.style.cssText = 'position:absolute;inset-inline-end:6px;inset-block-start:50%;transform:translateY(-50%)';
+        visible.style.paddingInlineEnd = '2rem';
+        visible.style.boxSizing = 'border-box';
+        visible.addEventListener('keydown', event => {
+            if (event.altKey && event.key === 'ArrowDown') {
+                event.preventDefault();
+                open();
+            }
+        });
+        calendar.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                calendar.hidePopover();
+                opener.focus();
+            }
+        });
     }
 
     function prepareLocalizedField(original) {
@@ -196,7 +331,7 @@
                 if (label.htmlFor === original.id) label.htmlFor = visible.id;
             });
         }
-        ['aria-label', 'aria-describedby', 'title'].forEach(attribute => {
+        ['aria-label', 'aria-describedby', 'aria-invalid', 'title'].forEach(attribute => {
             if (original.hasAttribute(attribute)) visible.setAttribute(attribute, original.getAttribute(attribute));
         });
 
@@ -207,6 +342,7 @@
         original.setAttribute('aria-hidden', 'true');
         original.style.display = 'none';
         original.after(visible);
+        if (originalType !== 'number') attachJalaliCalendar(original, visible);
 
         const refresh = () => {
             if (originalType === 'number') {
@@ -239,11 +375,13 @@
             }
 
             const iso = jalaliInputToIso(visible.value, originalType === 'datetime-local');
-            visible.setCustomValidity(iso || visible.value === ''
-                ? ''
-                : 'تاریخ شمسی معتبر نیست. نمونه: ۱۴۰۵/۰۸/۲۷ ۱۴:۳۰');
-            if (iso) valueDescriptor.set.call(original, iso);
-            else if (visible.value === '') valueDescriptor.set.call(original, '');
+            valueDescriptor.set.call(original, iso || '');
+            const invalid = !iso && visible.value.trim() !== '';
+            const outOfRange = iso && (original.validity.rangeUnderflow || original.validity.rangeOverflow);
+            visible.setCustomValidity(invalid
+                ? (originalType === 'date' ? 'تاریخ شمسی معتبر وارد کنید. نمونه: ۱۴۰۵/۰۸/۲۷'
+                    : 'تاریخ و ساعت شمسی معتبر وارد کنید. نمونه: ۱۴۰۵/۰۸/۲۷ ۱۴:۳۰')
+                : (outOfRange ? 'تاریخ واردشده خارج از محدودهٔ مجاز است.' : ''));
         });
 
         if (form && form.dataset.localeSubmitBound !== 'true') {
@@ -263,7 +401,9 @@
             form.addEventListener('reset', () => {
                 requestAnimationFrame(() => {
                     form.querySelectorAll('[data-locale-enhanced="true"]').forEach(input => {
-                        const visibleInput = input.nextElementSibling;
+                        const sibling = input.nextElementSibling;
+                        const visibleInput = sibling?.matches('[data-locale-visible]')
+                            ? sibling : sibling?.querySelector('[data-locale-visible]');
                         if (!visibleInput || !visibleInput.dataset.localeVisible) return;
                         const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
                         if (input.type === 'number') {

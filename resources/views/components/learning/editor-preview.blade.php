@@ -46,7 +46,7 @@
 (() => {
   const initialize = () => {
     const number = new Intl.NumberFormat('fa-IR');
-    const date = new Intl.DateTimeFormat('fa-IR', {
+    const date = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
       dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC',
     });
 
