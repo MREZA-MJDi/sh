@@ -14,10 +14,9 @@
             <div class="learning-video-frame" style="position:relative">
             <video controls controlsList="nodownload nofullscreen noremoteplayback" disablepictureinpicture disableremoteplayback data-protected-video playsinline preload="metadata"
                    style="display:block;width:100%;max-height:72vh;background:#0b1220;border-radius:16px">
-                <source src="{{ route('student.videos.stream', $video) }}">
                 مرورگر شما از پخش این ویدئو پشتیبانی نمی‌کند.
             </video>
-            <x-learning.video-watermark/>
+            <x-learning.video-watermark :source="route('student.videos.stream', $video)"/>
             </div>
             <p class="tag">تماشای آنلاین در شیخان</p>
         @elseif($video->status === 'active' && filled($video->external_id) && filled($video->embed_url))

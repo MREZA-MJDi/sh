@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Learning\RenderViewerVideo;
 use App\Models\SpotPlayerVideo;
 use App\Models\User;
 use App\Services\Learning\LearningAccessService;
@@ -85,11 +86,10 @@ final class VideoController extends Controller
             );
         }
 
-        $mimeType = str_starts_with((string) $recording->file_mime_type, 'video/')
-            ? $recording->file_mime_type
-            : 'application/octet-stream';
-
-        $path = Storage::disk('local')->path($recording->file_path);
+        $path = RenderViewerVideo::readyPath($recording->file_path, $request->user());
+        if ($path === null) {
+            return response('نسخه اختصاصی ویدیو در حال آماده‌سازی است.', 503, ['Retry-After' => '3', ...$privacyHeaders]);
+        }
         $size = filesize($path);
         abort_if($size === false || $size < 1, 404);
 
@@ -97,21 +97,14 @@ final class VideoController extends Controller
         $end = $size - 1;
         $status = 200;
         $headers = [
-            'Content-Type' => $mimeType,
+            'Content-Type' => 'video/mp4',
             'Accept-Ranges' => 'bytes',
             'Content-Disposition' => 'inline',
             ...$privacyHeaders,
         ];
 
-        // PHP authorizes the request; Nginx sends the bytes and handles ranges.
-        // Only canonical processed recording paths may be internally redirected.
-        if (config('learning.nginx_private_video')
-            && preg_match('~^private/course-videos/[A-Za-z0-9_-]+\\.mp4$~D', $recording->file_path)
-            && realpath($path) === realpath(Storage::disk('local')->path('private/course-videos')).DIRECTORY_SEPARATOR.basename($path)) {
-            return response('', 200, [
-                ...$headers,
-                'X-Accel-Redirect' => '/_protected_course_video/'.rawurlencode(basename($path)),
-            ]);
+        if ($request->isMethod('HEAD')) {
+            return response('', 200, ['Content-Length' => (string) $size, ...$headers]);
         }
 
         $range = $request->header('Range');

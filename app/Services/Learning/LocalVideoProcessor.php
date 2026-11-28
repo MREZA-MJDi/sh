@@ -11,7 +11,7 @@ use Symfony\Component\Process\Process;
  */
 final class LocalVideoProcessor
 {
-    public function prepare(string $source, string $output, int $height, int $crf, int $audioKbps, int $timeout = 3300): array
+    public function prepare(string $source, string $output, int $height, int $crf, int $audioKbps, int $timeout = 3300, ?string $watermark = null): array
     {
         $info = $this->probe($source);
         $threads = (string) config('learning.video_threads', 1);
@@ -22,15 +22,26 @@ final class LocalVideoProcessor
             '-map_metadata', '-1', '-map_chapters', '-1',
         ];
 
+        $filter = 'scale=w=min(1920\,iw):h=min('.$height.'\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2';
+        if ($watermark !== null) {
+            $label = preg_replace('/[^a-z0-9@._+ -]/i', '_', $watermark);
+            $draw = ',drawtext=text=SHEYKHAN '.$label.':expansion=none'
+                .':fontcolor=white@0.44:fontsize=min(h/20\,w/'.max(20, strlen($label) + 10).')'
+                .':borderw=1:bordercolor=black@0.36';
+            foreach ([['.22', '.28'], ['.50', '.50'], ['.82', '.71']] as [$x, $y]) {
+                $filter .= $draw.':x=max(0\,min(w-tw\,w*'.$x.'-tw/2)):y=h*'.$y.'-th/2';
+            }
+        }
+
         $encoding = [
-            '-vf', 'scale=w=min(1920\,iw):h=min('.$height.'\,ih):force_original_aspect_ratio=decrease:force_divisible_by=2',
+            '-vf', $filter,
             '-c:v', 'libx264', '-threads:v', $threads,
             '-preset', 'veryfast', '-crf', (string) $crf, '-pix_fmt', 'yuv420p',
             '-c:a', 'aac', '-b:a', $audioKbps.'k', '-ac', '2',
         ];
 
         $deadline = microtime(true) + $timeout;
-        if ($this->canRemux($info, $height)) {
+        if ($watermark === null && $this->canRemux($info, $height)) {
             $copy = new Process([...$command, '-c', 'copy', '-movflags', '+faststart', '-f', 'mp4', $output]);
             $copy->setTimeout(max(1, $deadline - microtime(true)));
             $copy->run();

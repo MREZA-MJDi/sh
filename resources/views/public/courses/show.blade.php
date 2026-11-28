@@ -106,10 +106,9 @@
             @if (auth()->user()?->is_active && $course->teaser_status === 'ready' && $course->teaser_url)
                 <div class="learning-video-frame" style="position:relative">
                 <video class="vd" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover" controls controlsList="nodownload nofullscreen noremoteplayback" disablepictureinpicture disableremoteplayback playsinline preload="none" @if($course->teaser_poster_url ?: $course->coverImageUrl) poster="{{ $course->teaser_poster_url ?: $course->coverImageUrl }}" @endif aria-label="تیزر دوره {{ $course->title }}">
-                    <source src="{{ !empty($isAdminPreview) ? route('admin.courses.teaser', $course) : $course->teaser_url }}" type="video/mp4">
                     مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
                 </video>
-                <x-learning.video-watermark/>
+                <x-learning.video-watermark :source="!empty($isAdminPreview) ? route('admin.courses.teaser', $course) : $course->teaser_url"/>
                 </div>
             @elseif ($course->teaser_status === 'ready' && $course->teaser_path)
                 <div class="course-trailer-lock" @if($poster = $course->teaser_poster_url ?: $course->coverImageUrl) style="background-image:linear-gradient(#151c35b8,#151c35e8),url('{{ $poster }}')" @endif>

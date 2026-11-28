@@ -86,3 +86,13 @@ Schedule::call(function (): void {
             }
         });
 })->everyFiveMinutes()->name('recover-stalled-teaser-processing')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    $disk = Storage::disk('local');
+    $cutoff = now()->subDays(2)->timestamp;
+    foreach ($disk->files('viewer-videos') as $path) {
+        if ($disk->lastModified($path) < $cutoff) {
+            $disk->delete($path);
+        }
+    }
+})->daily()->name('prune-viewer-videos')->withoutOverlapping();

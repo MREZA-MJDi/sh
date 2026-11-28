@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\Learning\RenderViewerVideo;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Role;
@@ -92,6 +93,9 @@ final class StudentVideoAccessTest extends TestCase
             ->assertSee('جلسه بارگذاری‌شده مستقیم')
             ->assertSee(route('student.videos.stream', $video), false);
 
+        \Illuminate\Support\Facades\Queue::fake();
+        $this->head(route('student.videos.stream', $video))->assertStatus(503)->assertHeader('Retry-After', '3');
+        Storage::disk('local')->put(RenderViewerVideo::pathFor($video->file_path, $student), 'marked-video-source');
         $this->get(route('student.videos.stream', $video))
             ->assertOk()
             ->assertHeader('Content-Type', 'video/mp4')
@@ -108,7 +112,7 @@ final class StudentVideoAccessTest extends TestCase
         $rangeResponse->baseResponse->sendContent();
         ob_end_flush();
         $rangeBody = ob_get_clean();
-        $this->assertSame('local', $rangeBody);
+        $this->assertSame('marke', $rangeBody);
 
         $this->withHeaders(['Range' => 'bytes=99-120'])
             ->get(route('student.videos.stream', $video))
@@ -135,6 +139,7 @@ final class StudentVideoAccessTest extends TestCase
             }
             $path = 'private/course-videos/playback-only-'.$type.'.mp4';
             Storage::disk('local')->put($path, 'video-data');
+            Storage::disk('local')->put(RenderViewerVideo::pathFor($path, $student), 'marked-video-data');
             $video = SpotPlayerVideo::query()->create([
                 'course_id' => $course->id, 'classroom_id' => $classroom->id,
                 'created_by' => $teacher->id, 'title' => 'ویدیو',
@@ -158,7 +163,7 @@ final class StudentVideoAccessTest extends TestCase
         }
     }
 
-    public function test_nginx_offload_requires_the_same_course_and_classroom_access(): void
+    public function test_original_file_is_not_offloaded_even_when_nginx_offload_is_enabled(): void
     {
         config(['learning.nginx_private_video' => true]);
         $student = $this->userWithRole('student');
@@ -170,6 +175,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $path = 'private/course-videos/authorized.mp4';
         Storage::disk('local')->put($path, 'video-data');
+        Storage::disk('local')->put(RenderViewerVideo::pathFor($path, $student), 'marked-video-data');
         $video = SpotPlayerVideo::query()->create([
             'course_id' => $course->id, 'classroom_id' => $classroom->id,
             'created_by' => $teacher->id, 'title' => 'ضبط جلسه',
@@ -179,7 +185,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->actingAs($student)->get(route('student.videos.stream', $video))
             ->assertOk()
-            ->assertHeader('X-Accel-Redirect', '/_protected_course_video/authorized.mp4');
+            ->assertHeaderMissing('X-Accel-Redirect');
         $this->actingAs($outsider)->get(route('student.videos.stream', $video))
             ->assertNotFound()
             ->assertHeaderMissing('X-Accel-Redirect');

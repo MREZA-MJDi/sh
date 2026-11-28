@@ -292,9 +292,12 @@ final class CourseTeaserUploadTest extends TestCase
         $this->actingAs($this->admin())->get(route('public.courses.show', $course->slug))
             ->assertOk()
             ->assertSee('<video', false)
-            ->assertSee('video/mp4')
+            ->assertSee('data-viewer-video', false)
             ->assertSee($url)
             ->assertDontSee('teasers/ready-preview.mp4');
+        \Illuminate\Support\Facades\Queue::fake();
+        $this->head($url)->assertStatus(503)->assertHeader('Retry-After', '3');
+        Storage::disk('local')->put(\App\Jobs\Learning\RenderViewerVideo::pathFor('teasers/ready-preview.mp4', auth()->user()), 'watermarked-video-content');
         $this->get($url, ['Range' => 'bytes=0-3'])
             ->assertStatus(206)
             ->assertHeader('Content-Type', 'video/mp4');

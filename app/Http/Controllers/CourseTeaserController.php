@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\Learning\RenderViewerVideo;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,12 @@ final class CourseTeaserController extends Controller
         $disk = Storage::disk('local');
         abort_unless($course->teaser_status === 'ready' && filled($course->teaser_path) && $disk->exists($course->teaser_path), 404);
 
-        return response()->file($disk->path($course->teaser_path), [
+        $viewer = request()->user();
+        abort_unless($viewer?->is_active, 403);
+        $path = RenderViewerVideo::readyPath($course->teaser_path, $viewer);
+        abort_if($path === null, 503, 'نسخه اختصاصی ویدیو در حال آماده‌سازی است.', ['Retry-After' => '3', 'Cache-Control' => 'private, no-store']);
+
+        return response()->file($path, [
             'Content-Type' => 'video/mp4',
             'Content-Disposition' => 'inline',
             'Cache-Control' => 'private, no-store, max-age=0',
