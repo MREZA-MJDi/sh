@@ -33,11 +33,19 @@ final class LocalVideoProcessor
             }
         }
 
+        $audio = $info['audio'];
+        $copyAudio = $watermark !== null
+            && ($audio['codec_name'] ?? null) === 'aac'
+            && ($audio['profile'] ?? null) === 'LC'
+            && in_array((int) ($audio['channels'] ?? 0), [1, 2], true)
+            && (int) ($audio['bit_rate'] ?? 0) > 0
+            && (int) $audio['bit_rate'] <= $audioKbps * 1000;
+
         $encoding = [
             '-vf', $filter,
             '-c:v', 'libx264', '-threads:v', $threads,
             '-preset', 'veryfast', '-crf', (string) $crf, '-pix_fmt', 'yuv420p',
-            '-c:a', 'aac', '-b:a', $audioKbps.'k', '-ac', '2',
+            ...($copyAudio ? ['-c:a', 'copy'] : ['-c:a', 'aac', '-b:a', $audioKbps.'k', '-ac', '2']),
         ];
 
         $deadline = microtime(true) + $timeout;

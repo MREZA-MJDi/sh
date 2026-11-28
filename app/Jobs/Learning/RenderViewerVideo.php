@@ -47,7 +47,13 @@ final class RenderViewerVideo implements ShouldQueue, ShouldBeUnique
         $disk = Storage::disk('local');
         $output = self::pathFor($source, $viewer);
         if ($disk->exists($output)) {
-            return $disk->path($output);
+            $path = $disk->path($output);
+            $lastUse = @filemtime($path);
+            if ($lastUse !== false && $lastUse < now()->subHours(6)->timestamp) {
+                @touch($path); // Cleanup may have removed an expired copy concurrently.
+            }
+
+            return $path;
         }
 
         abort_if(Cache::has('viewer-video-failed:'.$output), 422, 'آماده‌سازی ویدیو انجام نشد. کمی بعد دوباره تلاش کنید.');

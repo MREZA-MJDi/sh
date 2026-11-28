@@ -43,16 +43,36 @@
                 button.textContent = 'در حال آماده‌سازی ویدیو…';
 
                 try {
-                    for (let attempt = 0; attempt < 180; attempt++) {
-                        const result = await fetch(url, { method: 'HEAD', cache: 'no-store', redirect: 'manual' });
+                    const deadline = Date.now() + 12 * 60 * 1000;
+                    let delay = 3000;
+                    while (button.isConnected && Date.now() < deadline) {
+                        if (document.hidden) {
+                            await new Promise((resolve) => setTimeout(resolve, 5000));
+                            continue;
+                        }
+                        const result = await fetch(url, { method: 'HEAD', cache: 'no-store', redirect: 'manual', signal: AbortSignal.timeout(15000) });
                         if (result.ok && result.headers.get('Content-Type')?.startsWith('video/')) {
+                            player.addEventListener('error', () => {
+                                player.removeAttribute('src');
+                                player.load();
+                                player.parentElement?.append(button);
+                                button.textContent = 'پخش ناموفق بود. دوباره تلاش کنید';
+                                button.disabled = false;
+                            }, { once: true });
                             player.src = url;
                             button.remove();
                             player.play().catch(() => {});
                             return;
                         }
+                        if (result.type === 'opaqueredirect' || [401, 403].includes(result.status)) {
+                            button.textContent = 'برای پخش دوباره وارد حساب شوید و دسترسی دوره را بررسی کنید';
+                            button.disabled = false;
+                            return;
+                        }
                         if (result.status !== 503 || !result.headers.has('Retry-After')) break;
-                        await new Promise((resolve) => setTimeout(resolve, 4000));
+                        const retryAfter = Number(result.headers.get('Retry-After')) * 1000;
+                        await new Promise((resolve) => setTimeout(resolve, Math.min(15000, Math.max(delay, retryAfter || 0))));
+                        delay = Math.min(15000, delay * 1.5);
                     }
                 } catch {
                     // Keep the controls available for a manual retry.
