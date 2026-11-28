@@ -132,7 +132,7 @@ final class LocalVideoProcessor
     {
         $process = new Process([
             'ffprobe', '-v', 'error',
-            '-show_entries', 'format=duration:stream=codec_type,codec_name,profile,level,pix_fmt,width,height,channels:stream_disposition=attached_pic',
+            '-show_entries', 'format=duration:stream=codec_type,codec_name,profile,level,pix_fmt,width,height,channels,bit_rate:stream_disposition=attached_pic',
             '-of', 'json', $path,
         ]);
         $process->setTimeout(30)->mustRun();

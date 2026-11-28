@@ -23,7 +23,7 @@ final class RenderViewerVideo implements ShouldQueue, ShouldBeUnique
 
     public function __construct(public string $source, public string $output, public int $viewerId)
     {
-        $this->onConnection('video')->onQueue('video');
+        $this->onConnection('video')->onQueue('viewer-video');
     }
 
     public function uniqueId(): string

@@ -90,6 +90,14 @@ final class VideoController extends Controller
         if ($path === null) {
             return response('نسخه اختصاصی ویدیو در حال آماده‌سازی است.', 503, ['Retry-After' => '3', ...$privacyHeaders]);
         }
+        if (config('learning.nginx_private_video')) {
+            return response('', 200, [
+                'Content-Type' => 'video/mp4',
+                'Content-Disposition' => 'inline',
+                'X-Accel-Redirect' => '/_protected_viewer_video/'.basename($path),
+                ...$privacyHeaders,
+            ]);
+        }
         $size = filesize($path);
         abort_if($size === false || $size < 1, 404);
 

@@ -185,7 +185,7 @@ final class StudentVideoAccessTest extends TestCase
 
         $this->actingAs($student)->get(route('student.videos.stream', $video))
             ->assertOk()
-            ->assertHeaderMissing('X-Accel-Redirect');
+            ->assertHeader('X-Accel-Redirect', '/_protected_viewer_video/'.basename(RenderViewerVideo::pathFor($path, $student)));
         $this->actingAs($outsider)->get(route('student.videos.stream', $video))
             ->assertNotFound()
             ->assertHeaderMissing('X-Accel-Redirect');

@@ -20,11 +20,13 @@ Worker عمومی: php artisan queue:work redis --queue=default --sleep=2 --trie
 
 Worker نهایی‌سازی آپلود: php artisan queue:work upload-finalization --queue=upload-finalize --sleep=1 --tries=3 --timeout=900
 
-Worker پردازش ویدئو: php artisan queue:work video --queue=video --sleep=3 --tries=3 --timeout=3600
+Worker پردازش ویدئو: php artisan queue:work video --queue=video,viewer-video --sleep=3 --tries=3 --timeout=3600
+
+در VPS دو هسته‌ای هر دو صف با یک Worker اجرا می‌شوند تا هم‌زمان دو FFmpeg حافظه و CPU را اشباع نکنند؛ صف video اولویت دارد و ممکن است صف viewer-video منتظر بماند. در سرور قوی‌تر می‌توان برای هر صف Worker مستقل گذاشت، پس از اندازه‌گیری مصرف منابع. قبل از انتشار، تنظیم Worker را هم‌زمان با کد به‌روزرسانی و آن را restart کنید؛ Worker قدیمی صف جدید را مصرف نمی‌کند.
 
 Workerها باید با Supervisor یا systemd دائماً فعال باشند و بعد از هر انتشار نسخه، restart شوند. زمان‌بندی Laravel نیز باید فعال باشد تا نشست‌های منقضی‌شده و بخش‌های باقی‌مانده پاک‌سازی شوند؛ cron استاندارد php artisan schedule:run باید هر دقیقه اجرا شود.
 
-اولین درخواست پخش تریلر یا ویدیوی داخلی، نسخهٔ واترمارک‌دار همان حساب را در صف ویدیو می‌سازد. پلیر تا آماده‌شدن آن منتظر می‌ماند. نسخه در دیسک خصوصی نگه‌داری می‌شود و زمان‌بند فایل‌های قدیمی‌تر از دو روز را پاک می‌کند. ارسال ویدیوی دانش‌آموز از PHP انجام می‌شود تا مسیر Nginx مربوط به فایل مبدأ استفاده نشود.
+اولین درخواست پخش تریلر یا ویدیوی داخلی، نسخهٔ واترمارک‌دار همان حساب را در صف viewer-video می‌سازد. پلیر تا آماده‌شدن آن منتظر می‌ماند. نسخه در دیسک خصوصی نگه‌داری می‌شود و زمان‌بند فایل‌های بلااستفادهٔ قدیمی‌تر از دو روز را پاک می‌کند. ارسال از PHP انجام می‌شود، مگر آنکه مسیر خصوصی مخصوص نسخه‌های واترمارک‌شده در Nginx نصب و فعال شود.
 
 ## روند آپلود
 
@@ -54,6 +56,6 @@ Workerها باید با Supervisor یا systemd دائماً فعال باشن�
 
 ## ارسال فایل خصوصی توسط Nginx (اختیاری)
 
-بلوک internal در deploy/nginx-learning.conf را با مسیر واقعی پروژه، داخل server مربوط به همان سایت نصب کنید. پس از nginx -t و reload، دسترسی مستقیم به /_protected_course_video/ باید 404 بدهد. سپس LEARNING_NGINX_PRIVATE_VIDEO=true را در .env تنظیم و config cache را بازسازی کنید. درخواست عضو باید با HTTP Range پاسخ 206 بگیرد و غیرعضو 404. در نبود این تنظیم، مسیر قبلی PHP بدون تغییر فعال است.
+بلوک internal مربوط به /_protected_viewer_video/ در deploy/nginx-learning.conf را با مسیر واقعی پروژه داخل server نصب کنید. پس از nginx -t و reload، دسترسی مستقیم به آن باید 404 بدهد. سپس LEARNING_NGINX_PRIVATE_VIDEO=true را در .env تنظیم و config cache را بازسازی کنید. فقط فایل اختصاصی آماده، پس از بررسی دسترسی، به Nginx سپرده می‌شود؛ درخواست Range عضو باید 206 و درخواست غیرعضو 404 باشد. تا پیش از نصب صحیح Nginx این گزینه را فعال نکنید. در حالت پیش‌فرض PHP فایل را ارسال می‌کند.
 
 برای VPS کوچک LEARNING_VIDEO_THREADS=1 و یک Video Worker توصیه می‌شود. FFmpeg فقط در صورت ناسازگاری فایل Encode انجام می‌دهد؛ Remux به‌معنی کاهش قطعی حجم فایل نیست. 
