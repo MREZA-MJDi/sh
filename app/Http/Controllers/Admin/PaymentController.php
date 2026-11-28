@@ -34,10 +34,14 @@ final class PaymentController extends Controller
             'review' => Payment::where('status', 'pending_review')->count(),
             'provider' => Payment::where('status', 'awaiting_provider')->count(),
         ];
-        $students = User::where('is_active', true)->whereHas('roles', fn ($q) => $q->where('name', 'student'))->orderBy('name')->get(['id', 'name']);
+        $previousStudentId = $request->old('student_id');
+        $selectedStudent = ctype_digit((string) (is_scalar($previousStudentId) ? $previousStudentId : ''))
+            ? User::where('is_active', true)->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                ->find($previousStudentId, ['id', 'name'])
+            : null;
         $courses = Course::where('status', 'published')->where('type', 'paid')->orderBy('title')->get(['id', 'title', 'price']);
 
-        return view('admin.payments.index', compact('payments', 'stats', 'students', 'courses'));
+        return view('admin.payments.index', compact('payments', 'stats', 'selectedStudent', 'courses'));
     }
 
     public function storeManual(Request $request): RedirectResponse

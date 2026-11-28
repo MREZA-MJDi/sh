@@ -5,7 +5,6 @@
   $statusLabels = ['active' => ['ok', 'فعال'], 'pending_payment' => ['warn', 'در انتظار پرداخت'], 'suspended' => ['bad', 'تعلیق‌شده'], 'revoked' => ['mute', 'لغوشده']];
   $sources = ['classroom' => 'عضویت کلاس', 'free' => 'رایگان', 'payment' => 'پرداخت تأییدشده', 'manual' => 'اعطای دستی'];
   $features = ['recorded_video' => 'ویدیوی ضبط‌شده', 'live_class' => 'کلاس آنلاین', 'resources' => 'منابع', 'assignments' => 'تکالیف', 'exams' => 'آزمون', 'projects' => 'پروژه'];
-  $studentOptions = $students->pluck('name', 'id')->all();
   $courseOptions = $courses->pluck('title', 'id')->all();
 @endphp
 <x-admin.page-head tone="shop" icon="lock" title="ثبت‌نام‌ها و مجوزها" desc="عضویت آموزشی و مجوز دسترسی مستقل‌اند؛ وضعیت واقعی دسترسی هر دانش‌آموز در این صفحه مدیریت می‌شود">
@@ -64,7 +63,7 @@
 @push('modals')
 <x-admin.modal :demo="false" id="enr-modal" title="اعطای دستی دسترسی دوره" size="lg" :action="route('admin.enrollments.store')">
   <x-admin.legend title="دانش‌آموز و دوره"/>
-  <x-admin.select label="دانش‌آموز فعال" name="student_id" :options="$studentOptions" required/>
+  <x-admin.student-search :selected="$selectedStudent"/>
   <x-admin.select label="دوره منتشرشده" name="course_id" :options="$courseOptions" required/>
   <x-admin.input label="اعتبار تا" name="expires_at" type="datetime-local" hint="خالی = بدون انقضا"/>
   <p class="adm-muted wide">این عملیات فقط مجوز دستی ثبت می‌کند؛ پرداختی ساخته نمی‌شود و سوابق پرداخت تأییدشده بازنویسی نخواهد شد.</p>

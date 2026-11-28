@@ -257,7 +257,7 @@
             @endphp
             <article class="adm-card">
               <div class="adm-card-body">
-                <div class="adm-card-title"><div><h3>{{ $classroom->name }}</h3><p>{{ $classroom->teacher?->name ?? 'مدرس مشخص نشده' }}</p></div><x-admin.badge tone="ok">فعال</x-admin.badge></div>
+                <div class="adm-card-title"><div><h3>{{ $classroom->name }}</h3><p>{{ $classroom->teacher?->name ?? 'مدرس مشخص نشده' }}</p></div><x-admin.badge :tone="$classroom->status === 'active' ? 'ok' : 'warn'">{{ $classStatusOptions[$classroom->status] ?? $classroom->status }}</x-admin.badge></div>
                 <div class="adm-meta">
                   <span><x-admin.icon name="users"/>{{ number_format($classroom->students_count) }} دانش‌آموز</span>
                   <span><x-admin.icon name="cal"/>{{ number_format($classroom->sessions_count) }} جلسه</span>
@@ -349,7 +349,7 @@
       'teacherOptions' => $classTeacherOptions,
       'days' => $classDayOptions,
       'statusOptions' => $classStatusOptions,
-      'studentOptions' => $students->pluck('name', 'id')->all(),
+      'searchableStudents' => $students,
     ])
   </x-admin.modal>
 

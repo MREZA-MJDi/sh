@@ -1,6 +1,7 @@
 @extends('public.layouts.academy')
 @section('title',($settings->home_sections['teachers_page_title'] ?? 'مدرسان شیخان').$settings->title_separator.$settings->site_name)
 @section('description',$settings->home_sections['teachers_page_description'] ?? $settings->default_description)
+@section('canonical-page', $teachers->currentPage())
 @section('content')
 <section class="contact-hero-wrap">
     <div class="c">

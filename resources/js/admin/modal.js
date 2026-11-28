@@ -65,6 +65,9 @@ function open(trigger) {
   form.dataset.createAction ??= form.getAttribute('action') || '';
   form.setAttribute('action', trigger.dataset.action || form.dataset.createAction);
 
+  const retryAction = form.elements.namedItem('_editor_action');
+  if (retryAction) retryAction.value = form.getAttribute('action');
+
   const method = form.querySelector('[data-method-field]');
   if (method) method.value = trigger.dataset.method || method.dataset.default;
 
@@ -95,7 +98,29 @@ document.addEventListener('submit', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('dialog.adm-modal').forEach((dialog) => {
-    if (dialog.querySelector('.adm-err')) dialog.showModal();
-  });
+  const retry = document.querySelector('dialog.adm-modal [data-editor-retry-action]');
+  if (!retry) return;
+
+  const form = retry.form;
+  const dialog = form.closest('dialog');
+  const intendedMethod = form.querySelector('[data-editor-retry-method]').value;
+  const method = form.querySelector('[data-method-field]');
+  const trigger = Array.from(document.querySelectorAll('[data-modal-open][data-action]')).find(
+    (candidate) => candidate.dataset.modalOpen === dialog.id &&
+      candidate.dataset.action === retry.value && (candidate.dataset.method || 'POST') === intendedMethod
+  );
+  const isDefault = retry.value === form.getAttribute('action') && intendedMethod === method.dataset.default;
+  if (!isDefault && !trigger) return;
+
+  form.dataset.createAction = form.getAttribute('action');
+  form.setAttribute('action', retry.value);
+  form.elements.namedItem('_editor_action').value = retry.value;
+  method.value = intendedMethod;
+  if (trigger?.dataset.title) {
+    const heading = dialog.querySelector('[data-modal-title]');
+    heading.dataset.default = heading.textContent;
+    heading.textContent = trigger.dataset.title;
+  }
+  syncReveal(form);
+  dialog.showModal();
 });

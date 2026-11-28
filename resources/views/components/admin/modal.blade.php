@@ -4,6 +4,12 @@
 <dialog class="adm-modal adm-modal-{{ $size }}" id="{{ $id }}" aria-labelledby="{{ $id }}-title">
   <form method="POST" action="{{ $action }}" enctype="multipart/form-data" @if ($demo) data-demo @endif>
     @csrf
+    <input type="hidden" name="_editor_dialog" value="{{ $id }}">
+    @if(old('_editor_dialog') === $id && $errors->any() && is_string(old('_editor_action')) && is_string(old('_method', 'POST')))
+      <input type="hidden" data-editor-retry-action value="{{ old('_editor_action') }}">
+      <input type="hidden" data-editor-retry-method value="{{ old('_method', 'POST') }}">
+    @endif
+    <input type="hidden" name="_editor_action" value="{{ $action }}">
     @if ($method !== 'POST')<input type="hidden" name="_method" value="{{ $method }}" data-method-field data-default="{{ $method }}">@else<input type="hidden" name="_method" value="POST" data-method-field data-default="POST">@endif
     <header class="adm-modal-head">
       <h3 id="{{ $id }}-title" data-modal-title>{{ $title }}</h3>

@@ -28,8 +28,27 @@
         </header>
     </div>
 </section>
-<div class="ac-wrap ac-layout" style="grid-template-columns:1fr 330px"><div>@forelse($courses as $course)<article class="ac-card" style="display:flex;align-items:center;gap:16px;padding:16px;margin-bottom:13px"><div class="ac-category-icon" style="margin:0;flex:none">✦</div><div style="flex:1"><b>{{ $course->title }}</b><div class="ac-muted" style="font-size:12px">{{ $course->teacher?->name }}</div></div><b>{{ $course->type==='paid'?number_format((int)$course->price).' تومان':'رایگان' }}</b><form method="POST" action="{{ route('public.cart.remove',$course) }}">@csrf @method('DELETE')<button type="submit" style="border:0;background:none;color:#dc2626;cursor:pointer;font:inherit">حذف</button></form></article>@empty<div class="ac-empty">سبد خریدت خالی است. <a class="ac-link" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها</a></div>@endforelse</div>
-<aside class="ac-card ac-block" style="height:max-content"><h2>خلاصه سبد خرید</h2><div class="ac-list"><li><span>تعداد دوره‌ها</span><b>{{ $courses->count() }}</b></li><li><span>جمع مبلغ</span><b>{{ number_format($courses->sum(fn($course)=>$course->type==='paid'?(int)$course->price:0)) }} تومان</b></li></div>
+<div class="ac-wrap ac-layout ac-cart-layout">
+    <div>
+        @forelse($courses as $course)
+            <article class="ac-card ac-cart-item">
+                <div class="ac-category-icon" aria-hidden="true">✦</div>
+                <div>
+                    <b>{{ $course->title }}</b>
+                    <div class="ac-muted">{{ $course->teacher?->name }}</div>
+                </div>
+                <b class="ac-cart-price">{{ $course->type === 'paid' ? number_format((int) $course->price).' تومان' : 'رایگان' }}</b>
+                <form method="POST" action="{{ route('public.cart.remove', $course) }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="ac-cart-remove" aria-label="حذف {{ $course->title }}">حذف</button>
+                </form>
+            </article>
+        @empty
+            <div class="ac-empty">سبد خریدت خالی است. <a class="ac-link" href="{{ route('public.courses.index') }}">مشاهده دوره‌ها</a></div>
+        @endforelse
+    </div>
+<aside class="ac-card ac-block ac-cart-summary"><h2>خلاصه سبد خرید</h2><ul class="ac-list"><li><span>تعداد دوره‌ها</span><b>{{ $courses->count() }}</b></li><li><span>جمع مبلغ</span><b>{{ number_format($courses->sum(fn($course)=>$course->type==='paid'?(int)$course->price:0)) }} تومان</b></li></ul>
 <div role="status" aria-live="polite" style="margin-top:16px;padding:14px;border:1px solid rgba(180,120,40,.35);border-radius:12px;background:rgba(180,120,40,.07)">
   <strong style="display:block;margin-bottom:7px">پرداخت آنلاین در حال آماده‌سازی است</strong>
   <p class="ac-muted" style="font-size:12px;margin:0;line-height:1.9">زیرساخت ثبت سفارش و اتصال درگاه در حال تکمیل است و فعال‌سازی پرداخت به دریافت اطلاعات رسمی درگاه و تأیید الزامات پذیرندگی وابسته است. سبد خرید شما حفظ می‌شود؛ در حال حاضر هیچ مبلغی دریافت یا ثبت‌نام مالی به‌صورت خودکار تأیید نمی‌شود.</p>

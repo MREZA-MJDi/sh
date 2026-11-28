@@ -306,7 +306,7 @@
                                     && $session->classroom?->skyroom_status === 'ready');
                         @endphp
                         <article style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--ln);flex-wrap:wrap">
-                            <div style="min-width:220px;flex:1">
+                            <div style="min-width:0;flex:1 1 220px">
                                 <strong style="display:block">{{ $session->title }}</strong>
                                 <span class="mu" style="font-size:13px">{{ $session->session_type === 'online' ? 'آنلاین' : 'حضوری' }} · {{ $session->can_join ? ($session->classroom?->name ?? 'کلاس شما') : 'گروه آموزشی' }}</span>
                                 <div style="margin-top:5px;font-size:13px;color:var(--mute)">
@@ -531,7 +531,7 @@
             .course-video-layout { display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;padding:16px }
             @media (max-width: 680px) { .course-video-layout { grid-template-columns:minmax(0,1fr) } }
         </style>
-        <dialog id="course-video-dialog" style="width:min(920px,calc(100% - 24px));max-width:920px;border:0;border-radius:20px;padding:0;box-shadow:0 24px 80px rgba(15,23,42,.32)">
+        <dialog id="course-video-dialog" style="width:min(920px,calc(100% - 24px));max-width:920px;max-height:calc(100dvh - 24px);overflow:auto;border:0;border-radius:20px;padding:0;box-shadow:0 24px 80px rgba(15,23,42,.32)">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--ln,#e5e7eb)">
                 <strong>ویدیوهای {{ $course->title }}</strong>
                 <button type="button" id="course-video-close" class="btn g s" aria-label="بستن پنجره پخش">بستن</button>

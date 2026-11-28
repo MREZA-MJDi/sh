@@ -65,13 +65,10 @@ final class CourseController extends Controller
             ->withCount(['students', 'sessions'])
             ->orderBy('name')
             ->limit(100)
-            ->get(['id', 'name', 'course_id', 'teacher_id', 'schedule', 'skyroom_status']);
-        $students = User::query()
-            ->where('is_active', true)
-            ->whereHas('roles', fn ($query) => $query->where('name', 'student'))
-            ->orderBy('name')
-            ->limit(300)
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'course_id', 'teacher_id', 'schedule', 'skyroom_status', 'meeting_url', 'status']);
+        $previousStudentIds = array_slice(array_filter((array) old('student_ids', []), 'is_scalar'), 0, 500);
+        $students = User::where('is_active', true)->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+            ->whereKey($previousStudentIds)->orderBy('name')->get(['id', 'name']);
         $resources = LearningResource::query()
             ->where('course_id', $course->id)
             ->with('classroom:id,name')

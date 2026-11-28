@@ -4,13 +4,19 @@
     @php
         $settings = $settings ?? \App\Models\SeoSetting::current();
         $canonicalBase = rtrim($settings->canonical_base_url ?: url('/'), '/');
-        $seoCanonical = trim((string) $__env->yieldContent('canonical', $canonicalBase . (request()->getPathInfo() === '/' ? '' : request()->getPathInfo())));
+        $canonicalPath = request()->getPathInfo() === '/' ? '' : request()->getPathInfo();
+        $canonicalPage = (int) $__env->yieldContent('canonical-page', 1);
+        $defaultCanonical = $canonicalBase . $canonicalPath . ($canonicalPage > 1 ? '?page='.$canonicalPage : '');
+        $seoCanonical = trim((string) $__env->yieldContent('canonical', $defaultCanonical));
         $seoTitle = trim((string) $__env->yieldContent('title', ($settings->default_title ?? 'شیخان') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'پلتفرم آموزش آنلاین')));
         $seoDescription = trim((string) $__env->yieldContent('description', $settings->default_description ?? ''));
         $seoKeywords = trim((string) $__env->yieldContent('keywords', implode(', ', $settings->default_keywords ?? [])));
         $seoRobots = trim((string) $__env->yieldContent('robots', (($settings->robots_index ?? true) ? 'index' : 'noindex') . ',' . (($settings->robots_follow ?? true) ? 'follow' : 'nofollow')));
         $defaultOg = !empty($settings->default_og_image_path) ? Storage::disk('public')->url($settings->default_og_image_path) : '';
         $seoImage = trim((string) $__env->yieldContent('seo-image', $defaultOg));
+        if (str_starts_with($seoImage, '/') && ! str_starts_with($seoImage, '//')) {
+            $seoImage = url($seoImage);
+        }
         $seoImageAlt = trim((string) $__env->yieldContent('seo-image-alt', $settings->site_name ?? 'شیخان'));
 
         $organizationData = array_filter([
@@ -56,6 +62,7 @@
     @stack('head')
 </head>
 <body class="academy">
+<a class="academy-skip" href="#main-content">رفتن به محتوای اصلی</a>
 @include('public.partials.sprite')
 
 @include('public.partials.announcement-bar')
@@ -65,7 +72,7 @@
     <div class="c" style="margin-top:16px"><div class="ac-alert" role="status">{{ session('status') }}</div></div>
 @endif
 
-<main>
+<main id="main-content" tabindex="-1">
     @yield('content')
 </main>
 

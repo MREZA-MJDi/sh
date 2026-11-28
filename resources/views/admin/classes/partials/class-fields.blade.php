@@ -26,7 +26,11 @@
 <p class="adm-muted adm-grid-note">این برنامه، روزها و ساعت معمول کلاس را نشان می‌دهد؛ برای ساخت جلسه‌های واقعی، از تقویم کلاس استفاده کن.</p>
 </div>
 </details>
-@if(isset($studentOptions))
+@if(isset($searchableStudents))
+  <input type="hidden" name="student_ids_present" value="1">
+  <x-admin.legend title="اعضای کلاس"/>
+  <x-admin.student-search multiple :selected="$searchableStudents"/>
+@elseif(isset($studentOptions))
   <input type="hidden" name="student_ids_present" value="1">
   <x-admin.legend title="اعضای کلاس"/>
   <x-admin.chips label="دانش‌آموزان فعال" name="student_ids" :options="$studentOptions" scroll hint="افزودن یا حذف عضو، تاریخچه عضویت را حفظ می‌کند"/>

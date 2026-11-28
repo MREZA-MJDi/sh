@@ -33,10 +33,14 @@ final class EnrollmentAdminController extends Controller
             'expired' => CourseEnrollment::whereNotNull('expires_at')->where('expires_at', '<=', now())->count(),
             'pending' => CourseEnrollment::whereIn('status', ['pending_payment', 'suspended'])->count(),
         ];
-        $students = User::where('is_active', true)->whereHas('roles', fn ($q) => $q->where('name', 'student'))->orderBy('name')->get(['id', 'name']);
+        $previousStudentId = $request->old('student_id');
+        $selectedStudent = ctype_digit((string) (is_scalar($previousStudentId) ? $previousStudentId : ''))
+            ? User::where('is_active', true)->whereHas('roles', fn ($query) => $query->where('name', 'student'))
+                ->find($previousStudentId, ['id', 'name'])
+            : null;
         $courses = Course::where('status', 'published')->orderBy('title')->get(['id', 'title']);
 
-        return view('admin.enrollments.index', compact('enrollments', 'stats', 'students', 'courses'));
+        return view('admin.enrollments.index', compact('enrollments', 'stats', 'selectedStudent', 'courses'));
     }
 
     public function store(Request $request, CourseEnrollmentService $service): RedirectResponse

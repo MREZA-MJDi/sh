@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreInternalNotificationRequest;
+use App\Jobs\SendAdminNotificationBroadcast;
 use App\Models\AdminNotificationBroadcast;
 use App\Models\User;
 use App\Notifications\AdminPanelBroadcastNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -27,10 +27,10 @@ final class InternalNotificationController extends Controller
 
         $counts = [
             'all' => User::query()->where('is_active', true)->count(),
-            'students' => $this->audienceQuery('students')->count(),
-            'parents' => $this->audienceQuery('parents')->count(),
-            'teachers' => $this->audienceQuery('teachers')->count(),
-            'admins' => $this->audienceQuery('admins')->count(),
+            'students' => AdminNotificationBroadcast::recipients('students')->count(),
+            'parents' => AdminNotificationBroadcast::recipients('parents')->count(),
+            'teachers' => AdminNotificationBroadcast::recipients('teachers')->count(),
+            'admins' => AdminNotificationBroadcast::recipients('admins')->count(),
         ];
 
         $broadcasts = AdminNotificationBroadcast::query()
@@ -61,7 +61,7 @@ final class InternalNotificationController extends Controller
     public function store(StoreInternalNotificationRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $recipients = $this->audienceQuery($data['audience']);
+        $recipients = AdminNotificationBroadcast::recipients($data['audience']);
         $recipientCount = (clone $recipients)->count();
 
         if ($recipientCount === 0) {
@@ -70,50 +70,31 @@ final class InternalNotificationController extends Controller
             ]);
         }
 
-        $broadcastId = (string) Str::uuid();
-        $notification = new AdminPanelBroadcastNotification(
-            $data['title'],
-            $data['message'],
-            $data['url'] ?? null,
-            $data['action_label'] ?? null,
-            $broadcastId,
-            $data['audience'],
-            (int) $request->user()->id,
-        );
+        $broadcast = AdminNotificationBroadcast::create([
+            'id' => (string) Str::uuid(),
+            'sender_id' => $request->user()->id,
+            'audience' => $data['audience'],
+            'title' => $data['title'],
+            'message' => $data['message'],
+            'url' => $data['url'] ?? null,
+            'action_label' => $data['action_label'] ?? null,
+            'recipient_count' => $recipientCount,
+            'recipient_max_id' => (clone $recipients)->max('id'),
+            'delivery_status' => 'queued',
+        ]);
 
-        DB::transaction(function () use ($recipients, $notification, $data, $broadcastId, $recipientCount, $request): void {
-            AdminNotificationBroadcast::query()->create([
-                'id' => $broadcastId,
-                'sender_id' => $request->user()->id,
-                'audience' => $data['audience'],
-                'title' => $data['title'],
-                'message' => $data['message'],
-                'url' => $data['url'] ?? null,
-                'action_label' => $data['action_label'] ?? null,
-                'recipient_count' => $recipientCount,
-            ]);
+        try {
+            SendAdminNotificationBroadcast::dispatch($broadcast->id)->afterCommit();
+        } catch (\Throwable $exception) {
+            report($exception);
+            AdminNotificationBroadcast::whereKey($broadcast->id)
+                ->where('delivery_status', 'queued')->update(['delivery_status' => 'failed']);
 
-            $recipients->chunkById(500, function ($users) use ($notification): void {
-                Notification::send($users, $notification);
-            });
-        });
+            return to_route('admin.internal-notifications.index')
+                ->with('warning', 'قرار دادن اعلان در صف انجام نشد. وضعیت آن در تاریخچه ثبت شد.');
+        }
 
         return to_route('admin.internal-notifications.index')
-            ->with('success', 'اعلان درون‌پنلی برای '.number_format($recipientCount).' کاربر ارسال شد. این پیام در سایت عمومی منتشر نمی‌شود.');
-    }
-
-    private function audienceQuery(string $audience)
-    {
-        $role = match ($audience) {
-            'students' => 'student',
-            'parents' => 'parent',
-            'teachers' => 'teacher',
-            'admins' => 'admin',
-            default => null,
-        };
-
-        return User::query()
-            ->where('is_active', true)
-            ->when($role, fn ($query) => $query->whereHas('roles', fn ($roles) => $roles->where('name', $role)));
+            ->with('success', 'اعلان ثبت شد. نتیجهٔ ارسال را در تاریخچهٔ اعلان‌ها ببینید.');
     }
 }

@@ -3,6 +3,7 @@
 @section('title', ($settings->home_sections['courses_page_title'] ?? 'دوره‌های آموزشی') . ($settings->title_separator ?? ' | ') . ($settings->site_name ?? 'شیخان'))
 @section('description', $settings->home_sections['courses_page_description'] ?? $settings->default_description)
 
+@section('canonical-page', $courses->currentPage())
 @section('content')
 <section class="contact-hero-wrap">
     <div class="c">

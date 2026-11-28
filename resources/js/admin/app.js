@@ -19,3 +19,5 @@ import './course-editor.js';
 
 import './inbox.js';
 import './notification-composer.js';
+
+import './student-search.js';

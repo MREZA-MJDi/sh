@@ -14,7 +14,9 @@ final class LookupController extends Controller
 
     public function students(Request $request): JsonResponse
     {
-        abort_unless($request->user()?->hasPermissionTo('users.manage'), 403);
+        $user = $request->user();
+        $canSeeContact = $user?->hasPermissionTo('users.manage') ?? false;
+        abort_unless($canSeeContact || ($user?->hasRole('admin') && $user->hasPermissionTo('courses.manage')), 403);
 
         $validated = $request->validate([
             'q' => ['required', 'string', 'min:2', 'max:80'],
@@ -30,13 +32,14 @@ final class LookupController extends Controller
         $pattern = '%' . addcslashes($term, '%_\\') . '%';
 
         $matches = User::query()
-            ->select(['id', 'name', 'phone'])
+            ->select($canSeeContact ? ['id', 'name', 'phone'] : ['id', 'name'])
             ->where('is_active', true)
             ->whereHas('roles', fn ($roles) => $roles->where('name', 'student'))
-            ->where(function ($query) use ($pattern): void {
-                $query->where('name', 'like', $pattern)
-                    ->orWhere('phone', 'like', $pattern)
-                    ->orWhere('email', 'like', $pattern);
+            ->where(function ($query) use ($pattern, $canSeeContact): void {
+                $query->where('name', 'like', $pattern);
+                if ($canSeeContact) {
+                    $query->orWhere('phone', 'like', $pattern)->orWhere('email', 'like', $pattern);
+                }
             })
             ->orderBy('name')
             ->orderBy('id')
@@ -49,7 +52,7 @@ final class LookupController extends Controller
             'data' => $matches->take(self::RESULT_LIMIT)->map(fn (User $student) => [
                 'id' => $student->id,
                 'label' => $student->name,
-                'meta' => $student->phone,
+                'meta' => $canSeeContact ? $student->phone : null,
             ])->values(),
             'has_more' => $hasMore,
             'limit' => self::RESULT_LIMIT,

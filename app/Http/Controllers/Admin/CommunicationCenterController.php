@@ -12,6 +12,7 @@ use App\Services\Admin\MessageWorkspaceService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 final class CommunicationCenterController extends Controller
@@ -26,14 +27,14 @@ final class CommunicationCenterController extends Controller
         $filters = $request->validate([
             'type' => ['nullable', 'in:messages,contacts,consultations,meetings'],
             'q' => ['nullable', 'string', 'max:120'],
-            'page' => ['nullable', 'integer', 'min:1'],
+            'page' => ['nullable', 'integer', 'min:1', 'max:1000000'],
         ]);
 
         $user = $request->user();
         $term = trim((string) ($filters['q'] ?? ''));
         $selectedType = $filters['type'] ?? null;
         $page = max(1, (int) ($filters['page'] ?? 1));
-        $take = $page * self::PER_PAGE;
+        $sources = [];
 
         $counts = [
             'messages' => 0,
@@ -41,7 +42,7 @@ final class CommunicationCenterController extends Controller
             'consultations' => 0,
             'meetings' => 0,
         ];
-        $items = collect();
+
 
         if ($user->hasAnyPermission(['messages.view.all', 'messages.view.assigned'])) {
             $query = $messageWorkspace->queryFor($user)
@@ -56,10 +57,12 @@ final class CommunicationCenterController extends Controller
             $counts['messages'] = (clone $query)->count();
 
             if ($selectedType === null || $selectedType === 'messages') {
-                $items = $items->concat(
-                    (clone $query)
+                $sources['messages'] = [
+                    'keys' => (clone $query)->reorder()->select([])->selectRaw($query->getModel()->qualifyColumn('id').' as source_id, '.$query->getModel()->qualifyColumn('created_at').' as source_date, ? as source_type', ['messages'])->toBase(),
+                    'load' => fn (array $ids) =>
+                    (clone $query)->whereKey($ids)
                         ->with(['sender:id,name', 'sender.roles:id,name', 'student:id,name'])
-                        ->orderByDesc('created_at')->orderByDesc('id')->limit($take)->get()
+                        ->get()
                         ->map(fn (Message $message) => [
                             '_id' => $message->id,
                             'type' => 'messages',
@@ -75,8 +78,8 @@ final class CommunicationCenterController extends Controller
                             'status' => $message->status,
                             'created_at' => $message->created_at,
                             'url' => route('admin.messages.index', ['message' => $message->id]),
-                        ])
-                );
+                        ]),
+                ];
             }
         }
 
@@ -92,8 +95,10 @@ final class CommunicationCenterController extends Controller
             $counts['contacts'] = (clone $query)->count();
 
             if ($selectedType === null || $selectedType === 'contacts') {
-                $items = $items->concat(
-                    (clone $query)->orderByDesc('created_at')->orderByDesc('id')->limit($take)->get()
+                $sources['contacts'] = [
+                    'keys' => (clone $query)->reorder()->select([])->selectRaw($query->getModel()->qualifyColumn('id').' as source_id, '.$query->getModel()->qualifyColumn('created_at').' as source_date, ? as source_type', ['contacts'])->toBase(),
+                    'load' => fn (array $ids) =>
+                    (clone $query)->whereKey($ids)->get()
                         ->map(fn (ContactMessage $message) => [
                             '_id' => $message->id,
                             'type' => 'contacts',
@@ -107,8 +112,8 @@ final class CommunicationCenterController extends Controller
                             'status' => $message->status,
                             'created_at' => $message->created_at,
                             'url' => route('admin.contact-messages.index', ['message' => $message->id]).'#contact-message-'.$message->id,
-                        ])
-                );
+                        ]),
+                ];
             }
         }
 
@@ -124,9 +129,11 @@ final class CommunicationCenterController extends Controller
             $counts['consultations'] = (clone $query)->count();
 
             if ($selectedType === null || $selectedType === 'consultations') {
-                $items = $items->concat(
-                    (clone $query)->with(['requester:id,name', 'student:id,name', 'teacher:id,name'])
-                        ->orderByDesc('created_at')->orderByDesc('id')->limit($take)->get()
+                $sources['consultations'] = [
+                    'keys' => (clone $query)->reorder()->select([])->selectRaw($query->getModel()->qualifyColumn('id').' as source_id, '.$query->getModel()->qualifyColumn('created_at').' as source_date, ? as source_type', ['consultations'])->toBase(),
+                    'load' => fn (array $ids) =>
+                    (clone $query)->whereKey($ids)->with(['requester:id,name', 'student:id,name', 'teacher:id,name'])
+                        ->get()
                         ->map(fn (Consultation $consultation) => [
                             '_id' => $consultation->id,
                             'type' => 'consultations',
@@ -140,8 +147,8 @@ final class CommunicationCenterController extends Controller
                             'status' => $consultation->status,
                             'created_at' => $consultation->created_at,
                             'url' => route('admin.consultations.index', ['consultation' => $consultation->id]).'#consultation-'.$consultation->id,
-                        ])
-                );
+                        ]),
+                ];
             }
         }
 
@@ -161,9 +168,11 @@ final class CommunicationCenterController extends Controller
             $counts['meetings'] = (clone $query)->count();
 
             if ($selectedType === null || $selectedType === 'meetings') {
-                $items = $items->concat(
-                    (clone $query)->with(['student:id,name', 'guardian:id,name', 'classroom:id,name'])
-                        ->orderByDesc('created_at')->orderByDesc('id')->limit($take)->get()
+                $sources['meetings'] = [
+                    'keys' => (clone $query)->reorder()->select([])->selectRaw($query->getModel()->qualifyColumn('id').' as source_id, '.$query->getModel()->qualifyColumn('created_at').' as source_date, ? as source_type', ['meetings'])->toBase(),
+                    'load' => fn (array $ids) =>
+                    (clone $query)->whereKey($ids)->with(['student:id,name', 'guardian:id,name', 'classroom:id,name'])
+                        ->get()
                         ->map(fn (ParentMeeting $meeting) => [
                             '_id' => $meeting->id,
                             'type' => 'meetings',
@@ -177,26 +186,35 @@ final class CommunicationCenterController extends Controller
                             'status' => $meeting->status,
                             'created_at' => $meeting->created_at,
                             'url' => route('admin.parent-meetings.index', ['meeting' => $meeting->id]).'#parent-meeting-'.$meeting->id,
-                        ])
-                );
+                        ]),
+                ];
             }
         }
 
         $total = $selectedType !== null ? $counts[$selectedType] : array_sum($counts);
-        $items = $items->sort(function (array $left, array $right): int {
-            $dateOrder = ($right['created_at']?->getTimestamp() ?? 0)
-                <=> ($left['created_at']?->getTimestamp() ?? 0);
+        $pageItems = collect();
+        if ($sources !== []) {
+            $queries = array_values(array_column($sources, 'keys'));
+            $union = array_shift($queries);
+            foreach ($queries as $query) {
+                $union->unionAll($query);
+            }
 
-            return $dateOrder !== 0 ? $dateOrder : ($right['_id'] <=> $left['_id']);
-        })->values();
+            $keys = DB::query()->fromSub($union, 'communication')
+                ->orderByDesc('source_date')->orderByDesc('source_id')->orderBy('source_type')
+                ->forPage($page, self::PER_PAGE)->get();
+            $rows = [];
+            foreach ($keys->groupBy('source_type') as $type => $group) {
+                $rows[$type] = $sources[$type]['load']($group->pluck('source_id')->all())->keyBy('_id');
+            }
 
-        $pageItems = $items
-            ->slice(($page - 1) * self::PER_PAGE, self::PER_PAGE)
-            ->map(function (array $item): array {
-                unset($item['_id']);
+            $pageItems = $keys->map(fn ($key) => $rows[$key->source_type]->get($key->source_id))
+                ->filter()->map(function (array $item): array {
+                    unset($item['_id']);
 
-                return $item;
-            })->values();
+                    return $item;
+                })->values();
+        }
 
         $items = new LengthAwarePaginator(
             $pageItems,

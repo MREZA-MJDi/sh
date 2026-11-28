@@ -1576,7 +1576,7 @@
 
                 </div>
 
-                <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+                <div class="g3" style="grid-template-columns:repeat(auto-fit,minmax(min(100%, 200px), 1fr))">
 
                     @if($benefits->isNotEmpty())
                     @foreach($benefits as $index => $benefit)
@@ -2016,7 +2016,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="quiz-question-category">✦ ${escapeHtml(question.category)}</div>
                 <h3 class="quiz-question-title">${escapeHtml(question.question)}</h3>
                 <div style="display:flex;gap:10px;flex-wrap:wrap">
-                    <input id="quizRiddleAnswer" class="quiz-option" type="text" maxlength="255" placeholder="پاسخ معما را بنویس..." style="flex:1;min-width:220px">
+                    <input id="quizRiddleAnswer" class="quiz-option" type="text" maxlength="255" placeholder="پاسخ معما را بنویس..." style="flex:1 1 220px;min-width:0;max-width:100%">
                     <button type="button" class="quiz-option" id="quizRiddleSubmit">ثبت پاسخ</button>
                 </div>
             `;

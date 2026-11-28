@@ -4,7 +4,6 @@
 @php
   $statusLabels = ['awaiting_provider' => ['warn', 'در انتظار فعال‌سازی درگاه'], 'pending_review' => ['info', 'در انتظار بررسی دستی'], 'paid' => ['ok', 'تأییدشده'], 'failed' => ['bad', 'ناموفق'], 'refund_pending' => ['warn', 'درخواست استرداد'], 'refunded' => ['mute', 'مستردشده']];
   $methods = ['gateway' => 'درگاه آنلاین', 'cash' => 'نقدی / حضوری', 'bank_transfer' => 'واریز بانکی'];
-  $studentOptions = $students->pluck('name', 'id')->all();
   $courseOptions = $courses->mapWithKeys(fn ($course) => [$course->id => $course->title.' — '.number_format($course->price).' تومان'])->all();
 @endphp
 <x-admin.page-head tone="shop" icon="card" title="پرداخت‌ها" desc="سوابق مالی واقعی و وضعیت تأیید؛ پرداخت بدون رسید معتبر یا پاسخ رسمی درگاه تأیید نمی‌شود">
@@ -65,7 +64,7 @@
 @push('modals')
 <x-admin.modal :demo="false" id="pay-modal" title="ثبت رسید پرداخت دستی" size="lg" :action="route('admin.payments.store')">
   <x-admin.legend title="پرداخت‌کننده و دوره"/>
-  <x-admin.select label="دانش‌آموز فعال" name="student_id" :options="$studentOptions" required/>
+  <x-admin.student-search :selected="$selectedStudent"/>
   <x-admin.select label="دوره پولی منتشرشده" name="course_id" :options="$courseOptions" required/>
   <x-admin.input label="مبلغ دریافت‌شده" name="amount" type="number" min="1" addon="تومان" required/>
   <x-admin.select label="روش دریافت" name="method" :options="['cash' => 'نقدی / حضوری', 'bank_transfer' => 'واریز بانکی']" required/>

@@ -84,7 +84,7 @@
             </div>
 
             @if($courses->isNotEmpty())
-                <div class="ac-grid" style="grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:18px">
+                <div class="ac-grid ac-teacher-courses">
                     @foreach($courses as $course)
                         <x-public.academy.course-card :course="$course" />
                     @endforeach

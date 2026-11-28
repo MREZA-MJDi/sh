@@ -93,7 +93,7 @@
   @if($broadcasts->isNotEmpty())
     <div class="adm-table-wrap">
       <table class="adm-table">
-        <thead><tr><th>عنوان پیام</th><th>مخاطب</th><th>گیرندگان</th><th>خوانده‌شده</th><th>زمان ارسال</th></tr></thead>
+        <thead><tr><th>عنوان پیام</th><th>مخاطب</th><th>گیرندگان</th><th>خوانده‌شده</th><th>وضعیت ارسال</th><th>زمان ثبت</th></tr></thead>
         <tbody>
           @foreach($broadcasts as $broadcast)
             <tr>
@@ -101,6 +101,15 @@
               <td>{{ $audienceLabels[$broadcast->audience] ?? 'کاربران' }}</td>
               <td>{{ number_format($broadcast->recipient_count) }}</td>
               <td><span class="adm-notice-read-rate">{{ number_format($broadcast->read_count) }} خوانده‌شده</span></td>
+              <td>
+                {{ match ($broadcast->delivery_status) {
+                    'queued' => 'در صف',
+                    'sending' => 'در حال ارسال',
+                    'failed' => 'ارسال ناموفق',
+                    default => 'ارسال‌شده',
+                } }}
+                <small>{{ number_format($broadcast->recipient_max_id ? $broadcast->delivered_count : $broadcast->recipient_count) }} دریافت کرده‌اند</small>
+              </td>
               <td>{{ \App\Support\PersianDate::format($broadcast->created_at, 'Y/m/d H:i') }}</td>
             </tr>
           @endforeach

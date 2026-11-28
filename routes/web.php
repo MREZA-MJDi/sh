@@ -171,7 +171,7 @@ Route::middleware(['auth', 'role:admin,teacher,seo'])->prefix('admin')->name('ad
     Route::patch('/seo/articles/{article}', [SeoDashboardController::class, 'updateArticle'])->middleware('permission:seo.manage')->name('seo.articles.update');
     Route::delete('/seo/articles/{article}', [SeoDashboardController::class, 'destroyArticle'])->middleware('permission:seo.manage')->name('seo.articles.destroy');
 
-    Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage', 'throttle:60,1'])->name('lookups.students');
+    Route::get('/lookups/students', [LookupController::class, 'students'])->middleware(['permission:users.manage,courses.manage', 'throttle:60,1'])->name('lookups.students');
     Route::get('/students', [UserController::class, 'index'])->defaults('role', 'student')->middleware('permission:users.manage,students.view.assigned')->name('students.index');
     Route::post('/students', [UserController::class, 'store'])->defaults('role', 'student')->middleware('permission:users.manage')->name('students.store');
     Route::patch('/students/{student}', [UserController::class, 'updateStudent'])->middleware('permission:users.manage')->name('students.update');
