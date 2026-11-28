@@ -1,4 +1,6 @@
 .adm-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+.adm-toolbar .adm-toolbar-search{flex:1 1 240px;min-width:0;width:auto}
+.adm-identifier{direction:ltr;unicode-bidi:isolate;display:inline-block;font-variant-numeric:tabular-nums;font-family:inherit;overflow-wrap:anywhere}
 .adm-toolbar .adm-search-field{flex:1;min-width:200px;max-width:360px}
 .adm-toolbar .adm-select{width:auto;min-width:150px}
 .adm-toolbar .adm-input[type=date],.adm-toolbar .adm-input[type=time]{width:auto}
@@ -9,7 +11,8 @@
 .adm-table td{padding:13px 20px;border-top:1px solid var(--line);vertical-align:middle}
 .adm-table tbody tr:first-child td{border-top:0}
 .adm-table tbody tr:hover td{background:var(--surface-2)}
-.adm-table td small{display:block;color:var(--muted);font-size:12px}
+.adm-table td small{display:block;color:var(--muted);font-size:12px;line-height:1.65;margin-block-start:3px}
+.adm-table td b{font-weight:700;line-height:1.6}
 .adm-table .is-end{text-align:end}
 .adm-table .is-nowrap{white-space:nowrap}
 .adm-table-compact th,.adm-table-compact td{padding:9px 14px}
