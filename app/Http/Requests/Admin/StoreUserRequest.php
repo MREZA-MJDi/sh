@@ -4,12 +4,15 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
 use App\Models\User;
+use App\Http\Requests\Admin\Concerns\ValidatesStudentProfile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreUserRequest extends FormRequest
 {
+    use ValidatesStudentProfile;
+
     private const ROLES = ['student', 'teacher', 'parent'];
 
     public function messages(): array
@@ -29,6 +32,9 @@ class StoreUserRequest extends FormRequest
         $this->merge([
             'phone' => preg_replace('/[\\s-]+/u', '', trim($digits)) ?? trim($digits),
         ]);
+        if ($this->route('role') === 'student') {
+            $this->normalizeStudentProfile();
+        }
     }
 
     public function authorize(): bool
@@ -62,7 +68,7 @@ class StoreUserRequest extends FormRequest
                 Rule::unique('users', 'external_student_id'),
             ],
             'password' => ['required', 'string', 'min:12', 'confirmed'],
-            'grade' => [$role === 'student' ? 'required' : 'nullable', 'string', 'max:50'],
+            'grade' => ['nullable', 'string', 'max:50'],
             'subject' => [$isTeacher ? 'required' : 'prohibited', 'string', 'max:100'],
             'profile_note' => ['nullable', 'string', 'max:5000'],
             'status' => [$isTeacher ? 'required' : 'prohibited', Rule::in(['active', 'pending'])],
@@ -70,6 +76,7 @@ class StoreUserRequest extends FormRequest
             'classroom_ids.*' => ['integer', 'distinct', 'exists:classrooms,id'],
             'child_ids' => [$role === 'parent' ? 'nullable' : 'prohibited', 'array', 'max:30'],
             'child_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            ...($role === 'student' ? $this->studentProfileRules() : []),
         ];
     }
 

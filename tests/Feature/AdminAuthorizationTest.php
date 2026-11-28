@@ -66,6 +66,43 @@ class AdminAuthorizationTest extends TestCase
             ->assertSee('داشبورد مدیریت');
     }
 
+    public function test_admin_creates_a_student_with_the_required_profile_fields(): void
+    {
+        $admin = User::factory()->create();
+        $admin->roles()->attach(Role::where('name', 'admin')->value('id'));
+        $password = str_repeat('a', 16);
+        $account = [
+            'email' => 'student-profile@example.test',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ];
+
+        $this->actingAs($admin)->post(route('admin.students.store'), $account)
+            ->assertSessionHasErrors(['first_name', 'last_name', 'national_id', 'father_name', 'birth_date', 'school_name']);
+
+        $this->post(route('admin.students.store'), $account + [
+            'first_name' => 'علی',
+            'last_name' => 'احمدی',
+            'national_id' => '۰۱۲۳۴۵۶۷۸۹',
+            'father_name' => 'رضا',
+            'birth_date' => '2012-07-21',
+            'school_name' => 'مدرسه دانش',
+            'province' => 'تهران',
+            'city' => 'تهران',
+            'address' => 'خیابان پژوهش',
+            'postal_code' => '۰۱۲۳۴۵۶۷۸۹',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $student = User::query()->where('email', $account['email'])->firstOrFail();
+        $this->assertTrue($student->hasRole('student'));
+        $this->assertSame('علی احمدی', $student->name);
+        $this->assertSame('0123456789', $student->national_id);
+        $this->assertSame('0123456789', $student->postal_code);
+        $this->assertNull($student->grade);
+        $this->assertNull($student->phone);
+        $this->assertArrayNotHasKey('national_id', $student->toArray());
+    }
+
     public function test_every_admin_section_renders_without_sample_records(): void
     {
         $admin = User::factory()->create();

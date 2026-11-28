@@ -87,6 +87,15 @@
           'child_ids' => $role === 'parent' ? $user->children->pluck('id')->map(fn ($id) => (string) $id)->all() : [],
           'child_ids_labels' => $role === 'parent' ? $user->children->pluck('name')->values()->all() : [],
         ];
+        if ($role === 'student' && $canManage) {
+          $legacyName = preg_split('/\s+/u', trim($user->name), 2);
+          foreach (\App\Models\User::STUDENT_PROFILE_FIELDS as $field) {
+            $fill[$field] = $user->{$field};
+          }
+          $fill['first_name'] ??= $legacyName[0] ?? '';
+          $fill['last_name'] ??= $legacyName[1] ?? '';
+          $fill['external_student_id'] = $user->external_student_id;
+        }
         $updateAction = route('admin.'.$rolePlural[$role].'.update', $user);
       @endphp
       <article class="adm-card">
@@ -138,11 +147,25 @@
 @if($canManage)
 <x-admin.modal :demo="false" id="user-modal" title="ایجاد حساب جدید" size="lg" :action="$createAction">
   <x-admin.legend title="اطلاعات حساب"/>
-  <x-admin.input label="نام و نام خانوادگی" name="name" wide required/>
-  <x-admin.input label="ایمیل" name="email" type="email" :required="$role !== 'teacher'"/>
-  <x-admin.input label="شماره تماس" name="phone" :required="$role === 'teacher'"/>
   @if($role === 'student')
-    <x-admin.input label="پایه تحصیلی" name="grade" required/>
+    <x-admin.input label="نام" name="first_name" maxlength="75" autocomplete="given-name" required/>
+    <x-admin.input label="نام خانوادگی" name="last_name" maxlength="75" autocomplete="family-name" required/>
+    <x-admin.input label="کد ملی" name="national_id" inputmode="numeric" maxlength="10" dir="ltr" required/>
+    <x-admin.input label="نام پدر" name="father_name" maxlength="100" required/>
+    <x-admin.input label="تاریخ تولد" name="birth_date" type="date" :max="now()->toDateString()" required/>
+    <x-admin.input label="نام مدرسه" name="school_name" maxlength="180" required/>
+  @else
+    <x-admin.input label="نام و نام خانوادگی" name="name" wide required/>
+  @endif
+  <x-admin.input label="ایمیل" name="email" type="email" :required="$role !== 'teacher'"/>
+  <x-admin.input :label="$role === 'student' ? 'شماره همراه' : 'شماره تماس'" name="phone" type="tel" autocomplete="tel" :required="$role === 'teacher'"/>
+  @if($role === 'student')
+    <x-admin.input label="پایه تحصیلی" name="grade" maxlength="50"/>
+    <x-admin.legend title="نشانی دانش‌آموز"/>
+    <x-admin.input label="استان" name="province" maxlength="100" autocomplete="address-level1"/>
+    <x-admin.input label="شهر" name="city" maxlength="100" autocomplete="address-level2"/>
+    <x-admin.textarea label="نشانی" name="address" maxlength="500" autocomplete="street-address" wide/>
+    <x-admin.input label="کد پستی" name="postal_code" inputmode="numeric" maxlength="10" autocomplete="postal-code" dir="ltr"/>
     <x-admin.input label="شناسه دانش‌آموزی (اختیاری)" name="external_student_id"/>
     <x-admin.chips label="عضویت در کلاس‌های فعال" name="classroom_ids" :options="$classOptions"/>
   @elseif($role === 'teacher')

@@ -3,16 +3,20 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Classroom;
+use App\Http\Requests\Admin\Concerns\ValidatesStudentProfile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class UpdateStudentRequest extends FormRequest
 {
+    use ValidatesStudentProfile;
+
     protected function prepareForValidation(): void
     {
         $digits = strtr((string) $this->input('phone', ''), ['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9','٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9']);
         $this->merge(['phone' => preg_replace('/[\\s-]+/u', '', trim($digits)) ?? trim($digits)]);
+        $this->normalizeStudentProfile();
     }
 
     public function authorize(): bool
@@ -28,10 +32,11 @@ class UpdateStudentRequest extends FormRequest
             'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')->ignore($student->id)],
             'phone' => ['nullable', 'string', 'max:30'],
             'external_student_id' => ['nullable', 'string', 'max:120', Rule::unique('users', 'external_student_id')->ignore($student->id)],
-            'grade' => ['required', 'string', 'max:50'],
+            'grade' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'min:12', 'confirmed'],
             'classroom_ids' => ['nullable', 'array', 'max:100'],
             'classroom_ids.*' => ['integer', 'distinct', 'exists:classrooms,id'],
+            ...$this->studentProfileRules($student),
         ];
     }
 

@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Courses\CourseEnrollmentService;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -24,6 +25,7 @@ final class UserManagementService
 
         return DB::transaction(function () use ($data, $role, $actor): User {
             $user = User::create([
+                ...($role === 'student' ? Arr::only($data, User::STUDENT_PROFILE_FIELDS) : []),
                 'name' => $data['name'],
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
@@ -71,12 +73,15 @@ final class UserManagementService
 
         return DB::transaction(function () use ($student, $data, $actor): User {
             $student->fill([
+                ...Arr::only($data, User::STUDENT_PROFILE_FIELDS),
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
                 'external_student_id' => $data['external_student_id'] ?? null,
-                'grade' => $data['grade'],
-                'academic_grade_id' => AcademicGrade::resolveIdFromLegacyName($data['grade'] ?? null),
+                'grade' => array_key_exists('grade', $data) ? $data['grade'] : $student->grade,
+                'academic_grade_id' => array_key_exists('grade', $data)
+                    ? AcademicGrade::resolveIdFromLegacyName($data['grade'])
+                    : $student->academic_grade_id,
             ]);
 
             if (filled($data['password'] ?? null)) {

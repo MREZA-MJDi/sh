@@ -16,12 +16,18 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const STUDENT_PROFILE_FIELDS = [
+        'first_name', 'last_name', 'national_id', 'father_name', 'birth_date',
+        'province', 'city', 'school_name', 'address', 'postal_code',
+    ];
+
     protected $fillable = [
         'name', 'email', 'phone', 'password', 'is_active', 'grade', 'academic_grade_id', 'subject',
         'profile_note', 'external_student_id', 'legacy_login', 'permissions_customized', 'avatar_path',
+        ...self::STUDENT_PROFILE_FIELDS,
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', ...self::STUDENT_PROFILE_FIELDS];
 
     protected function casts(): array
     {
