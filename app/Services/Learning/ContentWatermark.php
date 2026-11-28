@@ -16,28 +16,38 @@ final class ContentWatermark
         abort_unless(extension_loaded('gd'), 503);
         $image = @imagecreatefromstring($png);
         abort_unless($image !== false, 422);
+        if (! imageistruecolor($image)) {
+            imagepalettetotruecolor($image);
+        }
 
         $width = imagesx($image);
         $height = imagesy($image);
         $label = 'SHEYKHAN | '.$identity;
         $font = 4;
-        $lineWidth = imagefontwidth($font) * strlen($label);
-        $ink = imagecolorallocatealpha($image, 28, 43, 75, 76);
-        $light = imagecolorallocatealpha($image, 255, 255, 255, 70);
-        $badge = imagecolorallocate($image, 19, 38, 66);
-        $white = imagecolorallocate($image, 255, 255, 255);
+        $labelWidth = imagefontwidth($font) * strlen($label) + 16;
+        $labelHeight = imagefontheight($font) + 8;
+        $stamp = imagecreatetruecolor($labelWidth, $labelHeight);
+        abort_unless($stamp !== false, 503);
+        imagealphablending($stamp, false);
+        imagesavealpha($stamp, true);
+        imagefill($stamp, 0, 0, imagecolorallocatealpha($stamp, 0, 0, 0, 127));
+        $background = imagecolorallocatealpha($stamp, 30, 51, 84, 122);
+        $radius = intdiv($labelHeight, 2);
+        imagefilledrectangle($stamp, $radius, 0, $labelWidth - $radius - 1, $labelHeight - 1, $background);
+        imagefilledellipse($stamp, $radius, $radius, $labelHeight, $labelHeight, $background);
+        imagefilledellipse($stamp, $labelWidth - $radius - 1, $radius, $labelHeight, $labelHeight, $background);
+        imagestring($stamp, $font, 8, 4, $label, imagecolorallocatealpha($stamp, 30, 51, 84, 105));
+
+        $scale = min($width * 0.76 / $labelWidth, $height * 0.13 / $labelHeight, 3.5);
+        $stampWidth = max(1, (int) round($labelWidth * $scale));
+        $stampHeight = max(1, (int) round($labelHeight * $scale));
+
         imagealphablending($image, true);
         imagesavealpha($image, true);
-
-        for ($y = 72, $row = 0; $y < $height; $y += 150, $row++) {
-            for ($x = 24 + ($row % 2) * 72; $x < $width; $x += max(270, $lineWidth + 72)) {
-                imagestring($image, $font, $x + 1, $y + 1, $label, $light);
-                imagestring($image, $font, $x, $y, $label, $ink);
-            }
-        }
-
-        imagefilledrectangle($image, 0, 0, min($width - 1, $lineWidth + 15), min($height - 1, 24), $badge);
-        imagestring($image, $font, 7, 5, $label, $white);
+        imagecopyresampled(
+            $image, $stamp, intdiv($width - $stampWidth, 2), intdiv($height - $stampHeight, 2),
+            0, 0, $stampWidth, $stampHeight, $labelWidth, $labelHeight,
+        );
 
         ob_start();
         try {

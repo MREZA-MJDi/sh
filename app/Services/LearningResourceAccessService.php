@@ -14,6 +14,8 @@ final class LearningResourceAccessService
 
     public function resolveStudent(User $actor, ?int $childId = null): User
     {
+        abort_unless($actor->is_active, 404);
+
         if ($actor->hasRole('student')) {
             return $actor;
         }

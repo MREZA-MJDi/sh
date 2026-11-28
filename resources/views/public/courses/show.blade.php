@@ -20,6 +20,9 @@
     .course-trailer-lock p { color: inherit; margin: 0 0 1rem }
     .course-trailer-lock .btn.o { color: white; border-color: white }
     .course-trailer-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem }
+    .course-resource-purchase summary { cursor: pointer; color: var(--pri); font-weight: 700 }
+    .course-resource-purchase form { display: grid; gap: .5rem; margin-top: .75rem }
+    .course-resource-purchase input:not([type="hidden"]) { min-width: 0; width: 100%; padding: .5rem; border: 1px solid var(--ln); border-radius: .5rem; background: var(--sf); color: var(--ink); font: inherit }
     @media (max-width: 900px) { .course-detail-grid { grid-template-columns: minmax(0, 1fr) } }
 </style>
 @endpush
@@ -464,11 +467,23 @@
                             @elseif($hasCourseAccess && auth()->user()?->hasRole('student'))
                                 @if($resource->is_free || ($resource->is_purchased ?? false))
                                     <a class="btn o s" href="{{ route('student.resources.download', $resource) }}">مشاهده فایل</a>
+                                @elseif($resource->purchase_pending)
+                                    <span class="c-badge">رسید در انتظار تأیید</span>
                                 @else
-                                    <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
-                                        @csrf
-                                        <button class="btn s" type="submit">خرید فایل</button>
-                                    </form>
+                                    <details class="course-resource-purchase" @if((string) old('resource_form') === (string) $resource->id) open @endif>
+                                        <summary>ثبت رسید خرید</summary>
+                                        <form method="POST" action="{{ route('student.resources.purchase', $resource) }}">
+                                            @csrf
+                                            <input type="hidden" name="resource_form" value="{{ $resource->id }}">
+                                            <label for="receipt-{{ $resource->id }}">شماره پیگیری واریز</label>
+                                            <input id="receipt-{{ $resource->id }}" name="provider_reference" maxlength="190" required
+                                                value="{{ (string) old('resource_form') === (string) $resource->id ? old('provider_reference') : '' }}">
+                                            @if((string) old('resource_form') === (string) $resource->id)
+                                                @error('provider_reference')<small role="alert">{{ $message }}</small>@enderror
+                                            @endif
+                                            <button class="btn s" type="submit">ارسال رسید</button>
+                                        </form>
+                                    </details>
                                 @endif
                             @endif
                         </div>

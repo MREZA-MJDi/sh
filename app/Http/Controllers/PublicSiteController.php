@@ -217,8 +217,12 @@ final class PublicSiteController extends Controller
                 ->whereNotNull('file_path')
                 ->where(fn ($release) => $release->whereNull('release_at')->orWhere('release_at', '<=', now()))
                 ->when($hasCourseAccess, fn ($query) => $query->whereIn('visibility', ['public', 'authenticated', 'enrolled'])
-                    ->withExists(['purchases as is_purchased' => fn ($purchases) => $purchases
-                        ->where('student_id', $request->user()->id)->where('status', 'paid')]))
+                    ->withExists([
+                        'purchases as is_purchased' => fn ($purchases) => $purchases
+                            ->where('student_id', $request->user()->id)->where('status', 'paid'),
+                        'purchases as purchase_pending' => fn ($purchases) => $purchases
+                            ->where('student_id', $request->user()->id)->where('status', 'pending_review'),
+                    ]))
                 ->when(! $hasCourseAccess, fn ($query) => $query->where('visibility', 'public')->where('is_free', true))
                 ->orderBy('sort_order')->orderBy('id')
                 ->get(['id', 'course_id', 'classroom_id', 'title', 'description', 'kind', 'is_free', 'price', 'visibility', 'file_path']);

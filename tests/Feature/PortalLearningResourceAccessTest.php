@@ -145,15 +145,26 @@ class PortalLearningResourceAccessTest extends TestCase
             'user_id' => $student->id,
         ]);
 
-        \App\Models\ResourcePurchase::query()->create([
+        $viewer = route('student.resources.download', $resource);
+        $this->post(route('student.resources.purchase', $resource), [
+            'provider_reference' => 'receipt-25000',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('resource_purchases', [
             'learning_resource_id' => $resource->id,
             'student_id' => $student->id,
-            'amount' => 25000,
-            'reference' => 'resource-reader-purchase',
-            'status' => 'paid',
+            'provider_reference' => 'receipt-25000',
+            'status' => 'pending_review',
         ]);
+        $this->get($viewer)->assertNotFound();
+        $this->get($viewer.'?render=1')->assertNotFound();
 
-        $this->get(route('student.resources.download', $resource))
+        \App\Models\ResourcePurchase::query()
+            ->where('learning_resource_id', $resource->id)
+            ->where('student_id', $student->id)
+            ->update(['status' => 'paid']);
+
+        $this->get($viewer)
             ->assertOk()
             ->assertViewIs('learning.document-reader')
             ->assertHeaderMissing('Content-Disposition');

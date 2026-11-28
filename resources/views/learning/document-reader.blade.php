@@ -16,7 +16,7 @@
         .reader-badge { display: inline-block; color: white; background: #132642; padding: .2rem .65rem; border-radius: .45rem; font-size: .8rem }
         .reader-text { position: relative; overflow: hidden }
         .reader-mark { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; overflow: hidden }
-        .reader-mark span { color: #13264288; transform: rotate(-12deg); overflow-wrap: anywhere }
+        .reader-mark span { max-width: 82%; padding: .3em .8em; border-radius: 999px; background: #1326420b; color: #13264234; font-size: clamp(12px, 3vw, 26px); font-weight: 700; transform: rotate(-12deg); filter: blur(.45px); overflow-wrap: anywhere }
     </style>
 </head>
 <body>
@@ -37,7 +37,7 @@
         @elseif ($text !== null)
             <div class="reader-text">
                 <pre dir="auto">{{ $text }}</pre>
-                <div class="reader-mark" aria-hidden="true"><span dir="ltr">{{ $watermark }}</span></div>
+                <div class="reader-mark" aria-hidden="true"><span>آکادمی شیخان · <bdi dir="ltr">{{ $watermark }}</bdi></span></div>
             </div>
             @if ($textTruncated)<p>فقط ۱۲۸ کیلوبایت اول متن نمایش داده شده است.</p>@endif
         @else
