@@ -10,6 +10,12 @@ use Tests\TestCase;
 
 final class LocalVideoProcessorTest extends TestCase
 {
+    public function test_viewer_render_uses_its_own_queue(): void
+    {
+        $job = new \App\Jobs\Learning\RenderViewerVideo('source.mp4', 'viewer-videos/example.mp4', 1);
+        $this->assertSame('video', $job->connection);
+        $this->assertSame('viewer-video', $job->queue);
+    }
     public function test_remux_requires_browser_compatible_streams(): void
     {
         $processor = new LocalVideoProcessor;

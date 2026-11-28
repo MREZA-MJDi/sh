@@ -163,7 +163,7 @@ final class StudentVideoAccessTest extends TestCase
         }
     }
 
-    public function test_original_file_is_not_offloaded_even_when_nginx_offload_is_enabled(): void
+    public function test_only_authorized_viewer_copy_is_offloaded_when_enabled(): void
     {
         config(['learning.nginx_private_video' => true]);
         $student = $this->userWithRole('student');
