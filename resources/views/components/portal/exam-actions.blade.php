@@ -11,8 +11,8 @@
  @if(!$details)<a class="pill" href="{{ route('student.exams.show',$exam) }}">جزئیات</a>@endif
  @if($ready && ($active || $used < $limit) && auth()->user()->hasPermissionTo('exams.attempt'))
   <form method="POST" action="{{ route('student.exams.start',$exam) }}">@csrf<button class="btn s" type="submit"><x-portal.icon name="check"/>{{ $active ? 'ادامه آزمون' : 'شروع آزمون' }}</button></form>
- @elseif($exam->starts_at?->isFuture())<small>پیش از زمان شروع</small>
- @elseif(!$ready)<small>آزمون آماده شروع نیست</small>
- @elseif($used >= $limit)<small>تلاش مجاز تمام شده</small>@endif
- @if($attempts->isNotEmpty())<a class="pill" href="{{ route('student.exams.result',$exam) }}">نتایج تلاش‌ها</a>@endif
+ @elseif($exam->starts_at?->isFuture())<small>هنوز وقت شروع نرسیده است.</small>
+ @elseif(!$ready)<small>این آزمون هنوز برای پاسخ‌دادن آماده نیست.</small>
+ @elseif($used >= $limit)<small>همهٔ دفعات مجاز شرکت در این آزمون را استفاده کرده‌ای.</small>@endif
+ @if($attempts->isNotEmpty())<a class="pill" href="{{ route('student.exams.result',$exam) }}">دیدن نتیجه</a>@endif
 </div>

@@ -246,7 +246,7 @@
                                                             @if($canViewLessonContent && filled($lesson->body))
                                                                 <p class="lesson-description">{{ $lesson->body }}</p>
                                                             @elseif(! $canViewLessonContent && filled($lesson->body))
-                                                                <p class="lesson-description lesson-description-locked">محتوای این درس پس از ثبت‌نام رایگان در دسترس خواهد بود.</p>
+                                                                <p class="lesson-description lesson-description-locked">{{ $course->type === 'free' ? 'برای دیدن این درس با حساب دانش‌آموزی وارد شو.' : 'بعد از خرید دوره می‌توانی این درس را ببینی.' }}</p>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -373,8 +373,11 @@
 
         {{-- سایدبار استیکی قیمت و ثبت‌نام --}}
         <aside class="card stk">
-            @if($course->type === 'paid')
-                <span class="bd a">{{ $hasCourseAccess ? 'دسترسی فعال' : 'دوره پولی' }}</span>
+            @if($hasCourseAccess)
+                <span class="bd a">دسترسی فعال</span>
+                <h2 style="margin:12px 0 16px">این دوره برایت باز است</h2>
+            @elseif($course->type === 'paid')
+                <span class="bd a">دوره پولی</span>
                 <div style="margin:12px 0 16px">
                     <span class="big">{{ number_format((int)$course->price) }}</span>
                     <small style="color:var(--mute);font-size:14px">تومان</small>
@@ -387,7 +390,13 @@
             @endif
 
             @if ($hasCourseAccess)
-                <a class="btn" style="width:100%;justify-content:center;font-size:15px" href="{{ route('student.courses.show', $course) }}">ورود به دوره</a>
+                @if($canWatchCourseVideos)
+                    <button id="course-video-launcher" class="btn" style="width:100%;justify-content:center" type="button" aria-haspopup="dialog" aria-controls="course-video-dialog">تماشای ویدیوهای دوره</button>
+                @elseif($totalLessons > 0)
+                    <a class="btn" style="width:100%;justify-content:center" href="#c2">رفتن به درس‌ها</a>
+                @elseif($courseResources->isNotEmpty())
+                    <a class="btn" style="width:100%;justify-content:center" href="#course-resources">دیدن جزوه‌ها</a>
+                @endif
             @elseif ($course->type === 'paid')
                 <form method="POST" action="{{ route('public.cart.add', $course) }}">
                     @csrf
@@ -397,14 +406,15 @@
                     <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">ورود به حساب کاربری</a>
                 @endguest
             @elseif (auth()->guest())
-                <a class="btn o s" href="{{ route('login') }}" style="width:100%;justify-content:center;margin-top:10px;color:var(--pri)">برای دسترسی رایگان وارد حساب دانش‌آموزی شوید</a>
+                <a class="btn" href="{{ route('login', ['course' => $course->slug]) }}" style="width:100%;justify-content:center">ورود و شروع رایگان</a>
+                <a class="btn o s" href="{{ route('register', ['course' => $course->slug]) }}" style="width:100%;justify-content:center;margin-top:8px">ساخت حساب دانش‌آموزی</a>
             @else
                 <p class="mu" style="text-align:center">ثبت‌نام رایگان فقط از حساب فعال دانش‌آموز انجام می‌شود.</p>
             @endif
 
-            <p style="font-size:13px;color:var(--mute);margin:14px 0 0;text-align:center;line-height:1.7">
-                دسترسی دوره‌های رایگان برای دانش‌آموزان فعال است؛ دوره‌های پولی پس از تأیید پرداخت باز می‌شوند.
-            </p>
+            @if(!$hasCourseAccess && $course->type === 'free' && auth()->guest())
+                <p class="mu" style="margin:12px 0 0">بعد از ورود یا ساخت حساب، به همین دوره برمی‌گردی.</p>
+            @endif
 
             <ul>
                 @if($features['recorded_video'] ?? false)
@@ -517,18 +527,6 @@
 @endif
 
     @if ($canWatchCourseVideos)
-        <button
-            type="button"
-            id="course-video-launcher"
-            class="btn"
-            style="position:fixed;z-index:80;inset-inline-end:24px;bottom:24px;box-shadow:0 12px 32px rgba(15,23,42,.22)"
-            aria-haspopup="dialog"
-            aria-controls="course-video-dialog"
-        >
-            <svg class="i"><use href="#play"/></svg>
-            تماشای ویدیوهای دوره
-        </button>
-
         <style>
             .course-video-layout { display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;padding:16px }
             @media (max-width: 680px) { .course-video-layout { grid-template-columns:minmax(0,1fr) } }

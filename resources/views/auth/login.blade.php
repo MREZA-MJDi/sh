@@ -44,13 +44,17 @@
 
             <section id="loginPanel" role="tabpanel" aria-labelledby="loginTab" @if(($activeTab ?? 'login') === 'register') hidden @endif>
                 <form method="POST" action="{{ route('login.store') }}">
+                    @if(!empty($returnCourse))
+                        <input type="hidden" name="return_course" value="{{ $returnCourse->slug }}">
+                        <p class="auth-register-note">بعد از ورود به «{{ $returnCourse->title }}» برمی‌گردی.</p>
+                    @endif
                     @csrf
                     <label for="email">ایمیل، شماره موبایل یا شناسه حساب</label>
                     <input class="ac-field" id="email" name="email" type="text" value="{{ old('email') }}" autocomplete="username" required @if(($activeTab ?? 'login') === 'login') autofocus @endif>
                     <label for="password">گذرواژه</label>
                     <input class="ac-field" id="password" name="password" type="password" autocomplete="current-password" required>
                     <label class="auth-remember"><input type="checkbox" name="remember" value="1" @checked(old('remember'))> مرا به خاطر بسپار</label>
-                    <button class="ac-btn auth-submit" type="submit">ورود به پنل</button>
+                    <button class="ac-btn auth-submit" type="submit">{{ !empty($returnCourse) ? 'ورود و بازگشت به دوره' : 'ورود به پنل' }}</button>
                 </form>
 
                 @if ($demoAccounts)
@@ -80,6 +84,10 @@
             <section id="registerPanel" role="tabpanel" aria-labelledby="registerTab" @if(($activeTab ?? 'login') !== 'register') hidden @endif>
                 <p class="auth-register-note">این فرم یک حساب دانش‌آموزی ایجاد می‌کند.</p>
                 <form method="POST" action="{{ route('register.store') }}">
+                    @if(!empty($returnCourse))
+                        <input type="hidden" name="return_course" value="{{ $returnCourse->slug }}">
+                        <p class="auth-register-note">بعد از ثبت‌نام به «{{ $returnCourse->title }}» برمی‌گردی.</p>
+                    @endif
                     @csrf
                     <label for="register_name">نام و نام خانوادگی</label>
                     <input class="ac-field" id="register_name" name="name" value="{{ old('name') }}" autocomplete="name" maxlength="120" required>
@@ -100,7 +108,7 @@
                     <label for="register_password_confirmation">تکرار گذرواژه</label>
                     <input class="ac-field" id="register_password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="10" required>
 
-                    <button class="ac-btn auth-submit" type="submit">ساخت حساب دانش‌آموزی</button>
+                    <button class="ac-btn auth-submit" type="submit">{{ !empty($returnCourse) ? 'ساخت حساب و بازگشت به دوره' : 'ساخت حساب دانش‌آموزی' }}</button>
                 </form>
             </section>
 

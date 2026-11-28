@@ -1,8 +1,13 @@
 @extends('student.layouts.app')
 @section('title', 'آزمون‌ها')
+@section('hide-topbar-title', '1')
 @section('content')
 <section class="page" id="exams">
- <x-portal.page-head title="آزمون‌های من" icon="check" tone="tracking"><span class="tag">{{ $exams->total() }} آزمون</span></x-portal.page-head>
+ <x-portal.page-head title="آزمون‌های من" icon="check" tone="tracking">
+  <x-slot:subtitle>زمان آزمون را ببین و وقتی آماده‌ای روی «شروع آزمون» بزن.</x-slot:subtitle>
+  <span class="tag">{{ $exams->total() }} آزمون</span>
+ </x-portal.page-head>
+ <section class="card">
  <div class="portal-action-grid">
  @forelse($exams as $exam)
   <article class="portal-exam-card">
@@ -16,5 +21,6 @@
   <x-portal.empty-state title="آزمونی برای شما منتشر نشده است." icon="check" tone="tracking"/>
  @endforelse
  </div>{{ $exams->links() }}
+ </section>
 </section>
 @endsection

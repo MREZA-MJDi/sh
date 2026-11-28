@@ -1,5 +1,6 @@
 @extends('student.layouts.app')
 @section('title', 'آزمون آنلاین')
+@section('hide-topbar-title', '1')
 @section('content')
 <section class="page" id="exam-take">
 <x-portal.page-head icon="check" tone="tracking" :title="$exam->title"/>
@@ -9,7 +10,8 @@
   <div class="chead"><h2>{{ $questions->count() }} سؤال</h2>
    @if ($remainingSeconds !== null)<span class="tag w">زمان باقی‌مانده: <b id="examTimer" dir="ltr">--:--</b></span>@endif
   </div>
-  <p>{{ $exam->description }}</p>
+  @if(filled($exam->description))<p>{{ $exam->description }}</p>@endif
+  <p>به سؤال‌ها جواب بده و در پایان روی «ارسال پاسخ‌ها» بزن.</p>
   @foreach ($questions as $question)
    @php
     $saved = $answers->get($question->id)?->answer;
@@ -31,7 +33,7 @@
     @endif
    </section>
   @endforeach
-  <button class="btn s" type="submit" data-confirm="پاسخ‌ها ثبت و آزمون ارسال شود؟">ثبت نهایی پاسخ‌ها</button>
+  <button class="btn s" type="submit" data-confirm="آزمون تمام شود و پاسخ‌ها ارسال شوند؟">ارسال پاسخ‌ها</button>
  </form>
 </section>
 @endsection

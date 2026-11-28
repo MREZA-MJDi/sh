@@ -31,7 +31,7 @@ final class CourseController extends Controller
             ->withExists(['enrollments as has_active_enrollment' => fn ($enrollments) => $enrollments
                 ->where('student_id', $student->id)
                 ->currentlyActive()])
-            ->orderByRaw("CASE WHEN type = 'free' THEN 0 ELSE 1 END")
+            ->orderByDesc('has_active_enrollment')
             ->orderBy('title')
             ->paginate(12)
             ->withQueryString();

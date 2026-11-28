@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\Course;
 use App\Models\User;
 use App\Services\AuthenticationService;
 use App\Services\LegacyWordPressPassword;
@@ -17,12 +18,12 @@ use Illuminate\View\View;
 
 final class SessionController extends Controller
 {
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.login', $this->loginViewData('login'));
+        return view('auth.login', $this->loginViewData('login', $request));
     }
 
-    private function loginViewData(string $activeTab): array
+    private function loginViewData(string $activeTab, Request $request): array
     {
         $demoPassword = config('demo.password');
         $showDemoAccounts = app()->environment(['local', 'testing'])
@@ -33,6 +34,7 @@ final class SessionController extends Controller
 
         return [
             'activeTab' => $activeTab,
+            'returnCourse' => $this->findFreeCourse($request->old('return_course', $request->query('course'))),
             'demoAccounts' => $showDemoAccounts ? config('demo.accounts', []) : [],
             'demoPassword' => $showDemoAccounts ? $demoPassword : null,
         ];
@@ -128,13 +130,17 @@ final class SessionController extends Controller
 
         $user->forceFill(['last_login_at' => now()])->save();
 
+        if ($dashboardRoute === 'student.dashboard' && ($course = $this->findFreeCourse($request->input('return_course')))) {
+            return redirect()->route('public.courses.show', $course->slug);
+        }
+
         // Ignore stale intended URLs from another role's protected workspace.
         return redirect()->route($dashboardRoute);
     }
 
-    public function register(): View
+    public function register(Request $request): View
     {
-        return view('auth.login', $this->loginViewData('register'));
+        return view('auth.login', $this->loginViewData('register', $request));
     }
 
     public function storeRegistration(
@@ -146,8 +152,9 @@ final class SessionController extends Controller
         Auth::login($student);
         $request->session()->regenerate();
 
-        return redirect()
-            ->route('student.dashboard')
+        $course = $this->findFreeCourse($request->input('return_course'));
+
+        return ($course ? redirect()->route('public.courses.show', $course->slug) : redirect()->route('student.dashboard'))
             ->with('status', 'حساب دانش‌آموزی شما با موفقیت ساخته شد.');
     }
 
@@ -160,5 +167,15 @@ final class SessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login')->with('status', 'با موفقیت از حساب خارج شدید.');
+    }
+
+    private function findFreeCourse(mixed $slug): ?Course
+    {
+        if (! is_string($slug) || blank($slug) || mb_strlen($slug) > 190) {
+            return null;
+        }
+
+        return Course::query()->where('slug', $slug)->where('type', 'free')->where('status', 'published')
+            ->first(['id', 'slug', 'title']);
     }
 }

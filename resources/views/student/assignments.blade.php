@@ -4,6 +4,7 @@
 @section('content')
 <section class="page" id="assignments">
  <x-portal.page-head icon="check" tone="tracking" title="تکالیف">
+  <x-slot:subtitle>اول راهنمای تکلیف را بخوان، بعد از دکمهٔ «ارسال پاسخ» جواب یا فایل تمرینت را بفرست.</x-slot:subtitle>
   <span class="pill">{{ number_format($homeworks->total()) }} تکلیف</span>
  </x-portal.page-head>
  <div class="assignment-list">
@@ -57,18 +58,24 @@
       <form class="assignment-form" method="POST" action="{{ route('student.homework.submissions.store', $homework) }}" enctype="multipart/form-data">
        @csrf
        <input type="hidden" name="homework_context" value="{{ $homework->id }}">
-       <label for="answer-{{ $homework->id }}">متن پاسخ</label>
+       @if($restore && $errors->any())
+        <div class="assignment-feedback" role="alert">
+         <h3>این موارد را بررسی کن</h3>
+         <ul>@foreach($errors->all() as $message)<li>{{ $message }}</li>@endforeach</ul>
+        </div>
+       @endif
+       <label for="answer-{{ $homework->id }}">جوابت را بنویس</label>
        <textarea class="fld" id="answer-{{ $homework->id }}" name="answer" rows="4" maxlength="12000" placeholder="متن پاسخ را بنویسید...">{{ $restore ? old('answer', $submission?->answer) : $submission?->answer }}</textarea>
        @if($remaining > 0)
         <label class="assignment-upload" for="files-{{ $homework->id }}">
-         <x-portal.icon name="file"/><strong>افزودن فایل</strong><small>حداکثر {{ $remaining }} فایل دیگر · هر فایل ۱۰ مگابایت</small>
+         <x-portal.icon name="file"/><strong>انتخاب عکس یا فایل تمرین</strong><small>تا {{ $remaining }} فایل دیگر · بیشترین حجم هر فایل ۱۰ مگابایت</small>
          <input id="files-{{ $homework->id }}" type="file" name="files[]" multiple accept=".pdf,.jpg,.jpeg,.png,.txt">
         </label>
        @else
         <small class="assignment-meta">ظرفیت ۵ فایل تکمیل است؛ برای افزودن فایل، یکی از پیوست‌ها را حذف کنید.</small>
        @endif
        @if($late)<small class="assignment-meta">ارسال پس از مهلت مقرر ثبت می‌شود.</small>@endif
-       <div class="assignment-form-actions"><button class="btn s" type="submit"><x-portal.icon name="check"/> ثبت پاسخ</button></div>
+       <div class="assignment-form-actions"><button class="btn s" type="submit"><x-portal.icon name="check"/>{{ $submission ? 'ذخیره تغییرات پاسخ' : 'فرستادن پاسخ به معلم' }}</button></div>
       </form>
      </details>
     @else
